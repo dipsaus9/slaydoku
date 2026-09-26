@@ -96,7 +96,7 @@ jobs:
         run: |
           BRANCH="schedule/$START"
           # Only schedule files may change; anything else means the run went wrong.
-          if git status --porcelain | grep -v ' src/content/schedule/' ; then
+          if git status --porcelain | grep -vE '^.. src/content/schedule/' ; then
             echo "::error title=Unexpected files::The generation changed files outside src/content/schedule/."
             exit 1
           fi
