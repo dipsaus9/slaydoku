@@ -15,7 +15,7 @@ The game has one strategy (everything is in the build, nothing is fetched from e
 
 ## What is cached: precache everything, no runtime caching
 
-Every file of the build goes into the cache at install: `index.html`, the hashed `/assets/*` (main JS, CSS, any lazily loaded chunks), the manifest, the icons and favicons. Not cached: `sw.js` itself, `robots.txt` and `og-image.png` (only crawlers read them).
+Every file of the build goes into the cache at install: `index.html`, the hashed `/assets/*` (main JS, CSS, any lazily loaded chunks), the manifest, the icons and favicons. Not cached: `sw.js` itself, `robots.txt`, `sitemap.xml` and `og-image.png` (only crawlers read them). The About page (`/about`) is a clean URL like `/`: the cached `index.html` answers it, so it works offline.
 
 Why precache all instead of caching a file the first time it is used: offline play should not depend on what was opened before. A runtime cache-first would leave everything that was never opened unplayable offline. It also keeps files that belong together (an index and the data files it lists) in one cache from one build.
 
@@ -49,7 +49,7 @@ The build fails when the precache goes over 3 MiB raw (`PRECACHE_BUDGET_BYTES` i
 
 Only in the production build: `startOfflineSupport` checks `import.meta.env.PROD`. `bun run dev` (and so the lab, which only exists there) never registers a worker, so edits are never hidden behind a cached shell. `sw.js` is not built in dev either.
 
-`sw.js` carries the same `X-Robots-Tag: noindex,nofollow` header as every file. That only keeps search engines out; it does not stop a browser from registering the worker, and `robots.txt` does not apply to service worker registration either.
+While the site is not indexable (`src/brand/site.json`, see `docs/launch.md`), `sw.js` carries the same `X-Robots-Tag: noindex,nofollow` header as every file. That only keeps search engines out; it does not stop a browser from registering the worker, and `robots.txt` does not apply to service worker registration either.
 
 ## Verifying
 

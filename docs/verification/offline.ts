@@ -3,7 +3,7 @@
 // protocol through the whole offline story:
 //   1. first visit: the worker installs, precaches the build and takes control of the page (no second load needed);
 //   2. Network.emulateNetworkConditions offline (and a fetch that must fail, so the offline mode is real), then reload on
-//      / and /level/demo: the level list opens and the demo level plays (from the precache);
+//      /, /level/demo and /about: the level list opens, the demo level plays and the About page shows (from the precache);
 //   3. a new deploy (the level list subtitle gets " (v2)" for one build, restored afterwards): back online, the next visit
 //      keeps showing the cached build, the notice "New version available" + "Reload" appears, the reload
 //      activates the new build, the old cache is gone, and localStorage (progress, board saves, a marker) is untouched.
@@ -165,6 +165,16 @@ try {
 
   await goto('/nonsense/path')
   check('offline unknown path falls back to the app (list at /)', (await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)) && (await evaluate('location.pathname')) === '/')
+
+  // The About page is a clean URL like any other: the cached shell answers it, and the link on the list opens it offline.
+  await goto('/about')
+  check('offline reload on /about: the About page opens', await until(`document.querySelector('.about') !== null`))
+  check('offline /about has the credit and the privacy line', (await evaluate(`document.body.textContent.includes('Inspired by Murdoku by Manuel Garand') && document.body.textContent.includes('no accounts, no tracking')`)) === true)
+  await shot('offline-03-about')
+  await goto('/')
+  await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)
+  await evaluate(`document.querySelector('a.levels__about').click()`)
+  check('offline: the About link on the list opens the About page', (await until(`document.querySelector('.about') !== null`)) && (await evaluate('location.pathname')) === '/about')
 
   // ---- 3. a new deploy ------------------------------------------------------------------------
   await setOffline(false)

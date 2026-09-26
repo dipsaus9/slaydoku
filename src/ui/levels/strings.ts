@@ -20,6 +20,7 @@ export const LEVELS_EN = {
     unknown: 'That level does not exist.',
     unsolved: 'That level has not been solved yet.',
   },
+  about: 'About Slaydoku',
   dismissNotice: 'Close',
   back: 'Levels',
   backLabel: 'Back to all levels',

@@ -35,15 +35,25 @@ describe('brand assets', () => {
     expect(statSync(join(PUBLIC, 'og-image.png')).size).toBeLessThan(300 * 1024)
   })
 
-  it('ships the favicon SVG source unchanged and not the Vite logo', () => {
+  it('ships the favicon SVG source unchanged, with the mystery motif and neither the Vite logo nor the old gift box', () => {
     const shipped = readFileSync(join(PUBLIC, 'favicon.svg'), 'utf8')
     expect(shipped).toBe(readFileSync(join(SOURCES, 'favicon.svg'), 'utf8'))
     expect(shipped).not.toContain('#863bff')
+    expect(shipped).toContain('id="mystery"')
+    expect(shipped).not.toContain('id="gift"')
+  })
+
+  it('draws no gift box in any source: the art is the magnifying glass over a grid', () => {
+    for (const file of ['favicon.svg', 'icon.svg', 'og-image.svg']) {
+      const svg = readFileSync(join(SOURCES, file), 'utf8')
+      expect(svg, file).not.toMatch(/gift|ribbon|#2468c4/i)
+      expect(svg, file).toContain('id="mystery"')
+    }
   })
 
   it('carries only the site name and tagline in the share image source', () => {
     const svg = readFileSync(join(SOURCES, 'og-image.svg'), 'utf8')
     const text = [...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map((m) => m[1])
-    expect(text).toEqual(['Slaydoku', 'A new puzzle every day'])
+    expect(text).toEqual(['Slaydoku', 'A new murder mystery', 'puzzle every day'])
   })
 })

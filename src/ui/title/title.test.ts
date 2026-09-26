@@ -42,6 +42,11 @@ describe('screenTitle', () => {
     expect(screenTitle('/level/%E0%A4%A', context(firstSolved))).toBe(SITE_TITLE) // bad escape
   })
 
+  it('names the About page', () => {
+    expect(screenTitle('/about', context(none))).toBe('About – Slaydoku')
+    expect(screenTitle('/about/', context(firstSolved))).toBe(`${TITLE_EN.about} – Slaydoku`)
+  })
+
   it('falls back to the site name for unknown routes, including /lab', () => {
     for (const path of ['/lab', '/lab/puzzle', '/nonsense', 'random']) {
       expect(screenTitle(path, context(firstSolved))).toBe(SITE_TITLE)
