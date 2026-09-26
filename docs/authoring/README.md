@@ -12,6 +12,7 @@ How to add content to Slaydoku without the original author. Every command in the
 | Measure the generator on fresh seeds, see how many more puzzles a cell can give, extend the pack safely | [scaling.md](scaling.md) |
 | Add a scene theme, an object type or an object icon | [theme-and-icons.md](theme-and-icons.md) |
 | Understand or change the cast: name pool, `castFor`, gates, portraits | [cast.md](cast.md) |
+| Generate, extend or check the daily schedule (one puzzle per UTC day) | [schedule.md](schedule.md) |
 
 ## Map of the repo
 
@@ -27,8 +28,9 @@ How to add content to Slaydoku without the original author. Every command in the
 | `src/content/themes/` | Scene themes (home, office, park, school, shop) for random scenes |
 | `src/content/cast/` | The name pool, `castFor` (unique initials, balanced genders, seeded), `castProblems`, the generic portrait designs |
 | `src/content/packs/` | The pack pipeline (build, gates, format, read, sweep); no pack data is committed |
+| `src/schedule/`, `src/content/schedule/` | The daily schedule: the pure picker per UTC date, the build and gates of a day, and the committed month files |
 | `src/render/icons/` | Object icons (engine catalog) and `themes/` (theme-only icons) |
-| `tools/` | The `bun run` entry points: `generate`, `verify`, `pack`, `icon-sheet.ts` |
+| `tools/` | The `bun run` entry points: `generate`, `verify`, `pack`, `schedule`, `schedule:check`, `icon-sheet.ts` |
 
 ## Commands you will use
 
@@ -44,6 +46,8 @@ bun run generate ...   # one puzzle from a scene, no difficulty tier   (see gene
 bun run verify <file>  # check a puzzle file                           (see generate-verify-register.md)
 bun run pack ...       # build the puzzle packs                        (see regenerate-packs.md)
 bun tools/pack.ts --verify   # re-verify the pack files on disk (none are committed)
+bun run schedule --days 60   # extend the daily schedule                (see schedule.md)
+bun run schedule:check       # days left after today (UTC), exit 1 under 30
 bun run validate:generation  # sweep fresh seeds per size x tier x theme, report success rate and yield (see scaling.md)
 bun tools/icon-sheet.ts [out.html]   # contact sheet of every icon    (see theme-and-icons.md)
 bun tools/portrait-sheet.ts [out.html]   # contact sheet of every portrait design and sample casts (see cast.md)
