@@ -82,3 +82,34 @@ describe('bun run schedule:check', () => {
     expect(run('schedule-check.ts', ['--bogus']).code).toBe(2)
   })
 })
+
+describe('bun run schedule:next', () => {
+  it('prints whether a top-up is due, where it starts and the exact command', () => {
+    const fine = run('schedule-next.ts', ['--today', '2026-09-27'])
+    expect(fine.code).toBe(0)
+    expect(fine.out).toContain('120 days left after 2026-09-27; a top-up is not due')
+    expect(fine.out).toContain('Next start: 2027-02-09 (last day to be added: 2027-05-09)')
+    expect(fine.out).toContain('Command: bun run schedule --start 2027-02-09 --days 90 --jobs 2')
+    const due = run('schedule-next.ts', ['--today', '2027-01-10', '--days', '30'])
+    expect(due.code).toBe(0)
+    expect(due.out).toContain('29 days left after 2027-01-10; a top-up is due')
+    expect(due.out).toContain('Command: bun run schedule --start 2027-02-09 --days 30 --jobs 2')
+  })
+  it('prints key=value lines for $GITHUB_OUTPUT with --github', () => {
+    const out = run('schedule-next.ts', ['--today', '2027-01-10', '--github']).out
+    expect(out.trim().split('\n')).toEqual(['needed=true', 'days_left=29', 'start=2027-02-09', 'days=90', 'end=2027-05-09'])
+    expect(run('schedule-next.ts', ['--today', '2026-09-27', '--github']).out).toContain('needed=false')
+  })
+  it('reports a top-up as due with --force even when the schedule is comfortable', () => {
+    const forced = run('schedule-next.ts', ['--today', '2026-09-27', '--force', '--github', '--days', '5'])
+    expect(forced.out.trim().split('\n')).toEqual(['needed=true', 'days_left=120', 'start=2027-02-09', 'days=5', 'end=2027-02-13'])
+    expect(run('schedule-next.ts', ['--today', '2026-09-27', '--force']).out).toContain('a top-up is forced')
+  })
+  it('starts on the launch date when nothing is scheduled, and exits 2 on bad arguments', () => {
+    const none = run('schedule-next.ts', ['--dir', join(scratch, 'nothing-here'), '--today', '2026-09-27', '--github'])
+    expect(none.code).toBe(0)
+    expect(none.out).toContain('needed=true')
+    expect(none.out).toContain('start=2026-10-12')
+    for (const bad of [['--days', '0'], ['--days', '900'], ['--days', 'many'], ['--today', 'soon'], ['--bogus']]) expect(run('schedule-next.ts', bad).code, bad.join(' ')).toBe(2)
+  })
+})
