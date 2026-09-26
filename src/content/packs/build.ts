@@ -8,6 +8,7 @@ import type { Gender, Person, Puzzle, Scene } from '../../engine/model/index.ts'
 import { roomName } from '../../engine/clues/index.ts'
 import { generateScene } from '../../engine/scenegen/index.ts'
 import { castFor } from '../cast/index.ts'
+import type { Cast } from '../cast/index.ts'
 import { getTheme } from '../themes/index.ts'
 import type { ThemeId } from '../themes/index.ts'
 import { boardKey, entryProblems, isLadderTier, puzzleKey, ratingOf } from './gates.ts'
@@ -61,15 +62,16 @@ export type BuildResult = { ok: true; entry: PackEntry; ms: number } | { ok: fal
 
 /**
  * One candidate: random scene, tier puzzle, dressing, all gates. Same arguments give the same entry. The cast comes from `castFor`
- * (seeded by the puzzle id; `previousCast` is the day before's, whose names are not used again).
+ * (seeded by the puzzle id; `previousCast` is the day before's, whose names are not used again). The daily schedule passes a `cast` of its
+ * own instead, decided per day (SLAY-1.4); `previousCast` is then not used.
  */
-export function buildEntry(size: number, tier: TierId, theme: ThemeId, seed: number, budgetMs = PACK_BUDGET_MS, previousCast?: readonly string[]): BuildResult {
+export function buildEntry(size: number, tier: TierId, theme: ThemeId, seed: number, budgetMs = PACK_BUDGET_MS, previousCast?: readonly string[], cast?: Cast): BuildResult {
   const started = performance.now()
   const scene = generateScene({ width: size, height: size, theme, seed })
   const id = packId(size, tier, theme, seed)
   // The cast (names AND genders) first: the ladder generator needs the genders to draw the gender cards.
-  const built = castFor(size, id, previousCast)
-  const cast = built.names
+  const built = cast ?? castFor(size, id, previousCast)
+  const names = built.names
   let generated: Puzzle
   if (isLadderTier(tier)) {
     // Very easy to medium: built on the human-solvability ladder (CAD-8.3); the tier is exact (tierFor gives it).
@@ -81,14 +83,14 @@ export function buildEntry(size: number, tier: TierId, theme: ThemeId, seed: num
     if (!result.ok) return { ok: false, reason: result.failure.message, failure: result.failure }
     generated = result.report.puzzle
   }
-  const puzzle = dress(generated, cast, built.genders)
+  const puzzle = dress(generated, names, built.genders)
   const victim = puzzle.solution.find((p) => p.personId === puzzle.people.find((q) => q.kind === 'victim')!.id)!.cell
   const entry: PackEntry = {
     id, size, tier, theme, seed,
     title: titleFor(puzzle.scene, theme, victim.row, victim.col, seed),
     clueCount: puzzle.clues.length,
     rating: ratingOf(puzzle, tier).rating,
-    cast: [...cast],
+    cast: [...names],
     puzzle,
   }
   const problems = entryProblems(entry)
