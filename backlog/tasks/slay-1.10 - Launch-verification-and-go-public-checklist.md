@@ -4,6 +4,7 @@ title: Launch verification and go-public checklist
 status: To Do
 assignee: []
 created_date: '2026-09-26 19:32'
+updated_date: '2026-09-26 23:05'
 labels:
   - story
 dependencies:
@@ -36,4 +37,5 @@ Branch: SLAY-1.10/launch-verification
 - [ ] #2 tools/audit-personal.ts also scans git history: any file content or commit message hit fails, and only the owner's configured author identity is allowed as commit metadata (one explicit allowance); tests prove both
 - [ ] #3 A go-public checklist in docs/launch.md covers naming and domain checks, README and license review, a secrets scan (git history and tree), Vercel and GitHub settings, and the exact steps to flip the repo to public; bun run audit:personal is green
 - [ ] #4 bun run lint/typecheck/test (--maxWorkers=1) pass
+- [ ] #5 The go-public checklist includes the Vercel GitHub connection step (app access to the repo, connect Git, production branch main) and confirms a push to main deploys
 <!-- AC:END -->
