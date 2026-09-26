@@ -1,0 +1,77 @@
+/* About page. Light mode only, like the rest of the app; every target is at least 44px. */
+
+.about {
+  --ink: #2a2a36;
+  --accent: #2b7de9;
+  --line: #d3cec4;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+.about__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-left: -8px;
+  padding: 0 8px;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.about__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0 24px;
+}
+
+.about__logo {
+  flex: none;
+  border-radius: 14px;
+}
+
+.about__title {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.15;
+}
+
+.about__tagline {
+  margin: 4px 0 0;
+  opacity: 0.75;
+}
+
+.about__section {
+  margin-bottom: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.about__section h2 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.about__section p {
+  margin: 0 0 8px;
+}
+
+.about__steps {
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.about__steps li {
+  margin-bottom: 6px;
+}

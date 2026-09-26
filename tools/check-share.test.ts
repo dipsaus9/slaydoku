@@ -3,6 +3,7 @@ import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { parseIndexable, robotsTxt, SITEMAP_PATHS, vercelSendsNoindex } from '../src/brand/indexing.ts'
 import {
   checkShare,
   formatChecks,
@@ -16,6 +17,10 @@ import {
   PREVIEW_BOTS,
 } from './check-share.ts'
 
+const VERCEL = readFileSync(join(import.meta.dirname, '..', 'vercel.json'), 'utf8')
+const vercelSendsNoindexNow = () => vercelSendsNoindex(VERCEL)
+const INDEXABLE_NOW = parseIndexable(readFileSync(join(import.meta.dirname, '..', 'src/brand/site.json'), 'utf8'))
+
 const ROOT = join(import.meta.dirname, '..')
 const PNG = readFileSync(join(ROOT, 'public/og-image.png'))
 const ICON_192 = readFileSync(join(ROOT, 'public/icon-192.png'))
@@ -28,6 +33,10 @@ interface Site {
   html?: (origin: string) => string
   image?: { status?: number; type?: string; body?: Buffer }
   robots?: string
+  /** The mode the fake host is in. Default 'noindex': robots.txt, robots meta and X-Robots-Tag keep crawlers out. */
+  mode?: 'noindex' | 'indexable'
+  /** What `/sitemap.xml` answers. Default: a real sitemap in indexable mode, the SPA shell (a rewrite) in noindex mode. */
+  sitemap?: { status?: number; type?: string; body?: (origin: string) => string }
   /** Replaces the served manifest; status and type override the response. Default: the real public/manifest.webmanifest. */
   manifest?: { status?: number; type?: string; body?: string }
   /** Replaces the served icon files by path. */
@@ -39,6 +48,7 @@ interface Site {
 }
 
 const GOOD_ROBOTS = [...PREVIEW_BOTS.map((b) => `User-agent: ${b}\nAllow: /\n`), 'User-agent: *\nDisallow: /\n'].join('\n')
+const sitemapFor = (origin: string) => `<?xml version="1.0"?><urlset>${SITEMAP_PATHS.map((p) => `<url><loc>${origin}${p}</loc></url>`).join('')}</urlset>`
 
 const HOME_SCREEN_HEAD = `<link rel="manifest" href="/manifest.webmanifest" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -46,16 +56,16 @@ const HOME_SCREEN_HEAD = `<link rel="manifest" href="/manifest.webmanifest" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Slaydoku" />`
 
-const head = (origin: string, extra: { title?: string; ogImage?: string } = {}) => `<!doctype html><html lang="en"><head>
+const head = (origin: string, extra: { title?: string; ogImage?: string; robots?: string } = {}) => `<!doctype html><html lang="en"><head>
 <title>${extra.title ?? 'Slaydoku'}</title>
 ${HOME_SCREEN_HEAD}
-<meta name="description" content="A new murder mystery puzzle every day" />
-<meta name="robots" content="noindex,nofollow" />
+<meta name="description" content="Slaydoku: a new murder mystery puzzle every day. Read the clues, place every suspect and find out who was alone with the victim." />
+<meta name="robots" content="${extra.robots ?? 'noindex,nofollow'}" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:site_name" content="Slaydoku" />
 <meta property="og:title" content="Slaydoku" />
-<meta property="og:description" content="A new murder mystery puzzle every day" />
+<meta property="og:description" content="Slaydoku: a new murder mystery puzzle every day. Read the clues, place every suspect and find out who was alone with the victim." />
 <meta property="og:url" content="${origin}/" />
 <meta property="og:image" content="${extra.ogImage ?? `${origin}/og-image.png`}" />
 <meta property="og:image:width" content="1200" />
@@ -63,13 +73,16 @@ ${HOME_SCREEN_HEAD}
 <meta property="og:image:alt" content="Slaydoku, a new murder mystery puzzle every day" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Slaydoku" />
-<meta name="twitter:description" content="A new murder mystery puzzle every day" />
+<meta name="twitter:description" content="Slaydoku: a new murder mystery puzzle every day. Read the clues, place every suspect and find out who was alone with the victim." />
 <meta name="twitter:image" content="${extra.ogImage ?? `${origin}/og-image.png`}" />
 </head><body></body></html>`
 
 let server: Server | undefined
 
 async function serve(site: Site = {}): Promise<string> {
+  const indexable = site.mode === 'indexable'
+  const xRobots = indexable ? 'index,follow' : 'noindex,nofollow'
+  const page = (origin: string) => (site.html ?? ((o: string) => head(o, { robots: xRobots })))(origin)
   server = createServer((req, res) => {
     const origin = `http://127.0.0.1:${(server!.address() as AddressInfo).port}`
     if (req.url === '/og-image.png') {
@@ -83,16 +96,17 @@ async function serve(site: Site = {}): Promise<string> {
       res.writeHead(200, { 'content-type': 'image/png' }).end(site.icons?.[req.url] ?? fallback)
     } else if (req.url === '/level/demo' && site.deepLink) {
       const { status = 200, type = 'text/html', html = head } = site.deepLink
-      res.writeHead(status, { 'content-type': type, 'x-robots-tag': 'noindex,nofollow' }).end(html(origin))
+      res.writeHead(status, { 'content-type': type, 'x-robots-tag': xRobots }).end(html(origin))
     } else if (req.url === '/sw.js') {
       const { status = 200, type = 'text/javascript', cacheControl = 'no-cache' } = site.sw ?? {}
       res.writeHead(status, { 'content-type': type, ...(cacheControl === null ? {} : { 'cache-control': cacheControl }) }).end('self.addEventListener("fetch", () => {})')
     } else if (req.url === '/robots.txt') {
-      res.writeHead(200, { 'content-type': 'text/plain' }).end(site.robots ?? GOOD_ROBOTS)
+      res.writeHead(200, { 'content-type': 'text/plain' }).end(site.robots ?? (indexable ? robotsTxt(true, origin) : GOOD_ROBOTS))
+    } else if (req.url === '/sitemap.xml' && (indexable || site.sitemap)) {
+      const { status = 200, type = 'application/xml', body = sitemapFor } = site.sitemap ?? {}
+      res.writeHead(status, { 'content-type': type }).end(body(origin))
     } else {
-      res
-        .writeHead(200, { 'content-type': 'text/html', 'x-robots-tag': 'noindex,nofollow', ...site.headers })
-        .end((site.html ?? head)(origin))
+      res.writeHead(200, { 'content-type': 'text/html', 'x-robots-tag': xRobots, ...site.headers }).end(page(origin))
     }
   })
   await new Promise<void>((r) => server!.listen(0, '127.0.0.1', r))
@@ -112,13 +126,13 @@ describe('checkShare', () => {
 
   it('fails when the noindex header is missing, and skips that check with skipHeaders', async () => {
     const url = await serve({ headers: { 'x-robots-tag': '' } })
-    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /level/demo X-Robots-Tag header'])
+    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /level/demo X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
     expect(failures(await checkShare(url, { skipHeaders: true }))).toEqual([])
   })
 
   it('fails when a header carries only noindex', async () => {
     const url = await serve({ headers: { 'x-robots-tag': 'noindex' } })
-    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /level/demo X-Robots-Tag header'])
+    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /level/demo X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
   })
 
   it('fails on a wrong <title>', async () => {
@@ -227,6 +241,10 @@ describe('checkShare', () => {
         'deep link /level/demo is the HTML shell',
         'deep link /level/demo X-Robots-Tag header',
         'deep link /level/demo has the same head tags',
+        'deep link /about status 200',
+        'deep link /about is the HTML shell',
+        'deep link /about X-Robots-Tag header',
+        'deep link /about has the same head tags',
       ])
       expect(failures(checks)).toEqual([])
     })
@@ -274,6 +292,51 @@ describe('checkShare', () => {
     it('reads the revalidating Cache-Control values', () => {
       for (const ok of ['no-cache', 'public, max-age=0, must-revalidate', 'no-store']) expect(isRevalidated(ok), ok).toBe(true)
       for (const bad of ['public, max-age=3600', 'immutable', '', null, undefined]) expect(isRevalidated(bad), String(bad)).toBe(false)
+    })
+  })
+
+  describe('indexable mode (the site is public)', () => {
+    const check = async (site: Site = {}, options: { skipHeaders?: boolean } = {}) => checkShare(await serve({ mode: 'indexable', ...site }), { indexable: true, ...options })
+
+    it('passes a correct indexable deployment: no noindex anywhere, robots.txt open, sitemap listing the pages', async () => {
+      const checks = await check()
+      expect(failures(checks)).toEqual([])
+      const names = checks.map((c) => c.name)
+      expect(names).toEqual(expect.arrayContaining(['robots.txt allows crawling', 'robots.txt names the sitemap', 'sitemap.xml status 200', 'sitemap.xml is XML', 'sitemap.xml lists the pages']))
+      expect(names).not.toContain('robots.txt allows the preview bots')
+    })
+
+    it('fails a page that still says noindex: header, robots meta and deep links', async () => {
+      const url = await serve({ mode: 'indexable', headers: { 'x-robots-tag': 'noindex,nofollow' }, html: (o) => head(o) })
+      expect(failures(await checkShare(url, { indexable: true }))).toEqual(['X-Robots-Tag header', 'robots meta', 'deep link /level/demo X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
+      expect(failures(await checkShare(url, { indexable: true, skipHeaders: true }))).toEqual(['robots meta'])
+    })
+
+    it('fails when robots.txt still disallows everything or does not name the sitemap', async () => {
+      expect(failures(await check({ robots: GOOD_ROBOTS }))).toEqual(['robots.txt allows crawling', 'robots.txt names the sitemap'])
+      expect(failures(await check({ robots: 'User-agent: *\nAllow: /\n' }))).toEqual(['robots.txt names the sitemap'])
+    })
+
+    it('fails when the sitemap is missing, is not XML or forgets a page', async () => {
+      expect(failures(await check({ sitemap: { status: 404, type: 'text/plain', body: () => 'Not found' } }))).toEqual(['sitemap.xml status 200', 'sitemap.xml is XML', 'sitemap.xml lists the pages'])
+      expect(failures(await check({ sitemap: { type: 'text/html' } }))).toEqual(['sitemap.xml is XML'])
+      const noAbout = (o: string) => `<urlset><url><loc>${o}/</loc></url></urlset>`
+      const checks = await check({ sitemap: { body: noAbout } })
+      expect(failures(checks)).toEqual(['sitemap.xml lists the pages'])
+      expect(checks.find((c) => !c.ok)?.detail).toBe('missing /about')
+    })
+  })
+
+  describe('noindex mode publishes no sitemap', () => {
+    it('fails when a sitemap is served while the site is noindex', async () => {
+      const url = await serve({ sitemap: {} })
+      expect(failures(await checkShare(url))).toEqual(['no sitemap.xml is published'])
+    })
+
+    it('is the default mode and passes when the sitemap path falls to the SPA shell', async () => {
+      const checks = await checkShare(await serve())
+      expect(checks.map((c) => c.name)).toContain('no sitemap.xml is published')
+      expect(failures(checks)).toEqual([])
     })
   })
 
@@ -359,7 +422,7 @@ describe('home-screen manifest file', () => {
     }
   })
 
-  it('has no maskable icon: the gift reaches past the 80% safe zone of the full-bleed icon', () => {
+  it('has no maskable icon: the magnifying glass handle reaches past the 80% safe zone of the full-bleed icon', () => {
     expect(manifest.icons.some((i) => i.purpose?.includes('maskable'))).toBe(false)
   })
 })
@@ -383,11 +446,11 @@ describe('hosting config', () => {
   it('builds only main: every other branch is skipped so previews do not eat the daily deploy limit', () => {
     expect(vercel.ignoreCommand).toBe('[ "$VERCEL_GIT_COMMIT_REF" != "main" ]')
   })
-  it('lets the manifest through: a static file in public/ wins over the SPA rewrite and only gets the noindex header', () => {
+  it('lets the manifest through: a static file in public/ wins over the SPA rewrite and only gets the noindex header (when the site is noindex)', () => {
     expect(existsSync(join(ROOT, 'public/manifest.webmanifest'))).toBe(true)
     const rules = vercel.headers.filter((h) => new RegExp(`^${h.source}$`).test('/manifest.webmanifest'))
-    expect(rules.map((h) => h.source)).toEqual(['/(.*)'])
-    expect(rules[0]!.headers.map((h) => h.key)).toEqual(['X-Robots-Tag'])
+    expect(rules.map((h) => h.source)).toEqual(INDEXABLE_NOW ? [] : ['/(.*)'])
+    if (!INDEXABLE_NOW) expect(rules[0]!.headers.map((h) => h.key)).toEqual(['X-Robots-Tag'])
   })
   describe('clean URLs (History API routing)', () => {
     const rewrite = vercel.rewrites[0] as { source: string; destination: string }
@@ -397,13 +460,13 @@ describe('hosting config', () => {
 
     it('rewrites every app route to the HTML shell', () => {
       expect(rewrite.destination).toBe('/index.html')
-      for (const path of ['/', '/level/demo', '/level/demo/solved', '/extras', '/extras/6-easy-home-200', '/lab', '/nonsense']) {
+      for (const path of ['/', '/level/demo', '/level/demo/solved', '/about', '/extras', '/extras/6-easy-home-200', '/lab', '/nonsense']) {
         expect(rewritten(path), path).toBe(true)
       }
     })
 
     it('serves static files as files: the rewrite never applies to them', () => {
-      for (const path of ['/manifest.webmanifest', '/robots.txt', '/og-image.png', '/favicon.svg', '/favicon.ico', '/icon-192.png']) {
+      for (const path of ['/manifest.webmanifest', '/og-image.png', '/favicon.svg', '/favicon.ico', '/icon-192.png']) {
         expect(isFile(path), path).toBe(true)
         expect(rewritten(path), path).toBe(false)
       }
@@ -420,16 +483,18 @@ describe('hosting config', () => {
     })
   })
 
-  it('sends noindex everywhere and cache headers per path', () => {
-    expect(header('/(.*)', 'X-Robots-Tag')).toBe('noindex,nofollow')
+  it('sends noindex everywhere while the site is not indexable (src/brand/site.json), and cache headers per path', () => {
+    expect(header('/(.*)', 'X-Robots-Tag')).toBe(INDEXABLE_NOW ? undefined : 'noindex,nofollow')
+    expect(vercelSendsNoindexNow()).toBe(!INDEXABLE_NOW)
     expect(header('/assets/(.*)', 'Cache-Control')).toBe('public, max-age=31536000, immutable')
     expect(header('/', 'Cache-Control')).toBe('no-cache')
     expect(header('/index.html', 'Cache-Control')).toBe('no-cache')
     expect(header('/sw.js', 'Cache-Control')).toBe('no-cache')
   })
-  it('allows the preview bots and disallows every other crawler in robots.txt', () => {
-    const groups = parseRobots(readFileSync(join(ROOT, 'public/robots.txt'), 'utf8'))
-    for (const bot of PREVIEW_BOTS) expect(groups.get(bot.toLowerCase())).toEqual({ allow: ['/'], disallow: [] })
-    expect(groups.get('*')).toEqual({ allow: [], disallow: ['/'] })
+  it('generates robots.txt per mode: preview bots in and everybody else out, or everything open', () => {
+    const closed = parseRobots(robotsTxt(false, 'https://x.example'))
+    for (const bot of PREVIEW_BOTS) expect(closed.get(bot.toLowerCase())).toEqual({ allow: ['/'], disallow: [] })
+    expect(closed.get('*')).toEqual({ allow: [], disallow: ['/'] })
+    expect(parseRobots(robotsTxt(true, 'https://x.example')).get('*')).toEqual({ allow: ['/'], disallow: [] })
   })
 })

@@ -1,7 +1,7 @@
 {
   "name": "Slaydoku",
   "short_name": "Slaydoku",
-  "description": "A new murder mystery puzzle every day",
+  "description": "Slaydoku: a new murder mystery puzzle every day. Read the clues, place every suspect and find out who was alone with the victim.",
   "lang": "en",
   "start_url": "/",
   "scope": "/",

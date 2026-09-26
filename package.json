@@ -16,7 +16,9 @@
     "generate": "bun tools/generate.ts",
     "pack": "bun tools/pack.ts",
     "validate:generation": "bun tools/validate.ts",
-    "audit:personal": "bun tools/audit-personal.ts"
+    "audit:personal": "bun tools/audit-personal.ts",
+    "indexing": "bun tools/indexing.ts",
+    "check:share": "bun tools/check-share.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

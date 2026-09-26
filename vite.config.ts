@@ -4,11 +4,12 @@ import { join, relative, resolve, sep } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { build, defineConfig } from 'vite'
 import type { Plugin } from 'vite'
+import { parseIndexable } from './src/brand/indexing.ts'
 import { siteMetaPlugin } from './src/brand/site.ts'
 import type { PrecacheEntry } from './src/pwa/cache.ts'
 
 /** Files of the build output that stay out of the precache: the worker itself and files only crawlers or nothing in the app read. */
-const NOT_PRECACHED = /^(sw\.js|robots\.txt|og-image\.png)$/
+const NOT_PRECACHED = /^(sw\.js|robots\.txt|sitemap\.xml|og-image\.png)$/
 
 /** Size budget of the whole precache (raw bytes): the app alone is well under 1 MiB today. The build fails above it; raise it on purpose. */
 const PRECACHE_BUDGET_BYTES = 3 * 1024 * 1024
@@ -64,7 +65,10 @@ function swPlugin(): Plugin {
   }
 }
 
+/** The indexing switch (src/brand/site.json, docs/launch.md): false keeps search engines out. */
+const INDEXABLE = parseIndexable(readFileSync(join(import.meta.dirname, 'src/brand/site.json'), 'utf8'))
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), siteMetaPlugin(process.env), swPlugin()],
+  plugins: [react(), siteMetaPlugin(process.env, INDEXABLE), swPlugin()],
 })

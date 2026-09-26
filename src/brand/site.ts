@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite'
+import { applyRobotsMeta, robotsTxt, sitemapXml } from './indexing.ts'
 
 /** Environment variables the site URL is derived from (a subset of `process.env`). */
 export interface SiteEnv {
@@ -57,18 +58,27 @@ export function findHtmlProblems(html: string): string[] {
   return problems
 }
 
-/** Vite plugin: fills the absolute social URLs in index.html at build (and dev) time and fails on a bad result. */
-export function siteMetaPlugin(env: SiteEnv): Plugin {
+/**
+ * Vite plugin: fills the absolute social URLs and the robots meta tag of index.html at build (and dev) time and fails on a bad
+ * result, and adds robots.txt (and, in indexable mode only, sitemap.xml) to the build output. `indexable` comes from
+ * src/brand/site.json (see indexing.ts).
+ */
+export function siteMetaPlugin(env: SiteEnv, indexable = false): Plugin {
+  const site = resolveSiteUrl(env)
   return {
     name: 'slaydoku:site-meta',
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
-        const out = injectSiteUrls(html, resolveSiteUrl(env))
+        const out = applyRobotsMeta(injectSiteUrls(html, site), indexable)
         const problems = findHtmlProblems(out)
         if (problems.length > 0) throw new Error(`index.html head is invalid:\n- ${problems.join('\n- ')}`)
         return out
       },
+    },
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsTxt(indexable, site) })
+      if (indexable) this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapXml(site) })
     },
   }
 }
