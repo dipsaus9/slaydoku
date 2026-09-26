@@ -89,7 +89,7 @@ describe('generateLadder', () => {
     const puzzles = (tier: LadderTierId, withGenders: boolean) =>
       Array.from({ length: 12 }, (_, i) => {
         const scene = sceneForSeed(9, 1 + (i % 3))
-        const outcome = generateLadder(scene, tier, i + 1, { genders: withGenders ? castGenders(8) : undefined })
+        const outcome = generateLadder(scene, tier, i + 1, { genders: withGenders ? castGenders(9) : undefined })
         if (!outcome.ok) throw new Error(`${tier} seed ${i + 1}: ${outcome.message}`)
         return outcome.puzzle
       })
@@ -129,12 +129,12 @@ describe('generateLadder', () => {
       }
       // The people carry the genders the generator was given (the victim has none).
       const [first] = puzzles('medium', true)
-      expect(first!.people.filter((p) => p.kind === 'suspect').map((p) => p.gender)).toEqual(castGenders(8))
+      expect(first!.people.filter((p) => p.kind === 'suspect').map((p) => p.gender)).toEqual(castGenders(9))
       expect(first!.people.find((p) => p.kind === 'victim')?.gender).toBeUndefined()
       // Over enough medium puzzles the gender cards do get drawn.
       let seen = 0
       for (let seed = 1; seed <= 40 && seen === 0; seed++) {
-        const outcome = generateLadder(sceneForSeed(9, 1 + (seed % 3)), 'medium', seed, { genders: castGenders(8) })
+        const outcome = generateLadder(sceneForSeed(9, 1 + (seed % 3)), 'medium', seed, { genders: castGenders(9) })
         if (outcome.ok) seen += parts(outcome.puzzle.clues).filter((k) => genderKinds.includes(k)).length
       }
       expect(seen).toBeGreaterThan(0)

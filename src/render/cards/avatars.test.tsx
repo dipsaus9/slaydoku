@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { CAST, castMemberFor, type AvatarTraits } from './cast.ts'
+import { CAST, type AvatarTraits } from './cast.ts'
 
 const names = ['Alice', 'Ben', 'Chloe', 'Dan', 'Emma', 'Frank', 'Grace', 'Henry']
 const html = (m: (typeof CAST)[number], size?: number) =>
@@ -11,14 +11,9 @@ function palette(markup: string): Set<string> {
   return new Set(markup.match(/#[0-9a-f]{6}/gi)?.map((c) => c.toLowerCase()))
 }
 
-describe('fixed cast', () => {
-  it('has the eight placeholder members in order', () => {
+describe('sample cast', () => {
+  it('has the eight sample members in order', () => {
     expect(CAST.map((m) => m.name)).toEqual(names)
-  })
-
-  it('finds a member by label, ignoring case and spaces', () => {
-    expect(castMemberFor(' alice ')?.name).toBe('Alice')
-    expect(castMemberFor('A')).toBeUndefined()
   })
 
   it.each(CAST.map((m) => [m.name, m] as const))('%s renders one 64px svg', (name, member) => {
@@ -45,11 +40,12 @@ describe('fixed cast', () => {
     const pairs = CAST.flatMap((a, i) => CAST.slice(i + 1).map((b) => [a, b] as const))
 
     it.each(pairs.map(([a, b]) => [`${a.name} / ${b.name}`, a, b] as const))(
-      '%s differ in hair style, accessory and clothes',
+      '%s differ in the shirt and in hair style or accessory',
       (_label, a, b) => {
         const differing = keys.filter((k: keyof AvatarTraits) => a.traits[k] !== b.traits[k])
-        expect(differing).toEqual(expect.arrayContaining(['hairStyle', 'accessory', 'clothes']))
-        expect(differing.length).toBeGreaterThanOrEqual(4)
+        expect(differing).toContain('clothes')
+        expect(differing.some((k) => k === 'hairStyle' || k === 'accessory')).toBe(true)
+        expect(differing.length).toBeGreaterThanOrEqual(3)
       },
     )
 

@@ -7,7 +7,7 @@ import type { TierId } from '../../engine/generator/tiers/index.ts'
 import type { Gender, Person, Puzzle, Scene } from '../../engine/model/index.ts'
 import { roomName } from '../../engine/clues/index.ts'
 import { generateScene } from '../../engine/scenegen/index.ts'
-import { buildCastForBoard } from '../../render/cards/procedural/index.ts'
+import { castFor } from '../cast/index.ts'
 import { getTheme } from '../themes/index.ts'
 import type { ThemeId } from '../themes/index.ts'
 import { boardKey, entryProblems, isLadderTier, puzzleKey, ratingOf } from './gates.ts'
@@ -41,7 +41,7 @@ export function titleFor(scene: Scene, theme: ThemeId, victimRow: number, victim
 }
 
 /**
- * The generator's puzzle dressed for the pack: cast names as labels (and their genders, see `buildCast`), "the victim" as victim
+ * The generator's puzzle dressed for the pack: cast names as labels (and their genders, see `castFor`), "the victim" as victim
  * (no gender). Room names stay bare ("Kitchen"); clue text adds "the". A puzzle the ladder generator built with these
  * genders already carries them.
  */
@@ -59,13 +59,16 @@ export function dress(puzzle: Puzzle, cast: readonly string[], genders: readonly
 /** A failed candidate: `problems` lists what the gates found in a puzzle the generator did build; without it the generator itself found no puzzle inside the budget. */
 export type BuildResult = { ok: true; entry: PackEntry; ms: number } | { ok: false; reason: string; failure?: ScaleFailure; problems?: string[] }
 
-/** One candidate: random scene, tier puzzle, dressing, all gates. Same arguments give the same entry. */
-export function buildEntry(size: number, tier: TierId, theme: ThemeId, seed: number, budgetMs = PACK_BUDGET_MS): BuildResult {
+/**
+ * One candidate: random scene, tier puzzle, dressing, all gates. Same arguments give the same entry. The cast comes from `castFor`
+ * (seeded by the puzzle id; `previousCast` is the day before's, whose names are not used again).
+ */
+export function buildEntry(size: number, tier: TierId, theme: ThemeId, seed: number, budgetMs = PACK_BUDGET_MS, previousCast?: readonly string[]): BuildResult {
   const started = performance.now()
   const scene = generateScene({ width: size, height: size, theme, seed })
   const id = packId(size, tier, theme, seed)
   // The cast (names AND genders) first: the ladder generator needs the genders to draw the gender cards.
-  const built = buildCastForBoard(size, id)
+  const built = castFor(size, id, previousCast)
   const cast = built.names
   let generated: Puzzle
   if (isLadderTier(tier)) {

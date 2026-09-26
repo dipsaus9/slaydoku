@@ -40,7 +40,7 @@ export interface LadderGenerateOptions {
   /**
    * Gender of each suspect in the order A, B ... (a shorter list leaves the rest without). With genders the pool gets the
    * gender cards ("There was at least one woman in X's room", "X was alone with a man"), usable from medium up;
-   * without, none are drawn (CAD-9.1). The pack gives the generated cast names genders (`buildCastForBoard`).
+   * without, none are drawn (CAD-9.1). The pack takes them from the cast of the puzzle (`castFor`).
    */
   genders?: readonly (Gender | undefined)[]
 }

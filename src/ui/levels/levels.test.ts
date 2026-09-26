@@ -270,7 +270,7 @@ describe('screens (static markup)', () => {
       }),
     )
     expect(html).toContain('Opgelost!')
-    expect(html).toMatch(/(Ben|Alice|Dan) was alleen met het cadeau\./)
+    expect(html).toMatch(/[A-Z][a-z]+ was alleen met het cadeau\./)
     expect(html).toContain('Tijd: 1:05')
     expect(html).toContain('Volgend level: Level twee')
   })

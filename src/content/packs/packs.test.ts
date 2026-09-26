@@ -132,9 +132,10 @@ describe('pack files and index', () => {
     const missing = { ...index, puzzles: index.puzzles.map(({ fp: _fp, ...rest }) => rest as (typeof index.puzzles)[number]) }
     expect(packSetProblems(files, missing).length).toBeGreaterThan(0)
   })
-  it('gives the people of a ladder puzzle the genders of the cast builder, and the gift none', () => {
+  it('gives the people of a ladder puzzle the names and genders of castFor, and the gift none', () => {
     for (const entry of files.flatMap((f) => f.puzzles)) {
       const built = buildCastForBoard(entry.size, entry.id)
+      expect(entry.cast, entry.id).toEqual([...built.names])
       const suspects = entry.puzzle.people.filter((p) => p.kind === 'suspect')
       expect(suspects.map((p) => p.gender), entry.id).toEqual([...built.genders])
       expect(entry.puzzle.people.find((p) => p.kind === 'victim')?.gender, entry.id).toBeUndefined()

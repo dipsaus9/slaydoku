@@ -1,6 +1,5 @@
 import type { Person } from '../../engine/model/index.ts'
 import { SilhouetteAvatar } from './avatars/silhouette.tsx'
-import { castMemberFor } from './cast.ts'
 import { Polaroid } from './Polaroid.tsx'
 import type { CardLook } from './procedural/index.ts'
 
@@ -14,7 +13,7 @@ export interface SuspectCardProps {
   placed?: boolean
   /** Tap handler; the card becomes a button when given. */
   onSelect?: (personId: string) => void
-  /** Portrait and colours for a person outside the drawn cast (see procedural/buildCast). */
+  /** Portrait and colours of the person, by gender slot (see procedural/buildCast); never picked by name. */
   look?: CardLook
   className?: string
 }
@@ -24,18 +23,11 @@ const FALLBACK_BUBBLE = '#e6e9ef'
 
 /** Polaroid of one suspect: portrait, name (the person's label) and clue text. */
 export function SuspectCard({ person, clue, selected, placed, onSelect, look, className }: SuspectCardProps) {
-  const member = castMemberFor(person.label)
   return (
     <Polaroid
-      portrait={
-        member ? (
-          <member.Avatar decorative />
-        ) : (
-          (look?.portrait ?? <SilhouetteAvatar initial={person.label} decorative />)
-        )
-      }
-      photoColor={member?.photo ?? look?.photo ?? FALLBACK_PHOTO}
-      bubbleColor={member?.bubble ?? look?.bubble ?? FALLBACK_BUBBLE}
+      portrait={look?.portrait ?? <SilhouetteAvatar initial={person.label} decorative />}
+      photoColor={look?.photo ?? FALLBACK_PHOTO}
+      bubbleColor={look?.bubble ?? FALLBACK_BUBBLE}
       name={person.label}
       text={clue}
       selected={selected}

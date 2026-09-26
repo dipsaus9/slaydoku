@@ -343,49 +343,49 @@
     {
       "id": "A",
       "kind": "suspect",
-      "label": "Alice",
-      "gender": "woman"
+      "label": "Bob",
+      "gender": "man"
     },
     {
       "id": "B",
       "kind": "suspect",
-      "label": "Ben",
-      "gender": "man"
+      "label": "Clara",
+      "gender": "woman"
     },
     {
       "id": "C",
       "kind": "suspect",
-      "label": "Chloe",
-      "gender": "woman"
+      "label": "Hugh",
+      "gender": "man"
     },
     {
       "id": "D",
       "kind": "suspect",
-      "label": "Dan",
-      "gender": "man"
+      "label": "Irene",
+      "gender": "woman"
     },
     {
       "id": "E",
       "kind": "suspect",
-      "label": "Emma",
-      "gender": "woman"
+      "label": "Jack",
+      "gender": "man"
     },
     {
       "id": "F",
       "kind": "suspect",
-      "label": "Frank",
-      "gender": "man"
+      "label": "Kim",
+      "gender": "woman"
     },
     {
       "id": "G",
       "kind": "suspect",
-      "label": "Grace",
+      "label": "Tina",
       "gender": "woman"
     },
     {
       "id": "H",
       "kind": "suspect",
-      "label": "Henry",
+      "label": "Vince",
       "gender": "man"
     }
   ],

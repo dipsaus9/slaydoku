@@ -63,7 +63,7 @@ describe('SuspectCard', () => {
 })
 
 describe('the cast', () => {
-  it('alternates woman and man over the eight placeholder members', () => {
+  it('alternates woman and man over the eight sample members', () => {
     expect(Object.fromEntries(CAST.map((m) => [m.name, m.gender]))).toEqual({
       Ben: 'man', Alice: 'woman', Dan: 'man', Chloe: 'woman', Emma: 'woman', Frank: 'man', Grace: 'woman', Henry: 'man',
     })

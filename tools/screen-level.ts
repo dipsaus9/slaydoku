@@ -8,7 +8,7 @@ import { demoScene } from '../src/content/demo/scene.ts'
 import { auditObjectNames } from '../src/engine/clues/objectNames.ts'
 import { expandClue, renderClue } from '../src/engine/clues/index.ts'
 import type { CatalogClue } from '../src/engine/clues/index.ts'
-import { CAST_GENDERS, LADDER_TIER_IDS, generateLadder, withCastLabels } from '../src/engine/generator/ladder/index.ts'
+import { LADDER_TIER_IDS, castGenders, generateLadder, withCastLabels } from '../src/engine/generator/ladder/index.ts'
 import type { LadderTierId } from '../src/engine/generator/ladder/index.ts'
 import type { Scene } from '../src/engine/model/index.ts'
 import { auditClues, auditHints, directClueShare, walkHints } from '../src/validation/index.ts'
@@ -58,7 +58,7 @@ const victimCell = { row: Number(victim[1]) - 1, col: Number(victim[2]) - 1 }
 const counts = { seeds: 0, generated: 0, audits: 0, walk: 0, screen: 0 }
 for (let seed = from; seed <= to; seed++) {
   counts.seeds++
-  const outcome = generateLadder(scene, tier, seed, { victimCell, budgetMs, genders: CAST_GENDERS })
+  const outcome = generateLadder(scene, tier, seed, { victimCell, budgetMs, genders: castGenders(scene.width) })
   if (!outcome.ok) continue
   counts.generated++
   const puzzle = withCastLabels(outcome.puzzle)
