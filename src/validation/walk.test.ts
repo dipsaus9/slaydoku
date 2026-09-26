@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { demoLevels } from '../content/levels.ts'
+import { demoPuzzle } from '../content/demo/puzzle.ts'
 import { MAX_CROSSED_SQUARES } from './hints.ts'
 import { walkHints } from './walk.ts'
 
 /** A player who follows every hint may need this many hint requests per person: the hints must not drag. */
 const REQUESTS_PER_PERSON = 1.3
 
-describe('the hint walk of the registered levels', () => {
-  for (const level of demoLevels) {
+describe('the hint walk of the demo puzzle', () => {
+  for (const level of [{ id: 'demo', puzzle: demoPuzzle }]) {
     describe(level.id, () => {
       const { puzzle } = level
       const walk = walkHints(puzzle)

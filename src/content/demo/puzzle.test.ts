@@ -1,18 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import demoJson from './demo/puzzle.json?raw'
-import type { CatalogClue } from '../engine/clues/index.ts'
-import { renderClue } from '../engine/clues/index.ts'
-import { auditObjectNames } from '../engine/clues/objectNames.ts'
-import { deriveMurderer, parsePuzzle, validateSolution } from '../engine/model/index.ts'
-import { solveHuman } from '../engine/solver/human/index.ts'
-import { verifyPuzzle } from '../engine/solver/index.ts'
-import { SOLVABLE_TIERS, ladderCheck, ladderMeetsTier, ladderOptions, tierFor } from '../engine/solvable/index.ts'
-import { getLevels } from '../ui/levels/registry.ts'
-import { auditClues, auditHints, walkHints } from '../validation/index.ts'
-import { castProblems } from './cast/index.ts'
-import { ladderCast } from '../engine/generator/ladder/index.ts'
-import { DEMO_VICTIM_CELLS, demoRoomStyles, demoScene } from './demo/scene.ts'
-import { demoLevels } from './levels.ts'
+import demoJson from './puzzle.json?raw'
+import type { CatalogClue } from '../../engine/clues/index.ts'
+import { renderClue } from '../../engine/clues/index.ts'
+import { auditObjectNames } from '../../engine/clues/objectNames.ts'
+import { deriveMurderer, parsePuzzle, validateSolution } from '../../engine/model/index.ts'
+import { solveHuman } from '../../engine/solver/human/index.ts'
+import { verifyPuzzle } from '../../engine/solver/index.ts'
+import { SOLVABLE_TIERS, ladderCheck, ladderMeetsTier, ladderOptions, tierFor } from '../../engine/solvable/index.ts'
+import { auditClues, auditHints, walkHints } from '../../validation/index.ts'
+import { castProblems } from '../cast/index.ts'
+import { ladderCast } from '../../engine/generator/ladder/index.ts'
+import { DEMO_VICTIM_CELLS, demoRoomStyles, demoScene } from './scene.ts'
+import { demoPuzzle } from './puzzle.ts'
 
 const parsed = parsePuzzle(demoJson)
 if (!parsed.ok) throw new Error('demo puzzle does not parse')
@@ -20,12 +19,9 @@ const puzzle = parsed.value
 const label = (id: string) => puzzle.people.find((p) => p.id === id)!.label
 const rule = SOLVABLE_TIERS.find((t) => t.id === 'easy')!
 
-describe('the registered levels', () => {
-  it('registers the demo level, once, first', () => {
-    expect(demoLevels.map((l) => l.id)).toEqual(['demo'])
-    expect(getLevels().map((l) => l.id)).toEqual(['demo'])
-    expect(demoLevels[0]!.puzzle).toEqual(puzzle)
-    expect(demoLevels[0]!.roomStyles).toBe(demoRoomStyles)
+describe('the demo puzzle module', () => {
+  it('exposes the stored puzzle', () => {
+    expect(demoPuzzle).toEqual(puzzle)
   })
 })
 

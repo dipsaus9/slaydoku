@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { demoLevels } from '../../content/levels.ts'
+import { labLevels as demoLevels } from './levels.ts'
 import { startGeneration } from './client.ts'
 import type { WorkerLike } from './client.ts'
 import { GenerateForm } from './GenerateForm.tsx'

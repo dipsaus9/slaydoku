@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { demoLevels } from '../content/levels.ts'
+import { demoPuzzle } from '../content/demo/puzzle.ts'
 import type { Puzzle } from '../engine/model/index.ts'
 import { defaultRegistry, solveHuman } from '../engine/solver/human/index.ts'
 import { uniquePuzzle } from '../engine/solver/testing.fixture.ts'
@@ -248,7 +248,7 @@ describe('the victim label in hint text', () => {
 
 describe('hint texts on the demo level and a hard puzzle', () => {
   const houses: Record<string, Puzzle> = {
-    demo: demoLevels[0]!.puzzle,
+    demo: demoPuzzle,
     hard: hardPuzzle(),
   }
   const techniqueIds = defaultRegistry.list().map((t) => t.id)

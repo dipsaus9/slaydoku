@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { demoLevels } from '../../content/levels.ts'
+import { labLevels } from './levels.ts'
 import { defaultStorage } from '../../game/persistence.ts'
 import { Link, navigate, usePath } from '../router/index.ts'
 import { GenerateForm } from './GenerateForm.tsx'
@@ -35,7 +35,7 @@ function Notice({ children }: { children: string }) {
 }
 
 function LevelPlay({ levelId }: { levelId: string }) {
-  const level = demoLevels.find((candidate) => candidate.id === levelId)
+  const level = labLevels.find((candidate) => candidate.id === levelId)
   const view = useMemo<PlayView | null>(
     () =>
       level
@@ -87,7 +87,7 @@ function Home({ form, onForm, generation }: HomeProps) {
         onPlay={play}
       />
       <JudgementTransfer storage={storage} />
-      <LevelTable levels={demoLevels} onOpen={(id) => go(labPath({ kind: 'level', id }))} />
+      <LevelTable levels={labLevels} onOpen={(id) => go(labPath({ kind: 'level', id }))} />
     </main>
   )
 }

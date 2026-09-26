@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react'
-import './content/levels.ts'
 import { AboutScreen, isAboutPath } from './ui/about/index.ts'
-import { LevelFlow } from './ui/levels/index.ts'
+import { DailyFlow } from './ui/daily/index.ts'
 import { usePath } from './ui/router/index.ts'
 
 /*
@@ -11,9 +10,9 @@ import { usePath } from './ui/router/index.ts'
  */
 const LabRoute = import.meta.env.DEV ? lazy(() => import('./ui/lab/index.ts').then((m) => ({ default: m.LabRoot }))) : null
 
-/** The game: `/about` is the About page, every other path belongs to the level flow. */
+/** The game: `/about` is the About page, every other path belongs to the daily flow (start screen at `/`, the puzzle at `/play`). */
 function Game() {
-  return isAboutPath(usePath()) ? <AboutScreen /> : <LevelFlow />
+  return isAboutPath(usePath()) ? <AboutScreen /> : <DailyFlow />
 }
 
 /** Dev only: `/lab...` shows the lab, everything else the game. */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Puzzle } from '../model/index.ts'
 import type { PlacedObject } from '../model/index.ts'
-import { demoLevels } from '../../content/levels.ts'
+import { demoPuzzle } from '../../content/demo/puzzle.ts'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
 import { auditObjectNames, legacyNouns } from './objectNames.ts'
 import { scene as fixtureScene } from './testing.fixture.ts'
@@ -67,7 +67,7 @@ describe('auditObjectNames', () => {
 })
 
 describe('the demo level and a generated sample', () => {
-  const houses = demoLevels.map((level) => ({ id: level.id, puzzle: level.puzzle }))
+  const houses = [{ id: 'demo', puzzle: demoPuzzle }]
   const packs = generatedPuzzles().map((p) => ({ id: p.id, puzzle: p.puzzle }))
 
   it('holds the demo level and a sample of every theme', () => {

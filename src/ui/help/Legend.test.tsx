@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
-import { demoLevels } from '../../content/levels.ts'
+import { demoPuzzle } from '../../content/demo/puzzle.ts'
 import { themeObjectOf } from '../../content/themes/drawn.ts'
 import { objectNouns } from '../../engine/clues/en.ts'
 import { OBJECT_CATALOG, cellKey } from '../../engine/model/index.ts'
@@ -18,7 +18,7 @@ interface Subject {
   name: string
   puzzle: Puzzle
 }
-const houses: Subject[] = demoLevels.map((l) => ({ name: `level ${l.id}`, puzzle: l.puzzle }))
+const houses: Subject[] = [{ name: 'level demo', puzzle: demoPuzzle }]
 /** Generated puzzles of every theme: two chair kinds side by side, beanbags, hammocks, several sofas that look alike. */
 const picked: Subject[] = generatedPuzzles().map((e) => ({ name: `generated puzzle ${e.id}`, puzzle: e.puzzle }))
 const everyPack: Subject[] = picked

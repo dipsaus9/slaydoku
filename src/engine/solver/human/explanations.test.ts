@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { demoLevels } from '../../../content/levels.ts'
+import { demoPuzzle } from '../../../content/demo/puzzle.ts'
 import { generatedPuzzles } from '../../../content/generated.testing.ts'
 import { VICTIM_TEXT } from '../../clues/index.ts'
 import type { CatalogClue } from '../../clues/index.ts'
@@ -17,7 +17,7 @@ import { solveHuman } from './index.ts'
 
 const puzzles: Record<string, Puzzle> = {
   tutorial,
-  demo: demoLevels[0]!.puzzle,
+  demo: demoPuzzle,
   hard: hardPuzzle(),
   ...Object.fromEntries(generatedPuzzles().filter((p) => p.size === 7 && p.tier !== 'medium').map((p) => [p.id, p.puzzle])),
 }

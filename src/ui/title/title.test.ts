@@ -1,55 +1,35 @@
 import { describe, expect, it } from 'vitest'
-import { puzzle } from '../../game/fixture.ts'
-import { createMemoryStorage, saveProgress } from '../levels/progress.ts'
-import type { Progress } from '../levels/progress.ts'
-import type { Level } from '../levels/registry.ts'
 import { fakeWindow } from '../router/fakeWindow.ts'
 import { createRouter } from '../router/index.ts'
 import { installScreenTitles } from './install.ts'
 import { SITE_TITLE, TITLE_EN, screenTitle } from './model.ts'
-import type { TitleContext } from './model.ts'
+import type { ScheduleIndex } from '../../schedule/index.ts'
 
-const levels: Level[] = [
-  { id: 'one', title: 'First case', puzzle },
-  { id: 'two', title: 'Second case', puzzle },
-]
-const record = { murdererId: 'A', elapsedMs: 1000 }
-const none: Progress = { solved: {}, started: [] }
-const firstSolved: Progress = { solved: { one: record }, started: [] }
-
-const context = (progress: Progress): TitleContext => ({ levels, progress })
+const index: ScheduleIndex = { format: 1, launch: '2026-10-12', first: '2026-10-12', last: '2026-10-31', count: 20, months: [] }
+const at = (iso: string) => () => Date.parse(iso)
 
 describe('screenTitle', () => {
-  it('is the site name on the level list', () => {
-    for (const path of ['', '/', '/level']) expect(screenTitle(path, context(none))).toBe(SITE_TITLE)
+  it('is the site name on the start screen', () => {
+    for (const path of ['', '/', '/play/x', '/play/0']) expect(screenTitle(path, { puzzleNumber: 4 })).toBe(SITE_TITLE)
   })
 
-  it('names the level while playing, from the level data', () => {
-    expect(screenTitle('/level/one', context(none))).toBe('First case – Slaydoku')
-    expect(screenTitle('/level/two', context(firstSolved))).toBe('Second case – Slaydoku')
+  it('names the puzzle while playing', () => {
+    expect(screenTitle('/play', { puzzleNumber: 4 })).toBe('Puzzle #4 – Slaydoku')
+    expect(screenTitle('/play/3', { puzzleNumber: 4 })).toBe(`${TITLE_EN.puzzle(3)} – Slaydoku`)
   })
 
-  it('names the level on the solved screen', () => {
-    expect(screenTitle('/level/one/solved', context(firstSolved))).toBe(`${TITLE_EN.solved('First case')} – Slaydoku`)
-    expect(screenTitle('/level/one/solved', context(firstSolved))).toBe('First case solved – Slaydoku')
-  })
-
-  it('shows the list title where the app shows the list instead', () => {
-    expect(screenTitle('/level/two', context(none))).toBe(SITE_TITLE) // locked
-    expect(screenTitle('/level/nergens', context(none))).toBe(SITE_TITLE) // unknown level
-    expect(screenTitle('/level/one/solved', context(none))).toBe(SITE_TITLE) // not solved yet
-    expect(screenTitle('/level/one/solved/x', context(firstSolved))).toBe(SITE_TITLE)
-    expect(screenTitle('/level/%E0%A4%A', context(firstSolved))).toBe(SITE_TITLE) // bad escape
+  it('is the site name on the puzzle route when nothing is scheduled', () => {
+    expect(screenTitle('/play', { puzzleNumber: null })).toBe(SITE_TITLE)
   })
 
   it('names the About page', () => {
-    expect(screenTitle('/about', context(none))).toBe('About – Slaydoku')
-    expect(screenTitle('/about/', context(firstSolved))).toBe(`${TITLE_EN.about} – Slaydoku`)
+    expect(screenTitle('/about', { puzzleNumber: 4 })).toBe('About – Slaydoku')
+    expect(screenTitle('/about/', { puzzleNumber: null })).toBe(`${TITLE_EN.about} – Slaydoku`)
   })
 
-  it('falls back to the site name for unknown routes, including /lab', () => {
-    for (const path of ['/lab', '/lab/puzzle', '/nonsense', 'random']) {
-      expect(screenTitle(path, context(firstSolved))).toBe(SITE_TITLE)
+  it('falls back to the site name for unknown routes, the old level paths and /lab included', () => {
+    for (const path of ['/lab', '/lab/puzzle', '/nonsense', 'random', '/level/demo', '/level/demo/solved']) {
+      expect(screenTitle(path, { puzzleNumber: 4 })).toBe(SITE_TITLE)
     }
   })
 })
@@ -60,40 +40,35 @@ describe('installScreenTitles', () => {
     return { win, router: createRouter(win) }
   }
 
-  it('sets the title on load and on every navigation, reading progress fresh', () => {
+  it('sets the title on load and on every navigation, from the clock', () => {
     const { router } = setup('/')
     const doc = { title: '' }
-    const storage = createMemoryStorage()
-    installScreenTitles({ router, doc, storage, levels: () => levels })
+    installScreenTitles({ router, doc, index, clock: at('2026-10-15T10:00:00Z') })
     expect(doc.title).toBe('Slaydoku')
-    router.navigate('/level/one')
-    expect(doc.title).toBe('First case – Slaydoku')
-    saveProgress(storage, firstSolved, levels)
-    router.navigate('/level/one/solved')
-    expect(doc.title).toBe('First case solved – Slaydoku')
+    router.navigate('/play')
+    expect(doc.title).toBe('Puzzle #4 – Slaydoku')
+    router.navigate('/about')
+    expect(doc.title).toBe('About – Slaydoku')
     router.navigate('/lab')
     expect(doc.title).toBe('Slaydoku')
   })
 
-  it('reads the levels at update time, so late registration is picked up', () => {
-    const { router } = setup('/level/one')
-    const doc = { title: '' }
-    let current: readonly Level[] = []
-    installScreenTitles({ router, doc, storage: null, levels: () => current })
-    expect(doc.title).toBe('Slaydoku')
-    current = levels
-    router.navigate('/')
-    router.navigate('/level/one')
-    expect(doc.title).toBe('First case – Slaydoku')
+  it('is the site name on the puzzle route before the launch and after the last day', () => {
+    for (const day of ['2026-10-01', '2026-11-05']) {
+      const { router } = setup('/play')
+      const doc = { title: '' }
+      installScreenTitles({ router, doc, index, clock: at(`${day}T10:00:00Z`) })
+      expect(doc.title, day).toBe('Slaydoku')
+    }
   })
 
   it('stops listening when stopped', () => {
     const { win, router } = setup('/')
     const doc = { title: '' }
-    const stop = installScreenTitles({ router, doc, storage: null, levels: () => levels })
+    const stop = installScreenTitles({ router, doc, index, clock: at('2026-10-15T10:00:00Z') })
     stop()
     expect(win.listenerCount()).toBe(0)
-    router.navigate('/level/one')
+    router.navigate('/play')
     expect(doc.title).toBe('Slaydoku')
   })
 })

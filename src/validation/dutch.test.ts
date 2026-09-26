@@ -65,7 +65,7 @@ describe('no Dutch text is left in the game code', () => {
     expect(files.some(([path]) => path.endsWith('/content/themes/home.ts'))).toBe(true)
     expect(files.some(([path]) => path.endsWith('/content/demo/puzzle.json'))).toBe(true)
     // interface text (SLAY-1.2)
-    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/levels/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/pwa/strings.ts', '/ui/play/Toolbar.tsx']) {
+    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/daily/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/pwa/strings.ts', '/ui/play/Toolbar.tsx']) {
       expect(files.some(([path]) => path.endsWith(end)), end).toBe(true)
     }
   })

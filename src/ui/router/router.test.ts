@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseLabRoute } from '../lab/model.ts'
-import { isListPath, parseRoute, resolveRoute, routePath } from '../levels/route.ts'
+import { parseRoute, routePath } from '../daily/route.ts'
 import { fakeWindow } from './fakeWindow.ts'
 import { createRouter, legacyHashPath, pathSegments, shouldIntercept } from './router.ts'
 
@@ -11,32 +11,21 @@ describe('paths', () => {
     expect(pathSegments('/level/%E0%A4%A')).toBeNull()
   })
 
-  it('tells the level list from a path the app does not know', () => {
-    expect(isListPath('/')).toBe(true)
-    expect(isListPath('')).toBe(true)
-    for (const path of ['/nonsense', '/level', '/level/demo/x', '/index.html', '/lab', '/%E0%A4%A']) {
-      expect(isListPath(path)).toBe(false)
-      expect(parseRoute(path)).toEqual({ kind: 'list' })
+  it('tells the start screen and the puzzle from a path the app does not know', () => {
+    expect(parseRoute('/')).toEqual({ kind: 'start' })
+    expect(parseRoute('')).toEqual({ kind: 'start' })
+    for (const path of ['/nonsense', '/level', '/level/demo', '/level/demo/solved', '/play/x', '/play/0', '/play/3/x', '/index.html', '/lab', '/%E0%A4%A']) {
+      expect(parseRoute(path), path).toEqual({ kind: 'unknown' })
     }
   })
 
-  it('formats and parses the level routes', () => {
-    expect(routePath({ kind: 'list' })).toBe('/')
-    expect(routePath({ kind: 'play', levelId: 'demo' })).toBe('/level/demo')
-    expect(routePath({ kind: 'solved', levelId: 'demo' })).toBe('/level/demo/solved')
-    expect(parseRoute('/level/demo')).toEqual({ kind: 'play', levelId: 'demo' })
-    expect(parseRoute('/level/demo/solved')).toEqual({ kind: 'solved', levelId: 'demo' })
-  })
-
-  it('sends a locked level to the list', () => {
-    const levels = [
-      { id: 'one', title: 'One', puzzle: {} },
-      { id: 'two', title: 'Two', puzzle: {} },
-    ] as never
-    expect(resolveRoute({ kind: 'play', levelId: 'two' }, levels, { solved: {}, started: [] })).toEqual({
-      route: { kind: 'list' },
-      refused: 'locked',
-    })
+  it('formats and parses the daily routes', () => {
+    expect(routePath({ kind: 'start' })).toBe('/')
+    expect(routePath({ kind: 'play', n: null })).toBe('/play')
+    expect(routePath({ kind: 'play', n: 43 })).toBe('/play/43')
+    expect(parseRoute('/play')).toEqual({ kind: 'play', n: null })
+    expect(parseRoute('/play/')).toEqual({ kind: 'play', n: null })
+    expect(parseRoute('/play/43')).toEqual({ kind: 'play', n: 43 })
   })
 })
 
