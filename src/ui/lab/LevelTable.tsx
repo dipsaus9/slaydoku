@@ -1,5 +1,5 @@
 import type { Level } from '../levels/registry.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
 export interface LevelTableProps {
   levels: readonly Level[]
@@ -8,7 +8,7 @@ export interface LevelTableProps {
 
 /** The registered levels: always listed. */
 export function LevelTable({ levels, onOpen }: LevelTableProps) {
-  const t = LAB_NL
+  const t = LAB_EN
   return (
     <section className="lab-section" aria-labelledby="lab-levels-title">
       <h2 id="lab-levels-title">{t.levelsTitle}</h2>

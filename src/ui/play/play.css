@@ -152,7 +152,7 @@
   50% { opacity: 0.35; }
 }
 
-/* The squares the Legenda points at: a pulse on top of the board (the layer takes no touch). */
+/* The squares the Legend points at: a pulse on top of the board (the layer takes no touch). */
 .play-flash {
   animation: play-flash 0.8s ease-in-out infinite;
 }
@@ -432,7 +432,7 @@
   background: rgba(20, 20, 30, 0.5);
 }
 
-/* The Legenda steps aside while it points at squares on the board: hidden, still mounted, no touch. */
+/* The Legend steps aside while it points at squares on the board: hidden, still mounted, no touch. */
 .play-modal[data-peek] {
   visibility: hidden;
   pointer-events: none;
@@ -719,7 +719,7 @@
   opacity: 0.75;
 }
 
-/* ---- legenda ----------------------------------------------------------------------- */
+/* ---- legend ----------------------------------------------------------------------- */
 
 .play-legend h3 {
   margin: 18px 0 6px;

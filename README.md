@@ -3,8 +3,8 @@
 Slaydoku is a murder mystery logic puzzle in the style of Murdoku: read the suspects' statements, place everybody on the floor plan, and work out
 who was alone with the victim. The goal is a new puzzle every day, one per UTC day, with Wordle-like sharing of the result.
 
-**Status: work in progress.** The daily flow, the schedule and the English interface text are not built yet. What runs today is one demo level, the play
-screen with hints and a legend, and the puzzle generator behind it. The clue, hint and solver text is English; the interface strings (menus, help, PWA) are still Dutch until story SLAY-1.2.
+**Status: work in progress.** The daily flow and the schedule are not built yet. What runs today is one demo level, the play
+screen with hints and a legend, and the puzzle generator behind it. All text is English: clues, hints and solver text, and the interface (menus, help card, legend, update notice).
 
 ## Run it
 

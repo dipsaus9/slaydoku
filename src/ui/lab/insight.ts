@@ -12,7 +12,7 @@ export interface TraceStep {
   /** 1-based position in the solution path. */
   index: number
   techniqueId: string
-  /** Dutch technique title. */
+  /** Technique title. */
   title: string
   level: number
   /** The squares the step is about: the one it places on, or the ones it rules out. */
@@ -62,8 +62,8 @@ export function buildInsight(puzzle: Puzzle, played: Puzzle = puzzle): Insight {
   return { metrics, score: scoreV2(metrics), weights: DEFAULT_WEIGHTS, trace: buildTrace(played) }
 }
 
-/** "r3k4": row 3, column 4. Short enough to list a dozen squares in a line. */
-export const cellLabel = (cell: Cell): string => `r${cell.row + 1}k${cell.col + 1}`
+/** "r3c4": row 3, column 4. Short enough to list a dozen squares in a line. */
+export const cellLabel = (cell: Cell): string => `r${cell.row + 1}c${cell.col + 1}`
 
 /** 75 seconds as "1:15". */
 export function clock(seconds: number): string {

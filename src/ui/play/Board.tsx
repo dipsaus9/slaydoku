@@ -8,6 +8,7 @@ import { createGeometry, SceneView, type FloorPattern } from '../../render/scene
 import { FlashLayer, HintLayer, MarksLayer, PeopleLayer, PressRing } from './BoardLayers.tsx'
 import { hintCells } from './hintCells.ts'
 import { gestureIntent, paintIntent, paintModeFor, type Intent, type PaintMode, type Tool } from './intent.ts'
+import { PLAY_EN } from './strings.ts'
 import { useBoardZoom } from './useBoardZoom.ts'
 import { cellAtPoint, useGesture } from './useGesture.ts'
 import { boxAroundCells, isZoomed, revealBox, viewTransform, type View } from './zoom.ts'
@@ -36,7 +37,7 @@ export interface BoardProps {
   /** Zoom and pan of the board (zoom.ts). The screen owns it: the toolbar button and a restart change it too. */
   view: View
   onView: Dispatch<SetStateAction<View>>
-  /** Squares the Legenda is pointing at (CAD-10.9); drawn inside the zoomed pane, never taking a touch. */
+  /** Squares the Legend is pointing at (CAD-10.9); drawn inside the zoomed pane, never taking a touch. */
   flash?: readonly Cell[]
 }
 
@@ -127,7 +128,7 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
           scene={puzzle.scene}
           roomStyles={roomStyles}
           showAxisLabels={showAxisLabels}
-          title="Plattegrond"
+          title={PLAY_EN.board}
           objectsLayer={(g) => <SceneObjectIcons objects={puzzle.scene.objects} geometry={g} themeIcons={themeIcons} />}
           marksLayer={(g) => (
             <>

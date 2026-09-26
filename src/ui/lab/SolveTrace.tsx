@@ -1,8 +1,8 @@
 import { cellLabel } from './insight.ts'
 import type { TraceStep } from './insight.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
-const t = LAB_NL.insight
+const t = LAB_EN.insight
 
 /** Longer lists of squares are folded away; the hint texts already say how many there are. */
 const FEW_CELLS = 12

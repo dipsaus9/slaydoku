@@ -105,7 +105,7 @@ describe('legendOf on generated scenes', () => {
     expect(legend.objects[1]!.themeIcon).toBe('beanbag')
   })
 
-  it('names chairs that look alike (garden chair, school chair) with the plain noun and lists the others as "ook"', () => {
+  it('names chairs that look alike (garden chair, school chair) with the plain noun and lists the others as "also"', () => {
     const scene: Scene = {
       width: 2,
       height: 1,
@@ -170,11 +170,11 @@ describe('<Legend/>', () => {
     expect(all).toContain('data-legend="window"')
   })
 
-  it('explains the room label, the four marks and the gift rule, in Dutch', () => {
+  it('explains the room label, the four marks and the gift rule', () => {
     const html = renderLegend(houses[0]!.puzzle)
     for (const id of ['room-label', 'mark-note', 'mark-cross', 'mark-person', 'mark-gift']) expect(html).toContain(`data-legend="${id}"`)
     expect(html).toContain(help.legend.rule)
-    expect(html).toContain('Het cadeau')
+    expect(html).toContain('The victim')
     expect(html).toContain(help.legend.canOccupy)
     expect(html).toContain(help.legend.blocked)
   })

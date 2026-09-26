@@ -11,7 +11,7 @@ import type { PlayView } from './LabPlay.tsx'
 import { defaultFormValues, labPath, parseLabRoute } from './model.ts'
 import type { FormValues } from './model.ts'
 import type { LabPuzzle } from './protocol.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 import { useGeneration } from './useGeneration.ts'
 import './lab.css'
 
@@ -27,7 +27,7 @@ function Notice({ children }: { children: string }) {
       </p>
       <p>
         <button type="button" className="lab-btn" onClick={toHome}>
-          {LAB_NL.play.back}
+          {LAB_EN.play.back}
         </button>
       </p>
     </main>
@@ -45,18 +45,18 @@ function LevelPlay({ levelId }: { levelId: string }) {
             title: level.title,
             puzzle: level.puzzle,
             roomStyles: level.roomStyles,
-            facts: [LAB_NL.size_(level.puzzle.scene.width), LAB_NL.play.clues(level.puzzle.clues.length)],
+            facts: [LAB_EN.size_(level.puzzle.scene.width), LAB_EN.play.clues(level.puzzle.clues.length)],
           }
         : null,
     [level],
   )
-  if (!view) return <Notice>{LAB_NL.play.notFound}</Notice>
+  if (!view) return <Notice>{LAB_EN.play.notFound}</Notice>
   return <LabPlay key={levelId} view={view} onBack={toHome} />
 }
 
 function GeneratedPlay({ puzzle }: { puzzle: LabPuzzle | null }) {
   const view = useMemo(() => (puzzle ? packView(puzzle, 'generated', puzzle.warnings) : null), [puzzle])
-  if (!view) return <Notice>{LAB_NL.play.noGenerated}</Notice>
+  if (!view) return <Notice>{LAB_EN.play.noGenerated}</Notice>
   return <LabPlay key={view.id} view={view} onBack={toHome} />
 }
 
@@ -73,10 +73,10 @@ function Home({ form, onForm, generation }: HomeProps) {
     <main className="lab">
       <header className="lab__header">
         <Link className="lab-btn" href="/">
-          {'‹'} {LAB_NL.toGame}
+          {'‹'} {LAB_EN.toGame}
         </Link>
-        <h1>{LAB_NL.title}</h1>
-        <p>{LAB_NL.subtitle}</p>
+        <h1>{LAB_EN.title}</h1>
+        <p>{LAB_EN.subtitle}</p>
       </header>
       <GenerateForm
         values={form}

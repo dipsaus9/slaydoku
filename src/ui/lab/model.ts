@@ -4,7 +4,7 @@ import { verifyPuzzle } from '../../engine/solver/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { SCENE_THEMES } from '../../content/themes/index.ts'
 import type { ThemeId } from '../../content/themes/index.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 import type { GenerateRequest } from './protocol.ts'
 
 /** Board sizes the generator handles (scale layer: 6x6 to 16x16). */
@@ -40,9 +40,9 @@ export type FormResult = { ok: true; request: GenerateRequest } | { ok: false; e
 
 const isWhole = (text: string): boolean => /^\d+$/.test(text.trim())
 
-/** Checks the form; the request when it is fine, else every problem in Dutch. */
+/** Checks the form; the request when it is fine, else every problem. */
 export function parseForm(values: FormValues): FormResult {
-  const t = LAB_NL.generate.errors
+  const t = LAB_EN.generate.errors
   const errors: string[] = []
   const seed = Number(values.seed)
   if (!isWhole(values.seed) || !Number.isSafeInteger(seed)) errors.push(t.seed)

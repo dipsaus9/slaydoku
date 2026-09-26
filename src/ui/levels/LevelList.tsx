@@ -4,7 +4,7 @@ import { HelpPanel, formatTime } from '../play/index.ts'
 import { Link } from '../router/index.ts'
 import type { LevelEntry } from './progress.ts'
 import { routePath } from './route.ts'
-import { LEVELS_NL } from './strings.ts'
+import { LEVELS_EN } from './strings.ts'
 
 export interface LevelListProps {
   entries: readonly LevelEntry[]
@@ -37,7 +37,7 @@ function Check() {
 
 /** All registered levels in play order, with status. Locked levels cannot be opened. */
 export function LevelList({ entries, notice, onDismissNotice, onOpen, footer }: LevelListProps) {
-  const t = LEVELS_NL
+  const t = LEVELS_EN
   const [helpOpen, setHelpOpen] = useState(false)
   return (
     <main className="levels">

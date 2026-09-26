@@ -7,7 +7,7 @@ import type { Level } from './registry.ts'
  * registration in App.tsx with the real levels from src/content/levels.ts.
  */
 export const devSampleLevel: Level = {
-  id: 'oefenkamer',
-  title: 'Oefenkamer',
+  id: 'practice-room',
+  title: 'Practice room',
   puzzle: tutorialWithClues,
 }

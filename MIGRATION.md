@@ -69,11 +69,10 @@ Removed from `package.json` (the code behind them was measuring the removed cont
 
 ## Still to rebuild
 
-1. **English interface text.** The engine text is English since SLAY-1.1: clue sentences (`src/engine/clues/en.ts`), solver explanations
+1. **English text: done** (SLAY-1.1 and SLAY-1.2). The engine text is English: clue sentences (`src/engine/clues/en.ts`), solver explanations
    (`src/engine/solver/human/en.ts` and the advanced techniques), hints (`src/game/hintText.ts`), theme room and object names, generated titles, and
-   "the victim" for the gift (`dutch.test.ts` keeps Dutch out of `src/engine`, `src/game`, `src/validation` and `src/content`). Still Dutch until
-   SLAY-1.2: `src/content/help/help.ts`, `src/ui/*/strings.ts` (including the keyword glossary, whose examples still quote the old Dutch cards),
-   `src/pwa/strings.ts`, the lab strings, `<html lang>` and `og:locale`. Remove the `src/content/help` skip from `dutch.test.ts` when that story lands.
+   "the victim" for the gift. The interface is English too: `src/content/help/help.ts`, `src/ui/*/strings.ts` (the keyword glossary quotes cards rendered by
+   the engine), `src/pwa/strings.ts`, the lab strings, `<html lang>`, `og:locale` and the manifest. `dutch.test.ts` keeps Dutch out of all of it.
 2. **Daily schedule.** One puzzle per UTC day: a schedule (puzzle per date, generated ahead and committed or served), the date-based level id, the
    "next puzzle in ..." state, and a plan for regenerating puzzles without breaking saved boards (`puzzleFingerprint` already guards that).
 3. **Daily flow and sharing.** Replace the level list, unlock order and solved screen with the daily flow; Wordle-like share text (result grid, time,

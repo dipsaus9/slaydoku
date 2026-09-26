@@ -120,19 +120,19 @@ export function ContactSheetView() {
           turned by rotation. Sections follow the object catalog, as the official legend does: the icons
           themselves carry no occupiable/blocking colour.
         </p>
-        <h2 className="occupiable">Kan bezet worden ({occupiable.length})</h2>
+        <h2 className="occupiable">Can be occupied ({occupiable.length})</h2>
         <div className="grid">
           {occupiable.map((type) => (
             <ObjectCard key={type} type={type} />
           ))}
         </div>
-        <h2 className="blocking">Kunnen niet bezet worden ({blocking.length})</h2>
+        <h2 className="blocking">Cannot be occupied ({blocking.length})</h2>
         <div className="grid">
           {blocking.map((type) => (
             <ObjectCard key={type} type={type} />
           ))}
         </div>
-        <h2 className="edges">Op de rasterlijn: raam en deur</h2>
+        <h2 className="edges">On the grid line: window and door</h2>
         <div className="card">
           {(['window', 'door'] as const).map((kind) => (
             <div className="edge" key={kind}>

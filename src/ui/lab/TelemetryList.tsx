@@ -1,9 +1,9 @@
 import type { TelemetryRecord } from '../../game/telemetry/index.ts'
 import { clock } from './insight.ts'
 import type { TelemetrySummary } from './insight.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
-const t = LAB_NL.insight
+const t = LAB_EN.insight
 
 const orDash = (value: number | null, show: (n: number) => string = String): string => (value === null ? t.summary.none : show(value))
 
@@ -62,7 +62,7 @@ export function TelemetryList({ records, summary, onExport }: TelemetryListProps
             <tbody>
               {records.map((record) => (
                 <tr key={record.sessionId}>
-                  <td>{new Date(record.startedAt).toLocaleString('nl-NL')}</td>
+                  <td>{new Date(record.startedAt).toLocaleString('en-GB')}</td>
                   <td>{clock(record.activeSeconds)}</td>
                   <td>
                     {record.hints[1]} / {record.hints[2]} / {record.hints[3]}

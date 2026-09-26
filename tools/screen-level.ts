@@ -1,7 +1,7 @@
 // Screens ladder seeds for a scene: `bun tools/screen-level.ts --scene demo --tier very-easy --victim 6,2 --from 1 --to 400 [--min-share 50] [--max-cards 14] [--min-kinds 5] [--max-kind 4] [--max-lines 2] [--plain 1] [--budget 20000]`.
 // For every seed it runs generateLadder (victim pinned), dresses the puzzle with the cast, and keeps it when the noun audit,
 // auditHints and auditClues pass and a hint walk (walkHints) needs at most 1.3 x people requests. Survivors are printed as one line each:
-// seed, cards, kinds, most used kind, row/column cards, direct share, hint requests, most squares a card leaves alone, longest chain of dependent placements, ladder order, then the Dutch clue lines, so they can be
+// seed, cards, kinds, most used kind, row/column cards, direct share, hint requests, most squares a card leaves alone, longest chain of dependent placements, ladder order, then the clue lines, so they can be
 // read by hand (the last step of the curation, see docs/authoring/generate-verify-register.md). Prints the counts to stderr.
 // Exit code: 0 done, 2 usage.
 import { demoScene } from '../src/content/demo/scene.ts'

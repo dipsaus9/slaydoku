@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { GameOptions } from '../../game/index.ts'
 import type { Tool } from './intent.ts'
-import { PLAY_NL } from './strings.ts'
+import { PLAY_EN } from './strings.ts'
 import { ToolIcon } from './toolIcons.tsx'
 import { useGesture } from './useGesture.ts'
 import { isZoomed, zoomLabel, type View } from './zoom.ts'
@@ -16,7 +16,7 @@ interface ToolButtonProps {
   className?: string
 }
 
-/** A 44px+ touch target: icon on top, short Dutch label below. */
+/** A 44px+ touch target: icon on top, short label below. */
 function ToolButton({ icon, label, title, pressed, disabled, onClick, className }: ToolButtonProps) {
   return (
     <button
@@ -47,13 +47,13 @@ function EraserButton({ active, onSelect, onClearAll }: { active: boolean; onSel
       type="button"
       className="play-tool play-tool--hold"
       aria-pressed={active}
-      title={PLAY_NL.toolTitle.erase}
+      title={PLAY_EN.toolTitle.erase}
       {...bind}
       // Keyboard and screen readers: Enter/Space clicks; the pointer path handles touch.
       onClick={(e) => e.detail === 0 && onSelect()}
     >
       <span className="play-tool__icon" aria-hidden="true"><ToolIcon name="erase" /></span>
-      <span className="play-tool__label">{PLAY_NL.tools.erase}</span>
+      <span className="play-tool__label">{PLAY_EN.tools.erase}</span>
     </button>
   )
 }
@@ -79,21 +79,21 @@ export interface ToolbarProps {
 }
 
 export function Toolbar(props: ToolbarProps) {
-  const t = PLAY_NL.tools
+  const t = PLAY_EN.tools
   const { tool, onTool, options } = props
   return (
     <div className="play-toolbar" role="toolbar" aria-label={t.label}>
-      <div className="play-toolbar__group" role="group" aria-label="Modus">
-        <ToolButton icon={<ToolIcon name="note" />} label={t.note} title={PLAY_NL.toolTitle.note} pressed={tool === 'note'} onClick={() => onTool('note')} />
-        <ToolButton icon={<ToolIcon name="place" />} label={t.place} title={PLAY_NL.toolTitle.place} pressed={tool === 'place'} onClick={() => onTool('place')} />
-        <ToolButton icon={<ToolIcon name="x" />} label={t.x} title={PLAY_NL.toolTitle.x} pressed={tool === 'x'} onClick={() => onTool('x')} />
+      <div className="play-toolbar__group" role="group" aria-label={t.mode}>
+        <ToolButton icon={<ToolIcon name="note" />} label={t.note} title={PLAY_EN.toolTitle.note} pressed={tool === 'note'} onClick={() => onTool('note')} />
+        <ToolButton icon={<ToolIcon name="place" />} label={t.place} title={PLAY_EN.toolTitle.place} pressed={tool === 'place'} onClick={() => onTool('place')} />
+        <ToolButton icon={<ToolIcon name="x" />} label={t.x} title={PLAY_EN.toolTitle.x} pressed={tool === 'x'} onClick={() => onTool('x')} />
         <EraserButton active={tool === 'erase'} onSelect={() => onTool('erase')} onClearAll={props.onClearAll} />
       </div>
       <div className="play-toolbar__group">
         <ToolButton icon={<ToolIcon name="undo" />} label={t.undo} disabled={!props.canUndo} onClick={props.onUndo} />
         <ToolButton icon={<ToolIcon name="redo" />} label={t.redo} disabled={!props.canRedo} onClick={props.onRedo} />
         <ToolButton icon={<ToolIcon name="hint" />} label={t.hint} pressed={props.hintOpen} onClick={props.onHint} />
-        <ToolButton icon={<ToolIcon name="autoX" />} label={t.autoX} pressed={options.autoXOnPlace} title={PLAY_NL.options.autoXHelp} onClick={props.onToggleAutoX} className="play-tool--toggle" />
+        <ToolButton icon={<ToolIcon name="autoX" />} label={t.autoX} pressed={options.autoXOnPlace} title={PLAY_EN.options.autoXHelp} onClick={props.onToggleAutoX} className="play-tool--toggle" />
       </div>
       <div className="play-toolbar__group">
         <ToolButton
@@ -104,14 +104,14 @@ export function Toolbar(props: ToolbarProps) {
             </>
           }
           label={t.zoom}
-          title={PLAY_NL.toolTitle.zoom}
+          title={PLAY_EN.toolTitle.zoom}
           pressed={isZoomed(props.zoom)}
           onClick={props.onZoom}
           className="play-tool--zoom"
         />
         <ToolButton icon={<ToolIcon name="options" />} label={t.options} onClick={props.onOpenOptions} />
         <ToolButton icon={<ToolIcon name="help" />} label={t.help} onClick={props.onOpenHelp} />
-        <ToolButton icon={<ToolIcon name="legend" />} label={t.legend} title={PLAY_NL.toolTitle.legend} onClick={props.onOpenLegend} />
+        <ToolButton icon={<ToolIcon name="legend" />} label={t.legend} title={PLAY_EN.toolTitle.legend} onClick={props.onOpenLegend} />
       </div>
     </div>
   )

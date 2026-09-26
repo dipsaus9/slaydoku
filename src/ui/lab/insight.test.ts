@@ -76,7 +76,7 @@ describe('cast names', () => {
 
 describe('formatting', () => {
   it('shows squares short and times as minutes', () => {
-    expect(cellLabel({ row: 2, col: 3 })).toBe('r3k4')
+    expect(cellLabel({ row: 2, col: 3 })).toBe('r3c4')
     expect(clock(75)).toBe('1:15')
     expect(clock(5)).toBe('0:05')
   })

@@ -36,8 +36,8 @@ describe('<PlayScreen/>', () => {
     expect(html).toContain(`${Alice} stood next to a table.`)
   })
 
-  it('has the toolbar tools in Dutch', () => {
-    for (const label of ['Notitie', 'Plaats', 'X', 'Gum', 'Terug', 'Vooruit', 'Hint', 'Auto-X', 'Opties', 'Uitleg', 'Legenda', 'Zoom']) {
+  it('has the toolbar tools in English', () => {
+    for (const label of ['Note', 'Place', 'X', 'Erase', 'Undo', 'Redo', 'Hint', 'Auto-X', 'Options', 'Help', 'Legend', 'Zoom']) {
       expect(html).toContain(`>${label}<`)
     }
     expect(html).toContain('role="toolbar"')
@@ -100,32 +100,32 @@ describe('<PlayScreen/>', () => {
 
 describe('<HelpPanel/>', () => {
   const html = renderToStaticMarkup(<HelpPanel onClose={() => {}} />)
-  it('opens on the goal and the steps, with a Kernwoorden button', () => {
-    expect(html).toContain('Zo werkt het')
+  it('opens on the goal and the steps, with a Keywords button', () => {
+    expect(html).toContain('How it works')
     for (const line of help.goal) expect(html).toContain(line)
     for (const step of help.steps) expect(html).toContain(step.title)
-    expect(html).toContain('>Kernwoorden<')
-    expect(html).toContain('>Aan de slag<')
+    expect(html).toContain('>Keywords<')
+    expect(html).toContain('>Start playing<')
   })
 
-  it('hides the keyword glossary until the Kernwoorden button is used', () => {
+  it('hides the keyword glossary until the Keywords button is used', () => {
     expect(html).not.toContain('play-help__glossary')
-    for (const word of ['samen met', 'precies N rijen', 'diagonaal', 'in de hoek']) {
+    for (const word of ['alone with', 'exactly N rows', 'diagonal', 'in a corner']) {
       expect(html.toLowerCase()).not.toContain(word.toLowerCase())
     }
   })
 })
 
-describe('the Legenda (CAD-10.9)', () => {
-  it('sits right after Uitleg, as the last toolbar button', () => {
+describe('the Legend (CAD-10.9)', () => {
+  it('sits right after Help, as the last toolbar button', () => {
     const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
     const labels = [...html.matchAll(/<span class="play-tool__label">([^<]+)<\/span>/g)].map((m) => m[1])
-    expect(labels.slice(-2)).toEqual(['Uitleg', 'Legenda'])
+    expect(labels.slice(-2)).toEqual(['Help', 'Legend'])
   })
 
   it('is reachable from the how-it-works card when opened on a level, not from the level list', () => {
-    expect(renderToStaticMarkup(<HelpPanel onClose={() => {}} onLegend={() => {}} />)).toContain('>Legenda<')
-    expect(renderToStaticMarkup(<HelpPanel onClose={() => {}} />)).not.toContain('>Legenda<')
+    expect(renderToStaticMarkup(<HelpPanel onClose={() => {}} onLegend={() => {}} />)).toContain('>Legend<')
+    expect(renderToStaticMarkup(<HelpPanel onClose={() => {}} />)).not.toContain('>Legend<')
   })
 
   it('draws the squares it points at inside the zoomed pane, without taking a touch', () => {
@@ -167,8 +167,8 @@ describe('the Legenda (CAD-10.9)', () => {
 
 describe('<Glossary/>', () => {
   const html = renderToStaticMarkup(<Glossary />)
-  it('lists the Dutch keywords', () => {
-    for (const word of ['naast', 'alleen', 'samen met', 'precies N rijen', 'diagonaal', 'in de hoek', 'bij een raam']) {
+  it('lists the keywords', () => {
+    for (const word of ['next to', 'alone', 'with', 'exactly N rows', 'diagonal', 'in a corner', 'next to a window']) {
       expect(html.toLowerCase()).toContain(word.toLowerCase())
     }
   })
@@ -195,19 +195,19 @@ describe('first visit help card (CAD-10.8)', () => {
 })
 
 describe('<ResultOverlay/>', () => {
-  it('solved: names who was alone with the gift, and the time', () => {
+  it('solved: names who was alone with the victim, and the time', () => {
     const html = renderToStaticMarkup(
       <ResultOverlay puzzle={named} result={{ solved: true, murdererId: idOf(Alice), elapsedMs: 83_000 }} onRestart={() => {}} onDismiss={() => {}} />,
     )
-    expect(html).toContain(`${Alice} was alleen met het cadeau.`)
-    expect(html).toContain('Tijd: 1:23')
+    expect(html).toContain(`You found the murderer! ${Alice} was alone with the victim.`)
+    expect(html).toContain('Time: 1:23')
   })
 
   it('wrong: counts, never who', () => {
     const html = renderToStaticMarkup(
       <ResultOverlay puzzle={named} result={{ solved: false, correctCount: 2, total: 4 }} onRestart={() => {}} onDismiss={() => {}} />,
     )
-    expect(html).toContain('Niet helemaal: 2 van 4 goed, probeer opnieuw.')
+    expect(html).toContain('Not quite: 2 of 4 correct, try again.')
     for (const name of [Alice, Ben, Chloe]) expect(html).not.toContain(name)
   })
 })
@@ -285,7 +285,7 @@ describe('gestures drive the game store', () => {
 })
 
 describe('axis labels', () => {
-  it('draws R1..Rn and C1..Cn by default, matching "rij N, kolom M" counted from top and left', () => {
+  it('draws R1..Rn and C1..Cn by default, matching "row N, column M" counted from top and left', () => {
     const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
     expect((html.match(/data-axis="row"/g) ?? []).length).toBe(4)
     expect((html.match(/data-axis="col"/g) ?? []).length).toBe(4)
@@ -306,7 +306,7 @@ describe('axis labels', () => {
     const props = { options: DEFAULT_OPTIONS, onChange: () => {}, onAxisLabels: () => {}, onClearAll: () => {}, onRestart: () => {}, onClose: () => {} }
     const on = renderToStaticMarkup(<OptionsPanel {...props} showAxisLabels />)
     const off = renderToStaticMarkup(<OptionsPanel {...props} showAxisLabels={false} />)
-    expect(on).toContain('Rij- en kolomnummers')
+    expect(on).toContain('Row and column numbers')
     expect((on.match(/aria-checked="true"/g) ?? []).length).toBe(4)
     expect((off.match(/aria-checked="true"/g) ?? []).length).toBe(3)
   })

@@ -65,7 +65,7 @@ function firstOf(people: readonly Person[], kind: Person['kind']): Person | unde
 }
 
 /**
- * The Legenda: what is drawn on this board. The object, door and window rows come from the scene
+ * The Legend: what is drawn on this board. The object, door and window rows come from the scene
  * (legend.ts); tapping one asks the board to flash its squares. The marks are drawn with the very
  * glyphs of the board layers, so a letter, a cross, a portrait and the gift look the same here.
  */

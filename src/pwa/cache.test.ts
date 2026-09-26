@@ -79,7 +79,7 @@ describe('routeRequest', () => {
   const get = (path: string, mode = 'cors') => routeRequest({ method: 'GET', mode, url: `${origin}${path}` }, origin, known)
 
   it('answers a page load of every clean URL with the shell', () => {
-    for (const path of ['/', '/level/demo', '/level/demo/solved', '/extras', '/extras/12-easy-home-3', '/onzin/pad', '/level/demo?utm=1']) {
+    for (const path of ['/', '/level/demo', '/level/demo/solved', '/extras', '/extras/12-easy-home-3', '/nonsense/path', '/level/demo?utm=1']) {
       expect(get(path, 'navigate'), path).toBe('shell')
     }
     expect(SHELL_URL).toBe('/index.html')

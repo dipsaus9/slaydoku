@@ -11,9 +11,9 @@ import {
 } from './judgements.ts'
 import type { Verdict } from './judgements.ts'
 import { downloadText } from './download.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
-const t = LAB_NL.insight
+const t = LAB_EN.insight
 
 export interface JudgementBoxProps {
   puzzleId: string
@@ -63,7 +63,7 @@ export function JudgementBox({ puzzleId, storage, now = Date.now }: JudgementBox
         {failed
           ? t.saveFailed
           : current
-            ? t.judgedAs(t.verdicts[current.verdict], new Date(current.judgedAt).toLocaleString('nl-NL'))
+            ? t.judgedAs(t.verdicts[current.verdict], new Date(current.judgedAt).toLocaleString('en-GB'))
             : t.notJudged}
       </p>
     </section>

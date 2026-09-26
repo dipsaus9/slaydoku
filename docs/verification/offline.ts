@@ -5,7 +5,7 @@
 //   2. Network.emulateNetworkConditions offline (and a fetch that must fail, so the offline mode is real), then reload on
 //      / and /level/demo: the level list opens and the demo level plays (from the precache);
 //   3. a new deploy (the level list subtitle gets " (v2)" for one build, restored afterwards): back online, the next visit
-//      keeps showing the cached build, the notice "Nieuwe versie beschikbaar" + "Opnieuw laden" appears, the reload
+//      keeps showing the cached build, the notice "New version available" + "Reload" appears, the reload
 //      activates the new build, the old cache is gone, and localStorage (progress, board saves, a marker) is untouched.
 //
 // Usage (from the repo root): bun docs/verification/offline.ts
@@ -28,7 +28,7 @@ const OUT = process.env.OUT ?? mkdtempSync(join(tmpdir(), 'slaydoku-offline-'))
 const SITE = join(OUT, 'site')
 const BASE = `http://localhost:${PORT}`
 const STRINGS = join(ROOT, 'src/ui/levels/strings.ts')
-const SUBTITLE = 'Los de zaak op'
+const SUBTITLE = 'Solve the case'
 mkdirSync(OUT, { recursive: true })
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -163,7 +163,7 @@ try {
   check('offline demo level is playable: a placement is saved', after !== null && after !== before, `${(after ?? '').length} bytes saved`)
   await shot('offline-02-level-demo')
 
-  await goto('/onzin/pad')
+  await goto('/nonsense/path')
   check('offline unknown path falls back to the app (list at /)', (await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)) && (await evaluate('location.pathname')) === '/')
 
   // ---- 3. a new deploy ------------------------------------------------------------------------
@@ -186,8 +186,8 @@ try {
   // "The next visit": a page load. The controlled page still shows the cached v1 while the browser checks sw.js.
   await goto('/')
   check('the next visit still shows the cached v1 (no silent swap)', (await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)) && (await evaluate(`document.body.textContent.includes(${JSON.stringify(SUBTITLE)}) && !document.body.textContent.includes('(v2)')`)) === true)
-  check('the update notice appears in Dutch', await until(`document.querySelector('[data-update-notice]') !== null`, 15000), await text('[data-update-notice]'))
-  check('notice text and button', (await text('.update-notice__text')) === 'Nieuwe versie beschikbaar' && (await text('.update-notice__button')) === 'Opnieuw laden')
+  check('the update notice appears in English', await until(`document.querySelector('[data-update-notice]') !== null`, 15000), await text('[data-update-notice]'))
+  check('notice text and button', (await text('.update-notice__text')) === 'New version available' && (await text('.update-notice__button')) === 'Reload')
   const notice = (await evaluate(`(() => { const r = document.querySelector('[data-update-notice]').getBoundingClientRect(); return { top: r.top, height: r.height, fits: r.left >= 0 && r.right <= innerWidth } })()`)) as { top: number; height: number; fits: boolean }
   check('the notice is on screen and small', notice.top >= 0 && notice.height < 80 && notice.fits, JSON.stringify(notice))
   await shot('update-01-notice')
@@ -196,7 +196,7 @@ try {
   check('localStorage is untouched while the update waits', (await storageDump()) === storageBefore)
 
   await evaluate(`document.querySelector('.update-notice__button').click()`)
-  check('"Opnieuw laden" activates the new build: the page reloads into v2', await until(`document.body.textContent.includes('(v2)')`, 15000))
+  check('"Reload" activates the new build: the page reloads into v2', await until(`document.body.textContent.includes('(v2)')`, 15000))
   check('the notice is gone after the reload', await until(`document.querySelector('[data-update-notice]') === null`) )
   await shot('update-02-after-reload')
   const cachesV2 = JSON.parse(await cacheNames()) as string[]

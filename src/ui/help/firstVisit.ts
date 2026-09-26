@@ -1,12 +1,12 @@
 import type { StorageLike } from '../../game/index.ts'
 import { help } from '../../content/help/help.ts'
 
-/** Remembers which version of the "Zo werkt het" card this browser has already been shown. */
+/** Remembers which version of the "How it works" card this browser has already been shown. */
 export const HELP_SEEN_KEY = 'slaydoku:help-seen'
 
 /**
  * True when the card should open by itself: storage works and this version was not shown yet.
- * No storage, or storage that throws, means "skip": the card stays reachable from the Uitleg
+ * No storage, or storage that throws, means "skip": the card stays reachable from the Help
  * button, it just never pops up on its own (better than showing it on every visit).
  */
 export function shouldShowHelp(storage: StorageLike | null, version: number = help.version): boolean {
