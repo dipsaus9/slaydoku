@@ -25,15 +25,15 @@ try {
   process.exit(2)
 }
 
-// With --cast the people also get the cast genders, so the gender cards can be drawn (medium up).
-const options = { victimCell: args.victimCell, exact: !args.loose, budgetMs: args.budgetMs, genders: args.cast ? castGenders(26) : undefined }
+// With --cast the people also get the genders of the cast (`castFor`), so the gender cards can be drawn (medium up).
+const optionsFor = (scene: Scene) => ({ victimCell: args.victimCell, exact: !args.loose, budgetMs: args.budgetMs, genders: args.cast ? castGenders(scene.width) : undefined })
 
 try {
   if (args.report !== undefined) {
     const seeds = Array.from({ length: args.report }, (_, i) => args.seed + i)
     for (const spec of args.scenes) {
       for (const tier of args.tiers) {
-        const measurement = measureLadder((seed) => sceneForSpec(spec, seed, builtins, readFile), tier, seeds, options)
+        const measurement = measureLadder((seed) => sceneForSpec(spec, seed, builtins, readFile), tier, seeds, optionsFor(sceneForSpec(spec, args.seed, builtins, readFile)))
         console.log(formatMeasurement(spec, measurement))
       }
     }
@@ -43,7 +43,7 @@ try {
   const spec = args.scenes[0] as string
   const tier = args.tiers[0]!
   const scene = sceneForSpec(spec, args.seed, builtins, readFile)
-  const outcome = generateLadder(scene, tier, args.seed, options)
+  const outcome = generateLadder(scene, tier, args.seed, optionsFor(scene))
   if (!outcome.ok) {
     console.error(`${outcome.message} (${outcome.reason})`)
     process.exit(1)

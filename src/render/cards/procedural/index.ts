@@ -2,12 +2,13 @@ export { ProceduralAvatar, type ProceduralAvatarProps } from './ProceduralAvatar
 export {
   buildCast,
   buildCastForBoard,
+  buildCastFromCast,
+  buildCastFromPeople,
+  cardLookOf,
   MAX_SUSPECTS,
   suspectsForSize,
   type BuiltCast,
   type CardLook,
   type CastEntry,
 } from './cast.tsx'
-export { generateAvatar, generateAvatars, type GeneratedAvatar } from './generate.ts'
-export { NAME_POOL } from './names.ts'
 export { type ProceduralTraits } from './traits.ts'

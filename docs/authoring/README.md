@@ -11,6 +11,7 @@ How to add content to Slaydoku without the original author. Every command in the
 | Build or regenerate puzzle packs | [regenerate-packs.md](regenerate-packs.md) |
 | Measure the generator on fresh seeds, see how many more puzzles a cell can give, extend the pack safely | [scaling.md](scaling.md) |
 | Add a scene theme, an object type or an object icon | [theme-and-icons.md](theme-and-icons.md) |
+| Understand or change the cast: name pool, `castFor`, gates, portraits | [cast.md](cast.md) |
 
 ## Map of the repo
 
@@ -24,6 +25,7 @@ How to add content to Slaydoku without the original author. Every command in the
 | `src/content/demo/` | The demo house scene and the demo puzzle generated on it |
 | `src/content/levels.ts` | Registers the levels in play order (one demo level for now) |
 | `src/content/themes/` | Scene themes (home, office, park, school, shop) for random scenes |
+| `src/content/cast/` | The name pool, `castFor` (unique initials, balanced genders, seeded), `castProblems`, the generic portrait designs |
 | `src/content/packs/` | The pack pipeline (build, gates, format, read, sweep); no pack data is committed |
 | `src/render/icons/` | Object icons (engine catalog) and `themes/` (theme-only icons) |
 | `tools/` | The `bun run` entry points: `generate`, `verify`, `pack`, `icon-sheet.ts` |
@@ -44,6 +46,7 @@ bun run pack ...       # build the puzzle packs                        (see rege
 bun tools/pack.ts --verify   # re-verify the pack files on disk (none are committed)
 bun run validate:generation  # sweep fresh seeds per size x tier x theme, report success rate and yield (see scaling.md)
 bun tools/icon-sheet.ts [out.html]   # contact sheet of every icon    (see theme-and-icons.md)
+bun tools/portrait-sheet.ts [out.html]   # contact sheet of every portrait design and sample casts (see cast.md)
 ```
 
 Run one test file with `bunx vitest run src/content/demo/scene.test.ts`.

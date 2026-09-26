@@ -1,5 +1,5 @@
 import type { Person, Puzzle } from '../../engine/model/index.ts'
-import { buildCast, MAX_SUSPECTS, type BuiltCast } from '../../render/cards/index.ts'
+import { buildCast, buildCastFromPeople, MAX_SUSPECTS, type BuiltCast } from '../../render/cards/index.ts'
 
 /** Glyph of the gift in notes. */
 export const GIFT_TAG = '\u{1F381}'
@@ -73,10 +73,10 @@ export function withCastNames(puzzle: Puzzle, seed: string | number = 'slaydoku'
   }
 }
 
-/** The card looks (drawn cast and generated extras) for a puzzle's suspects. */
+/** The card looks for a puzzle's suspects: portraits by gender slot and seed, whatever their names (the names are baked into the puzzle). */
 export function castFor(puzzle: Puzzle, seed: string | number = 'slaydoku'): BuiltCast {
-  const count = puzzle.people.filter((p) => p.kind === 'suspect').length
-  return buildCast(Math.min(count, MAX_SUSPECTS), seed)
+  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+  return buildCastFromPeople(suspects.map((p) => ({ name: p.label, gender: p.gender })), seed)
 }
 
 /** "1:05" or "1:02:03". */

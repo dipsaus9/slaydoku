@@ -1,5 +1,3 @@
-import { createRng, type Rng } from './rng.ts'
-
 /** Skin tones, light to deep. */
 export const SKIN_TONES = [
   '#fadcc6',
@@ -105,45 +103,3 @@ export function traitsKey(t: ProceduralTraits): string {
   ].join('|')
 }
 
-/** One random face and outfit. */
-export function randomTraits(rng: Rng): ProceduralTraits {
-  return {
-    skin: rng.pick(SKIN_TONES),
-    hairStyle: rng.pick(HAIR_STYLES),
-    hairColor: rng.pick(HAIR_COLORS),
-    clothesStyle: rng.pick(CLOTHES_STYLES),
-    clothesColor: rng.pick(CLOTHES_COLORS),
-    accessory: rng.pick(ACCESSORIES),
-    accentColor: rng.pick(ACCENT_COLORS),
-    mouth: rng.pick(MOUTHS),
-    brows: rng.pick(BROWS),
-  }
-}
-
-/** Minimum number of visible features two avatars from one set must differ in. */
-export const MIN_DISTANCE = 3
-
-/**
- * The avatar traits for people 0..count-1 of one seed. Each person is drawn
- * from the seeded stream and redrawn until it differs from everyone before
- * it in at least MIN_DISTANCE visible features, so no two look alike. If a
- * crowded set cannot meet that in 60 draws, the best draw wins.
- */
-export function generateTraitsSet(seed: string | number, count: number): ProceduralTraits[] {
-  const rng = createRng(`avatars:${seed}`)
-  const out: ProceduralTraits[] = []
-  for (let i = 0; i < count; i++) {
-    let best = randomTraits(rng)
-    let bestScore = out.length ? Math.min(...out.map((o) => traitDistance(o, best))) : Infinity
-    for (let attempt = 0; attempt < 60 && bestScore < MIN_DISTANCE; attempt++) {
-      const candidate = randomTraits(rng)
-      const score = Math.min(...out.map((o) => traitDistance(o, candidate)))
-      if (score > bestScore) {
-        best = candidate
-        bestScore = score
-      }
-    }
-    out.push(best)
-  }
-  return out
-}

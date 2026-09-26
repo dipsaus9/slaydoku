@@ -3,6 +3,7 @@ import { generate, makePeople } from '../../engine/generator/index.ts'
 import { tutorialPuzzle } from '../../engine/model/tutorial.fixture.ts'
 import { colorsFor, formatTime, GIFT_TAG, noteTags, withCastNames } from './people.ts'
 import { DEMO_VICTIM_CELLS, demoScene } from '../../content/demo/scene.ts'
+import { castFor } from '../../content/cast/index.ts'
 
 const person = (id: string, label: string) => ({ id, kind: 'suspect' as const, label })
 
@@ -37,20 +38,18 @@ describe('colorsFor', () => {
 describe('withCastNames', () => {
   it('names letter suspects after the cast and leaves the rest of the puzzle alone', () => {
     const named = withCastNames(tutorialPuzzle)
-    expect(named.people.filter((p) => p.kind === 'suspect').map((p) => p.label)).toEqual(['Alice', 'Ben', 'Chloe'])
+    expect(named.people.filter((p) => p.kind === 'suspect').map((p) => p.label)).toEqual(castFor(4, 'slaydoku').names)
     expect(named.people.find((p) => p.kind === 'victim')?.label).toBe('V')
     expect(named.solution).toBe(tutorialPuzzle.solution)
     expect(named.people.map((p) => p.id)).toEqual(tutorialPuzzle.people.map((p) => p.id))
   })
 
-  it('brings the gender of the fixed cast and leaves the gift without one', () => {
+  it('brings the gender of the cast and leaves the gift without one', () => {
     const puzzle = generate(demoScene, { seed: 7, victimCell: DEMO_VICTIM_CELLS[0] })
     const played = withCastNames(puzzle)
     const suspects = played.people.filter((p) => p.kind === 'suspect')
-    expect(suspects.map((p) => [p.label, p.gender])).toEqual([
-      ['Alice', 'woman'], ['Ben', 'man'], ['Chloe', 'woman'], ['Dan', 'man'],
-      ['Emma', 'woman'], ['Frank', 'man'], ['Grace', 'woman'], ['Henry', 'man'],
-    ])
+    const cast = castFor(9, 'slaydoku')
+    expect(suspects.map((p) => [p.label, p.gender])).toEqual(cast.names.map((n, i) => [n, cast.genders[i]]))
     expect(played.people.find((p) => p.kind === 'victim')?.gender).toBeUndefined()
   })
 

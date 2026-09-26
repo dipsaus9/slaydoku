@@ -9,7 +9,8 @@ import { verifyPuzzle } from '../engine/solver/index.ts'
 import { SOLVABLE_TIERS, ladderCheck, ladderMeetsTier, ladderOptions, tierFor } from '../engine/solvable/index.ts'
 import { getLevels } from '../ui/levels/registry.ts'
 import { auditClues, auditHints, walkHints } from '../validation/index.ts'
-import { CAST } from '../render/cards/index.ts'
+import { castProblems } from './cast/index.ts'
+import { ladderCast } from '../engine/generator/ladder/index.ts'
 import { DEMO_VICTIM_CELLS, demoRoomStyles, demoScene } from './demo/scene.ts'
 import { demoLevels } from './levels.ts'
 
@@ -93,9 +94,11 @@ describe('the demo level (ladder tier easy, seed 2, victim on the sofa)', () => 
     }
   })
 
-  it('carries the placeholder cast names and genders in order, the victim has neither', () => {
+  it('carries a valid cast (pool names, unique initials, balanced genders) and the victim has neither name nor gender', () => {
     const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
-    expect(suspects.map((p) => [p.label, p.gender])).toEqual(CAST.map((m) => [m.name, m.gender]))
+    const cast = ladderCast(puzzle.people.length)
+    expect(suspects.map((p) => [p.label, p.gender])).toEqual(cast.names.map((n, i) => [n, cast.genders[i]]))
+    expect(castProblems(suspects.map((p) => p.label), suspects.map((p) => p.gender))).toEqual([])
     const victim = puzzle.people.find((p) => p.kind === 'victim')!
     expect(victim.label).toBe('the victim')
     expect(victim.gender).toBeUndefined()
