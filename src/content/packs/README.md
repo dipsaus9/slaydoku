@@ -51,9 +51,8 @@ cast        suspect names in seat order (the labels of the suspects); the people
 puzzle      a plain Puzzle: scene, people, solution, clues (`bun run verify` reads it; parsePuzzle accepts it)
 ```
 
-Suspects carry the placeholder cast names (`buildCastForBoard`: Alice, Ben, Chloe, Dan, Emma, Frank, Grace, Henry, then generated extras up to 15
-on 16x16, seeded by the puzzle id), the victim is `the victim`, and room names stay bare (`Kitchen`, `Toilet`; clue text adds "the"). Genders alternate
-woman/man in the fixed eight and stay balanced with the extras; gender cards need a gender on every suspect, and the victim has none.
+Suspects carry the names and genders of `castFor` (`src/content/cast/`, seeded by the puzzle id; see `docs/authoring/cast.md`): distinct first letters, genders balanced (women and men differ by at most one),
+names from the pool. The victim is `the victim` and has no gender; room names stay bare (`Kitchen`, `Toilet`; clue text adds "the"). The gates (`castProblems`) reject a duplicate initial, unbalanced genders or a name outside the pool.
 
 ## Commands
 

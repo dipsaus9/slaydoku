@@ -20,7 +20,7 @@ From a finished scene ([new-scene.md](new-scene.md)) to a playable level in the 
 `--scene` is a built-in name (`demo`, plus anything you added to the `builtins` maps) or the path to a JSON file holding a scene or a whole puzzle.
 `--victim` is 1-based `row,col` (the "r9c7" of the drawings is `9,7`). It pins the victim cell; it must be occupiable, otherwise the tool stops with
 "Victim cell r1c1 is not occupiable.". Without `--out` the puzzle JSON is not written; `--json` prints it. `--cast` labels the suspects with the cast
-names and the victim "the victim".
+names (`castFor`, see [cast.md](cast.md)) and the victim "the victim".
 
 Exit codes: `0` generated, `1` no puzzle possible for this scene (or within the time budget), `2` bad arguments or unreadable scene. Tiers are
 `very-easy`, `easy`, `easy-medium`, `medium`, `hard`, `expert` (see [rules.md](rules.md) and [docs/solvability/README.md](../solvability/README.md));
@@ -61,7 +61,7 @@ To see how often a scene delivers a tier over a run of seeds (success rate and t
 ## 2. Write the file
 
 The generator labels suspects A..H and the victim V. A level file carries the cast names and the victim label `the victim`; `--cast` does the
-relabelling (the cast, in order, is Alice, Ben, Chloe, Dan, Emma, Frank, Grace, Henry):
+relabelling (names and genders from `castFor`, alphabetical by first letter, so `--cast` output is the same on every run):
 
 ```sh
 bun tools/ladder.ts --scene demo --tier easy --seed 2 --victim 9,7 --cast --out src/content/demo/puzzle.json

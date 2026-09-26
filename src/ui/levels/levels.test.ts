@@ -270,7 +270,7 @@ describe('screens (static markup)', () => {
       }),
     )
     expect(html).toContain('Solved!')
-    expect(html).toMatch(/(Ben|Alice|Dan) was alone with the victim\./)
+    expect(html).toMatch(/[A-Z][a-z]+ was alone with the victim\./)
     expect(html).toContain('Time: 1:05')
     expect(html).toContain('Next level: Level two')
   })

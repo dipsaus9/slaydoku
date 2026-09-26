@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { describe, expect, it } from 'vitest'
 import { demoScene } from '../../../content/demo/scene.ts'
 import { generatedSize, parseLadderArgs, sceneForSpec } from './cli.ts'
-import { formatLadderReport, withCastLabels } from './format.ts'
+import { formatLadderReport, ladderCast, withCastLabels } from './format.ts'
 import { generateLadder } from './generate.ts'
 import { formatMeasurement, measureLadder } from './measure.ts'
 import { sceneForSeed } from '../scale/measure.ts'
@@ -61,7 +61,7 @@ describe('formatLadderReport', () => {
     expect(text).toMatch(/Cards \(\d+/)
     expect(text).toContain('The victim was alone with the murderer.')
     expect(text).toContain('The victim on r9c7')
-    expect(text).toMatch(/Ben|Alice|Dan|Chloe|Emma|Frank|Grace|Henry/)
+    expect(text).toMatch(new RegExp(`\\b(${ladderCast(9).names.join('|')})\\b`))
     expect(text).toContain('ladderCheck (1 card per placement, person references off): ok')
     expect(text).not.toMatch(/\b[A-H] (stood|was)\b/)
   })
@@ -70,9 +70,9 @@ describe('formatLadderReport', () => {
     const outcome = generateLadder(sceneForSeed(12, 1), 'easy', 1)
     if (!outcome.ok) throw new Error(outcome.message)
     const labels = withCastLabels(outcome.puzzle).people.map((p) => p.label)
-    expect(labels.slice(0, 8)).toEqual(['the victim', 'Alice', 'Ben', 'Chloe', 'Dan', 'Emma', 'Frank', 'Grace'])
-    expect(labels[8]).toBe('Henry')
-    expect(labels[9]).toBe('Guest 9')
+    expect(labels[0]).toBe('the victim')
+    expect(labels.slice(1)).toEqual(ladderCast(12).names)
+    expect(new Set(labels.slice(1).map((n) => n.charAt(0))).size).toBe(11)
   })
 })
 

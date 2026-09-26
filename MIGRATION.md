@@ -20,8 +20,8 @@ This file records what was removed, replaced or disabled on the way, and what th
 
 ## Replaced
 
-- **Placeholder cast.** `CAST` is now Alice, Ben, Chloe, Dan, Emma, Frank, Grace, Henry (unique first letters, genders alternate woman/man), drawn with
-  the procedural portrait generator. The ladder tools (`CAST_NAMES`, `CAST_GENDERS`) and the pack cast builder use the same names.
+- **Cast.** A pool of plain English names with genders and `castFor(size, seed, previousCast)` (`src/content/cast/`): distinct first letters, genders balanced, seeded.
+  Portraits are generic designs picked by gender slot, not by name. The ladder tools (`ladderCast`, `castGenders`) and the pack cast builder use `castFor`; see `docs/authoring/cast.md`.
 - **One demo level.** `src/content/demo/scene.ts` is a made-up 9x9 house (four rooms). `src/content/demo/puzzle.json` is the ladder generator's output for
   tier easy, seed 2, victim on the sofa (`bun tools/ladder.ts --scene demo --tier easy --seed 2 --victim 9,7 --cast --out src/content/demo/puzzle.json`).
   `src/content/levels.ts` registers it as level `demo`. `demo` is the built-in scene name of `tools/generate.ts`, `tools/ladder.ts`,

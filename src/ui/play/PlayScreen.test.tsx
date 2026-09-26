@@ -21,6 +21,8 @@ import { castFor, colorsFor, noteTags, withCastNames } from './people.ts'
 
 const named = withCastNames(tutorial)
 const idOf = (label: string) => named.people.find((p) => p.label === label)!.id
+// The cast of the tutorial puzzle: pool names (castFor), not fixed ones.
+const [Alice, Ben, Chloe] = named.people.filter((p) => p.kind === 'suspect').map((p) => p.label) as [string, string, string]
 
 describe('<PlayScreen/>', () => {
   const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
@@ -30,8 +32,8 @@ describe('<PlayScreen/>', () => {
   })
 
   it('shows every suspect card by cast name, plus the gift', () => {
-    for (const name of ['Alice', 'Ben', 'Chloe', 'The victim']) expect(html).toContain(name)
-    expect(html).toContain('Alice stood next to a table.')
+    for (const name of [Alice, Ben, Chloe, 'The victim']) expect(html).toContain(name)
+    expect(html).toContain(`${Alice} stood next to a table.`)
   })
 
   it('has the toolbar tools in English', () => {
@@ -195,9 +197,9 @@ describe('first visit help card (CAD-10.8)', () => {
 describe('<ResultOverlay/>', () => {
   it('solved: names who was alone with the victim, and the time', () => {
     const html = renderToStaticMarkup(
-      <ResultOverlay puzzle={named} result={{ solved: true, murdererId: idOf('Alice'), elapsedMs: 83_000 }} onRestart={() => {}} onDismiss={() => {}} />,
+      <ResultOverlay puzzle={named} result={{ solved: true, murdererId: idOf(Alice), elapsedMs: 83_000 }} onRestart={() => {}} onDismiss={() => {}} />,
     )
-    expect(html).toContain('You found the murderer! Alice was alone with the victim.')
+    expect(html).toContain(`You found the murderer! ${Alice} was alone with the victim.`)
     expect(html).toContain('Time: 1:23')
   })
 
@@ -206,7 +208,7 @@ describe('<ResultOverlay/>', () => {
       <ResultOverlay puzzle={named} result={{ solved: false, correctCount: 2, total: 4 }} onRestart={() => {}} onDismiss={() => {}} />,
     )
     expect(html).toContain('Not quite: 2 of 4 correct, try again.')
-    for (const name of ['Alice', 'Ben', 'Chloe']) expect(html).not.toContain(name)
+    for (const name of [Alice, Ben, Chloe]) expect(html).not.toContain(name)
   })
 })
 
@@ -225,12 +227,12 @@ describe('gestures drive the game store', () => {
 
   it('tap notes, long press places, and placing all four correctly solves it', () => {
     const { store, tap, hold } = setup()
-    const A = idOf('Alice')
+    const A = idOf(Alice)
     tap('note', A, at.A)
     expect(store.getState().board.notes['1,2']).toEqual([A])
     hold('note', A, at.A)
     expect(isPlaced(store.getState().board, A)).toBe(true)
-    for (const [id, cell] of [[idOf('Ben'), at.B], [idOf('Chloe'), at.C], ['V', at.V]] as const) hold('note', id, cell)
+    for (const [id, cell] of [[idOf(Ben), at.B], [idOf(Chloe), at.C], ['V', at.V]] as const) hold('note', id, cell)
     const state = store.getState()
     expect(state.status).toBe('solved')
     expect(state.check).toMatchObject({ solved: true, murdererId: A })
@@ -238,9 +240,9 @@ describe('gestures drive the game store', () => {
 
   it('a wrong full board reports only a count', () => {
     const { store, hold } = setup()
-    hold('note', idOf('Alice'), at.C)
-    hold('note', idOf('Chloe'), at.A)
-    hold('note', idOf('Ben'), at.B)
+    hold('note', idOf(Alice), at.C)
+    hold('note', idOf(Chloe), at.A)
+    hold('note', idOf(Ben), at.B)
     hold('note', 'V', at.V)
     const check = store.getState().check
     expect(check).toEqual({ solved: false, correctCount: 2, total: 4 })
@@ -248,7 +250,7 @@ describe('gestures drive the game store', () => {
 
   it('drag painting notes then X across cells', () => {
     const { store } = setup()
-    const A = idOf('Alice')
+    const A = idOf(Alice)
     const cells = [{ row: 3, col: 0 }, { row: 3, col: 2 }, { row: 2, col: 2 }]
     const mode = paintModeFor('note', A, cells[0]!, store.getState().board)
     for (const cell of cells) {
@@ -268,7 +270,7 @@ describe('gestures drive the game store', () => {
 
   it('the eraser tap clears a cell; undo brings it back', () => {
     const { store, tap } = setup()
-    const A = idOf('Alice')
+    const A = idOf(Alice)
     tap('note', A, at.V)
     tap('erase', null, at.V)
     expect(store.getState().board.notes).toEqual({})

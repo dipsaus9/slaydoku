@@ -1,6 +1,6 @@
 export { type AvatarProps } from './avatars/parts.tsx'
 export { SilhouetteAvatar } from './avatars/silhouette.tsx'
-export { CAST, castMemberFor, type AvatarTraits, type CastMember } from './cast.ts'
+export { CAST, type AvatarTraits, type CastMember } from './cast.ts'
 export { CardGrid, type CardGridProps } from './CardGrid.tsx'
 export { GiftIcon } from './GiftIcon.tsx'
 export { Polaroid, type PolaroidProps } from './Polaroid.tsx'

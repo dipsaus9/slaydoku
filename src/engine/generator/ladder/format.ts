@@ -1,3 +1,5 @@
+import { castFor, MAX_CAST_SIZE } from '../../../content/cast/index.ts'
+import type { Cast } from '../../../content/cast/index.ts'
 import { renderClue } from '../../clues/index.ts'
 import type { CatalogClue } from '../../clues/index.ts'
 import { isOccupiable, occupiableCells, roomIdAt } from '../../model/index.ts'
@@ -6,24 +8,30 @@ import { VICTIM_TEXT, upperFirst } from '../../clues/en.ts'
 import { precision } from '../../solvable/precision.ts'
 import type { LadderReport } from './generate.ts'
 
-/** The placeholder cast, in suspect order (same order as `CAST` in the card renderer). */
-export const CAST_NAMES = ['Alice', 'Ben', 'Chloe', 'Dan', 'Emma', 'Frank', 'Grace', 'Henry'] as const
+/** Seed of the cast the ladder tools and the audit label people with; real puzzles bake the cast of their own seed (`castFor`). */
+export const LADDER_CAST_SEED = 'ladder'
 
-/** Their genders (woman/man) in the same order: they alternate, Alice woman, Ben man ... Henry man. */
-export const CAST_GENDERS: readonly Gender[] = ['woman', 'man', 'woman', 'man', 'woman', 'man', 'woman', 'man']
+/** The cast of a puzzle of `size` people (`size` - 1 suspects) as the ladder tools use it: names and genders from the one pool (`castFor`). */
+export const ladderCast = (size: number): Cast => {
+  const wanted = Math.min(size, MAX_CAST_SIZE)
+  let cast = ladderCasts.get(wanted)
+  if (!cast) ladderCasts.set(wanted, (cast = castFor(wanted, LADDER_CAST_SEED)))
+  return cast
+}
+const ladderCasts = new Map<number, Cast>()
 
-/** The genders of the first `count` suspects of the cast: the fixed eight, then woman and man alternating (extra people, "Guest 9"...). */
-export const castGenders = (count: number): Gender[] =>
-  Array.from({ length: count }, (_, i) => CAST_GENDERS[i] ?? (i % 2 === 0 ? 'woman' : 'man'))
+/** The genders of the suspects of a puzzle of `size` people, in order: what `generateLadder` takes as `genders` so that the gender cards match the names. */
+export const castGenders = (size: number): Gender[] => ladderCast(size).genders
 
-/** Suspects A, B... take the cast names in order (extra people are "Guest 9"...); the victim is "the victim". Ids stay. */
+/** Suspects A, B... take the names of `ladderCast` in order (a suspect beyond the pool is "Guest 23"...); the victim is "the victim". Ids stay. */
 export function withCastLabels(puzzle: Puzzle): Puzzle {
+  const { names } = ladderCast(puzzle.people.length)
   let n = 0
   return {
     ...puzzle,
     people: puzzle.people.map((p) => {
       if (p.kind === 'victim') return { ...p, label: VICTIM_TEXT.noun }
-      const name = CAST_NAMES[n] ?? `Guest ${n + 1}`
+      const name = names[n] ?? `Guest ${n + 1}`
       n++
       return { ...p, label: name }
     }),
