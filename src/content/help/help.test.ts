@@ -25,14 +25,14 @@ describe('help content', () => {
     }
   })
 
-  it('explains the rules: board, one per row and column, the cards, the gift and the culprit', () => {
+  it('explains the rules: board, one per row and column, the cards, the victim and the murderer', () => {
     const goal = help.goal.join(' ')
-    expect(goal).toMatch(/bord/)
-    expect(goal).toMatch(/rij/)
-    expect(goal).toMatch(/kolom/)
-    expect(goal).toMatch(/kaarten/)
-    expect(goal).toMatch(/cadeau/)
-    expect(goal).toMatch(/dader/)
+    expect(goal).toMatch(/board/)
+    expect(goal).toMatch(/row/)
+    expect(goal).toMatch(/column/)
+    expect(goal).toMatch(/cards/)
+    expect(goal).toMatch(/victim/)
+    expect(goal).toMatch(/murderer/)
   })
 
   it('has 3 or 4 steps with a known icon and short text', () => {
@@ -56,7 +56,7 @@ describe('help content', () => {
     }
   })
 
-  it('has short Dutch wording for the Legenda (CAD-10.9)', () => {
+  it('has short English wording for the Legend (CAD-10.9)', () => {
     const t = help.legend
     const texts = [t.button, t.title, t.intro, t.objectsTitle, t.canOccupy, t.blocked, t.also, t.tapHint, t.peek, t.edgesTitle, t.roomsTitle, t.marksTitle, t.ruleTitle, t.rule, t.close]
     for (const text of texts) {
@@ -69,11 +69,11 @@ describe('help content', () => {
       expect(item.text.trim()).not.toBe('')
       expect(item.text.length).toBeLessThanOrEqual(90)
     }
-    expect(t.canOccupy).toBe('Kan bezet worden')
-    expect(t.blocked).toBe('Geblokkeerd')
-    expect(t.rule).toMatch(/cadeau/)
-    expect(t.rule).toMatch(/alleen/)
-    expect(t.rule).toMatch(/kamer/)
-    expect(t.rule).toMatch(/één persoon/)
+    expect(t.canOccupy).toBe('Can be occupied')
+    expect(t.blocked).toBe('Blocked')
+    expect(t.rule).toMatch(/victim/)
+    expect(t.rule).toMatch(/alone/)
+    expect(t.rule).toMatch(/room/)
+    expect(t.rule).toMatch(/exactly one person/)
   })
 })

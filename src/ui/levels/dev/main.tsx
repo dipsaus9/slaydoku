@@ -13,8 +13,8 @@ import { registerLevels } from '../registry.ts'
  */
 registerLevels([
   devSampleLevel,
-  { ...devSampleLevel, id: 'kamer-2', title: 'Tweede kamer' },
-  { ...devSampleLevel, id: 'kamer-3', title: 'Derde kamer' },
+  { ...devSampleLevel, id: 'room-2', title: 'Second room' },
+  { ...devSampleLevel, id: 'room-3', title: 'Third room' },
 ])
 
 createRoot(document.getElementById('root')!).render(

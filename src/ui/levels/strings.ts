@@ -1,33 +1,35 @@
-/** Dutch wording of the level list and the solved screen. */
-export const LEVELS_NL = {
+import { VICTIM_TEXT } from '../../engine/clues/index.ts'
+
+/** English wording of the level list and the solved screen. */
+export const LEVELS_EN = {
   title: 'Slaydoku',
-  subtitle: 'Los de zaak op',
+  subtitle: 'Solve the case',
   listLabel: 'Levels',
-  empty: 'Er zijn nog geen levels.',
+  empty: 'There are no levels yet.',
   levelNumber: (n: number) => `Level ${n}`,
   status: {
-    locked: 'Op slot',
-    new: 'Nog niet begonnen',
-    inProgress: 'Bezig',
-    solved: 'Opgelost',
+    locked: 'Locked',
+    new: 'Not started',
+    inProgress: 'In progress',
+    solved: 'Solved',
   },
-  lockedHint: (previousTitle: string) => `Los eerst ${previousTitle} op.`,
-  solvedIn: (formatted: string) => `Tijd: ${formatted}`,
+  lockedHint: (previousTitle: string) => `Solve ${previousTitle} first.`,
+  solvedIn: (formatted: string) => `Time: ${formatted}`,
   refused: {
-    locked: 'Dit level is nog op slot. Los eerst het vorige level op.',
-    unknown: 'Dat level bestaat niet.',
-    unsolved: 'Dat level is nog niet opgelost.',
+    locked: 'This level is still locked. Solve the previous level first.',
+    unknown: 'That level does not exist.',
+    unsolved: 'That level has not been solved yet.',
   },
-  dismissNotice: 'Sluiten',
+  dismissNotice: 'Close',
   back: 'Levels',
-  backLabel: 'Terug naar alle levels',
+  backLabel: 'Back to all levels',
   solved: {
-    title: 'Opgelost!',
-    alone: (name: string) => `${name} was alleen met het cadeau.`,
-    time: (formatted: string) => `Tijd: ${formatted}`,
-    next: (title: string) => `Volgend level: ${title}`,
-    toList: 'Alle levels',
-    viewBoard: 'Bekijk het bord',
-    allDone: 'Alle levels zijn opgelost.',
+    title: 'Solved!',
+    alone: (name: string) => `You found the murderer! ${name} was alone with ${VICTIM_TEXT.noun}.`,
+    time: (formatted: string) => `Time: ${formatted}`,
+    next: (title: string) => `Next level: ${title}`,
+    toList: 'All levels',
+    viewBoard: 'View the board',
+    allDone: 'All levels are solved.',
   },
 } as const

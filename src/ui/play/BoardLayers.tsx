@@ -238,7 +238,7 @@ export function PressRing({ geometry, cell }: { geometry: SceneGeometry; cell: C
 }
 
 /**
- * The squares the Legenda points at (CAD-10.9): a pulsing magenta wash and ring (the hint is yellow, the selection blue) over each. It never takes
+ * The squares the Legend points at (CAD-10.9): a pulsing magenta wash and ring (the hint is yellow, the selection blue) over each. It never takes
  * a pointer event, and it is drawn inside the zoomed pane like every other layer, so it stays on its squares.
  */
 export function FlashLayer({ geometry, cells }: { geometry: SceneGeometry; cells: readonly Cell[] }) {

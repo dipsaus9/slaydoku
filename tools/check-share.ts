@@ -146,8 +146,10 @@ function noindexProblem(what: string, value: string | null | undefined): Check {
 }
 
 /** Fields a web app manifest must carry so the site installs as a standalone app; string values are compared exactly. */
-export const MANIFEST_STRINGS = { display: 'standalone', lang: 'nl', name: 'Slaydoku' } as const
+export const MANIFEST_STRINGS = { display: 'standalone', lang: 'en', name: 'Slaydoku' } as const
 export const MANIFEST_REQUIRED = ['short_name', 'start_url', 'scope', 'orientation', 'theme_color', 'background_color'] as const
+/** The locale of a shared link (`og:locale`); the page and the manifest say `en`. */
+export const OG_LOCALE = 'en_US'
 /** Icon sizes the manifest must offer with purpose `any`. */
 export const MANIFEST_ICON_SIZES = ['192x192', '512x512'] as const
 
@@ -333,6 +335,11 @@ export async function checkShare(url: string, options: CheckOptions = {}): Promi
     ['twitter:title', meta.get('twitter:title')],
   ]
   for (const [name, value] of titles) checks.push(check(`${name} is ${expectedTitle}`, value === expectedTitle, value ?? 'missing'))
+
+  // The site is English: the page language and the locale a shared link is announced in.
+  const lang = /<html\s[^>]*\blang="([^"]*)"/i.exec(html)?.[1]
+  checks.push(check(`<html lang> is ${MANIFEST_STRINGS.lang}`, lang === MANIFEST_STRINGS.lang, lang ?? 'missing'))
+  checks.push(check(`og:locale is ${OG_LOCALE}`, meta.get('og:locale') === OG_LOCALE, meta.get('og:locale') ?? 'missing'))
 
   const image = meta.get('og:image')
   if (image && /^https?:\/\//.test(image)) checks.push(...(await checkImage(image, meta)))

@@ -89,13 +89,13 @@ function ThemeCard({ theme }: { theme: SceneTheme }) {
       <h3>
         {theme.name} ({theme.id})
       </h3>
-      <div className="variant-label">Kan bezet worden ({occupiable.length})</div>
+      <div className="variant-label">Can be occupied ({occupiable.length})</div>
       <div className="tiles">
         {occupiable.map((o) => (
           <ObjectTile key={o.kind} object={o} />
         ))}
       </div>
-      <div className="variant-label">Kunnen niet bezet worden ({blocking.length})</div>
+      <div className="variant-label">Cannot be occupied ({blocking.length})</div>
       <div className="tiles">
         {blocking.map((o) => (
           <ObjectTile key={o.kind} object={o} />
@@ -109,13 +109,13 @@ function ThemeCard({ theme }: { theme: SceneTheme }) {
 export function ThemeIconSheet() {
   return (
     <>
-      <h2 className="edges">Thema-iconen (eigen tekening)</h2>
+      <h2 className="edges">Theme icons (own drawing)</h2>
       <div className="grid">
         {(Object.keys(THEME_ICON_DEFINITIONS) as ThemeIconId[]).map((id) => (
           <ThemeIconCard key={id} id={id} />
         ))}
       </div>
-      <h2 className="edges">Thema&apos;s: objecten per scene</h2>
+      <h2 className="edges">Themes: objects per scene</h2>
       <div className="grid">
         {SCENE_THEMES.map((theme) => (
           <ThemeCard key={theme.id} theme={theme} />

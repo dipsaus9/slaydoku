@@ -7,7 +7,7 @@ import { createMemoryStorage } from '../levels/progress.ts'
 import { PlayScreen } from '../play/index.ts'
 import { InsightPanel } from './InsightPanel.tsx'
 import { verifySummary } from './model.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
 /** Where a lab puzzle came from. */
 export type LabSource = 'level' | 'generated'
@@ -38,7 +38,7 @@ export interface LabPlayProps {
  * store, so the lab never touches the real game saves or the solved records.
  */
 export function LabPlay({ view, onBack }: LabPlayProps) {
-  const t = LAB_NL.play
+  const t = LAB_EN.play
   const [run, setRun] = useState(0)
   const [tab, setTab] = useState<'play' | 'insight'>('play')
   const [copy, setCopy] = useState<'idle' | 'done' | 'failed'>('idle')

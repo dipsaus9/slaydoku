@@ -14,6 +14,10 @@ export const DUTCH_WORDS: readonly string[] = [
   'niet', 'geen', 'wordt', 'staat', 'staan', 'alleen', 'iedereen', 'iemand', 'niemand', 'dader', 'vrouw', 'kaart', 'kaarten',
   'persoon', 'mensen', 'ruimte', 'dus', 'maar', 'kan', 'kunnen', 'ook', 'naar', 'kijk', 'zet', 'lees', 'daar', 'hier',
   'gemarkeerd', 'gemarkeerde', 'notitie', 'kruisje', 'bord', 'zijn', 'voor', 'hoek', 'hij', 'zij', 'haar', 'hem',
+  // interface words (the menus, help card, legend and update notice were Dutch too)
+  'opgelost', 'opnieuw', 'sluiten', 'verdachte', 'verdachten', 'uitleg', 'legenda', 'kernwoorden', 'plattegrond', 'tijd', 'nieuwe',
+  'versie', 'beschikbaar', 'terug', 'volgend', 'bekijk', 'opties', 'gereedschap', 'tik', 'houd', 'ingedrukt', 'slepen', 'wissen',
+  'probeer', 'klopt', 'geblokkeerd', 'bezet', 'deur', 'raam', 'spelen',
 ]
 
 /** Builds a case-insensitive whole-word matcher; a hyphen or apostrophe next to a word does not end it. */

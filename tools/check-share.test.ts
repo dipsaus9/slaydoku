@@ -46,13 +46,13 @@ const HOME_SCREEN_HEAD = `<link rel="manifest" href="/manifest.webmanifest" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Slaydoku" />`
 
-const head = (origin: string, extra: { title?: string; ogImage?: string } = {}) => `<!doctype html><html lang="nl"><head>
+const head = (origin: string, extra: { title?: string; ogImage?: string } = {}) => `<!doctype html><html lang="en"><head>
 <title>${extra.title ?? 'Slaydoku'}</title>
 ${HOME_SCREEN_HEAD}
 <meta name="description" content="A new murder mystery puzzle every day" />
 <meta name="robots" content="noindex,nofollow" />
 <meta property="og:type" content="website" />
-<meta property="og:locale" content="nl_NL" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:site_name" content="Slaydoku" />
 <meta property="og:title" content="Slaydoku" />
 <meta property="og:description" content="A new murder mystery puzzle every day" />
@@ -122,8 +122,15 @@ describe('checkShare', () => {
   })
 
   it('fails on a wrong <title>', async () => {
-    const url = await serve({ html: (o) => head(o, { title: 'Iets anders' }) })
+    const url = await serve({ html: (o) => head(o, { title: 'Something else' }) })
     expect(failures(await checkShare(url))).toEqual(['<title> is Slaydoku'])
+  })
+
+  it('fails when the page is not English: html lang and og:locale', async () => {
+    const dutch = await serve({ html: (o) => head(o).replace('<html lang="en">', '<html lang="nl">').replace('en_US', 'nl_NL') })
+    expect(failures(await checkShare(dutch))).toEqual(expect.arrayContaining(['<html lang> is en', 'og:locale is en_US']))
+    const noLang = await serve({ html: (o) => head(o).replace('<html lang="en">', '<html>') })
+    expect(failures(await checkShare(noLang))).toContain('<html lang> is en')
   })
 
   it('fails when a tag is missing', async () => {
@@ -234,7 +241,7 @@ describe('checkShare', () => {
     })
 
     it('fails when the deep link has other head tags than the root', async () => {
-      const url = await serve({ deepLink: { html: (o) => head(o, { title: 'Vliering' }).replace(`${o}/`, `${o}/level/demo`) } })
+      const url = await serve({ deepLink: { html: (o) => head(o, { title: 'Attic' }).replace(`${o}/`, `${o}/level/demo`) } })
       const failed = (await checkShare(url)).filter((c) => !c.ok)
       expect(failed.map((c) => c.name)).toEqual(['deep link /level/demo has the same head tags'])
       expect(failed[0]!.detail).toContain('og:url')
@@ -311,7 +318,7 @@ describe('parsers', () => {
     })
   })
   it('reads the title and PNG size', () => {
-    expect(parseTitle('<title> Hoi </title>')).toBe('Hoi')
+    expect(parseTitle('<title> Hi </title>')).toBe('Hi')
     expect(pngSize(PNG)).toEqual([1200, 630])
     expect(pngSize(new Uint8Array(30))).toBeUndefined()
   })
@@ -333,7 +340,7 @@ describe('home-screen manifest file', () => {
   })
 
   it('opens standalone in any orientation on the whole site', () => {
-    expect(manifest).toMatchObject({ name: 'Slaydoku', lang: 'nl', start_url: '/', scope: '/', display: 'standalone', orientation: 'any' })
+    expect(manifest).toMatchObject({ name: 'Slaydoku', lang: 'en', start_url: '/', scope: '/', display: 'standalone', orientation: 'any' })
   })
 
   it('uses the page colours: body background and the light theme-color', () => {
@@ -390,7 +397,7 @@ describe('hosting config', () => {
 
     it('rewrites every app route to the HTML shell', () => {
       expect(rewrite.destination).toBe('/index.html')
-      for (const path of ['/', '/level/demo', '/level/demo/solved', '/extras', '/extras/6-easy-home-200', '/lab', '/onzin']) {
+      for (const path of ['/', '/level/demo', '/level/demo/solved', '/extras', '/extras/6-easy-home-200', '/lab', '/nonsense']) {
         expect(rewritten(path), path).toBe(true)
       }
     })

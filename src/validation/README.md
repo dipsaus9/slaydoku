@@ -72,13 +72,12 @@ plain cards is only floored, not aimed at. Measure it on a fresh sample with `bu
 ## No Dutch left in the game code
 
 The project started from a Dutch prototype. `dutch.test.ts` keeps that text from coming back: it reads every file under
-`src/engine`, `src/game`, `src/validation` and `src/content` (tests, fixtures and JSON data included), takes the contents of
-the string literals (comments and identifiers are ignored; JSON files count by their string values) and fails on any whole word
+`src/engine`, `src/game`, `src/validation`, `src/content`, `src/ui`, `src/pwa` and `src/brand`, plus the top-level `src/*.ts(x)` files (tests, fixtures and JSON data included), takes the contents of
+the string literals and the text between JSX tags (comments and identifiers are ignored; JSON files count by their string values), and also checks `index.html` and the manifest and fails on any whole word
 of the small list in `dutch.ts` (`de`, `het`, `een`, `stond`, `naast`, `vakje`, `kamer`, `cadeau`, `rij`, `kolom`, ...).
 The list holds only words that are not English and not names: `was` and `van` are English too, so they are not on it. The same
 list is used by `auditHints`, so a Dutch hint text is also rejected while a puzzle is built. The scan skips `dutch.ts` and its test
-(they are the list) and `src/content/help` (interface text, translated in SLAY-1.2, where that skip is to be removed). `src/ui` and
-`src/pwa` are not scanned yet for the same reason.
+(they are the list); nothing else is skipped.
 
 ## When a puzzle fails
 

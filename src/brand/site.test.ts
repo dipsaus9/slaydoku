@@ -83,8 +83,9 @@ describe('injectSiteUrls', () => {
 })
 
 describe('index.html head', () => {
-  it('declares Dutch language, title and description', () => {
-    expect(INDEX).toContain('<html lang="nl">')
+  it('declares English language, title and description', () => {
+    expect(INDEX).toContain('<html lang="en">')
+    expect(meta(INDEX, 'og:locale')).toBe('en_US')
     expect(INDEX).toContain('<title>Slaydoku</title>')
     expect(meta(INDEX, 'description')).toBe('A new murder mystery puzzle every day')
   })

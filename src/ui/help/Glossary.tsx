@@ -1,7 +1,7 @@
 import { help } from '../../content/help/help.ts'
 import { GLOSSARY, EXTRA_TERMS } from '../play/glossary.ts'
 
-/** Every clue keyword with its meaning and an example, plus a few extra terms. Only shown behind the "Kernwoorden" button. */
+/** Every clue keyword with its meaning and an example, plus a few extra terms. Only shown behind the "Keywords" button. */
 export function Glossary() {
   const t = help.keywords
   return (

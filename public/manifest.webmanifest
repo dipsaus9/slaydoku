@@ -2,7 +2,7 @@
   "name": "Slaydoku",
   "short_name": "Slaydoku",
   "description": "A new murder mystery puzzle every day",
-  "lang": "nl",
+  "lang": "en",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

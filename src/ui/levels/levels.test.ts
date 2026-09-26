@@ -20,7 +20,7 @@ import type { Level } from './registry.ts'
 import { parseRoute, resolveRoute, routePath } from './route.ts'
 
 const mk = (id: string): Level => ({ id, title: `Level ${id}`, puzzle })
-const three = [mk('een'), mk('twee'), mk('drie')]
+const three = [mk('one'), mk('two'), mk('three')]
 const fp = puzzleFingerprint(puzzle)
 const solvedRecord = { murdererId: 'A', elapsedMs: 65_000 }
 
@@ -36,9 +36,9 @@ describe('registry', () => {
 
   it('keeps registration order and replaces a duplicate id in place', () => {
     registerLevels([mk('a'), mk('b')])
-    registerLevels([mk('c'), { ...mk('a'), title: 'Nieuw' }])
+    registerLevels([mk('c'), { ...mk('a'), title: 'New' }])
     expect(getLevels().map((l) => l.id)).toEqual(['a', 'b', 'c'])
-    expect(getLevels()[0]!.title).toBe('Nieuw')
+    expect(getLevels()[0]!.title).toBe('New')
   })
 
   it('rejects ids that do not survive a URL and empty titles', () => {
@@ -57,12 +57,12 @@ describe('unlock order', () => {
   })
 
   it('opens level N + 1 when level N is solved, and no further', () => {
-    const p = recordSolve(readProgress(three, createMemoryStorage()), 'een', solvedRecord)
+    const p = recordSolve(readProgress(three, createMemoryStorage()), 'one', solvedRecord)
     expect(levelEntries(three, p).map((e) => e.status)).toEqual(['solved', 'new', 'locked'])
   })
 
   it('does not open level 3 by solving level 1 alone', () => {
-    const p = recordSolve(readProgress(three, createMemoryStorage()), 'een', solvedRecord)
+    const p = recordSolve(readProgress(three, createMemoryStorage()), 'one', solvedRecord)
     expect(isUnlocked(three, p, 2)).toBe(false)
     expect(isUnlocked(three, p, 5)).toBe(false)
   })
@@ -71,46 +71,46 @@ describe('unlock order', () => {
 describe('progress persistence', () => {
   it('survives a reload: solved record with time', () => {
     const storage = createMemoryStorage()
-    saveProgress(storage, recordSolve(readProgress(three, storage), 'een', solvedRecord), three)
+    saveProgress(storage, recordSolve(readProgress(three, storage), 'one', solvedRecord), three)
     const after = readProgress(three, storage)
-    expect(after.solved.een).toEqual(solvedRecord)
+    expect(after.solved.one).toEqual(solvedRecord)
     expect(levelEntries(three, after)[0]!.result?.elapsedMs).toBe(65_000)
   })
 
   it('reads in progress from a saved game', () => {
     const storage = createMemoryStorage()
-    const store = createGameStore({ levelId: 'een', puzzle, storage, now: () => 0 })
+    const store = createGameStore({ levelId: 'one', puzzle, storage, now: () => 0 })
     store.dispatch({ type: 'place', personId: 'V', cell: at.V })
-    expect(storage.getItem(saveKey('een'))).not.toBeNull()
+    expect(storage.getItem(saveKey('one'))).not.toBeNull()
     const entries = levelEntries(three, readProgress(three, storage))
     expect(entries.map((e) => e.status)).toEqual(['inProgress', 'locked', 'locked'])
   })
 
   it('a solved save counts as solved even without a progress record', () => {
     const storage = createMemoryStorage()
-    solve(storage, 'een', { t: 0 })
+    solve(storage, 'one', { t: 0 })
     const p = readProgress(three, storage)
-    expect(p.solved.een?.murdererId).toBe('A')
+    expect(p.solved.one?.murdererId).toBe('A')
     expect(levelEntries(three, p)[1]!.status).toBe('new')
   })
 
   it('a replayed (restarted) solved level stays solved', () => {
     const storage = createMemoryStorage()
-    const store = solve(storage, 'een', { t: 0 })
+    const store = solve(storage, 'one', { t: 0 })
     saveProgress(storage, readProgress(three, storage), three)
     store.dispatch({ type: 'restart' })
-    expect(readProgress(three, storage).solved.een).toBeDefined()
+    expect(readProgress(three, storage).solved.one).toBeDefined()
   })
 
   it('ignores corrupt or wrong-version data', () => {
-    for (const raw of ['{nope', JSON.stringify({ version: 9, solved: { een: solvedRecord } }), '[]', 'null']) {
+    for (const raw of ['{nope', JSON.stringify({ version: 9, solved: { one: solvedRecord } }), '[]', 'null']) {
       const storage = createMemoryStorage()
       storage.setItem(PROGRESS_KEY, raw)
       expect(readProgress(three, storage).solved).toEqual({})
     }
     const storage = createMemoryStorage()
-    storage.setItem(PROGRESS_KEY, JSON.stringify({ version: 2, solved: { een: { murdererId: 3, fp }, twee: { ...solvedRecord, fp } } }))
-    expect(Object.keys(readProgress(three, storage).solved)).toEqual(['twee'])
+    storage.setItem(PROGRESS_KEY, JSON.stringify({ version: 2, solved: { one: { murdererId: 3, fp }, two: { ...solvedRecord, fp } } }))
+    expect(Object.keys(readProgress(three, storage).solved)).toEqual(['two'])
   })
 
   it('works without storage', () => {
@@ -120,7 +120,7 @@ describe('progress persistence', () => {
 })
 
 describe('puzzle fingerprint', () => {
-  const other: Level = { ...mk('een'), puzzle: { ...puzzle, clues: puzzle.clues.slice(1) } }
+  const other: Level = { ...mk('one'), puzzle: { ...puzzle, clues: puzzle.clues.slice(1) } }
   const stored = (solved: Record<string, unknown>, version = 2) => {
     const storage = createMemoryStorage()
     storage.setItem(PROGRESS_KEY, JSON.stringify({ version, solved }))
@@ -129,16 +129,16 @@ describe('puzzle fingerprint', () => {
 
   it('stores the fingerprint with every solved record', () => {
     const storage = createMemoryStorage()
-    saveProgress(storage, recordSolve(readProgress(three, storage), 'een', solvedRecord), three)
-    expect(JSON.parse(storage.getItem(PROGRESS_KEY)!).solved.een).toEqual({ ...solvedRecord, fp })
+    saveProgress(storage, recordSolve(readProgress(three, storage), 'one', solvedRecord), three)
+    expect(JSON.parse(storage.getItem(PROGRESS_KEY)!).solved.one).toEqual({ ...solvedRecord, fp })
   })
 
   it('a solved record stays solved while the puzzle is unchanged', () => {
-    expect(readProgress(three, stored({ een: { ...solvedRecord, fp } })).solved.een).toEqual(solvedRecord)
+    expect(readProgress(three, stored({ one: { ...solvedRecord, fp } })).solved.one).toEqual(solvedRecord)
   })
 
   it('a solved record of a changed puzzle is ignored and no longer unlocks the next level', () => {
-    const storage = stored({ een: { ...solvedRecord, fp } })
+    const storage = stored({ one: { ...solvedRecord, fp } })
     const changed = [other, three[1]!, three[2]!]
     const progress = readProgress(changed, storage)
     expect(progress.solved).toEqual({})
@@ -146,23 +146,23 @@ describe('puzzle fingerprint', () => {
   })
 
   it('a record without a fingerprint, or from version 1, is discarded', () => {
-    expect(readProgress(three, stored({ een: solvedRecord })).solved).toEqual({})
-    expect(readProgress(three, stored({ een: { ...solvedRecord, fp } }, 1)).solved).toEqual({})
-    expect(readProgress(three, stored({ een: { ...solvedRecord, fp: 'deadbeef' } })).solved).toEqual({})
+    expect(readProgress(three, stored({ one: solvedRecord })).solved).toEqual({})
+    expect(readProgress(three, stored({ one: { ...solvedRecord, fp } }, 1)).solved).toEqual({})
+    expect(readProgress(three, stored({ one: { ...solvedRecord, fp: 'deadbeef' } })).solved).toEqual({})
   })
 
   it('a saved board of a changed puzzle is neither in progress nor solved', () => {
     const storage = createMemoryStorage()
-    solve(storage, 'een', { t: 0 })
+    solve(storage, 'one', { t: 0 })
     const changed = [other, three[1]!, three[2]!]
     expect(readProgress(changed, storage)).toEqual({ solved: {}, started: [] })
-    expect(readProgress(three, storage).solved.een).toBeDefined()
+    expect(readProgress(three, storage).solved.one).toBeDefined()
   })
 
   it('keeps records of unchanged levels when another level changed', () => {
-    const storage = stored({ een: { ...solvedRecord, fp }, twee: { ...solvedRecord, fp } })
-    const changed = [three[0]!, { ...mk('twee'), puzzle: other.puzzle }, three[2]!]
-    expect(Object.keys(readProgress(changed, storage).solved)).toEqual(['een'])
+    const storage = stored({ one: { ...solvedRecord, fp }, two: { ...solvedRecord, fp } })
+    const changed = [three[0]!, { ...mk('two'), puzzle: other.puzzle }, three[2]!]
+    expect(Object.keys(readProgress(changed, storage).solved)).toEqual(['one'])
   })
 })
 
@@ -172,7 +172,7 @@ describe('observeSolve', () => {
     const seen: unknown[] = []
     const watched = observeSolve(inner, three[0]!, (r) => seen.push(r))
     const clock = { t: 1000 }
-    const store = createGameStore({ levelId: 'een', puzzle, storage: watched, now: () => clock.t })
+    const store = createGameStore({ levelId: 'one', puzzle, storage: watched, now: () => clock.t })
     clock.t = 61_000
     for (const id of ['V', 'A', 'C']) store.dispatch({ type: 'place', personId: id, cell: at[id as 'V'] })
     expect(seen).toEqual([])
@@ -184,10 +184,10 @@ describe('observeSolve', () => {
 
   it('does not fire for a level that is already solved when watching starts', () => {
     const inner = createMemoryStorage()
-    const store = solve(inner, 'een', { t: 0 })
+    const store = solve(inner, 'one', { t: 0 })
     const seen: unknown[] = []
     const watched = observeSolve(inner, three[0]!, (r) => seen.push(r))
-    const again = createGameStore({ levelId: 'een', puzzle, storage: watched, now: () => 0 })
+    const again = createGameStore({ levelId: 'one', puzzle, storage: watched, now: () => 0 })
     again.dispatch({ type: 'setOption', option: 'showTimer', value: false })
     expect(seen).toEqual([])
     // restart, then solve again: that is a new solve
@@ -212,9 +212,9 @@ describe('routing', () => {
   it('parses and formats paths', () => {
     expect(parseRoute('')).toEqual({ kind: 'list' })
     expect(parseRoute('/')).toEqual({ kind: 'list' })
-    expect(parseRoute('/level/twee')).toEqual({ kind: 'play', levelId: 'twee' })
-    expect(parseRoute('/level/twee/solved')).toEqual({ kind: 'solved', levelId: 'twee' })
-    expect(parseRoute('/level/twee/other')).toEqual({ kind: 'list' })
+    expect(parseRoute('/level/two')).toEqual({ kind: 'play', levelId: 'two' })
+    expect(parseRoute('/level/two/solved')).toEqual({ kind: 'solved', levelId: 'two' })
+    expect(parseRoute('/level/two/other')).toEqual({ kind: 'list' })
     expect(parseRoute('/level/%E0%A4%A')).toEqual({ kind: 'list' })
     for (const r of [{ kind: 'list' }, { kind: 'play', levelId: 'a b' }, { kind: 'solved', levelId: 'x' }] as const) {
       expect(parseRoute(routePath(r))).toEqual(r)
@@ -223,42 +223,42 @@ describe('routing', () => {
 
   it('refuses direct navigation to a locked level', () => {
     const p = readProgress(three, createMemoryStorage())
-    expect(resolveRoute({ kind: 'play', levelId: 'twee' }, three, p)).toEqual({ route: { kind: 'list' }, refused: 'locked' })
-    expect(resolveRoute({ kind: 'play', levelId: 'een' }, three, p).refused).toBeUndefined()
+    expect(resolveRoute({ kind: 'play', levelId: 'two' }, three, p)).toEqual({ route: { kind: 'list' }, refused: 'locked' })
+    expect(resolveRoute({ kind: 'play', levelId: 'one' }, three, p).refused).toBeUndefined()
   })
 
   it('lets a level through once the previous one is solved', () => {
-    const p = recordSolve(readProgress(three, createMemoryStorage()), 'een', solvedRecord)
-    expect(resolveRoute({ kind: 'play', levelId: 'twee' }, three, p).route).toEqual({ kind: 'play', levelId: 'twee' })
-    expect(resolveRoute({ kind: 'play', levelId: 'drie' }, three, p).refused).toBe('locked')
+    const p = recordSolve(readProgress(three, createMemoryStorage()), 'one', solvedRecord)
+    expect(resolveRoute({ kind: 'play', levelId: 'two' }, three, p).route).toEqual({ kind: 'play', levelId: 'two' })
+    expect(resolveRoute({ kind: 'play', levelId: 'three' }, three, p).refused).toBe('locked')
   })
 
   it('refuses unknown levels and the solved screen of an unsolved level', () => {
-    const p = recordSolve(readProgress(three, createMemoryStorage()), 'een', solvedRecord)
+    const p = recordSolve(readProgress(three, createMemoryStorage()), 'one', solvedRecord)
     expect(resolveRoute({ kind: 'play', levelId: 'nope' }, three, p).refused).toBe('unknown')
-    expect(resolveRoute({ kind: 'solved', levelId: 'twee' }, three, p).refused).toBe('unsolved')
-    expect(resolveRoute({ kind: 'solved', levelId: 'een' }, three, p).refused).toBeUndefined()
+    expect(resolveRoute({ kind: 'solved', levelId: 'two' }, three, p).refused).toBe('unsolved')
+    expect(resolveRoute({ kind: 'solved', levelId: 'one' }, three, p).refused).toBeUndefined()
   })
 })
 
 describe('screens (static markup)', () => {
-  it('list shows Dutch statuses, times and locks', () => {
-    const p = recordSolve(readProgress(three, createMemoryStorage()), 'een', solvedRecord)
+  it('list shows English statuses, times and locks', () => {
+    const p = recordSolve(readProgress(three, createMemoryStorage()), 'one', solvedRecord)
     const html = renderToStaticMarkup(
       createElement(LevelList, { entries: levelEntries(three, p), onOpen: () => {} }),
     )
-    for (const text of ['Opgelost', '1:05', 'Nog niet begonnen', 'Op slot', 'Los eerst Level twee op.']) expect(html).toContain(text)
+    for (const text of ['Solved', '1:05', 'Not started', 'Locked', 'Solve Level two first.']) expect(html).toContain(text)
     expect((html.match(/disabled=""/g) ?? []).length).toBe(1)
     expect(html).toContain('data-status="locked"')
   })
 
   it('list shows a notice when the player was sent back', () => {
-    const html = renderToStaticMarkup(createElement(LevelList, { entries: [], notice: 'Dit level is nog op slot.', onOpen: () => {} }))
-    expect(html).toContain('Dit level is nog op slot.')
-    expect(html).toContain('Er zijn nog geen levels.')
+    const html = renderToStaticMarkup(createElement(LevelList, { entries: [], notice: 'This level is still locked.', onOpen: () => {} }))
+    expect(html).toContain('This level is still locked.')
+    expect(html).toContain('There are no levels yet.')
   })
 
-  it('solved screen names who was alone with het cadeau and the time', () => {
+  it('solved screen names who was alone with the victim and the time', () => {
     const html = renderToStaticMarkup(
       createElement(SolvedScreen, {
         level: three[0]!,
@@ -269,16 +269,16 @@ describe('screens (static markup)', () => {
         onViewBoard: () => {},
       }),
     )
-    expect(html).toContain('Opgelost!')
-    expect(html).toMatch(/(Ben|Alice|Dan) was alleen met het cadeau\./)
-    expect(html).toContain('Tijd: 1:05')
-    expect(html).toContain('Volgend level: Level twee')
+    expect(html).toContain('Solved!')
+    expect(html).toMatch(/(Ben|Alice|Dan) was alone with the victim\./)
+    expect(html).toContain('Time: 1:05')
+    expect(html).toContain('Next level: Level two')
   })
 
   it('solved screen of the last level says all done', () => {
     const html = renderToStaticMarkup(
       createElement(SolvedScreen, { level: three[2]!, result: solvedRecord, next: null, onNext: () => {}, onList: () => {}, onViewBoard: () => {} }),
     )
-    expect(html).toContain('Alle levels zijn opgelost.')
+    expect(html).toContain('All levels are solved.')
   })
 })

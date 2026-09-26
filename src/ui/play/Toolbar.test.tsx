@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_OPTIONS } from '../../game/index.ts'
-import { PLAY_NL } from './strings.ts'
+import { PLAY_EN } from './strings.ts'
 import { Toolbar, type ToolbarProps } from './Toolbar.tsx'
 import { IDENTITY } from './zoom.ts'
 
@@ -38,9 +38,9 @@ describe('<Toolbar/> icons (CAD-10.10)', () => {
     expect(all).toHaveLength(12)
   })
 
-  it('gives every tool button an svg icon and a Dutch label', () => {
-    const labels = Object.entries(PLAY_NL.tools)
-      .filter(([key]) => key !== 'label')
+  it('gives every tool button an svg icon and an English label', () => {
+    const labels = Object.entries(PLAY_EN.tools)
+      .filter(([key]) => key !== 'label' && key !== 'mode')
       .map(([, label]) => label)
     expect(labels).toHaveLength(12)
     for (const button of all) {
@@ -68,10 +68,10 @@ describe('<Toolbar/> icons (CAD-10.10)', () => {
   })
 
   it('keeps aria-pressed and the title text on the mode buttons', () => {
-    const note = all.find((b) => b.includes('>Notitie<'))!
+    const note = all.find((b) => b.includes('>Note<'))!
     expect(note).toContain('aria-pressed="true"')
-    expect(note).toContain(`title="${PLAY_NL.toolTitle.note}"`)
-    for (const [label, title] of [['Plaats', PLAY_NL.toolTitle.place], ['X', PLAY_NL.toolTitle.x], ['Gum', PLAY_NL.toolTitle.erase]]) {
+    expect(note).toContain(`title="${PLAY_EN.toolTitle.note}"`)
+    for (const [label, title] of [['Place', PLAY_EN.toolTitle.place], ['X', PLAY_EN.toolTitle.x], ['Erase', PLAY_EN.toolTitle.erase]]) {
       const b = all.find((x) => x.includes(`>${label}<`))!
       expect(b).toContain('aria-pressed="false"')
       expect(b).toContain(`title="${title}"`)

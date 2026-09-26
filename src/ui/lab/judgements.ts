@@ -6,7 +6,7 @@ export const JUDGEMENTS_KEY = 'slaydoku:lab-judgements'
 /** Bump when the stored shape changes; other versions are ignored, never crashed on. */
 export const JUDGEMENTS_VERSION = 1
 
-/** Too easy, good, too hard. Machine ids stay English; the lab shows them in Dutch. */
+/** Too easy, good, too hard. Machine ids stay English; the lab shows them as text. */
 export const VERDICTS = ['too-easy', 'good', 'too-hard'] as const
 export type Verdict = (typeof VERDICTS)[number]
 
