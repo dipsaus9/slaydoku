@@ -18,6 +18,7 @@ Slaydoku is a public, Wordle-style daily murder-grid puzzle (Murdoku-like), in E
 ## Rules that saved time
 
 - Bun only, never python3. Run long commands (tests, sweeps, generation) in the foreground with a generous timeout.
+- Verification drivers and tests run on the dev-only date override (`?date=2026-10-15`, see `docs/daily-flow.md`); it works only in dev and on `localhost`.
 - Git: use `git fetch origin` then `git merge --ff-only origin/main` (plain `git pull` can fail here). Stage explicit paths only; a hook blocks blanket staging. Never force-push. Open PRs with `gh pr create --head <branch> --base main`. Workflow files need the `workflow` token scope (`gh auth refresh -h github.com -s workflow`, run by the owner).
 - Tests: `--maxWorkers=1` (parallel runs time out under load). Known load flakes: solver perf 16x16 and sweep wall-clock tests: rerun alone first.
 - Sources under `src/` run in the browser: no `process.*`, no `node:` imports (a test guards it).

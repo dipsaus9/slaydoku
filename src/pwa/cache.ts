@@ -59,7 +59,7 @@ export function staleCacheNames(existing: readonly string[], current: string): s
   return existing.filter((name) => name.startsWith(CACHE_PREFIX) && name !== current)
 }
 
-/** Path of a URL without origin, query or hash. `/level/demo?x=1#y` gives `/level/demo`. */
+/** Path of a URL without origin, query or hash. `/play?x=1#y` gives `/play`. */
 export function pathOf(url: string): string {
   const cut = url.replace(/^[a-z][a-z0-9+.-]*:\/\/[^/]*/i, '')
   return cut.replace(/[?#].*$/, '') || '/'
@@ -79,7 +79,7 @@ export interface RequestInfo {
 
 /**
  * What the worker does with a request:
- *  - `shell`: answer with the cached index.html (a page load of any clean URL: `/`, `/level/demo`, `/level/demo/solved`);
+ *  - `shell`: answer with the cached index.html (a page load of any clean URL: `/`, `/play`, `/about`);
  *  - `precached`: answer from the cache (a build file);
  *  - `network`: not ours, leave it to the browser (other origins, non-GET, sw.js itself, anything not in the build).
  * A page load of a path with a file extension that is not in the build (`/robots.txt`, `/foo.png`) goes to the network,

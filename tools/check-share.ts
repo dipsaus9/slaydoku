@@ -2,7 +2,7 @@
 // Verifies the head tags, the og:image (status 200, image/png, under 1 MB, declared size), the indexing setup, the titles,
 // and the home-screen app setup
 // (iOS meta tags, manifest link that resolves to JSON with the required fields, icons that exist at their declared size),
-// and that a deep link (/level/demo, clean URLs) returns the same HTML shell with the same head tags as the root,
+// and that a deep link (/play, clean URLs) returns the same HTML shell with the same head tags as the root,
 // and that the offline service worker /sw.js is served as JavaScript (not the HTML shell) with a no-cache header (CAD-10.6).
 // Exits 1 when any check fails, 2 on bad usage.
 //
@@ -27,7 +27,7 @@ export const EXPECTED_TITLE = 'Slaydoku'
 export const MAX_IMAGE_BYTES = 1024 * 1024
 
 /** Clean-URL deep links the host must answer with the HTML shell (History API routing): a level and the about page. */
-export const DEEP_LINKS = ['/level/demo', '/about'] as const
+export const DEEP_LINKS = ['/play', '/about'] as const
 
 /** The service worker of the offline support (CAD-10.6): must be a real file at the root, so it can control every clean URL. */
 export const SERVICE_WORKER_PATH = '/sw.js'

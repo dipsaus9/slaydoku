@@ -3,8 +3,9 @@
 // protocol through the whole offline story:
 //   1. first visit: the worker installs, precaches the build and takes control of the page (no second load needed);
 //   2. Network.emulateNetworkConditions offline (and a fetch that must fail, so the offline mode is real), then reload on
-//      /, /level/demo and /about: the level list opens, the demo level plays and the About page shows (from the precache);
-//   3. a new deploy (the level list subtitle gets " (v2)" for one build, restored afterwards): back online, the next visit
+//      /, /play and /about: the start screen opens, today's puzzle (date override 2026-10-15; its month file is a lazily loaded
+//      chunk, and every month chunk of the schedule is in the precache) plays and the About page shows (from the precache);
+//   3. a new deploy (the start screen subtitle gets " (v2)" for one build, restored afterwards): back online, the next visit
 //      keeps showing the cached build, the notice "New version available" + "Reload" appears, the reload
 //      activates the new build, the old cache is gone, and localStorage (progress, board saves, a marker) is untouched.
 //
@@ -15,9 +16,8 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { demoLevels } from '../../src/content/levels.ts'
-import { puzzleFingerprint } from '../../src/game/index.ts'
 import { help } from '../../src/content/help/help.ts'
+import { DATE_KEY, INDEX, PLAY_DATE, RESULTS_KEY, dayOn } from './daily.ts'
 
 const HERE = import.meta.dir
 const ROOT = join(HERE, '../..')
@@ -27,8 +27,10 @@ const PORT = Number(process.env.PORT ?? 5198)
 const OUT = process.env.OUT ?? mkdtempSync(join(tmpdir(), 'slaydoku-offline-'))
 const SITE = join(OUT, 'site')
 const BASE = `http://localhost:${PORT}`
-const STRINGS = join(ROOT, 'src/ui/levels/strings.ts')
-const SUBTITLE = 'Solve the case'
+const STRINGS = join(ROOT, 'src/ui/daily/strings.ts')
+const SUBTITLE = 'A new murder mystery every day'
+const DAY = dayOn(PLAY_DATE)
+const START = `document.querySelectorAll('.daily-card').length === 1`
 mkdirSync(OUT, { recursive: true })
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -122,8 +124,10 @@ await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints
 
 try {
   // ---- 1. first visit ------------------------------------------------------------------------
-  await goto('/')
-  check('first visit: the level list shows', await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`))
+  await goto(`/?date=${PLAY_DATE}`) // the dev-only date override (localhost only), copied into localStorage
+  check('first visit: the start screen shows today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === `Puzzle #${DAY.n}`)
+  const chunks = (await evaluate(`performance.getEntriesByType('resource').map(e => new URL(e.name).pathname).filter(p => /\\/assets\\/\\d{4}-\\d{2}-/.test(p)).join(',')`)) as string
+  check('first visit: the page itself fetched only the month file that holds today (lazy chunk)', chunks.split(',').filter(Boolean).length === 1 && chunks.includes('/assets/2026-10-'), chunks || 'none')
   check('first visit: no update notice on a fresh install', (await count('[data-update-notice]')) === 0)
   check('the worker takes control of the page without a second load', await until('navigator.serviceWorker.controller !== null', 15000))
   const sw = (await evaluate(`fetch('/sw.js').then(r => r.text().then(t => JSON.stringify({ status: r.status, type: r.headers.get('content-type'), size: t.length })))`)) as string
@@ -132,11 +136,15 @@ try {
   check('exactly one slaydoku cache holds the build', cachesV1.length === 1 && cachesV1[0]!.startsWith('slaydoku-precache-'), cachesV1.join(','))
   const cached = (await evaluate(`caches.open(${JSON.stringify(cachesV1[0])}).then(c => c.keys()).then(k => k.map(r => new URL(r.url).pathname))`)) as string[]
   check('the precache holds index.html and the manifest', cached.includes('/index.html') && cached.includes('/manifest.webmanifest'), `${cached.length} files`)
+  const missingMonths = INDEX.months.filter((m) => !cached.some((p) => p.startsWith(`/assets/${m.month}-`) && p.endsWith('.js')))
+  check(`the precache holds the chunk of every scheduled month (${INDEX.months.length}), so any day works offline`, missingMonths.length === 0, missingMonths.map((m) => m.month).join(',') || INDEX.months.map((m) => m.month).join(' '))
   check('the subtitle is the v1 one', (await text('.level-subtitle, [class*=subtitle]')).includes(SUBTITLE) || (await evaluate(`document.body.textContent.includes(${JSON.stringify(SUBTITLE)})`)) === true)
 
-  // Saves the update must not touch: progress with every level solved, the how-it-works card marked as seen (or it covers the first level), and a marker.
-  const solved = Object.fromEntries(demoLevels.map((l) => [l.id, { murdererId: 'x', elapsedMs: 60000, fp: puzzleFingerprint(l.puzzle) }]))
-  await evaluate(`localStorage.setItem('slaydoku:progress', ${JSON.stringify(JSON.stringify({ version: 2, solved }))}); localStorage.setItem('slaydoku:help-seen', '{"version":${help.version}}'); localStorage.setItem('slaydoku:offline-test-marker', 'keep me')`)
+  // Saves the update must not touch: the result of an earlier day, the how-it-works card marked as seen (or it covers the puzzle), and a marker.
+  const earlier = dayOn('2026-10-14')
+  const results = { version: 1, results: { [earlier.n]: { n: earlier.n, date: earlier.date, fp: earlier.fp, elapsedMs: 60000, hints: 0, wrongChecks: 0, murdererId: 'x' } } }
+  await evaluate(`localStorage.setItem(${JSON.stringify(RESULTS_KEY)}, ${JSON.stringify(JSON.stringify(results))}); localStorage.setItem('slaydoku:help-seen', '{"version":${help.version}}'); localStorage.setItem('slaydoku:offline-test-marker', 'keep me')`)
+  check('the date override sits in localStorage for the later page loads', (await evaluate(`localStorage.getItem(${JSON.stringify(DATE_KEY)})`)) === PLAY_DATE)
 
   // ---- 2. offline ----------------------------------------------------------------------------
   await setOffline(true)
@@ -144,27 +152,30 @@ try {
   check('offline mode is real: a file outside the build cannot be fetched', outside === 'blocked', outside)
 
   await goto('/')
-  check('offline reload on /: the level list opens', await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`))
-  check('offline / keeps the progress (all levels solved)', (await evaluate(`[...document.querySelectorAll('[data-level]')].every(c => c.dataset.status === 'solved')`)) === true)
-  await shot('offline-01-level-list')
+  check('offline reload on /: the start screen opens with today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === `Puzzle #${DAY.n}` && (await count('[data-action]')) === 1, await text('[data-puzzle-number]'))
+  check('offline / has a live countdown', (await until(`/^\\d\\d:\\d\\d:\\d\\d$/.test(document.querySelector('[data-countdown] time')?.textContent ?? '')`)) === true)
+  await shot('offline-01-start')
 
-  await goto('/level/demo')
-  check('offline reload on /level/demo: the puzzle opens', await until(`document.querySelectorAll('.play-board').length === 1`))
-  const before = (await evaluate(`localStorage.getItem('slaydoku:game:demo')`)) as string | null
+  await goto('/play')
+  check('offline reload on /play: the puzzle opens (its month chunk comes from the precache)', await until(`document.querySelectorAll('.play-board').length === 1`))
+  const key = `slaydoku:game:daily-${DAY.n}`
+  const before = (await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)) as string | null
   const cellCount = await count('[data-cell]')
-  check('offline demo level draws its board with cells', cellCount > 0, `${cellCount} cells`)
+  check('offline puzzle draws its board with cells', cellCount > 0, `${cellCount} cells`)
   // Play: place the selected person on a cell with a long press (touch), like drive.ts.
   const rect = (await evaluate(`(() => { const e = document.querySelector('[data-cell=r6c6]'); e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number }
   await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: rect.x, y: rect.y, id: 1 }] })
   await sleep(700)
   await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   await sleep(500)
-  const after = (await evaluate(`localStorage.getItem('slaydoku:game:demo')`)) as string | null
-  check('offline demo level is playable: a placement is saved', after !== null && after !== before, `${(after ?? '').length} bytes saved`)
-  await shot('offline-02-level-demo')
+  const after = (await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)) as string | null
+  check('offline puzzle is playable: a placement is saved', after !== null && after !== before, `${(after ?? '').length} bytes saved`)
+  await shot('offline-02-play')
 
   await goto('/nonsense/path')
-  check('offline unknown path falls back to the app (list at /)', (await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)) && (await evaluate('location.pathname')) === '/')
+  check('offline unknown path falls back to the app (start screen at /)', (await until(START)) && (await evaluate('location.pathname')) === '/')
+  await goto('/level/demo')
+  check('offline old /level/demo path goes to / too', (await until(START)) && (await evaluate('location.pathname')) === '/')
 
   // The About page is a clean URL like any other: the cached shell answers it, and the link on the list opens it offline.
   await goto('/about')
@@ -172,16 +183,16 @@ try {
   check('offline /about has the credit and the privacy line', (await evaluate(`document.body.textContent.includes('Inspired by Murdoku by Manuel Garand') && document.body.textContent.includes('no accounts, no tracking')`)) === true)
   await shot('offline-03-about')
   await goto('/')
-  await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)
-  await evaluate(`document.querySelector('a.levels__about').click()`)
-  check('offline: the About link on the list opens the About page', (await until(`document.querySelector('.about') !== null`)) && (await evaluate('location.pathname')) === '/about')
+  await until(START)
+  await evaluate(`document.querySelector('a.daily__about').click()`)
+  check('offline: the About link on the start screen opens the About page', (await until(`document.querySelector('.about') !== null`)) && (await evaluate('location.pathname')) === '/about')
 
   // ---- 3. a new deploy ------------------------------------------------------------------------
   await setOffline(false)
-  await goto('/level/demo')
+  await goto('/play')
   check('back online: the board played offline is still there', (await until(`document.querySelectorAll('.play-board').length === 1`)) && (await until(`document.querySelectorAll('[data-person]').length >= 1`)), `${await count('[data-person]')} placed`)
   await goto('/')
-  await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)
+  await until(START)
   const storageBefore = await storageDump()
   const original = readFileSync(STRINGS, 'utf8')
   console.log('building v2 (subtitle changed) ...')
@@ -195,7 +206,7 @@ try {
 
   // "The next visit": a page load. The controlled page still shows the cached v1 while the browser checks sw.js.
   await goto('/')
-  check('the next visit still shows the cached v1 (no silent swap)', (await until(`document.querySelectorAll('[data-level]').length === ${demoLevels.length}`)) && (await evaluate(`document.body.textContent.includes(${JSON.stringify(SUBTITLE)}) && !document.body.textContent.includes('(v2)')`)) === true)
+  check('the next visit still shows the cached v1 (no silent swap)', (await until(START)) && (await evaluate(`document.body.textContent.includes(${JSON.stringify(SUBTITLE)}) && !document.body.textContent.includes('(v2)')`)) === true)
   check('the update notice appears in English', await until(`document.querySelector('[data-update-notice]') !== null`, 15000), await text('[data-update-notice]'))
   check('notice text and button', (await text('.update-notice__text')) === 'New version available' && (await text('.update-notice__button')) === 'Reload')
   const notice = (await evaluate(`(() => { const r = document.querySelector('[data-update-notice]').getBoundingClientRect(); return { top: r.top, height: r.height, fits: r.left >= 0 && r.right <= innerWidth } })()`)) as { top: number; height: number; fits: boolean }
@@ -212,10 +223,10 @@ try {
   const cachesV2 = JSON.parse(await cacheNames()) as string[]
   check('the old cache is deleted, one cache is left and it is new', cachesV2.length === 1 && cachesV2[0] !== cachesV1[0], cachesV2.join(','))
   check('the reloaded page is controlled by the new worker', (await controlled()) === true)
-  check('localStorage (progress, board saves, marker) is identical after the update', (await storageDump()) === storageBefore)
+  check('localStorage (results, board saves, date override, marker) is identical after the update', (await storageDump()) === storageBefore)
 
   await setOffline(true)
-  await goto('/level/demo')
+  await goto('/play')
   check('the new build works offline too', (await until(`document.querySelectorAll('.play-board').length === 1`)) && (await evaluate(`localStorage.getItem('slaydoku:offline-test-marker')`)) === 'keep me')
   await setOffline(false)
 } catch (error) {

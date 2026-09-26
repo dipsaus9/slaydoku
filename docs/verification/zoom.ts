@@ -1,9 +1,9 @@
 // Board-zoom verification driver (CAD-10.4).
 // Drives headless Chrome over the DevTools protocol with touch emulation and checks the board zoom of the play
-// screen on the demo level: the toolbar button (1x/2x), two-finger pinch and pan (two real touch points via
+// screen on the puzzle of 2026-10-15 (date override, see daily.ts; a 9x9 board): the toolbar button (1x/2x), two-finger pinch and pan (two real touch points via
 // Input.dispatchTouchEvent), clamping, one-finger notes / long-press placement / drag-notes on a zoomed board landing
 // on the right square, a pinch cancelling a running one-finger gesture, hints coming into view, and the reset on
-// restart, on leaving the level and on reload. The "right square" is computed independently of the app: from where the
+// restart, on leaving the puzzle and on reload. The "right square" is computed independently of the app: from where the
 // board's svg is drawn on screen (its transformed bounding box) and the cell rects of the svg.
 //
 // Usage (from the repo root):
@@ -16,17 +16,15 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parsePuzzle } from '../../src/engine/model/index.ts'
 import { isBlocked } from '../../src/game/board.ts'
+import { PLAY_DATE, dayOn, seedStorage } from './daily.ts'
 
 const HERE = import.meta.dir
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const PORT = Number(process.env.CDP_PORT ?? 9352)
 const BASE = process.env.BASE ?? 'http://localhost:5197/'
 const SHOTS = process.env.OUT ?? join(HERE, 'screenshots-zoom')
-const LEVEL = 'demo'
-const demo = parsePuzzle(await Bun.file(join(HERE, `../../src/content/${LEVEL}/puzzle.json`)).text())
-if (!demo.ok) throw new Error('demo puzzle')
+const DAY = dayOn(PLAY_DATE)
 const VIEWPORTS = (process.env.VIEWPORTS ?? '390x844,844x390,1024x768')
   .split(',')
   .map((label) => [label, ...label.split('x').map(Number)] as [string, number, number])
@@ -183,7 +181,7 @@ const near = (a: number, b: number, tol = 0.02) => Math.abs(a - b) <= tol
 const same = (a: { row: number; col: number }, b: { row: number; col: number }) => a.row === b.row && a.col === b.col
 
 interface PuzzleJson { people: { id: string; label: string; kind: string }[]; solution: { personId: string; cell: { row: number; col: number } }[] }
-const puzzle = JSON.parse(await Bun.file(join(HERE, `../../src/content/${LEVEL}/puzzle.json`)).text()) as PuzzleJson
+const puzzle = DAY.puzzle as unknown as PuzzleJson
 
 const selectedName = () =>
   evaluate(`(document.querySelector('.play-cards[data-gift-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
@@ -197,23 +195,23 @@ async function covers() {
 }
 
 async function openLevel() {
-  await evaluate(`document.querySelector('[data-level=${LEVEL}]').click()`)
+  await evaluate(`document.querySelector('[data-action]').click()`)
   await sleep(1200)
-  // First visit of level 1 opens the "How it works" card (CAD-10.8): dismiss it to get to the board.
+  // The first Play opens the "How it works" card (CAD-10.8): dismiss it to get to the board.
   await evaluate(`[...document.querySelectorAll('.play-modal button')].find(b => b.innerText.trim() === 'Start playing')?.click()`)
   await sleep(300)
 }
 async function leaveLevel() {
-  await evaluate(`document.querySelector('.level-play__back').click()`)
+  await evaluate(`document.querySelector('.daily-play__back').click()`)
   await sleep(600)
 }
 
 async function run(w: number, h: number) {
   await open(w, h)
-  await evaluate('localStorage.clear()')
+  await evaluate(`localStorage.clear(); ${seedStorage(PLAY_DATE, false)}`)
   await reload()
   await openLevel()
-  check('level opens', (await path()) === `/level/${LEVEL}`, await path())
+  check('the puzzle opens at /play', (await path()) === '/play', await path())
 
   // ---- the button -----------------------------------------------------------------------
   const lay = await layoutProbe()
@@ -241,10 +239,15 @@ async function run(w: number, h: number) {
   // taps at spots of the frame: the note must land on the cell drawn under the finger, not the 1x cell of that spot
   const f = await frame()
   let differs = 0
-  for (const [fx, fy] of [[0.2, 0.25], [0.75, 0.3], [0.35, 0.8], [0.8, 0.85], [0.5, 0.5]] as const) {
+  let tested = 0
+  // A blocked square (a table, a plant) takes no note while "no X on blocked squares" is on: those spots are skipped, the next candidate is used.
+  for (const [fx, fy] of [[0.2, 0.25], [0.75, 0.3], [0.35, 0.8], [0.8, 0.85], [0.5, 0.5], [0.6, 0.65], [0.3, 0.45], [0.9, 0.2], [0.15, 0.7], [0.65, 0.15], [0.45, 0.9], [0.85, 0.55]] as const) {
+    if (tested === 5) break
     const before = await dataOf()
     const p = { x: f.l + f.w * fx, y: f.t + f.h * fy }
     const want = await oracle(p)
+    if (isBlocked(DAY.puzzle, want)) continue
+    tested++
     const naiveCell = await naive(p)
     if (!same(want, naiveCell)) differs++
     await tap(p)
@@ -269,7 +272,7 @@ async function run(w: number, h: number) {
   const expectedCells = new Set<string>()
   // A blocked square (a table, a plant) takes no note while "no X on blocked squares" is on, so a drag over it skips it.
   for (let col = Math.min(wantA.col, wantB.col); col <= Math.max(wantA.col, wantB.col); col++) {
-    if (!isBlocked(demo.value, { row: wantA.row, col })) expectedCells.add(`${wantA.row},${col}`)
+    if (!isBlocked(DAY.puzzle, { row: wantA.row, col })) expectedCells.add(`${wantA.row},${col}`)
   }
   check('drag-notes on the zoomed board fills the cells from the start cell to the end cell', [...expectedCells].every((k) => painted.includes(k)) && painted.every((k) => k.startsWith(`${wantA.row},`)), `wanted ${[...expectedCells].join(' ')} got ${[...new Set(painted)].join(' ')}`)
   check('the drag did not pan the board', near(await zoomOf(), 2) && (await covers()))
@@ -403,12 +406,12 @@ async function run(w: number, h: number) {
   check('restart resets the zoom to 1x', near(zAfterRestart, 1, 0.001) && (await zoomButton())?.pressed === 'false', `zoom ${zAfterRestart}, modals ${await count('.play-modal')}`)
   await evaluate(`document.querySelector('.play-modal .play-modal__close, .play-modal .play-btn')?.click()`)
   await sleep(200)
-  // leaving the level
+  // leaving the puzzle
   await tool('Zoom')
   check('zoomed again before leaving', near(await zoomOf(), 2))
   await leaveLevel()
   await openLevel()
-  check('leaving and re-entering the level: 1x', near(await zoomOf(), 1, 0.001), `zoom ${await zoomOf()}`)
+  check('leaving and re-entering the puzzle: 1x', near(await zoomOf(), 1, 0.001), `zoom ${await zoomOf()}`)
   // reload
   await tool('Zoom')
   await reload()

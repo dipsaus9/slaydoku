@@ -1,6 +1,7 @@
 // Rendered-screen check (CAD-10.7): what is in the puzzle data is on the real page.
-// Drives headless Chrome over the DevTools protocol (touch emulation, production build) and, for the demo level and, when pack files are
-// on disk, for a sample of pack cases, opens the real play screen and checks
+// Drives headless Chrome over the DevTools protocol (touch emulation, production build) and, for a sample of the scheduled daily
+// puzzles (10 days spread over every board size and as many tiers as possible, each opened through the dev-only date override, see
+// daily.ts), opens the real play screen and checks
 //   1. cards: for every suspect, every card text of the puzzle data (all clues of that person, rendered with the same
 //      engine function the game uses) is in the DOM of that person's polaroid, in puzzle order, and nothing else is;
 //      the gift card is there, and no card line is cut off by its box. Regression for the bug where only the first card
@@ -8,33 +9,28 @@
 //   2. legend: every object kind drawn on the board (the icon in the board's objects layer) has a row in the Legend,
 //      the Legend has no row for something that is not drawn, and the doors and windows drawn have their rows too;
 //      the board draws every object of the scene.
-// The sample: per board size the first very-easy case, the last expert case and the case where one person holds the most
-// cards, plus every case whose scene has a kind of object the other samples do not show. The demo level is always in.
+// The sample (daily.ts, sampleDays): days dealt over the sizes 6, 7, 9 and 12 and walked evenly through the schedule, so different tiers
+// and themes come up; SAMPLE=<n> changes the number of days, ALL=1 checks every scheduled day.
 //
 // Usage (from the repo root):
 //   bun run build && bunx vite preview --port 5217 &
 //   BASE=http://localhost:5217/ CDP_PORT=9417 OUT=/tmp/screens-shots bun docs/verification/screens.ts
 // Env: VIEWPORTS (default 390x844,844x390,768x1024,1024x768), BASE (default local preview), CDP_PORT (default 9354),
 // CHROME, OUT (folder for screenshots and the log; default a folder under the system temp dir, never inside the repo),
-// ALL=1 (check every case of every pack file instead of the sample). Exits non-zero when a check fails.
+// SAMPLE (number of scheduled days, default 10), ALL=1 (every scheduled day instead of the sample). Exits non-zero when a check fails.
 import { spawn } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs'
+import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parsePuzzle } from '../../src/engine/model/index.ts'
 import type { Puzzle } from '../../src/engine/model/index.ts'
 import type { CatalogClue } from '../../src/engine/clues/index.ts'
 import { VICTIM_TEXT, renderClue } from '../../src/engine/clues/en.ts'
-import { parsePackFile } from '../../src/content/packs/read.ts'
-import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
-import { help } from '../../src/content/help/help.ts'
+import { DAYS, sampleDays, seedStorage } from './daily.ts'
 
-const HERE = import.meta.dir
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const PORT = Number(process.env.CDP_PORT ?? 9354)
 const BASE = process.env.BASE ?? 'http://localhost:5197/'
 const SHOTS = process.env.OUT ?? join(tmpdir(), 'slaydoku-screens-shots')
-const HOUSES = ['demo'] as const
 const VIEWPORTS = (process.env.VIEWPORTS ?? '390x844,844x390,768x1024,1024x768')
   .split(',')
   .map((label) => [label, ...label.split('x').map(Number)] as [string, number, number])
@@ -114,58 +110,11 @@ function check(scenario: string, ok: boolean, detail = '') {
 }
 
 // --- the puzzles under test ------------------------------------------------------------------
-interface Subject { name: string; url: string; puzzle: Puzzle; why: string }
-const puzzleFile = (id: string) => {
-  const parsed = parsePuzzle(readFileSync(join(HERE, `../../src/content/${id}/puzzle.json`), 'utf8'))
-  if (!parsed.ok) throw new Error(id)
-  return parsed.value
-}
-const PACK_DIR = join(HERE, '../../src/content/packs')
-const entries = readdirSync(PACK_DIR)
-  .filter((f) => /^\d+-[a-z-]+\.json$/.test(f))
-  .flatMap((f) => parsePackFile(readFileSync(join(PACK_DIR, f), 'utf8'), f).puzzles)
+interface Subject { name: string; date: string; puzzle: Puzzle; why: string }
+const days = process.env.ALL ? DAYS : sampleDays(Number(process.env.SAMPLE ?? 10))
+const subjects: Subject[] = days.map((day) => ({ name: `day${day.n}`, date: day.date, puzzle: day.puzzle, why: `${day.date} ${day.size}x${day.size} ${day.tier} ${day.theme}` }))
+console.log(`${subjects.length} puzzles under test:`, subjects.map((s) => `${s.why}`).join(' '))
 const maxCards = (p: Puzzle) => Math.max(0, ...p.people.map((person) => p.clues.filter((c) => c.personId === person.id).length))
-/** The drawn kinds of the scene, by engine type: what the legend must list. Used to spot cases that add a new kind to the sample. */
-const kindsOf = (p: Puzzle) => new Set(p.scene.objects.map((o) => `${o.type}:${o.id.replace(/-\d+$/, '')}`))
-
-function sample(): Subject[] {
-  const picked = new Map<string, Subject>()
-  const add = (id: string, why: string) => {
-    const e = entries.find((x) => x.id === id)!
-    if (!picked.has(id)) picked.set(id, { name: id, url: `extras/${id}`, puzzle: e.puzzle, why })
-  }
-  if (process.env.ALL) {
-    for (const e of entries) add(e.id, 'all')
-    return [...picked.values()]
-  }
-  const sizes = [...new Set(entries.map((e) => e.size))].sort((a, b) => a - b)
-  for (const size of sizes) {
-    const own = entries.filter((e) => e.size === size)
-    const first = own.find((e) => e.tier === 'very-easy')
-    const last = [...own].reverse().find((e) => e.tier === 'expert')
-    const most = [...own].sort((a, b) => maxCards(b.puzzle) - maxCards(a.puzzle))[0]
-    if (first) add(first.id, `${size}x${size} first very-easy`)
-    if (last) add(last.id, `${size}x${size} last expert`)
-    if (most) add(most.id, `${size}x${size} most cards on one person (${maxCards(most.puzzle)})`)
-  }
-  // Kinds of objects (theme art) that none of the cases above show: one more case each, so every theme kind is drawn once.
-  const seen = new Set([...picked.values()].flatMap((s) => [...kindsOf(s.puzzle)]))
-  for (const e of entries) {
-    const fresh = [...kindsOf(e.puzzle)].filter((k) => !seen.has(k))
-    if (fresh.length === 0) continue
-    add(e.id, `adds kinds ${fresh.join(', ')}`)
-    for (const k of kindsOf(e.puzzle)) seen.add(k)
-  }
-  return [...picked.values()]
-}
-const subjects: Subject[] = [
-  ...HOUSES.map((id) => ({ name: id, url: `level/${id}`, puzzle: puzzleFile(id), why: 'demo level' })),
-  ...sample(),
-]
-console.log(`${subjects.length} puzzles under test:`, subjects.map((s) => s.name).join(' '))
-// Every level solved and the how-it-works card already seen: written straight into localStorage.
-const progress = JSON.stringify({ version: 2, solved: Object.fromEntries(HOUSES.map((id) => [id, { murdererId: 'x', elapsedMs: 1000, fp: puzzleFingerprint(puzzleFile(id)) }])) })
-const seeded = `localStorage.setItem('slaydoku:progress', ${JSON.stringify(progress)}); localStorage.setItem('slaydoku:help-seen', '{"version":${help.version}}')`
 
 // --- probes ----------------------------------------------------------------------------------
 interface CardDom { name: string; gift: boolean; lines: string[]; clipped: number }
@@ -179,7 +128,8 @@ const legendOnScreen = () =>
 async function subjectCheck(subject: Subject) {
   const { puzzle, name } = subject
   const label = name
-  await load(subject.url)
+  await evaluate(seedStorage(subject.date))
+  await load('play')
   const open = await until(`document.querySelectorAll('.play-board').length === 1 && document.querySelectorAll('.play-cards li').length > 0`, 15000)
   check(`${label}: the play screen opens (${subject.why})`, open && (await evaluate(`document.querySelectorAll('.play-modal').length`)) === 0)
   if (!open) return
@@ -206,7 +156,7 @@ async function subjectCheck(subject: Subject) {
     check(`${label}: ${multi.length} person(s) hold several cards and show all of them (most: ${worst.name} with ${worst.lines.length})`, mismatches.length === 0)
   }
   check(`${label}: no card line is cut off by its box`, cards.every((c) => c.clipped === 0), cards.filter((c) => c.clipped > 0).map((c) => c.name).join(', '))
-  if (subject.why === 'demo level' || /most cards/.test(subject.why)) await shot(`${name}-cards`)
+  if (subject === subjects[0] || maxCards(puzzle) >= 4) await shot(`${name}-cards`)
 
   // 2. every object drawn on the board has a legend row
   const board = await boardDrawn()
@@ -223,7 +173,7 @@ async function subjectCheck(subject: Subject) {
   check(`${label}: every object kind drawn on the board has a legend row (${drawn.size} kinds)`, missing.length === 0, missing.length ? `no row for ${missing.join(', ')}` : [...drawn].join(' '))
   check(`${label}: the Legend lists no kind that is not drawn, and no kind twice`, extra.length === 0 && legend.objects.length === listed.size, extra.length ? `not drawn: ${extra.join(', ')}` : `${legend.objects.length} rows`)
   check(`${label}: doors and windows drawn have exactly their legend rows`, JSON.stringify(board.edges) === JSON.stringify(legend.edges), `board ${board.edges.join('+') || 'none'}, legend ${legend.edges.join('+') || 'none'}`)
-  if (subject.why === 'demo level') await shot(`${name}-legend`)
+  if (subject === subjects[0]) await shot(`${name}-legend`)
   await tapAt(3, 3)
 }
 
@@ -234,7 +184,6 @@ for (const [label, w, h] of VIEWPORTS) {
   await send('Runtime.enable')
   await load('')
   await sleep(1200)
-  await evaluate(seeded)
   for (const subject of subjects) await subjectCheck(subject)
   await evaluate('localStorage.clear()')
 }
