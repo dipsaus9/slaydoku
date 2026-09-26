@@ -70,7 +70,7 @@ ${HOME_SCREEN_HEAD}
 <meta property="og:image" content="${extra.ogImage ?? `${origin}/og-image.png`}" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Slaydoku, a new murder mystery puzzle every day" />
+<meta property="og:image:alt" content="Slaydoku: a magnifying glass over a puzzle grid, next to a floor plan with suspects. A new murder mystery puzzle every day." />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Slaydoku" />
 <meta name="twitter:description" content="Slaydoku: a new murder mystery puzzle every day. Read the clues, place every suspect and find out who was alone with the victim." />
