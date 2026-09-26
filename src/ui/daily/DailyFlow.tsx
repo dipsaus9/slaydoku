@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { dailyId, dayStatus, observeSolve, progressStorage, readResult, recordResult, resultOf, pageClock } from '../../game/index.ts'
 import type { SolveRecord, StorageLike } from '../../game/index.ts'
 import { SCHEDULE_INDEX, loadMonthFile } from '../../game/daily/source.ts'
+import { themeIconsFor } from '../../content/themes/icons.ts'
 import { phaseOf, puzzleNumberOf } from '../../schedule/index.ts'
 import type { MonthFile, ScheduleDay, ScheduleIndex } from '../../schedule/index.ts'
 import { PlayScreen } from '../play/index.ts'
@@ -127,12 +128,14 @@ interface PlayRouteProps {
  */
 function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
   const id = dailyId(day.n)
+  // The theme's own art per object (a shop counter, a beanbag ...): the board and the Legend both draw it.
+  const themeIcons = useMemo(() => themeIconsFor(day.theme, day.puzzle.scene.objects), [day])
   // The notice sits over the bottom of the screen: the player can send it away and keep playing; the start screen offers the new puzzle anyway.
   const [noticeDismissed, setNoticeDismissed] = useState(false)
   const watched = useMemo(() => observeSolve(storage, id, day.puzzle, (record) => onSolved(day, record)), [storage, id, day, onSolved])
   return (
     <div className="daily-play">
-      <PlayScreen puzzle={day.puzzle} levelId={id} title="" storage={watched} firstVisitHelp />
+      <PlayScreen puzzle={day.puzzle} levelId={id} title="" themeIcons={themeIcons} portraits={day.portraits} storage={watched} firstVisitHelp />
       <nav className="daily-play__nav">
         <button type="button" className="daily-play__back" aria-label={DAILY_EN.backLabel} onClick={onBack}>
           <span aria-hidden="true">{'‹'}</span> {DAILY_EN.back}

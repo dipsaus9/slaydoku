@@ -1,5 +1,6 @@
+import type { PortraitLook } from '../../content/cast/index.ts'
 import type { Person, Puzzle } from '../../engine/model/index.ts'
-import { buildCast, buildCastFromPeople, MAX_SUSPECTS, type BuiltCast } from '../../render/cards/index.ts'
+import { buildCast, buildCastFromPeople, cardLookOf, MAX_SUSPECTS, type BuiltCast } from '../../render/cards/index.ts'
 
 /** Glyph of the gift in notes. */
 export const GIFT_TAG = '\u{1F381}'
@@ -73,10 +74,17 @@ export function withCastNames(puzzle: Puzzle, seed: string | number = 'slaydoku'
   }
 }
 
-/** The card looks for a puzzle's suspects: portraits by gender slot and seed, whatever their names (the names are baked into the puzzle). */
-export function castFor(puzzle: Puzzle, seed: string | number = 'slaydoku'): BuiltCast {
+/**
+ * The card looks for a puzzle's suspects: portraits by gender slot and seed, whatever their names (the names are baked into the puzzle).
+ * A scheduled day brings its own baked `portraits` (one per suspect, in seat order); with the right count they are used as they are.
+ */
+export function castFor(puzzle: Puzzle, seed: string | number = 'slaydoku', portraits?: readonly PortraitLook[]): BuiltCast {
   const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
-  return buildCastFromPeople(suspects.map((p) => ({ name: p.label, gender: p.gender })), seed)
+  const built = buildCastFromPeople(suspects.map((p) => ({ name: p.label, gender: p.gender })), seed)
+  if (!portraits || portraits.length !== built.entries.length) return built
+  const entries = built.entries.map((entry, i) => ({ ...entry, look: cardLookOf(portraits[i]!, entry.name) }))
+  const byName = new Map(entries.map((e) => [e.name.toLowerCase(), e.look]))
+  return { ...built, entries, lookFor: (label) => byName.get(label.trim().toLowerCase()) }
 }
 
 /** "1:05" or "1:02:03". */
