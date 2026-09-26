@@ -1,0 +1,37 @@
+{
+  "name": "slaydoku",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "oxlint",
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "test:slow": "vitest run --mode slow",
+    "verify": "bun tools/verify.ts",
+    "verify:phone": "bun docs/verification/phone.ts",
+    "generate": "bun tools/generate.ts",
+    "pack": "bun tools/pack.ts",
+    "validate:generation": "bun tools/validate.ts",
+    "audit:personal": "bun tools/audit-personal.ts"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^3.2.4"
+  },
+  "description": "A new murder mystery puzzle every day (work in progress).",
+  "license": "MIT"
+}

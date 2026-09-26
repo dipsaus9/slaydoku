@@ -1,0 +1,31 @@
+# Link preview bots may fetch the page and its share image. Everything else is kept out;
+# indexing is also blocked by the noindex meta tag and the X-Robots-Tag header.
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Slack-ImgProxy
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: *
+Disallow: /

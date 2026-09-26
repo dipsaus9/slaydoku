@@ -1,0 +1,116 @@
+import type { BoardView } from '../../human/board.ts'
+import { countNl } from '../../../clues/index.ts'
+import { lineNames, peopleNames, sentences } from '../../human/nl.ts'
+import type { Deduction, Elimination, Technique } from '../../human/types.ts'
+import { snapshot, subsets } from '../snapshot.ts'
+import type { Snapshot } from '../snapshot.ts'
+
+/**
+ * Subsets on the row/column permutation structure. Everybody stands in their
+ * own row and their own column, so people and lines pair up one to one:
+ *
+ * - naked subset: k people who together can only reach k lines own those
+ *   lines; nobody else can stand there (the basic `overload` is k = 1, 2);
+ * - hidden subset: k free lines that only k people can reach are filled by
+ *   exactly those people, so those people can stand nowhere else (needs a
+ *   square grid, where every line holds somebody).
+ */
+
+const lineOf = (board: BoardView, rows: boolean, cell: number) => (rows ? board.row(cell) : board.col(cell))
+
+/** Naked subsets of exactly `size` people, for rows and then columns. */
+export function nakedLines(size: number, id: string, level: number, title: string): Technique {
+  return {
+    id,
+    title,
+    level,
+    find(board) {
+      const snap = snapshot(board)
+      for (const rows of [true, false]) {
+        const found = naked(snap, rows, size)
+        if (found) return found
+      }
+      return null
+    },
+  }
+}
+
+function naked(snap: Snapshot, rows: boolean, size: number): Deduction | null {
+  const { board } = snap
+  const reach = new Map<number, Set<number>>()
+  for (const p of snap.unplaced) {
+    const lines = new Set((snap.cand[p] as number[]).map((c) => lineOf(board, rows, c)))
+    if (lines.size <= size) reach.set(p, lines)
+  }
+  for (const group of subsets([...reach.keys()], size)) {
+    const lines = new Set(group.flatMap((p) => [...(reach.get(p) as Set<number>)]))
+    if (lines.size !== size) continue
+    const eliminate: Elimination[] = []
+    for (const q of snap.unplaced) {
+      if (group.includes(q)) continue
+      for (const c of snap.cand[q] as number[]) {
+        if (lines.has(lineOf(board, rows, c))) eliminate.push({ person: q, cell: c })
+      }
+    }
+    if (eliminate.length === 0) continue
+    const noun = rows ? 'rijen' : 'kolommen'
+    return {
+      eliminate,
+      explanation: sentences(
+        `${peopleNames(board, group)} kunnen alleen nog in ${lineNames(rows, [...lines])} staan: ${countNl(size)} mensen voor ${countNl(size)} ${noun}. Wie waar staat weten we nog niet, maar die ${noun} zijn samen voor hen. Niemand anders kan daar staan.`,
+      ),
+      people: group,
+      cells: [...new Set(eliminate.map((e) => e.cell))],
+    }
+  }
+  return null
+}
+
+/** Hidden subsets of `min` to `max` lines, smallest first, rows and then columns. */
+export function hiddenLines(min: number, max: number, id: string, level: number, title: string): Technique {
+  return {
+    id,
+    title,
+    level,
+    find(board) {
+      const snap = snapshot(board)
+      if (!snap.square) return null
+      for (let size = min; size <= max; size++) {
+        for (const rows of [true, false]) {
+          const found = hidden(snap, rows, size)
+          if (found) return found
+        }
+      }
+      return null
+    },
+  }
+}
+
+function hidden(snap: Snapshot, rows: boolean, size: number): Deduction | null {
+  const { board } = snap
+  const free = rows ? snap.freeRows : snap.freeCols
+  const people = rows ? snap.rowPeople : snap.colPeople
+  // Only lines few people can reach are worth combining.
+  const usable = free.filter((l) => (people[l] as number[]).length <= size)
+  for (const lines of subsets(usable, size)) {
+    const who = new Set(lines.flatMap((l) => people[l] as number[]))
+    if (who.size !== size) continue
+    const inside = new Set(lines)
+    const eliminate: Elimination[] = []
+    for (const p of who) {
+      for (const c of snap.cand[p] as number[]) {
+        if (!inside.has(lineOf(board, rows, c))) eliminate.push({ person: p, cell: c })
+      }
+    }
+    if (eliminate.length === 0) continue
+    const list = lineNames(rows, lines)
+    const group = [...who]
+    const noun = rows ? 'rij' : 'kolom'
+    const explanation =
+      size === 1
+        ? `In ${list} kan alleen ${peopleNames(board, group)} nog staan. Elke ${noun} heeft iemand, dus ${peopleNames(board, group)} staat daar en nergens anders.`
+        : `In ${list} kunnen alleen ${peopleNames(board, group)} nog staan. Elke ${noun} heeft iemand, dus zij nemen die ${countNl(size)} ${rows ? 'rijen' : 'kolommen'} samen in en staan nergens anders.`
+    return { eliminate, explanation: sentences(explanation), people: group, cells: [...new Set(eliminate.map((e) => e.cell))] }
+  }
+  return null
+}

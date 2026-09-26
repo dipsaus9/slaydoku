@@ -1,0 +1,16 @@
+{
+  "name": "Slaydoku",
+  "short_name": "Slaydoku",
+  "description": "A new murder mystery puzzle every day",
+  "lang": "nl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#f5f3ef",
+  "background_color": "#f5f3ef",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

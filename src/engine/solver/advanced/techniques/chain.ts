@@ -1,0 +1,62 @@
+import { cellName, colName, joinNl, manyNl, personName, rowName, sentences } from '../../human/nl.ts'
+import type { BoardView } from '../../human/board.ts'
+import type { Elimination, Technique } from '../../human/types.ts'
+import { linkModel } from '../links.ts'
+import { Trial } from '../trial.ts'
+import type { Refutation } from '../trial.ts'
+
+/** Refutations to spell out in the explanation; the rest are counted. */
+const SHOWN = 2
+/** Forced placements to list per refutation before cutting the chain short. */
+const CHAIN_SHOWN = 6
+
+/**
+ * Chain reasoning: suppose a person stands on a square and follow what that
+ * forces. Somebody else is left with a single square, so they are placed,
+ * which closes a row and column, which leaves a next person with one square,
+ * and every clue card ties the people together further. When the chain runs
+ * into somebody with nowhere to stand (or a row nobody can reach), the
+ * supposition was wrong and the square is out. This is not guessing: nothing
+ * is kept when the chain works out, only the dead ends are struck off.
+ *
+ * The chain only uses forced consequences: rows and columns of placed people,
+ * the clue cards that name two people (checked square by square), a person
+ * with one square left, and a row or column with one square left.
+ */
+export const chain: Technique = {
+  id: 'chain',
+  title: 'Ketenredenering',
+  level: 5,
+  find(board, context) {
+    const model = linkModel(board, context)
+    const trial = new Trial(board, model)
+    const found = trial.refuteAll()
+    if (found.length === 0) return null
+    return describe(board, found)
+  },
+}
+
+function describe(board: BoardView, found: Refutation[]) {
+  const eliminate: Elimination[] = found.map((f) => ({ person: f.person, cell: f.cell }))
+  const parts = found.slice(0, SHOWN).map((f) => explainOne(board, f))
+  const more = found.length - SHOWN
+  const tail = more > 0 ? ` Met dezelfde redenering vallen nog ${manyNl(more)} ${more === 1 ? 'ander vakje' : 'andere vakjes'} af.` : ''
+  return {
+    eliminate,
+    explanation: sentences(`${parts.join(' ')}${tail}`),
+    people: [...new Set(found.slice(0, SHOWN).flatMap((f) => [f.person, ...f.forced.map((x) => x.person)]))],
+    cells: [...new Set(found.slice(0, SHOWN).flatMap((f) => [f.cell, ...f.forced.map((x) => x.cell)]))],
+  }
+}
+
+function explainOne(board: BoardView, f: Refutation): string {
+  const who = personName(board, f.person)
+  const steps = f.forced.slice(0, CHAIN_SHOWN).map((x) => `${personName(board, x.person)} op ${cellName(board, x.cell)}`)
+  const cut = f.forced.length > CHAIN_SHOWN ? ' enzovoort' : ''
+  const lead = steps.length > 0 ? `Dan moeten ${joinNl(steps, 'en', '; ')} staan${cut}. Daardoor ` : 'Dan '
+  const end =
+    f.dead.kind === 'person'
+      ? `heeft ${personName(board, f.dead.index)} nergens meer een vakje.`
+      : `heeft ${f.dead.kind === 'row' ? rowName(f.dead.index) : colName(f.dead.index)} geen vrij vakje meer.`
+  return `Stel dat ${who} op ${cellName(board, f.cell)} staat. ${lead}${end} Dat kan niet, dus ${who} staat daar niet.`
+}

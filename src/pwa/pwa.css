@@ -1,0 +1,42 @@
+.update-notice {
+  position: fixed;
+  top: max(env(safe-area-inset-top), 8px);
+  /* Full width minus the gutters, centred with auto margins. (left: 50% plus translateX would give the
+     box only half the viewport to lay out in, which wrapped the text one word per line on a phone.) */
+  left: max(env(safe-area-inset-left), 8px);
+  right: max(env(safe-area-inset-right), 8px);
+  width: fit-content;
+  max-width: 520px;
+  margin: 0 auto;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid #d8d2c6;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 18%);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.update-notice__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.update-notice__button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #1a1a1a;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  cursor: pointer;
+}

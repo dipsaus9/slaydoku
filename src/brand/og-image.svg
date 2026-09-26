@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#f5f3ef"/>
+  <!-- puzzle board -->
+  <rect x="686" y="81" width="468" height="468" rx="18" fill="#2a2a36"/>
+  <g>
+<rect x="700" y="95" width="88" height="88" fill="#f1d9a6"/>
+<rect x="788" y="95" width="88" height="88" fill="#f1d9a6"/>
+<rect x="876" y="95" width="88" height="88" fill="#f6efe0"/>
+<rect x="964" y="95" width="88" height="88" fill="#f6efe0"/>
+<rect x="1052" y="95" width="88" height="88" fill="#f6efe0"/>
+<rect x="700" y="183" width="88" height="88" fill="#f1d9a6"/>
+<rect x="788" y="183" width="88" height="88" fill="#cdebd0"/>
+<rect x="876" y="183" width="88" height="88" fill="#cdebd0"/>
+<rect x="964" y="183" width="88" height="88" fill="#f6efe0"/>
+<rect x="1052" y="183" width="88" height="88" fill="#e2d7f1"/>
+<rect x="700" y="271" width="88" height="88" fill="#bfe3f2"/>
+<rect x="788" y="271" width="88" height="88" fill="#cdebd0"/>
+<rect x="876" y="271" width="88" height="88" fill="#cdebd0"/>
+<rect x="964" y="271" width="88" height="88" fill="#e2d7f1"/>
+<rect x="1052" y="271" width="88" height="88" fill="#e2d7f1"/>
+<rect x="700" y="359" width="88" height="88" fill="#bfe3f2"/>
+<rect x="788" y="359" width="88" height="88" fill="#bfe3f2"/>
+<rect x="876" y="359" width="88" height="88" fill="#cdebd0"/>
+<rect x="964" y="359" width="88" height="88" fill="#e2d7f1"/>
+<rect x="1052" y="359" width="88" height="88" fill="#e2d7f1"/>
+<rect x="700" y="447" width="88" height="88" fill="#bfe3f2"/>
+<rect x="788" y="447" width="88" height="88" fill="#bfe3f2"/>
+<rect x="876" y="447" width="88" height="88" fill="#bfe3f2"/>
+<rect x="964" y="447" width="88" height="88" fill="#e2d7f1"/>
+<rect x="1052" y="447" width="88" height="88" fill="#e2d7f1"/>
+  </g>
+  <g stroke="#2a2a36" stroke-opacity="0.22" stroke-width="2"><line x1="788" y1="95" x2="788" y2="535"/><line x1="700" y1="183" x2="1140" y2="183"/><line x1="876" y1="95" x2="876" y2="535"/><line x1="700" y1="271" x2="1140" y2="271"/><line x1="964" y1="95" x2="964" y2="535"/><line x1="700" y1="359" x2="1140" y2="359"/><line x1="1052" y1="95" x2="1052" y2="535"/><line x1="700" y1="447" x2="1140" y2="447"/></g>
+  <g stroke="#2a2a36" stroke-width="7" stroke-linecap="square"><line x1="876" y1="95" x2="876" y2="183"/><line x1="788" y1="183" x2="876" y2="183"/><line x1="876" y1="183" x2="964" y2="183"/><line x1="1052" y1="183" x2="1140" y2="183"/><line x1="788" y1="183" x2="788" y2="271"/><line x1="700" y1="271" x2="788" y2="271"/><line x1="964" y1="183" x2="964" y2="271"/><line x1="1052" y1="183" x2="1052" y2="271"/><line x1="964" y1="271" x2="1052" y2="271"/><line x1="788" y1="271" x2="788" y2="359"/><line x1="788" y1="359" x2="876" y2="359"/><line x1="964" y1="271" x2="964" y2="359"/><line x1="876" y1="359" x2="876" y2="447"/><line x1="964" y1="359" x2="964" y2="447"/><line x1="876" y1="447" x2="964" y2="447"/><line x1="964" y1="447" x2="964" y2="535"/></g>
+  <g><circle cx="832" cy="139" r="17" fill="#2b7de9"/><circle cx="1008" cy="227" r="17" fill="#2b7de9"/><circle cx="744" cy="315" r="17" fill="#2b7de9"/><circle cx="1096" cy="403" r="17" fill="#2b7de9"/><circle cx="920" cy="491" r="17" fill="#2b7de9"/></g>
+  <g stroke="#2a2a36" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round"><path d="M996 127L1020 151M1020 127L996 151"/><path d="M908 303L932 327M932 303L908 327"/><path d="M732 391L756 415M756 391L732 415"/><path d="M1084 479L1108 503M1108 479L1084 503"/></g>
+  <!-- gift tile -->
+  <g transform="translate(70 80) scale(3.4)">
+    <rect width="64" height="64" rx="14" fill="#2a2a36"/>
+    <rect x="10" y="29" width="44" height="27" rx="3" fill="#2468c4"/>
+    <rect x="7" y="22" width="50" height="11" rx="3" fill="#2b7de9"/>
+    <rect x="28" y="22" width="8" height="34" fill="#fbf8f0"/>
+    <ellipse cx="22.5" cy="16" rx="9.5" ry="6.5" transform="rotate(-24 22.5 16)" fill="#fbf8f0"/>
+    <ellipse cx="41.5" cy="16" rx="9.5" ry="6.5" transform="rotate(24 41.5 16)" fill="#fbf8f0"/>
+    <ellipse cx="22.5" cy="16" rx="4.2" ry="2.4" transform="rotate(-24 22.5 16)" fill="#2a2a36"/>
+    <ellipse cx="41.5" cy="16" rx="4.2" ry="2.4" transform="rotate(24 41.5 16)" fill="#2a2a36"/>
+    <circle cx="32" cy="20" r="4.8" fill="#fbf8f0"/>
+  </g>
+  <!-- text -->
+  <text x="70" y="410" font-family="'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" font-size="128" font-weight="700" fill="#2a2a36">Slaydoku</text>
+  <text x="74" y="484" font-family="'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" font-size="46" fill="#2b7de9">A new puzzle every day</text>
+</svg>

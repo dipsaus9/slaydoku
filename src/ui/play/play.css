@@ -1,0 +1,1173 @@
+/*
+ * Play screen. Light mode only, like the rest of the app. Built for iPad Safari:
+ *  - every control is at least 44px, nothing depends on hover;
+ *  - the whole screen sets `touch-action: manipulation` (no double-tap zoom, no 300ms delay);
+ *  - the board sets `touch-action: none` so a drag paints notes instead of scrolling the page;
+ *  - user-select / -webkit-touch-callout are off so a long press never selects text or opens
+ *    Safari's callout menu (the JS side also cancels `contextmenu`).
+ * Portrait: board with the toolbar as a column beside it, cards in a strip underneath.
+ * Landscape: board on the left, toolbar and scrolling cards on the right.
+ * Phones (CAD-10.3) have their own two rules at the bottom: portrait up to 640px wide (one column,
+ * toolbar as 6 x 2 buttons, hint under the board) and short landscape (max 500px high: board as
+ * high as the screen, header, toolbar and cards in the column beside it). iPads never match them.
+ * Safe-area insets need viewport-fit=cover (index.html): every edge padding below reads them.
+ */
+
+.play {
+  --ink: #2a2a36;
+  --accent: #2b7de9;
+  --line: #d3cec4;
+  --paper: #ffffff;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 8px 12px 12px;
+  padding-top: max(8px, env(safe-area-inset-top));
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 10px 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'header header'
+    'board tools'
+    'cards cards';
+  align-content: start;
+  color: var(--ink);
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.play *,
+.play *::before,
+.play *::after {
+  box-sizing: border-box;
+}
+
+.play button {
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* ---- header ------------------------------------------------------------------------ */
+
+.play-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+}
+
+.play-header__title {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.play-timer {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--paper);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.play-timer--off {
+  padding: 0 12px;
+  opacity: 0.6;
+}
+
+/* ---- board ------------------------------------------------------------------------- */
+
+.play-boardwrap {
+  grid-area: board;
+  min-width: 0;
+  align-self: start;
+  justify-self: center;
+  width: 100%;
+  /* portrait: never taller than the screen leaves room for (header + cards strip) */
+  max-width: calc(100dvh - 380px);
+  min-width: 280px;
+}
+
+.play-board {
+  position: relative;
+  /* The finger paints here: no page scroll, no zoom, no text selection, no callout. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  border-radius: 10px;
+  cursor: crosshair;
+}
+
+/* Zoom (CAD-10.4): the frame stays, the pane inside is scaled and shifted (zoom.ts). No will-change:
+   the browser draws the svg sharp at the zoomed size instead of stretching a bitmap. */
+.play-board__pane {
+  transform-origin: 0 0;
+}
+
+.play-board[data-zoomed] {
+  overflow: hidden;
+}
+
+.play-board svg {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.play-press-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: play-press 450ms ease-in 120ms both;
+}
+
+@keyframes play-press {
+  from { opacity: 0; transform: scale(1.7); }
+  25% { opacity: 1; }
+  to { opacity: 1; transform: scale(0.85); }
+}
+
+.play-hint-ring rect:last-child {
+  animation: play-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes play-pulse {
+  50% { opacity: 0.35; }
+}
+
+/* The squares the Legenda points at: a pulse on top of the board (the layer takes no touch). */
+.play-flash {
+  animation: play-flash 0.8s ease-in-out infinite;
+}
+
+@keyframes play-flash {
+  50% { opacity: 0.6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-flash {
+    animation: none;
+  }
+}
+
+/* ---- toolbar ----------------------------------------------------------------------- */
+
+.play-tools {
+  grid-area: tools;
+  align-self: start;
+}
+
+.play-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.play-toolbar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+}
+
+.play-tool {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 64px;
+  min-height: 56px;
+  padding: 4px 2px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(42, 42, 54, 0.08);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s, transform 0.08s;
+}
+
+.play-tool__icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+/* One icon set (toolIcons.tsx): a 24px box, drawn with currentColor, so the label colour rules. */
+.play-tool__svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.play-tool__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+/* the zoom level (1x, 2x) sits on the corner of the magnifier */
+.play-tool__badge {
+  position: absolute;
+  right: -13px;
+  top: -3px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Hover only where a real pointer exists: on a touch screen it would stick after a tap. */
+@media (hover: hover) and (pointer: fine) {
+  .play-tool:hover:not(:disabled):not([aria-pressed='true']) {
+    background: #f1f6fe;
+    border-color: var(--accent);
+  }
+
+  .play-tool[aria-pressed='true']:hover:not(:disabled) {
+    background: #2270d6;
+  }
+}
+
+.play-tool:active:not(:disabled) {
+  transform: scale(0.96);
+  background: #e4eefc;
+  border-color: var(--accent);
+}
+
+.play-tool:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.play-tool[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: none;
+  color: #ffffff;
+}
+
+.play-tool[aria-pressed='true']:active:not(:disabled) {
+  background: #1f66c9;
+  border-color: #1f66c9;
+}
+
+.play-tool[aria-pressed='true']:focus-visible {
+  outline-color: var(--ink);
+}
+
+.play-tool:disabled {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: none;
+  color: #8b8a96;
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ---- cards ------------------------------------------------------------------------- */
+
+.play-side {
+  grid-area: cards;
+  min-width: 0;
+}
+
+.play-cards .card-grid {
+  /* Containing block for the cards’ screen-reader-only text (position: absolute). Without it those
+     spans of off-screen cards stretch the page sideways in the swipe strip. */
+  position: relative;
+  --card-min: 132px;
+  padding: 10px 8px 12px;
+  gap: 18px 12px;
+  /* portrait: one strip you swipe sideways */
+  grid-auto-flow: column;
+  grid-template-columns: none;
+  grid-auto-columns: 148px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+
+.play-cards .polaroid {
+  cursor: pointer;
+}
+
+.play-cards .polaroid__clue {
+  font-size: 0.85rem;
+}
+
+.play-cards[data-gift-selected] .polaroid--gift {
+  transform: translateY(-4px) scale(1.03);
+}
+
+.play-cards[data-gift-selected] .polaroid--gift .polaroid__photo {
+  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(43, 125, 233, 0.35);
+}
+
+.play-cards[data-gift-placed] .polaroid--gift .polaroid__pic > svg {
+  filter: grayscale(0.7);
+  opacity: 0.6;
+}
+
+/* ---- buttons, hint, toast ---------------------------------------------------------- */
+
+.play-btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.play-btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.play-btn--danger {
+  border-color: #c0392b;
+  background: #c0392b;
+}
+
+/* After ".play button { color: inherit }", which would win over a plain class. */
+.play .play-btn--primary,
+.play .play-btn--danger {
+  color: #ffffff;
+}
+
+/* In the grid, never over the board: between board and cards (portrait), in the side column (landscape). */
+.play-hint {
+  grid-area: hint;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff8db;
+  border: 2px solid #e5a100;
+}
+
+.play-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.play-hint__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.play-hint__level {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8a5a00;
+}
+
+.play-hint__text {
+  margin: 2px 0 0;
+}
+
+.play-hint__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.play-toast {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  top: calc(56px + env(safe-area-inset-top));
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border-radius: 24px;
+  background: rgba(42, 42, 54, 0.92);
+  color: #ffffff;
+  pointer-events: none;
+}
+
+/* ---- modals ------------------------------------------------------------------------ */
+
+.play-modal {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgba(20, 20, 30, 0.5);
+}
+
+/* The Legenda steps aside while it points at squares on the board: hidden, still mounted, no touch. */
+.play-modal[data-peek] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* A transparent sheet over the page while the squares show: any tap brings the card back. */
+.play-peek {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px max(20px, env(safe-area-inset-bottom));
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.play-peek__chip {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(42, 42, 54, 0.92);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.play-modal__panel {
+  width: min(520px, 100%);
+  max-height: calc(100dvh - 32px);
+  max-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
+  padding: 20px 22px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  color: var(--ink);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.play-modal__panel--wide {
+  width: min(760px, 100%);
+}
+
+.play-modal__title {
+  margin: 0 0 12px;
+  font-size: 1.4rem;
+}
+
+.play-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.play-modal__close {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.play-options {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.play-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  text-align: left;
+  cursor: pointer;
+}
+
+.play-switch__text {
+  display: grid;
+  gap: 2px;
+}
+
+.play-switch small {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.play-switch__knob {
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 30px;
+  border-radius: 15px;
+  background: #b9b4aa;
+  transition: background 120ms;
+}
+
+.play-switch__knob::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 120ms;
+}
+
+.play-switch[aria-checked='true'] .play-switch__knob {
+  background: #2f9e57;
+}
+
+.play-switch[aria-checked='true'] .play-switch__knob::after {
+  transform: translateX(22px);
+}
+
+.play-help h3 {
+  margin: 18px 0 6px;
+  font-size: 1.05rem;
+}
+
+.play-help__goal {
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+
+.play-help__goal p {
+  margin: 0 0 4px;
+}
+
+.play-help__steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.play-help__steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid #ece8df;
+}
+
+.play-help__stepicon {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #f0ede6;
+  color: var(--ink);
+}
+
+.play-help__art {
+  width: 38px;
+  height: 38px;
+}
+
+/* Placing: the portrait stands on a square of the board. */
+.play-help__stepicon[data-art='place'] {
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* The toolbar icon of the button the step is about. */
+.play-help__badge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+}
+
+.play-help__badge .play-tool__svg {
+  width: 16px;
+  height: 16px;
+}
+
+.play-help__steptext {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.play-help__more {
+  margin-top: 10px;
+}
+
+.play-help__more summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  list-style: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.play-help__more summary::-webkit-details-marker {
+  display: none;
+}
+
+.play-help__more summary::before {
+  content: '\203A';
+  display: inline-block;
+  width: 1ch;
+  font-size: 1.3em;
+  line-height: 1;
+  transition: transform 120ms;
+}
+
+.play-help__more[open] summary::before {
+  transform: rotate(90deg);
+}
+
+/* The buttons stay in reach while a long panel (the keywords, or a phone on its side) scrolls. */
+.play-modal__panel.play-modal__panel--help {
+  padding-bottom: 0;
+}
+
+.play-help__actions {
+  position: sticky;
+  bottom: 0;
+  margin-top: 12px;
+  padding: 10px 0 16px;
+  background: var(--paper);
+}
+
+.play-help__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.play-help__list > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 210px) 1fr;
+  gap: 4px 14px;
+  padding: 8px 0;
+  border-top: 1px solid #ece8df;
+}
+
+.play-help__list dt {
+  font-weight: 700;
+}
+
+.play-help__list dd {
+  margin: 0;
+}
+
+.play-help__example {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.88rem;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* ---- legenda ----------------------------------------------------------------------- */
+
+.play-legend h3 {
+  margin: 18px 0 6px;
+  font-size: 1.05rem;
+}
+
+.play-legend__intro,
+.play-legend__tap,
+.play-legend__rule {
+  margin: 0 0 6px;
+  line-height: 1.4;
+}
+
+.play-legend__tap {
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.play-legend__rule {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fbeef1;
+  font-weight: 700;
+}
+
+.play-legend__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.play-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+}
+
+button.play-legend__row {
+  cursor: pointer;
+}
+
+button.play-legend__row:active {
+  background: #f0ede6;
+}
+
+button.play-legend__row:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.play-legend__row--static {
+  border-color: transparent;
+  background: transparent;
+  border-top: 1px solid #ece8df;
+  border-radius: 0;
+}
+
+.play-legend__symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 52px;
+}
+
+.play-legend__icon {
+  width: 100%;
+  height: 100%;
+}
+
+.play-legend__square {
+  width: 48px;
+  height: 48px;
+}
+
+.play-legend__symbol--edge {
+  background: #f0ede6;
+  border-radius: 8px;
+}
+
+.play-legend__pill {
+  max-width: 100%;
+  padding: 2px 6px;
+  overflow: hidden;
+  border: 1.5px solid var(--ink);
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-legend__text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+
+.play-legend__also {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.play-legend__flag {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.play-legend__flag--yes {
+  background: #dff3e6;
+  color: #1d6b3c;
+}
+
+.play-legend__flag--no {
+  background: #eceae4;
+  color: #5a5a66;
+}
+
+.play-result {
+  text-align: center;
+}
+
+.play-result__text {
+  margin: 6px 0;
+  font-size: 1.2rem;
+}
+
+.play-result__time {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.75;
+}
+
+.play-result--solved .play-modal__title {
+  color: #2f9e57;
+}
+
+.play-result .play-modal__actions {
+  justify-content: center;
+}
+
+/* A hint is open: it gets its own row between the board and the cards. */
+.play[data-hint] {
+  grid-template-areas:
+    'header header'
+    'board tools'
+    'hint hint'
+    'cards cards';
+}
+
+/* ---- landscape: board left, tools + cards right -------------------------------------- */
+
+@media (min-aspect-ratio: 1 / 1) {
+  .play {
+    --board: min(calc(100dvh - 76px), 64vw);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    grid-template-columns: var(--board) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'header header'
+      'board tools'
+      'board cards';
+  }
+
+  .play[data-hint] {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'header header'
+      'board tools'
+      'board hint'
+      'board cards';
+  }
+
+  /* narrow side column: text on top, buttons underneath */
+  .play-hint {
+    flex-direction: column;
+    align-items: stretch;
+    max-height: 50dvh;
+    overflow-y: auto;
+  }
+
+  .play-boardwrap {
+    max-width: none;
+    min-width: 0;
+    width: var(--board);
+  }
+
+  .play-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .play-toolbar__group {
+    flex-direction: row;
+    padding: 5px;
+  }
+
+  .play-tool {
+    width: 58px;
+  }
+
+  .play-side {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .play-cards .card-grid {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
+    grid-auto-columns: auto;
+    overflow: visible;
+    touch-action: auto;
+  }
+}
+
+/*
+ * Portrait phone (CAD-10.3): one column. The board takes the full width (a cell is 34px or more from
+ * 360px wide). The twelve toolbar buttons are a 6-column grid, 48px high: the four modes, the hint and
+ * the zoom button (CAD-10.4) on the first row, undo/redo/auto-X/options/help/legend (CAD-10.9) on the second. An open
+ * hint sits right under the board (the toolbar goes below it) so board and hint are on screen together. The cards are a strip you
+ * swipe sideways; it also lets a vertical drag scroll the page (the page is taller than a phone).
+ */
+@media (max-width: 640px) and (max-aspect-ratio: 1 / 1) {
+  .play {
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'header'
+      'board'
+      'tools'
+      'cards';
+  }
+
+  .play[data-hint] {
+    grid-template-areas:
+      'header'
+      'board'
+      'hint'
+      'tools'
+      'cards';
+  }
+
+  .play-boardwrap {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .play-toolbar {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .play-toolbar__group {
+    display: contents;
+  }
+
+  .play-tool {
+    width: auto;
+    min-height: 48px;
+    order: 1;
+  }
+
+  /* first row: the four modes, the hint (third button of the second group) and the zoom button */
+  .play-toolbar__group:first-child .play-tool,
+  .play-toolbar__group:nth-child(2) .play-tool:nth-child(3),
+  .play-tool--zoom {
+    order: 0;
+  }
+
+  .play-hint {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  .play-hint__actions {
+    flex-wrap: nowrap;
+  }
+
+  .play-hint__actions .play-btn {
+    flex: 1;
+    padding: 0 10px;
+  }
+
+  .play-cards .card-grid {
+    touch-action: pan-x pan-y;
+  }
+
+  .play-modal__panel {
+    padding: 16px 16px 18px;
+    border-radius: 16px;
+  }
+
+  .play-modal__title {
+    font-size: 1.25rem;
+  }
+
+  .play-switch {
+    padding: 8px 12px;
+    gap: 12px;
+  }
+
+  .play-modal__actions .play-btn {
+    flex: 1 1 auto;
+    padding: 0 12px;
+  }
+
+  .play-help__list > div {
+    grid-template-columns: 1fr;
+  }
+
+  /* the flag drops under the noun so a long noun and the flag both fit a 360px card */
+  .play-legend__row {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 12px;
+  }
+
+  .play-legend__symbol {
+    width: 52px;
+    grid-row: span 2;
+  }
+
+  .play-legend__flag {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .play-legend__row--static .play-legend__symbol,
+  .play-legend__row:not(:has(.play-legend__flag)) .play-legend__symbol {
+    grid-row: auto;
+  }
+}
+
+/*
+ * Short landscape (phones on their side, up to 500px high): the board is as high as the screen
+ * allows (--play-board, also read by the back bar in levels.css) and sits on the left; the column on
+ * the right holds the header row, the 6 x 2 toolbar, a hint when one is open, and the cards, which scroll.
+ * An iPad (768px high or more) never matches this.
+ */
+@media (orientation: landscape) and (max-height: 500px) {
+  :root {
+    --play-board: min(calc(100dvh - max(8px, env(safe-area-inset-top)) - max(8px, env(safe-area-inset-bottom))), 58vw);
+  }
+
+  .play {
+    --board: var(--play-board);
+    gap: 8px 12px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'board header'
+      'board tools'
+      'board cards';
+  }
+
+  .play[data-hint] {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'board header'
+      'board tools'
+      'board hint'
+      'board cards';
+  }
+
+  .play-toolbar {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .play-toolbar__group {
+    display: contents;
+  }
+
+  .play-tool {
+    width: auto;
+    min-height: 44px;
+    padding: 2px 2px;
+    gap: 1px;
+    order: 1;
+  }
+
+  .play-toolbar__group:first-child .play-tool,
+  .play-toolbar__group:nth-child(2) .play-tool:nth-child(3),
+  .play-tool--zoom {
+    order: 0;
+  }
+
+  .play-hint {
+    max-height: none;
+    overflow: visible;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .play-hint__actions .play-btn {
+    flex: 1;
+    min-height: 44px;
+    padding: 0 10px;
+  }
+
+  .play-cards .card-grid {
+    --card-min: 104px;
+    gap: 14px 10px;
+    padding: 6px 4px 10px;
+  }
+
+  .play-cards .polaroid__clue {
+    font-size: 0.75rem;
+  }
+
+  .play-cards .polaroid__name,
+  .play-cards .polaroid--gift .polaroid__name {
+    font-size: 1.1rem;
+  }
+
+  .play-modal__panel {
+    padding: 14px 18px 16px;
+  }
+}

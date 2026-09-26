@@ -1,0 +1,1466 @@
+{
+ "scene": {
+  "width": 16,
+  "height": 16,
+  "rooms": [
+   {
+    "id": "room0",
+    "name": "Room 0"
+   },
+   {
+    "id": "room1",
+    "name": "Room 1"
+   },
+   {
+    "id": "room2",
+    "name": "Room 2"
+   },
+   {
+    "id": "room3",
+    "name": "Room 3"
+   },
+   {
+    "id": "room4",
+    "name": "Room 4"
+   },
+   {
+    "id": "room5",
+    "name": "Room 5"
+   },
+   {
+    "id": "room6",
+    "name": "Room 6"
+   },
+   {
+    "id": "room7",
+    "name": "Room 7"
+   },
+   {
+    "id": "room8",
+    "name": "Room 8"
+   },
+   {
+    "id": "room9",
+    "name": "Room 9"
+   },
+   {
+    "id": "room10",
+    "name": "Room 10"
+   },
+   {
+    "id": "room11",
+    "name": "Room 11"
+   },
+   {
+    "id": "room12",
+    "name": "Room 12"
+   },
+   {
+    "id": "room13",
+    "name": "Room 13"
+   },
+   {
+    "id": "room14",
+    "name": "Room 14"
+   },
+   {
+    "id": "room15",
+    "name": "Room 15"
+   }
+  ],
+  "cellRooms": [
+   [
+    "room0",
+    "room0",
+    "room0",
+    "room0",
+    "room1",
+    "room1",
+    "room1",
+    "room1",
+    "room2",
+    "room2",
+    "room2",
+    "room2",
+    "room3",
+    "room3",
+    "room3",
+    "room3"
+   ],
+   [
+    "room0",
+    "room0",
+    "room0",
+    "room0",
+    "room1",
+    "room1",
+    "room1",
+    "room1",
+    "room2",
+    "room2",
+    "room2",
+    "room2",
+    "room3",
+    "room3",
+    "room3",
+    "room3"
+   ],
+   [
+    "room0",
+    "room0",
+    "room0",
+    "room0",
+    "room1",
+    "room1",
+    "room1",
+    "room1",
+    "room2",
+    "room2",
+    "room2",
+    "room2",
+    "room3",
+    "room3",
+    "room3",
+    "room3"
+   ],
+   [
+    "room0",
+    "room0",
+    "room0",
+    "room0",
+    "room1",
+    "room1",
+    "room1",
+    "room1",
+    "room2",
+    "room2",
+    "room2",
+    "room2",
+    "room3",
+    "room3",
+    "room3",
+    "room3"
+   ],
+   [
+    "room4",
+    "room4",
+    "room4",
+    "room4",
+    "room5",
+    "room5",
+    "room5",
+    "room5",
+    "room6",
+    "room6",
+    "room6",
+    "room6",
+    "room7",
+    "room7",
+    "room7",
+    "room7"
+   ],
+   [
+    "room4",
+    "room4",
+    "room4",
+    "room4",
+    "room5",
+    "room5",
+    "room5",
+    "room5",
+    "room6",
+    "room6",
+    "room6",
+    "room6",
+    "room7",
+    "room7",
+    "room7",
+    "room7"
+   ],
+   [
+    "room4",
+    "room4",
+    "room4",
+    "room4",
+    "room5",
+    "room5",
+    "room5",
+    "room5",
+    "room6",
+    "room6",
+    "room6",
+    "room6",
+    "room7",
+    "room7",
+    "room7",
+    "room7"
+   ],
+   [
+    "room4",
+    "room4",
+    "room4",
+    "room4",
+    "room5",
+    "room5",
+    "room5",
+    "room5",
+    "room6",
+    "room6",
+    "room6",
+    "room6",
+    "room7",
+    "room7",
+    "room7",
+    "room7"
+   ],
+   [
+    "room8",
+    "room8",
+    "room8",
+    "room8",
+    "room9",
+    "room9",
+    "room9",
+    "room9",
+    "room10",
+    "room10",
+    "room10",
+    "room10",
+    "room11",
+    "room11",
+    "room11",
+    "room11"
+   ],
+   [
+    "room8",
+    "room8",
+    "room8",
+    "room8",
+    "room9",
+    "room9",
+    "room9",
+    "room9",
+    "room10",
+    "room10",
+    "room10",
+    "room10",
+    "room11",
+    "room11",
+    "room11",
+    "room11"
+   ],
+   [
+    "room8",
+    "room8",
+    "room8",
+    "room8",
+    "room9",
+    "room9",
+    "room9",
+    "room9",
+    "room10",
+    "room10",
+    "room10",
+    "room10",
+    "room11",
+    "room11",
+    "room11",
+    "room11"
+   ],
+   [
+    "room8",
+    "room8",
+    "room8",
+    "room8",
+    "room9",
+    "room9",
+    "room9",
+    "room9",
+    "room10",
+    "room10",
+    "room10",
+    "room10",
+    "room11",
+    "room11",
+    "room11",
+    "room11"
+   ],
+   [
+    "room12",
+    "room12",
+    "room12",
+    "room12",
+    "room13",
+    "room13",
+    "room13",
+    "room13",
+    "room14",
+    "room14",
+    "room14",
+    "room14",
+    "room15",
+    "room15",
+    "room15",
+    "room15"
+   ],
+   [
+    "room12",
+    "room12",
+    "room12",
+    "room12",
+    "room13",
+    "room13",
+    "room13",
+    "room13",
+    "room14",
+    "room14",
+    "room14",
+    "room14",
+    "room15",
+    "room15",
+    "room15",
+    "room15"
+   ],
+   [
+    "room12",
+    "room12",
+    "room12",
+    "room12",
+    "room13",
+    "room13",
+    "room13",
+    "room13",
+    "room14",
+    "room14",
+    "room14",
+    "room14",
+    "room15",
+    "room15",
+    "room15",
+    "room15"
+   ],
+   [
+    "room12",
+    "room12",
+    "room12",
+    "room12",
+    "room13",
+    "room13",
+    "room13",
+    "room13",
+    "room14",
+    "room14",
+    "room14",
+    "room14",
+    "room15",
+    "room15",
+    "room15",
+    "room15"
+   ]
+  ],
+  "objects": [
+   {
+    "id": "o0",
+    "type": "rug",
+    "cells": [
+     {
+      "row": 1,
+      "col": 10
+     }
+    ]
+   },
+   {
+    "id": "o1",
+    "type": "tree",
+    "cells": [
+     {
+      "row": 11,
+      "col": 0
+     }
+    ]
+   },
+   {
+    "id": "o2",
+    "type": "sofa",
+    "cells": [
+     {
+      "row": 14,
+      "col": 0
+     },
+     {
+      "row": 14,
+      "col": 1
+     }
+    ]
+   },
+   {
+    "id": "o3",
+    "type": "tree",
+    "cells": [
+     {
+      "row": 14,
+      "col": 9
+     }
+    ]
+   },
+   {
+    "id": "o4",
+    "type": "car",
+    "cells": [
+     {
+      "row": 10,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o5",
+    "type": "oilSlick",
+    "cells": [
+     {
+      "row": 10,
+      "col": 4
+     }
+    ]
+   },
+   {
+    "id": "o6",
+    "type": "car",
+    "cells": [
+     {
+      "row": 4,
+      "col": 1
+     }
+    ]
+   },
+   {
+    "id": "o7",
+    "type": "oilSlick",
+    "cells": [
+     {
+      "row": 0,
+      "col": 15
+     }
+    ]
+   },
+   {
+    "id": "o8",
+    "type": "chest",
+    "cells": [
+     {
+      "row": 12,
+      "col": 9
+     }
+    ]
+   },
+   {
+    "id": "o9",
+    "type": "flowers",
+    "cells": [
+     {
+      "row": 7,
+      "col": 8
+     }
+    ]
+   },
+   {
+    "id": "o10",
+    "type": "rug",
+    "cells": [
+     {
+      "row": 4,
+      "col": 11
+     }
+    ]
+   },
+   {
+    "id": "o11",
+    "type": "table",
+    "cells": [
+     {
+      "row": 1,
+      "col": 11
+     }
+    ]
+   },
+   {
+    "id": "o12",
+    "type": "easel",
+    "cells": [
+     {
+      "row": 4,
+      "col": 15
+     }
+    ]
+   },
+   {
+    "id": "o13",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 0,
+      "col": 3
+     }
+    ]
+   },
+   {
+    "id": "o14",
+    "type": "bookshelf",
+    "cells": [
+     {
+      "row": 5,
+      "col": 11
+     }
+    ]
+   },
+   {
+    "id": "o15",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 1,
+      "col": 8
+     }
+    ]
+   },
+   {
+    "id": "o16",
+    "type": "plant",
+    "cells": [
+     {
+      "row": 2,
+      "col": 7
+     }
+    ]
+   },
+   {
+    "id": "o17",
+    "type": "tv",
+    "cells": [
+     {
+      "row": 0,
+      "col": 5
+     }
+    ]
+   },
+   {
+    "id": "o18",
+    "type": "bookshelf",
+    "cells": [
+     {
+      "row": 12,
+      "col": 8
+     }
+    ]
+   },
+   {
+    "id": "o19",
+    "type": "easel",
+    "cells": [
+     {
+      "row": 15,
+      "col": 1
+     }
+    ]
+   },
+   {
+    "id": "o20",
+    "type": "chest",
+    "cells": [
+     {
+      "row": 12,
+      "col": 10
+     }
+    ]
+   },
+   {
+    "id": "o21",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 5,
+      "col": 3
+     }
+    ]
+   },
+   {
+    "id": "o22",
+    "type": "bookshelf",
+    "cells": [
+     {
+      "row": 2,
+      "col": 11
+     }
+    ]
+   },
+   {
+    "id": "o23",
+    "type": "table",
+    "cells": [
+     {
+      "row": 14,
+      "col": 13
+     }
+    ]
+   },
+   {
+    "id": "o24",
+    "type": "chair",
+    "cells": [
+     {
+      "row": 1,
+      "col": 1
+     }
+    ]
+   },
+   {
+    "id": "o25",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 13,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o26",
+    "type": "bed",
+    "cells": [
+     {
+      "row": 1,
+      "col": 7
+     }
+    ]
+   },
+   {
+    "id": "o27",
+    "type": "flowers",
+    "cells": [
+     {
+      "row": 0,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o28",
+    "type": "framedPainting",
+    "cells": [
+     {
+      "row": 5,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o29",
+    "type": "oilSlick",
+    "cells": [
+     {
+      "row": 1,
+      "col": 12
+     }
+    ]
+   },
+   {
+    "id": "o30",
+    "type": "oilSlick",
+    "cells": [
+     {
+      "row": 8,
+      "col": 3
+     }
+    ]
+   },
+   {
+    "id": "o31",
+    "type": "framedPainting",
+    "cells": [
+     {
+      "row": 8,
+      "col": 1
+     }
+    ]
+   },
+   {
+    "id": "o32",
+    "type": "chair",
+    "cells": [
+     {
+      "row": 15,
+      "col": 5
+     }
+    ]
+   },
+   {
+    "id": "o33",
+    "type": "chair",
+    "cells": [
+     {
+      "row": 15,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o34",
+    "type": "tree",
+    "cells": [
+     {
+      "row": 13,
+      "col": 7
+     }
+    ]
+   },
+   {
+    "id": "o35",
+    "type": "oilSlick",
+    "cells": [
+     {
+      "row": 5,
+      "col": 2
+     }
+    ]
+   },
+   {
+    "id": "o36",
+    "type": "easel",
+    "cells": [
+     {
+      "row": 4,
+      "col": 13
+     }
+    ]
+   },
+   {
+    "id": "o37",
+    "type": "bed",
+    "cells": [
+     {
+      "row": 0,
+      "col": 8
+     },
+     {
+      "row": 0,
+      "col": 9
+     }
+    ]
+   },
+   {
+    "id": "o38",
+    "type": "tv",
+    "cells": [
+     {
+      "row": 9,
+      "col": 2
+     }
+    ]
+   },
+   {
+    "id": "o39",
+    "type": "table",
+    "cells": [
+     {
+      "row": 4,
+      "col": 3
+     }
+    ]
+   },
+   {
+    "id": "o40",
+    "type": "plant",
+    "cells": [
+     {
+      "row": 11,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o41",
+    "type": "chest",
+    "cells": [
+     {
+      "row": 2,
+      "col": 1
+     }
+    ]
+   },
+   {
+    "id": "o42",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 2,
+      "col": 15
+     }
+    ]
+   },
+   {
+    "id": "o43",
+    "type": "chest",
+    "cells": [
+     {
+      "row": 11,
+      "col": 9
+     }
+    ]
+   },
+   {
+    "id": "o44",
+    "type": "rug",
+    "cells": [
+     {
+      "row": 2,
+      "col": 0
+     }
+    ]
+   },
+   {
+    "id": "o45",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 4,
+      "col": 4
+     }
+    ]
+   },
+   {
+    "id": "o46",
+    "type": "tv",
+    "cells": [
+     {
+      "row": 10,
+      "col": 5
+     }
+    ]
+   },
+   {
+    "id": "o47",
+    "type": "flowers",
+    "cells": [
+     {
+      "row": 6,
+      "col": 12
+     }
+    ]
+   },
+   {
+    "id": "o48",
+    "type": "oilSlick",
+    "cells": [
+     {
+      "row": 1,
+      "col": 9
+     }
+    ]
+   },
+   {
+    "id": "o49",
+    "type": "easel",
+    "cells": [
+     {
+      "row": 15,
+      "col": 8
+     }
+    ]
+   },
+   {
+    "id": "o50",
+    "type": "table",
+    "cells": [
+     {
+      "row": 2,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o51",
+    "type": "plant",
+    "cells": [
+     {
+      "row": 4,
+      "col": 0
+     }
+    ]
+   },
+   {
+    "id": "o52",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 14,
+      "col": 6
+     }
+    ]
+   },
+   {
+    "id": "o53",
+    "type": "chest",
+    "cells": [
+     {
+      "row": 2,
+      "col": 10
+     }
+    ]
+   },
+   {
+    "id": "o54",
+    "type": "tv",
+    "cells": [
+     {
+      "row": 9,
+      "col": 15
+     }
+    ]
+   },
+   {
+    "id": "o55",
+    "type": "oilSlick",
+    "cells": [
+     {
+      "row": 11,
+      "col": 13
+     }
+    ]
+   },
+   {
+    "id": "o56",
+    "type": "framedPainting",
+    "cells": [
+     {
+      "row": 12,
+      "col": 14
+     }
+    ]
+   },
+   {
+    "id": "o57",
+    "type": "bookshelf",
+    "cells": [
+     {
+      "row": 14,
+      "col": 15
+     }
+    ]
+   },
+   {
+    "id": "o58",
+    "type": "car",
+    "cells": [
+     {
+      "row": 3,
+      "col": 4
+     }
+    ]
+   },
+   {
+    "id": "o59",
+    "type": "bookshelf",
+    "cells": [
+     {
+      "row": 4,
+      "col": 7
+     }
+    ]
+   },
+   {
+    "id": "o60",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 5,
+      "col": 7
+     }
+    ]
+   },
+   {
+    "id": "o61",
+    "type": "chair",
+    "cells": [
+     {
+      "row": 8,
+      "col": 11
+     }
+    ]
+   },
+   {
+    "id": "o62",
+    "type": "statue",
+    "cells": [
+     {
+      "row": 10,
+      "col": 1
+     }
+    ]
+   },
+   {
+    "id": "o63",
+    "type": "bed",
+    "cells": [
+     {
+      "row": 14,
+      "col": 2
+     },
+     {
+      "row": 14,
+      "col": 3
+     }
+    ]
+   }
+  ],
+  "edgeFeatures": [
+   {
+    "kind": "window",
+    "cell": {
+     "row": 7,
+     "col": 14
+    },
+    "side": "west"
+   },
+   {
+    "kind": "door",
+    "cell": {
+     "row": 3,
+     "col": 0
+    },
+    "side": "east"
+   },
+   {
+    "kind": "window",
+    "cell": {
+     "row": 13,
+     "col": 0
+    },
+    "side": "south"
+   },
+   {
+    "kind": "door",
+    "cell": {
+     "row": 13,
+     "col": 10
+    },
+    "side": "north"
+   }
+  ]
+ },
+ "people": [
+  {
+   "id": "S0",
+   "kind": "suspect",
+   "label": "S0"
+  },
+  {
+   "id": "S1",
+   "kind": "suspect",
+   "label": "S1"
+  },
+  {
+   "id": "S2",
+   "kind": "suspect",
+   "label": "S2"
+  },
+  {
+   "id": "S3",
+   "kind": "suspect",
+   "label": "S3"
+  },
+  {
+   "id": "S4",
+   "kind": "suspect",
+   "label": "S4"
+  },
+  {
+   "id": "S5",
+   "kind": "suspect",
+   "label": "S5"
+  },
+  {
+   "id": "S6",
+   "kind": "suspect",
+   "label": "S6"
+  },
+  {
+   "id": "S7",
+   "kind": "suspect",
+   "label": "S7"
+  },
+  {
+   "id": "S8",
+   "kind": "suspect",
+   "label": "S8"
+  },
+  {
+   "id": "S9",
+   "kind": "suspect",
+   "label": "S9"
+  },
+  {
+   "id": "S10",
+   "kind": "suspect",
+   "label": "S10"
+  },
+  {
+   "id": "S11",
+   "kind": "suspect",
+   "label": "S11"
+  },
+  {
+   "id": "S12",
+   "kind": "suspect",
+   "label": "S12"
+  },
+  {
+   "id": "S13",
+   "kind": "suspect",
+   "label": "S13"
+  },
+  {
+   "id": "S14",
+   "kind": "suspect",
+   "label": "S14"
+  },
+  {
+   "id": "V",
+   "kind": "victim",
+   "label": "V"
+  }
+ ],
+ "solution": [
+  {
+   "personId": "S0",
+   "cell": {
+    "row": 7,
+    "col": 0
+   }
+  },
+  {
+   "personId": "S1",
+   "cell": {
+    "row": 5,
+    "col": 4
+   }
+  },
+  {
+   "personId": "S2",
+   "cell": {
+    "row": 9,
+    "col": 1
+   }
+  },
+  {
+   "personId": "S3",
+   "cell": {
+    "row": 2,
+    "col": 13
+   }
+  },
+  {
+   "personId": "S4",
+   "cell": {
+    "row": 4,
+    "col": 9
+   }
+  },
+  {
+   "personId": "S5",
+   "cell": {
+    "row": 1,
+    "col": 5
+   }
+  },
+  {
+   "personId": "S6",
+   "cell": {
+    "row": 10,
+    "col": 14
+   }
+  },
+  {
+   "personId": "S7",
+   "cell": {
+    "row": 13,
+    "col": 2
+   }
+  },
+  {
+   "personId": "S8",
+   "cell": {
+    "row": 12,
+    "col": 7
+   }
+  },
+  {
+   "personId": "S9",
+   "cell": {
+    "row": 8,
+    "col": 10
+   }
+  },
+  {
+   "personId": "S10",
+   "cell": {
+    "row": 3,
+    "col": 8
+   }
+  },
+  {
+   "personId": "S11",
+   "cell": {
+    "row": 6,
+    "col": 6
+   }
+  },
+  {
+   "personId": "S12",
+   "cell": {
+    "row": 14,
+    "col": 3
+   }
+  },
+  {
+   "personId": "S13",
+   "cell": {
+    "row": 11,
+    "col": 12
+   }
+  },
+  {
+   "personId": "S14",
+   "cell": {
+    "row": 15,
+    "col": 11
+   }
+  },
+  {
+   "personId": "V",
+   "cell": {
+    "row": 0,
+    "col": 15
+   }
+  }
+ ],
+ "clues": [
+  {
+   "personId": "S3",
+   "type": "inRoom",
+   "args": {
+    "roomId": "room3"
+   }
+  },
+  {
+   "personId": "S13",
+   "type": "directionOf",
+   "args": {
+    "side": "west",
+    "otherId": "S3"
+   }
+  },
+  {
+   "personId": "S8",
+   "type": "directionOf",
+   "args": {
+    "side": "north",
+    "otherId": "S14"
+   }
+  },
+  {
+   "personId": "S10",
+   "type": "directionOf",
+   "args": {
+    "side": "north",
+    "otherId": "S4"
+   }
+  },
+  {
+   "personId": "S10",
+   "type": "directionOfObject",
+   "args": {
+    "side": "south",
+    "objectType": "chair"
+   }
+  },
+  {
+   "personId": "S0",
+   "type": "notWith",
+   "args": {
+    "otherId": "S7"
+   }
+  },
+  {
+   "personId": "S14",
+   "type": "inCorner",
+   "args": {}
+  },
+  {
+   "personId": "S9",
+   "type": "directionOf",
+   "args": {
+    "side": "west",
+    "otherId": "S13"
+   }
+  },
+  {
+   "personId": "S0",
+   "type": "exactDistance",
+   "args": {
+    "side": "south",
+    "otherId": "S1",
+    "count": 2
+   }
+  },
+  {
+   "personId": "S1",
+   "type": "quadrant",
+   "args": {
+    "direction": "southwest",
+    "otherId": "S4"
+   }
+  },
+  {
+   "personId": "S14",
+   "type": "exactDistance",
+   "args": {
+    "side": "east",
+    "otherId": "S9",
+    "count": 1
+   }
+  },
+  {
+   "personId": "S2",
+   "type": "directlyNextToObject",
+   "args": {
+    "side": "south",
+    "objectType": "framedPainting"
+   }
+  },
+  {
+   "personId": "S12",
+   "type": "quadrant",
+   "args": {
+    "direction": "southeast",
+    "otherId": "S0"
+   }
+  },
+  {
+   "personId": "S5",
+   "type": "directionOfObject",
+   "args": {
+    "side": "south",
+    "objectType": "statue"
+   }
+  },
+  {
+   "personId": "S12",
+   "type": "withPerson",
+   "args": {
+    "otherId": "S7"
+   }
+  },
+  {
+   "personId": "S5",
+   "type": "quadrant",
+   "args": {
+    "direction": "northwest",
+    "otherId": "S11"
+   }
+  },
+  {
+   "personId": "S9",
+   "type": "quadrant",
+   "args": {
+    "direction": "southwest",
+    "otherId": "V"
+   }
+  },
+  {
+   "personId": "S13",
+   "type": "quadrant",
+   "args": {
+    "direction": "northeast",
+    "otherId": "S8"
+   }
+  },
+  {
+   "personId": "S5",
+   "type": "diagonal",
+   "args": {
+    "otherId": "S6"
+   }
+  },
+  {
+   "personId": "S6",
+   "type": "inRoom",
+   "args": {
+    "roomId": "room11"
+   }
+  },
+  {
+   "personId": "S8",
+   "type": "directionOfObject",
+   "args": {
+    "side": "west",
+    "objectType": "rug"
+   }
+  },
+  {
+   "personId": "S12",
+   "type": "exactDistance",
+   "args": {
+    "side": "south",
+    "otherId": "S8",
+    "count": 2
+   }
+  },
+  {
+   "personId": "S4",
+   "type": "alone",
+   "args": {}
+  },
+  {
+   "personId": "S8",
+   "type": "quadrant",
+   "args": {
+    "direction": "southeast",
+    "otherId": "S11"
+   }
+  },
+  {
+   "personId": "S4",
+   "type": "directionOf",
+   "args": {
+    "side": "east",
+    "otherId": "S10"
+   }
+  },
+  {
+   "personId": "S2",
+   "type": "exactDistance",
+   "args": {
+    "side": "west",
+    "otherId": "S7",
+    "count": 1
+   }
+  },
+  {
+   "personId": "S3",
+   "type": "exactDistance",
+   "args": {
+    "side": "south",
+    "otherId": "V",
+    "count": 2
+   }
+  },
+  {
+   "personId": "S9",
+   "type": "directionOfObject",
+   "args": {
+    "side": "north",
+    "objectType": "plant"
+   }
+  }
+ ]
+}

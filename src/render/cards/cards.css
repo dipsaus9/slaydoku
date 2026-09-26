@@ -1,0 +1,158 @@
+/* Polaroid cards. Light mode only, like the rest of the app. */
+
+.card-grid {
+  --card-min: 150px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
+  gap: 22px 16px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+}
+
+.card-grid > li {
+  min-width: 0;
+}
+
+.polaroid {
+  --accent: #2b7de9;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: #2a2a36;
+  text-align: center;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+button.polaroid {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.polaroid__photo {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  /* white polaroid frame: thin on three sides, thick at the bottom for the name */
+  padding: 8px 8px 34px;
+  border-radius: 3px;
+  background: #ffffff;
+  box-shadow: 0 2px 0 rgba(42, 42, 54, 0.12), 0 6px 14px rgba(42, 42, 54, 0.22);
+}
+
+.polaroid__pic {
+  display: block;
+  overflow: hidden;
+}
+
+.polaroid__pic > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.polaroid__name {
+  position: relative;
+  z-index: 1;
+  margin-top: -30px;
+  padding: 0 8px;
+  font-family: 'Snell Roundhand', 'Bradley Hand', 'Segoe Script', 'Comic Sans MS', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.polaroid__line {
+  display: block;
+}
+
+.polaroid__line + .polaroid__line {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.18);
+}
+
+.polaroid__clue {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  margin: 2px 4px 0;
+  padding: 10px 12px 12px;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  /* Long clues wrap at word boundaries and grow the card. A word is only broken when it is longer than a
+     whole line, and never hyphenated (automatic hyphenation chopped "alleen" and "Kantine" in narrow cards). */
+  overflow-wrap: break-word;
+  hyphens: manual;
+  text-wrap: pretty;
+}
+
+.polaroid--gift .polaroid__name {
+  font-size: 1.35rem;
+}
+
+.polaroid__badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2f9e57;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.polaroid__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* selected: lifted, ringed in the accent colour */
+.polaroid[data-selected] {
+  transform: translateY(-4px) scale(1.03);
+}
+
+.polaroid[data-selected] .polaroid__photo {
+  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(43, 125, 233, 0.35);
+}
+
+.polaroid[data-selected] .polaroid__clue {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* placed: the suspect already stands on the board, so the card fades back */
+.polaroid[data-placed] .polaroid__pic > svg {
+  filter: grayscale(0.7);
+  opacity: 0.6;
+}
+
+.polaroid[data-placed] .polaroid__clue {
+  opacity: 0.7;
+}
+
+button.polaroid:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 6px;
+}

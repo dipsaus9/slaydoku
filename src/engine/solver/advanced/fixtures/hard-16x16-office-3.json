@@ -1,0 +1,1583 @@
+{
+  "scene": {
+    "width": 16,
+    "height": 16,
+    "rooms": [
+      {
+        "id": "r1",
+        "name": "Receptie"
+      },
+      {
+        "id": "r2",
+        "name": "Loungehoek"
+      },
+      {
+        "id": "r3",
+        "name": "Kantoortuin"
+      },
+      {
+        "id": "r4",
+        "name": "Hal"
+      },
+      {
+        "id": "r5",
+        "name": "Directiekamer"
+      },
+      {
+        "id": "r6",
+        "name": "Serverruimte"
+      },
+      {
+        "id": "r7",
+        "name": "Kantine"
+      },
+      {
+        "id": "r8",
+        "name": "Vergaderzaal"
+      },
+      {
+        "id": "r9",
+        "name": "Overlegruimte"
+      },
+      {
+        "id": "r10",
+        "name": "Personeelsruimte"
+      },
+      {
+        "id": "r11",
+        "name": "Werkkamer"
+      }
+    ],
+    "cellRooms": [
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r2",
+        "r2",
+        "r2",
+        "r2",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r4",
+        "r4",
+        "r4",
+        "r4"
+      ],
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r2",
+        "r2",
+        "r2",
+        "r2",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r4",
+        "r4",
+        "r4"
+      ],
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r2",
+        "r2",
+        "r2",
+        "r2",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r4",
+        "r4",
+        "r5",
+        "r4"
+      ],
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r6",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r3",
+        "r6",
+        "r5",
+        "r5"
+      ],
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r6",
+        "r6",
+        "r6",
+        "r6",
+        "r3",
+        "r6",
+        "r6",
+        "r5",
+        "r5"
+      ],
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r7",
+        "r7",
+        "r7",
+        "r7",
+        "r7",
+        "r6",
+        "r6",
+        "r6",
+        "r6",
+        "r6",
+        "r6",
+        "r5",
+        "r5"
+      ],
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r7",
+        "r1",
+        "r7",
+        "r7",
+        "r7",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5"
+      ],
+      [
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r1",
+        "r7",
+        "r7",
+        "r7",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5"
+      ],
+      [
+        "r1",
+        "r8",
+        "r8",
+        "r1",
+        "r8",
+        "r8",
+        "r8",
+        "r7",
+        "r7",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5"
+      ],
+      [
+        "r1",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r5",
+        "r5",
+        "r9",
+        "r5",
+        "r5",
+        "r5",
+        "r5",
+        "r5"
+      ],
+      [
+        "r10",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r8",
+        "r9",
+        "r9",
+        "r9",
+        "r5",
+        "r5",
+        "r5",
+        "r5"
+      ],
+      [
+        "r10",
+        "r10",
+        "r10",
+        "r8",
+        "r8",
+        "r8",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r5",
+        "r5",
+        "r5",
+        "r5"
+      ],
+      [
+        "r10",
+        "r10",
+        "r10",
+        "r10",
+        "r8",
+        "r8",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r5",
+        "r11",
+        "r11",
+        "r5"
+      ],
+      [
+        "r10",
+        "r10",
+        "r10",
+        "r10",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r11",
+        "r11",
+        "r11",
+        "r5"
+      ],
+      [
+        "r10",
+        "r10",
+        "r10",
+        "r10",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r11",
+        "r11",
+        "r11",
+        "r5"
+      ],
+      [
+        "r10",
+        "r10",
+        "r10",
+        "r10",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r9",
+        "r11",
+        "r11",
+        "r11",
+        "r11"
+      ]
+    ],
+    "objects": [
+      {
+        "id": "archiefkast-1",
+        "type": "cabinet",
+        "cells": [
+          {
+            "row": 5,
+            "col": 9
+          }
+        ]
+      },
+      {
+        "id": "bureau-1",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 4,
+            "col": 7
+          },
+          {
+            "row": 4,
+            "col": 8
+          }
+        ]
+      },
+      {
+        "id": "kamerplant-1",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 5,
+            "col": 10
+          }
+        ]
+      },
+      {
+        "id": "archiefkast-2",
+        "type": "cabinet",
+        "cells": [
+          {
+            "row": 4,
+            "col": 12
+          },
+          {
+            "row": 5,
+            "col": 12
+          }
+        ]
+      },
+      {
+        "id": "garderobekast-1",
+        "type": "wardrobe",
+        "cells": [
+          {
+            "row": 1,
+            "col": 15
+          }
+        ]
+      },
+      {
+        "id": "kamerplant-2",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 0,
+            "col": 15
+          }
+        ]
+      },
+      {
+        "id": "printer-1",
+        "type": "cabinet",
+        "cells": [
+          {
+            "row": 0,
+            "col": 13
+          }
+        ]
+      },
+      {
+        "id": "bureau-2",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 0,
+            "col": 14
+          },
+          {
+            "row": 1,
+            "col": 14
+          }
+        ]
+      },
+      {
+        "id": "vloerkleed-1",
+        "type": "rug",
+        "cells": [
+          {
+            "row": 1,
+            "col": 4
+          },
+          {
+            "row": 1,
+            "col": 5
+          },
+          {
+            "row": 2,
+            "col": 4
+          },
+          {
+            "row": 2,
+            "col": 5
+          }
+        ]
+      },
+      {
+        "id": "vergaderstoel-1",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 7,
+            "col": 6
+          }
+        ]
+      },
+      {
+        "id": "archiefkast-3",
+        "type": "cabinet",
+        "cells": [
+          {
+            "row": 6,
+            "col": 5
+          }
+        ]
+      },
+      {
+        "id": "vloerkleed-2",
+        "type": "rug",
+        "cells": [
+          {
+            "row": 5,
+            "col": 6
+          },
+          {
+            "row": 5,
+            "col": 7
+          },
+          {
+            "row": 6,
+            "col": 6
+          },
+          {
+            "row": 6,
+            "col": 7
+          }
+        ]
+      },
+      {
+        "id": "boekenkast-1",
+        "type": "bookshelf",
+        "cells": [
+          {
+            "row": 3,
+            "col": 14
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-1",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 9,
+            "col": 12
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-2",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 4,
+            "col": 15
+          }
+        ]
+      },
+      {
+        "id": "bureau-3",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 8,
+            "col": 10
+          },
+          {
+            "row": 8,
+            "col": 11
+          },
+          {
+            "row": 8,
+            "col": 12
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-3",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 6,
+            "col": 14
+          }
+        ]
+      },
+      {
+        "id": "wachtbank-1",
+        "type": "sofa",
+        "cells": [
+          {
+            "row": 10,
+            "col": 13
+          },
+          {
+            "row": 10,
+            "col": 14
+          },
+          {
+            "row": 10,
+            "col": 15
+          }
+        ]
+      },
+      {
+        "id": "boekenkast-2",
+        "type": "bookshelf",
+        "cells": [
+          {
+            "row": 6,
+            "col": 13
+          }
+        ]
+      },
+      {
+        "id": "balie-1",
+        "type": "kitchenCounter",
+        "cells": [
+          {
+            "row": 9,
+            "col": 13
+          },
+          {
+            "row": 9,
+            "col": 14
+          },
+          {
+            "row": 9,
+            "col": 15
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-4",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 8,
+            "col": 15
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-5",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 7,
+            "col": 11
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-6",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 11,
+            "col": 13
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-7",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 2,
+            "col": 14
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-8",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 7,
+            "col": 14
+          }
+        ]
+      },
+      {
+        "id": "boekenkast-3",
+        "type": "bookshelf",
+        "cells": [
+          {
+            "row": 6,
+            "col": 9
+          },
+          {
+            "row": 7,
+            "col": 9
+          }
+        ]
+      },
+      {
+        "id": "bureau-4",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 13,
+            "col": 13
+          },
+          {
+            "row": 13,
+            "col": 14
+          }
+        ]
+      },
+      {
+        "id": "kamerplant-3",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 12,
+            "col": 14
+          }
+        ]
+      },
+      {
+        "id": "boekenkast-4",
+        "type": "bookshelf",
+        "cells": [
+          {
+            "row": 13,
+            "col": 12
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-9",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 15,
+            "col": 12
+          }
+        ]
+      },
+      {
+        "id": "vergadertafel-1",
+        "type": "diningTable",
+        "cells": [
+          {
+            "row": 12,
+            "col": 7
+          },
+          {
+            "row": 13,
+            "col": 7
+          },
+          {
+            "row": 14,
+            "col": 7
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-10",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 12,
+            "col": 8
+          }
+        ]
+      },
+      {
+        "id": "bureau-5",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 13,
+            "col": 10
+          },
+          {
+            "row": 13,
+            "col": 11
+          }
+        ]
+      },
+      {
+        "id": "garderobekast-2",
+        "type": "wardrobe",
+        "cells": [
+          {
+            "row": 13,
+            "col": 4
+          }
+        ]
+      },
+      {
+        "id": "bureau-6",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 14,
+            "col": 11
+          },
+          {
+            "row": 15,
+            "col": 11
+          }
+        ]
+      },
+      {
+        "id": "vergadertafel-2",
+        "type": "diningTable",
+        "cells": [
+          {
+            "row": 9,
+            "col": 4
+          },
+          {
+            "row": 10,
+            "col": 4
+          },
+          {
+            "row": 11,
+            "col": 4
+          }
+        ]
+      },
+      {
+        "id": "flipover-1",
+        "type": "easel",
+        "cells": [
+          {
+            "row": 11,
+            "col": 3
+          }
+        ]
+      },
+      {
+        "id": "vergaderstoel-2",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 9,
+            "col": 6
+          }
+        ]
+      },
+      {
+        "id": "vergaderstoel-3",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 11,
+            "col": 5
+          }
+        ]
+      },
+      {
+        "id": "koffiehoek-1",
+        "type": "kitchenCounter",
+        "cells": [
+          {
+            "row": 9,
+            "col": 1
+          },
+          {
+            "row": 9,
+            "col": 2
+          },
+          {
+            "row": 9,
+            "col": 3
+          }
+        ]
+      },
+      {
+        "id": "koffiehoek-2",
+        "type": "kitchenCounter",
+        "cells": [
+          {
+            "row": 14,
+            "col": 1
+          },
+          {
+            "row": 14,
+            "col": 2
+          },
+          {
+            "row": 14,
+            "col": 3
+          }
+        ]
+      },
+      {
+        "id": "bureau-7",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 11,
+            "col": 2
+          },
+          {
+            "row": 12,
+            "col": 2
+          }
+        ]
+      },
+      {
+        "id": "kamerplant-4",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 0,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "id": "kamerplant-5",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 6,
+            "col": 4
+          }
+        ]
+      },
+      {
+        "id": "bureau-8",
+        "type": "desk",
+        "cells": [
+          {
+            "row": 4,
+            "col": 0
+          },
+          {
+            "row": 5,
+            "col": 0
+          },
+          {
+            "row": 6,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-11",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 7,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "id": "wachtbank-2",
+        "type": "sofa",
+        "cells": [
+          {
+            "row": 2,
+            "col": 3
+          },
+          {
+            "row": 3,
+            "col": 3
+          },
+          {
+            "row": 4,
+            "col": 3
+          }
+        ]
+      },
+      {
+        "id": "kamerplant-6",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 4,
+            "col": 6
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-12",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 3,
+            "col": 1
+          }
+        ]
+      },
+      {
+        "id": "balie-2",
+        "type": "kitchenCounter",
+        "cells": [
+          {
+            "row": 3,
+            "col": 5
+          },
+          {
+            "row": 3,
+            "col": 6
+          }
+        ]
+      },
+      {
+        "id": "bedrijfsauto-1",
+        "type": "car",
+        "cells": [
+          {
+            "row": 4,
+            "col": 1
+          },
+          {
+            "row": 4,
+            "col": 2
+          }
+        ]
+      },
+      {
+        "id": "wachtbank-3",
+        "type": "sofa",
+        "cells": [
+          {
+            "row": 7,
+            "col": 2
+          },
+          {
+            "row": 7,
+            "col": 3
+          },
+          {
+            "row": 7,
+            "col": 4
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-13",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 2,
+            "col": 11
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-14",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 1,
+            "col": 9
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-15",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 3,
+            "col": 10
+          }
+        ]
+      },
+      {
+        "id": "vergaderstoel-4",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 2,
+            "col": 10
+          }
+        ]
+      },
+      {
+        "id": "bureaustoel-16",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 1,
+            "col": 8
+          }
+        ]
+      }
+    ],
+    "edgeFeatures": [
+      {
+        "kind": "door",
+        "cell": {
+          "row": 2,
+          "col": 7
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 5,
+          "col": 11
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 9,
+          "col": 8
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 8,
+          "col": 3
+        },
+        "side": "east"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 8,
+          "col": 6
+        },
+        "side": "east"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 2,
+          "col": 13
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 10,
+          "col": 1
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 10,
+          "col": 7
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 2,
+          "col": 12
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 14,
+          "col": 15
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 5,
+          "col": 2
+        },
+        "side": "east"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 3,
+          "col": 9
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 8,
+          "col": 8
+        },
+        "side": "east"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 9,
+          "col": 0
+        },
+        "side": "south"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 15,
+          "col": 6
+        },
+        "side": "south"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 11,
+          "col": 0
+        },
+        "side": "west"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 0,
+          "col": 12
+        },
+        "side": "north"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 0,
+          "col": 1
+        },
+        "side": "north"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 8,
+          "col": 15
+        },
+        "side": "east"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 9,
+          "col": 0
+        },
+        "side": "west"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 2,
+          "col": 15
+        },
+        "side": "east"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 14,
+          "col": 15
+        },
+        "side": "east"
+      }
+    ]
+  },
+  "people": [
+    {
+      "id": "V",
+      "kind": "victim",
+      "label": "V"
+    },
+    {
+      "id": "A",
+      "kind": "suspect",
+      "label": "A"
+    },
+    {
+      "id": "B",
+      "kind": "suspect",
+      "label": "B"
+    },
+    {
+      "id": "C",
+      "kind": "suspect",
+      "label": "C"
+    },
+    {
+      "id": "D",
+      "kind": "suspect",
+      "label": "D"
+    },
+    {
+      "id": "E",
+      "kind": "suspect",
+      "label": "E"
+    },
+    {
+      "id": "F",
+      "kind": "suspect",
+      "label": "F"
+    },
+    {
+      "id": "G",
+      "kind": "suspect",
+      "label": "G"
+    },
+    {
+      "id": "H",
+      "kind": "suspect",
+      "label": "H"
+    },
+    {
+      "id": "I",
+      "kind": "suspect",
+      "label": "I"
+    },
+    {
+      "id": "J",
+      "kind": "suspect",
+      "label": "J"
+    },
+    {
+      "id": "K",
+      "kind": "suspect",
+      "label": "K"
+    },
+    {
+      "id": "L",
+      "kind": "suspect",
+      "label": "L"
+    },
+    {
+      "id": "M",
+      "kind": "suspect",
+      "label": "M"
+    },
+    {
+      "id": "N",
+      "kind": "suspect",
+      "label": "N"
+    },
+    {
+      "id": "O",
+      "kind": "suspect",
+      "label": "O"
+    }
+  ],
+  "solution": [
+    {
+      "personId": "V",
+      "cell": {
+        "row": 0,
+        "col": 3
+      }
+    },
+    {
+      "personId": "A",
+      "cell": {
+        "row": 15,
+        "col": 0
+      }
+    },
+    {
+      "personId": "B",
+      "cell": {
+        "row": 7,
+        "col": 12
+      }
+    },
+    {
+      "personId": "C",
+      "cell": {
+        "row": 2,
+        "col": 7
+      }
+    },
+    {
+      "personId": "D",
+      "cell": {
+        "row": 12,
+        "col": 10
+      }
+    },
+    {
+      "personId": "E",
+      "cell": {
+        "row": 9,
+        "col": 9
+      }
+    },
+    {
+      "personId": "F",
+      "cell": {
+        "row": 6,
+        "col": 6
+      }
+    },
+    {
+      "personId": "G",
+      "cell": {
+        "row": 4,
+        "col": 13
+      }
+    },
+    {
+      "personId": "H",
+      "cell": {
+        "row": 3,
+        "col": 2
+      }
+    },
+    {
+      "personId": "I",
+      "cell": {
+        "row": 14,
+        "col": 14
+      }
+    },
+    {
+      "personId": "J",
+      "cell": {
+        "row": 13,
+        "col": 15
+      }
+    },
+    {
+      "personId": "K",
+      "cell": {
+        "row": 8,
+        "col": 5
+      }
+    },
+    {
+      "personId": "L",
+      "cell": {
+        "row": 1,
+        "col": 1
+      }
+    },
+    {
+      "personId": "M",
+      "cell": {
+        "row": 11,
+        "col": 11
+      }
+    },
+    {
+      "personId": "N",
+      "cell": {
+        "row": 10,
+        "col": 8
+      }
+    },
+    {
+      "personId": "O",
+      "cell": {
+        "row": 5,
+        "col": 4
+      }
+    }
+  ],
+  "clues": [
+    {
+      "personId": "V",
+      "type": "aloneWithMurderer",
+      "args": {}
+    },
+    {
+      "personId": "A",
+      "type": "inCorner",
+      "args": {
+        "roomId": "r10"
+      }
+    },
+    {
+      "personId": "B",
+      "type": "diagonal",
+      "args": {
+        "otherId": "C",
+        "direction": "southeast",
+        "roomId": "r5"
+      }
+    },
+    {
+      "personId": "C",
+      "type": "besideFeature",
+      "args": {
+        "feature": "door"
+      }
+    },
+    {
+      "personId": "D",
+      "type": "diagonal",
+      "args": {
+        "otherId": "M",
+        "steps": 1,
+        "roomId": "r9"
+      }
+    },
+    {
+      "personId": "E",
+      "type": "diagonal",
+      "args": {
+        "otherId": "I"
+      }
+    },
+    {
+      "personId": "E",
+      "type": "inRoom",
+      "args": {
+        "roomId": "r5"
+      }
+    },
+    {
+      "personId": "E",
+      "type": "inColumn",
+      "args": {
+        "index": 9
+      }
+    },
+    {
+      "personId": "F",
+      "type": "onObject",
+      "args": {
+        "objectType": "rug"
+      }
+    },
+    {
+      "personId": "G",
+      "type": "exactDistance",
+      "args": {
+        "side": "south",
+        "count": 3,
+        "otherId": "L",
+        "alone": true
+      }
+    },
+    {
+      "personId": "H",
+      "type": "directionOf",
+      "args": {
+        "side": "north",
+        "otherId": "O",
+        "roomId": "r1"
+      }
+    },
+    {
+      "personId": "I",
+      "type": "inRow",
+      "args": {
+        "index": 14
+      }
+    },
+    {
+      "personId": "J",
+      "type": "onLine",
+      "args": {
+        "axis": "column",
+        "position": "last"
+      }
+    },
+    {
+      "personId": "K",
+      "type": "withPerson",
+      "args": {
+        "otherId": "N"
+      }
+    },
+    {
+      "personId": "L",
+      "type": "exactDistance",
+      "args": {
+        "side": "west",
+        "count": 1,
+        "otherId": "H"
+      }
+    },
+    {
+      "personId": "M",
+      "type": "exactDistance",
+      "args": {
+        "side": "east",
+        "count": 1,
+        "otherId": "D"
+      }
+    },
+    {
+      "personId": "N",
+      "type": "diagonal",
+      "args": {
+        "otherId": "D",
+        "direction": "northwest",
+        "steps": 2
+      }
+    },
+    {
+      "personId": "O",
+      "type": "inColumn",
+      "args": {
+        "index": 4
+      }
+    },
+    {
+      "personId": "O",
+      "type": "diagonal",
+      "args": {
+        "otherId": "H",
+        "steps": 2,
+        "roomId": "r7"
+      }
+    }
+  ]
+}

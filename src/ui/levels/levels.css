@@ -1,0 +1,456 @@
+/*
+ * Level list, solved screen and the back bar over the play screen. Light mode only, iPad Safari:
+ * every target is at least 44px and nothing depends on hover.
+ */
+
+.levels,
+.level-play {
+  --ink: #2a2a36;
+  --accent: #2b7de9;
+  --line: #d3cec4;
+  --paper: #ffffff;
+  --good: #2f8f5b;
+  color: var(--ink);
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.levels {
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 32px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
+}
+
+.levels *,
+.levels *::before,
+.levels *::after {
+  box-sizing: border-box;
+}
+
+.levels button,
+.level-play button {
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.levels__header {
+  margin-bottom: 20px;
+}
+
+.levels__title {
+  margin: 0;
+  font-size: 2.2rem;
+  line-height: 1.15;
+}
+
+.levels__subtitle {
+  margin: 4px 0 0;
+  font-size: 1.1rem;
+  opacity: 0.75;
+}
+
+.levels__help {
+  min-height: 44px;
+  margin: 2px 0 0 -12px;
+  padding: 0 12px;
+  font-size: 1rem;
+}
+
+.levels__empty {
+  font-size: 1.1rem;
+}
+
+.levels__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.levels__grid > li {
+  display: flex;
+}
+
+.level-card {
+  position: relative;
+  flex: 1;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 112px;
+  padding: 16px 64px 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  text-align: left;
+  cursor: pointer;
+}
+
+.level-card:active:not(:disabled) {
+  background: #f0ede6;
+}
+
+/* A level card that opens something is a real link (clean URLs); it looks like the button card. */
+a.level-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+.level-card__number {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+}
+
+.level-card__title {
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.level-card__status {
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.level-card__hint {
+  font-size: 0.95rem;
+  opacity: 0.75;
+}
+
+.level-card__icon {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+}
+
+.level-card--inProgress {
+  border-color: var(--accent);
+  border-width: 2px;
+  padding: 15px 63px 15px 17px;
+}
+
+.level-card--inProgress .level-card__status {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.level-card--solved .level-card__status,
+.level-card--solved .level-card__icon {
+  color: var(--good);
+}
+
+.level-card--locked {
+  background: #ece8e0;
+  border-style: dashed;
+  color: #6b6860;
+  cursor: default;
+}
+
+.levels-btn {
+  min-width: 44px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--paper);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.levels-btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.levels button.levels-btn--primary {
+  color: #fff;
+}
+
+.levels-btn--quiet {
+  border-color: transparent;
+  background: transparent;
+  text-decoration: underline;
+}
+
+.levels-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid #e0b64d;
+  border-radius: 14px;
+  background: #fff6dc;
+}
+
+/* ---- solved screen ----------------------------------------------------------------- */
+
+.levels--solved {
+  display: grid;
+  place-items: center;
+}
+
+.solved {
+  width: 100%;
+  max-width: 520px;
+  padding: 32px 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--paper);
+  text-align: center;
+}
+
+.solved__level {
+  margin: 0;
+  opacity: 0.6;
+}
+
+.solved__title {
+  margin: 4px 0 16px;
+  font-size: 2.4rem;
+  color: var(--good);
+}
+
+.solved__alone {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+  line-height: 1.3;
+}
+
+.solved__time {
+  margin: 0 0 24px;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.solved__done {
+  margin: 0;
+}
+
+.solved__actions {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.solved__actions .levels-btn {
+  width: 100%;
+  max-width: 360px;
+}
+
+.solved__actions .levels-btn--quiet {
+  width: auto;
+}
+
+/* ---- back bar over the play screen ------------------------------------------------- */
+
+/*
+ * The play screen has its own top row (title left, timer right). PlayRoute gives it an empty
+ * title and lays this bar over the empty left side of that row, so no board height is lost.
+ */
+.level-play {
+  position: relative;
+}
+
+.level-play__nav {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(12px, env(safe-area-inset-left));
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+
+.level-play__back {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #d3cec4;
+  border-radius: 22px;
+  background: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.level-play__title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #2a2a36;
+}
+
+/* ---- phones (CAD-10.3) ------------------------------------------------------------- */
+
+/*
+ * Portrait phone and any screen up to 640px wide: tighter gutters, so the first
+ * level card is on screen, and a back bar whose title never runs under the timer (two lines at most).
+ * The play screen keeps its 8px side padding here, so the bar starts there too.
+ */
+@media (max-width: 640px) {
+  .levels {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+
+  .levels__header {
+    margin-bottom: 14px;
+  }
+
+  .levels__title {
+    font-size: 1.9rem;
+  }
+
+  .levels__subtitle {
+    font-size: 1rem;
+  }
+
+  .intro {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .intro__polaroid {
+    max-width: 240px;
+    padding: 6px 6px 26px;
+  }
+
+  .intro__title {
+    font-size: 1.4rem;
+  }
+
+  .intro__paragraph {
+    font-size: 1rem;
+  }
+
+  .levels__grid {
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .level-card {
+    min-height: 0;
+    padding: 12px 56px 12px 16px;
+  }
+
+  .level-card--inProgress {
+    padding: 11px 55px 11px 15px;
+  }
+
+  .level-card__title {
+    font-size: 1.3rem;
+  }
+
+  .level-card__icon {
+    top: 12px;
+    right: 16px;
+  }
+
+  .solved {
+    padding: 24px 16px;
+  }
+
+  .solved__title {
+    font-size: 2rem;
+  }
+
+  .level-play__nav {
+    left: max(8px, env(safe-area-inset-left));
+    right: calc(max(8px, env(safe-area-inset-right)) + 112px);
+    gap: 8px;
+  }
+
+  .level-play__back {
+    flex: none;
+    padding: 0 12px;
+    font-size: 1rem;
+  }
+
+  .level-play__title {
+    min-width: 0;
+    font-size: 1.05rem;
+    line-height: 1.15;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+}
+
+/* Short landscape phone: the solved card fits the height. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .levels {
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .intro {
+    grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .levels--solved {
+    align-items: start;
+  }
+
+  .solved {
+    padding: 16px 24px;
+  }
+
+  .solved__title {
+    margin-bottom: 8px;
+    font-size: 2rem;
+  }
+
+  .solved__time {
+    margin-bottom: 12px;
+  }
+
+  .solved__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .solved__actions .levels-btn--quiet {
+    grid-column: 1 / -1;
+  }
+
+  /* The board takes the left part (--play-board, play.css); the bar sits on the right, over the header row. */
+  .level-play__nav {
+    left: calc(max(12px, env(safe-area-inset-left)) + var(--play-board) + 12px);
+    right: calc(max(12px, env(safe-area-inset-right)) + 112px);
+    gap: 8px;
+  }
+
+  .level-play__back {
+    flex: none;
+    padding: 0 12px;
+    font-size: 1rem;
+  }
+
+  .level-play__title {
+    min-width: 0;
+    font-size: 1.05rem;
+    line-height: 1.15;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,540 @@
+{
+  "scene": {
+    "width": 9,
+    "height": 9,
+    "rooms": [
+      {
+        "id": "keuken",
+        "name": "de Keuken"
+      },
+      {
+        "id": "hal",
+        "name": "de Hal"
+      },
+      {
+        "id": "slaapkamer",
+        "name": "de Slaapkamer"
+      },
+      {
+        "id": "woonkamer",
+        "name": "de Woonkamer"
+      }
+    ],
+    "cellRooms": [
+      [
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "hal",
+        "hal",
+        "hal",
+        "hal"
+      ],
+      [
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "hal",
+        "hal",
+        "hal",
+        "hal"
+      ],
+      [
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "hal",
+        "hal",
+        "hal",
+        "hal"
+      ],
+      [
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "keuken",
+        "hal",
+        "hal",
+        "hal",
+        "hal"
+      ],
+      [
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer"
+      ],
+      [
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer"
+      ],
+      [
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer"
+      ],
+      [
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer"
+      ],
+      [
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "slaapkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer",
+        "woonkamer"
+      ]
+    ],
+    "objects": [
+      {
+        "id": "counter",
+        "type": "kitchenCounter",
+        "cells": [
+          {
+            "row": 0,
+            "col": 1
+          },
+          {
+            "row": 0,
+            "col": 2
+          }
+        ]
+      },
+      {
+        "id": "diningTable",
+        "type": "diningTable",
+        "cells": [
+          {
+            "row": 2,
+            "col": 2
+          },
+          {
+            "row": 2,
+            "col": 3
+          }
+        ]
+      },
+      {
+        "id": "chair-keuken-a",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 1,
+            "col": 2
+          }
+        ]
+      },
+      {
+        "id": "chair-keuken-b",
+        "type": "chair",
+        "cells": [
+          {
+            "row": 3,
+            "col": 3
+          }
+        ]
+      },
+      {
+        "id": "plant-keuken",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 3,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "id": "cabinet",
+        "type": "cabinet",
+        "cells": [
+          {
+            "row": 0,
+            "col": 7
+          },
+          {
+            "row": 0,
+            "col": 8
+          }
+        ]
+      },
+      {
+        "id": "plant-hal",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 3,
+            "col": 8
+          }
+        ]
+      },
+      {
+        "id": "bed",
+        "type": "bed",
+        "cells": [
+          {
+            "row": 5,
+            "col": 0
+          },
+          {
+            "row": 6,
+            "col": 0
+          }
+        ]
+      },
+      {
+        "id": "wardrobe",
+        "type": "wardrobe",
+        "cells": [
+          {
+            "row": 8,
+            "col": 1
+          },
+          {
+            "row": 8,
+            "col": 2
+          }
+        ]
+      },
+      {
+        "id": "plant-slaapkamer",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 4,
+            "col": 3
+          }
+        ]
+      },
+      {
+        "id": "sofa",
+        "type": "sofa",
+        "cells": [
+          {
+            "row": 8,
+            "col": 5
+          },
+          {
+            "row": 8,
+            "col": 6
+          },
+          {
+            "row": 8,
+            "col": 7
+          }
+        ]
+      },
+      {
+        "id": "tv",
+        "type": "tv",
+        "cells": [
+          {
+            "row": 4,
+            "col": 6
+          }
+        ]
+      },
+      {
+        "id": "coffeeTable",
+        "type": "table",
+        "cells": [
+          {
+            "row": 6,
+            "col": 6
+          }
+        ]
+      },
+      {
+        "id": "plant-woonkamer",
+        "type": "plant",
+        "cells": [
+          {
+            "row": 4,
+            "col": 8
+          }
+        ]
+      }
+    ],
+    "edgeFeatures": [
+      {
+        "kind": "door",
+        "cell": {
+          "row": 2,
+          "col": 4
+        },
+        "side": "east"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 3,
+          "col": 6
+        },
+        "side": "south"
+      },
+      {
+        "kind": "door",
+        "cell": {
+          "row": 3,
+          "col": 1
+        },
+        "side": "south"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 7,
+          "col": 0
+        },
+        "side": "west"
+      },
+      {
+        "kind": "window",
+        "cell": {
+          "row": 6,
+          "col": 8
+        },
+        "side": "east"
+      }
+    ]
+  },
+  "people": [
+    {
+      "id": "V",
+      "kind": "victim",
+      "label": "het cadeau"
+    },
+    {
+      "id": "A",
+      "kind": "suspect",
+      "label": "Alice",
+      "gender": "vrouw"
+    },
+    {
+      "id": "B",
+      "kind": "suspect",
+      "label": "Ben",
+      "gender": "man"
+    },
+    {
+      "id": "C",
+      "kind": "suspect",
+      "label": "Chloe",
+      "gender": "vrouw"
+    },
+    {
+      "id": "D",
+      "kind": "suspect",
+      "label": "Dan",
+      "gender": "man"
+    },
+    {
+      "id": "E",
+      "kind": "suspect",
+      "label": "Emma",
+      "gender": "vrouw"
+    },
+    {
+      "id": "F",
+      "kind": "suspect",
+      "label": "Frank",
+      "gender": "man"
+    },
+    {
+      "id": "G",
+      "kind": "suspect",
+      "label": "Grace",
+      "gender": "vrouw"
+    },
+    {
+      "id": "H",
+      "kind": "suspect",
+      "label": "Henry",
+      "gender": "man"
+    }
+  ],
+  "solution": [
+    {
+      "personId": "V",
+      "cell": {
+        "row": 8,
+        "col": 6
+      }
+    },
+    {
+      "personId": "A",
+      "cell": {
+        "row": 2,
+        "col": 5
+      }
+    },
+    {
+      "personId": "B",
+      "cell": {
+        "row": 5,
+        "col": 0
+      }
+    },
+    {
+      "personId": "C",
+      "cell": {
+        "row": 4,
+        "col": 7
+      }
+    },
+    {
+      "personId": "D",
+      "cell": {
+        "row": 1,
+        "col": 8
+      }
+    },
+    {
+      "personId": "E",
+      "cell": {
+        "row": 3,
+        "col": 4
+      }
+    },
+    {
+      "personId": "F",
+      "cell": {
+        "row": 6,
+        "col": 1
+      }
+    },
+    {
+      "personId": "G",
+      "cell": {
+        "row": 7,
+        "col": 2
+      }
+    },
+    {
+      "personId": "H",
+      "cell": {
+        "row": 0,
+        "col": 3
+      }
+    }
+  ],
+  "clues": [
+    {
+      "personId": "E",
+      "type": "inCorner",
+      "args": {
+        "roomId": "keuken"
+      }
+    },
+    {
+      "personId": "F",
+      "type": "besideObject",
+      "args": {
+        "objectType": "bed"
+      }
+    },
+    {
+      "personId": "A",
+      "type": "besideFeature",
+      "args": {
+        "feature": "door"
+      }
+    },
+    {
+      "personId": "B",
+      "type": "directionOfObject",
+      "args": {
+        "side": "west",
+        "objectType": "wardrobe",
+        "roomId": "slaapkamer"
+      }
+    },
+    {
+      "personId": "F",
+      "type": "inRow",
+      "args": {
+        "index": 6
+      }
+    },
+    {
+      "personId": "C",
+      "type": "directlyNextToObject",
+      "args": {
+        "side": "east",
+        "objectType": "tv"
+      }
+    },
+    {
+      "personId": "H",
+      "type": "directlyNextToObject",
+      "args": {
+        "side": "east",
+        "objectType": "kitchenCounter"
+      }
+    },
+    {
+      "personId": "D",
+      "type": "directlyNextToObject",
+      "args": {
+        "side": "south",
+        "objectType": "cabinet"
+      }
+    },
+    {
+      "personId": "B",
+      "type": "inRow",
+      "args": {
+        "index": 5
+      }
+    },
+    {
+      "personId": "G",
+      "type": "directlyNextToObject",
+      "args": {
+        "side": "north",
+        "objectType": "wardrobe"
+      }
+    },
+    {
+      "personId": "V",
+      "type": "aloneWithMurderer",
+      "args": {}
+    }
+  ]
+}

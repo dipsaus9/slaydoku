@@ -1,0 +1,24 @@
+:root {
+  /*
+   * Every component here (white cards, #fafafa clue items, etc.) is styled
+   * for light mode only, with no dark-mode overrides anywhere. Letting the
+   * browser pick UA dark defaults for unset text/background colors made
+   * text invisible (white-on-white) under a dark OS preference, so the
+   * scheme is pinned to light rather than left to follow the OS.
+   */
+  color-scheme: light;
+  font: 16px/145% system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: #1a1a1a;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f5f3ef;
+  /* No double-tap zoom on any screen (pinch stays available). The play board sets its own touch-action. */
+  touch-action: manipulation;
+}

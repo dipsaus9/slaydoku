@@ -1,0 +1,5 @@
+export { HowItWorks } from './HowItWorks.tsx'
+export { Legend, type LegendProps } from './Legend.tsx'
+export { legendOf, type Legend as LegendData, type LegendEdgeRow, type LegendObjectRow } from './legend.ts'
+export { Glossary } from './Glossary.tsx'
+export { HELP_SEEN_KEY, shouldShowHelp, markHelpSeen } from './firstVisit.ts'

@@ -1,0 +1,53 @@
+name: Generation sweep
+
+# On demand only: the sweep takes minutes to hours, depending on the sizes and seeds. See docs/authoring/scaling.md.
+on:
+  workflow_dispatch:
+    inputs:
+      seeds:
+        description: Seeds per size x tier x theme cell (fresh seeds from 10000)
+        default: '10'
+      sizes:
+        description: Board sizes, comma separated (6,7,9,12,16)
+        default: '6,7,9'
+      tiers:
+        description: Tiers, comma separated, or all
+        default: very-easy,easy,easy-medium,medium,hard
+      themes:
+        description: Themes, comma separated, or all
+        default: all
+      min_success:
+        description: Minimum success rate per cell, in percent
+        default: '25'
+      strict:
+        description: Fail on any rejected seed, not only on defects
+        type: boolean
+        default: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Sweep
+        env:
+          SEEDS: ${{ inputs.seeds }}
+          SIZES: ${{ inputs.sizes }}
+          TIERS: ${{ inputs.tiers }}
+          THEMES: ${{ inputs.themes }}
+          MIN_SUCCESS: ${{ inputs.min_success }}
+          STRICT: ${{ inputs.strict && '--strict' || '' }}
+        run: |
+          bun run validate:generation --seeds "$SEEDS" --sizes "$SIZES" --tiers "$TIERS" --themes "$THEMES" \
+            --min-success "$MIN_SUCCESS" --jobs 3 $STRICT
+      - name: Report in the job summary
+        if: always()
+        run: cat reports/generation-sweep/report.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: generation-sweep-report
+          path: reports/generation-sweep/

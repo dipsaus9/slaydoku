@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#2a2a36"/>
+  <g id="gift">
+    <rect x="10" y="29" width="44" height="27" rx="3" fill="#2468c4"/>
+    <rect x="7" y="22" width="50" height="11" rx="3" fill="#2b7de9"/>
+    <rect x="28" y="22" width="8" height="34" fill="#fbf8f0"/>
+    <ellipse cx="22.5" cy="16" rx="9.5" ry="6.5" transform="rotate(-24 22.5 16)" fill="#fbf8f0"/>
+    <ellipse cx="41.5" cy="16" rx="9.5" ry="6.5" transform="rotate(24 41.5 16)" fill="#fbf8f0"/>
+    <ellipse cx="22.5" cy="16" rx="4.2" ry="2.4" transform="rotate(-24 22.5 16)" fill="#2a2a36"/>
+    <ellipse cx="41.5" cy="16" rx="4.2" ry="2.4" transform="rotate(24 41.5 16)" fill="#2a2a36"/>
+    <circle cx="32" cy="20" r="4.8" fill="#fbf8f0"/>
+  </g>
+</svg>

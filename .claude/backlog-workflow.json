@@ -1,0 +1,8 @@
+{
+  "parallelism": { "maxAgents": 3 },
+  "worktree": { "path": ".worktrees", "install": "bun install", "includeGitignored": [] },
+  "verify": ["bun run lint", "bun run typecheck", "bun run test"],
+  "pr": { "mode": "create" },
+  "review": { "enabled": true, "model": "", "maxRounds": 3 },
+  "backlog": { "dir": "backlog", "prefix": "SLAY" }
+}
