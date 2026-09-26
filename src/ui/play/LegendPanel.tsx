@@ -17,7 +17,7 @@ export interface LegendPanelProps {
 }
 
 /**
- * "Legenda": the card that says what is drawn on this level's board. A modal like the help card:
+ * "Legend": the card that says what is drawn on this level's board. A modal like the help card:
  * scrolls inside on a small screen, closes with its button, Escape or a tap on the backdrop. The
  * close button stays in reach at the bottom while the list scrolls.
  */

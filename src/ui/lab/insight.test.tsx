@@ -10,12 +10,12 @@ import { saveJudgement } from './judgements.ts'
 import { LabPlay } from './LabPlay.tsx'
 import { ScoreBreakdown } from './ScoreBreakdown.tsx'
 import { SolveTrace } from './SolveTrace.tsx'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 import { TelemetryList } from './TelemetryList.tsx'
 
 const level = demoLevels[0]!
 const insight = buildInsight(level.puzzle)
-const t = LAB_NL.insight
+const t = LAB_EN.insight
 
 describe('score breakdown', () => {
   const html = renderToStaticMarkup(<ScoreBreakdown metrics={insight.metrics} score={insight.score} weights={insight.weights} />)

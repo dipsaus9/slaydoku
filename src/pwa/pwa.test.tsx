@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { UpdateNotice } from './UpdateNotice.tsx'
 import { startOfflineSupport } from './register.ts'
-import { UPDATE_NL } from './strings.ts'
+import { UPDATE_EN } from './strings.ts'
 import type { ContainerLike, Updater } from './updater.ts'
 
 const updaterWith = (waiting: boolean): Updater => ({
@@ -14,12 +14,12 @@ const updaterWith = (waiting: boolean): Updater => ({
 })
 
 describe('UpdateNotice', () => {
-  it('says so in Dutch, with a reload button, when a new version waits', () => {
+  it('says so in English, with a reload button, when a new version waits', () => {
     const html = renderToStaticMarkup(<UpdateNotice updater={updaterWith(true)} />)
-    expect(html).toContain('Nieuwe versie beschikbaar')
-    expect(html).toContain('Opnieuw laden')
+    expect(html).toContain('New version available')
+    expect(html).toContain('Reload')
     expect(html).toContain('role="status"')
-    expect(UPDATE_NL).toEqual({ available: 'Nieuwe versie beschikbaar', reload: 'Opnieuw laden' })
+    expect(UPDATE_EN).toEqual({ available: 'New version available', reload: 'Reload' })
   })
 
   it('renders nothing otherwise', () => {

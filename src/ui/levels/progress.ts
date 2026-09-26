@@ -7,7 +7,7 @@ export const PROGRESS_KEY = 'slaydoku:progress'
 /** 2: every record carries the fingerprint of the puzzle it solved (CAD-10.1); version 1 records are dropped. */
 const PROGRESS_VERSION = 2
 
-/** How a level was solved: who was alone with het cadeau, and how long it took. */
+/** How a level was solved: who was alone with the victim, and how long it took. */
 export interface SolvedRecord {
   murdererId: string
   elapsedMs: number

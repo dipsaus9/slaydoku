@@ -2,6 +2,7 @@ import type { MouseEvent } from 'react'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { CardGrid } from '../../render/cards/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
+import { PLAY_EN } from './strings.ts'
 
 export interface SuspectPanelProps {
   puzzle: Puzzle
@@ -27,7 +28,7 @@ export function SuspectPanel({ puzzle, cast, selectedId, placedIds, onSelect }: 
   return (
     <section
       className="play-cards"
-      aria-label="Verdachten"
+      aria-label={PLAY_EN.cards}
       data-gift-selected={victim && victim.id === selectedId ? '' : undefined}
       data-gift-placed={victim && placedIds.includes(victim.id) ? '' : undefined}
       onClick={onClick}

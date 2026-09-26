@@ -1,5 +1,5 @@
-/** Dutch wording of the update notice. */
-export const UPDATE_NL = {
-  available: 'Nieuwe versie beschikbaar',
-  reload: 'Opnieuw laden',
+/** English wording of the update notice. */
+export const UPDATE_EN = {
+  available: 'New version available',
+  reload: 'Reload',
 } as const

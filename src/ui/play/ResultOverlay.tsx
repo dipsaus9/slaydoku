@@ -2,7 +2,7 @@ import type { CheckResult } from '../../game/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { Modal } from './Modal.tsx'
 import { formatTime } from './people.ts'
-import { PLAY_NL } from './strings.ts'
+import { PLAY_EN } from './strings.ts'
 
 export interface ResultOverlayProps {
   puzzle: Puzzle
@@ -16,7 +16,7 @@ export interface ResultOverlayProps {
  * Wrong: only how many are right, never who (so the player still has to think).
  */
 export function ResultOverlay({ puzzle, result, onRestart, onDismiss }: ResultOverlayProps) {
-  const t = PLAY_NL.result
+  const t = PLAY_EN.result
   if (result.solved) {
     const name = puzzle.people.find((p) => p.id === result.murdererId)?.label ?? result.murdererId
     return (

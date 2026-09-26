@@ -6,8 +6,8 @@ import { Modal } from './Modal.tsx'
 type View = 'guide' | 'keywords'
 
 /**
- * "Zo werkt het": the goal and the steps first. The keyword glossary is a second view behind the
- * "Kernwoorden" button; it starts closed on every open because the state lives in this component,
+ * "How it works": the goal and the steps first. The keyword glossary is a second view behind the
+ * "Keywords" button; it starts closed on every open because the state lives in this component,
  * which is mounted fresh each time the panel opens.
  */
 export function HelpPanel({ onClose, onLegend }: { onClose: () => void; onLegend?: () => void }) {

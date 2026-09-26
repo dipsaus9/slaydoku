@@ -14,7 +14,7 @@ describe('paths', () => {
   it('tells the level list from a path the app does not know', () => {
     expect(isListPath('/')).toBe(true)
     expect(isListPath('')).toBe(true)
-    for (const path of ['/onzin', '/level', '/level/demo/x', '/index.html', '/lab', '/%E0%A4%A']) {
+    for (const path of ['/nonsense', '/level', '/level/demo/x', '/index.html', '/lab', '/%E0%A4%A']) {
       expect(isListPath(path)).toBe(false)
       expect(parseRoute(path)).toEqual({ kind: 'list' })
     }
@@ -30,10 +30,10 @@ describe('paths', () => {
 
   it('sends a locked level to the list', () => {
     const levels = [
-      { id: 'een', title: 'Een', puzzle: {} },
-      { id: 'twee', title: 'Twee', puzzle: {} },
+      { id: 'one', title: 'One', puzzle: {} },
+      { id: 'two', title: 'Two', puzzle: {} },
     ] as never
-    expect(resolveRoute({ kind: 'play', levelId: 'twee' }, levels, { solved: {}, started: [] })).toEqual({
+    expect(resolveRoute({ kind: 'play', levelId: 'two' }, levels, { solved: {}, started: [] })).toEqual({
       route: { kind: 'list' },
       refused: 'locked',
     })
@@ -58,19 +58,19 @@ describe('router', () => {
   it('replaces the current entry for a redirect, so back does not return to it', () => {
     const win = fakeWindow('/')
     const router = createRouter(win)
-    router.navigate('/level/onzin')
+    router.navigate('/level/nonsense')
     router.navigate('/', { replace: true })
     expect(win.entries).toEqual(['/', '/'])
     expect(win.index).toBe(1)
   })
 
   it('does not add a history entry for the path it is already on', () => {
-    const win = fakeWindow('/onzin')
+    const win = fakeWindow('/nonsense')
     const router = createRouter(win)
     let calls = 0
     router.subscribe(() => (calls += 1))
-    router.navigate('/onzin')
-    expect(win.entries).toEqual(['/onzin'])
+    router.navigate('/nonsense')
+    expect(win.entries).toEqual(['/nonsense'])
     expect(calls).toBe(0)
   })
 
@@ -126,9 +126,9 @@ describe('old hash URLs', () => {
     const router = createRouter(win)
     const seen: string[] = []
     router.subscribe(() => seen.push(router.path()))
-    win.typeHash('#/onzin')
-    expect(win.url()).toBe('/onzin')
-    expect(seen).toEqual(['/onzin'])
+    win.typeHash('#/nonsense')
+    expect(win.url()).toBe('/nonsense')
+    expect(seen).toEqual(['/nonsense'])
   })
 })
 

@@ -1,7 +1,7 @@
 import type { DifficultyMetrics, ScoreV2, ScoreWeights } from '../../engine/difficulty/index.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
-const t = LAB_NL.insight
+const t = LAB_EN.insight
 
 /** Which score part each metric feeds (people, card count and solved feed none). */
 const PART_OF: Partial<Record<keyof DifficultyMetrics, keyof ScoreWeights>> = {

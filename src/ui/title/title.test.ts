@@ -6,12 +6,12 @@ import type { Level } from '../levels/registry.ts'
 import { fakeWindow } from '../router/fakeWindow.ts'
 import { createRouter } from '../router/index.ts'
 import { installScreenTitles } from './install.ts'
-import { SITE_TITLE, TITLE_NL, screenTitle } from './model.ts'
+import { SITE_TITLE, TITLE_EN, screenTitle } from './model.ts'
 import type { TitleContext } from './model.ts'
 
 const levels: Level[] = [
-  { id: 'one', title: 'Eerste zaak', puzzle },
-  { id: 'two', title: 'Tweede zaak', puzzle },
+  { id: 'one', title: 'First case', puzzle },
+  { id: 'two', title: 'Second case', puzzle },
 ]
 const record = { murdererId: 'A', elapsedMs: 1000 }
 const none: Progress = { solved: {}, started: [] }
@@ -25,13 +25,13 @@ describe('screenTitle', () => {
   })
 
   it('names the level while playing, from the level data', () => {
-    expect(screenTitle('/level/one', context(none))).toBe('Eerste zaak – Slaydoku')
-    expect(screenTitle('/level/two', context(firstSolved))).toBe('Tweede zaak – Slaydoku')
+    expect(screenTitle('/level/one', context(none))).toBe('First case – Slaydoku')
+    expect(screenTitle('/level/two', context(firstSolved))).toBe('Second case – Slaydoku')
   })
 
   it('names the level on the solved screen', () => {
-    expect(screenTitle('/level/one/solved', context(firstSolved))).toBe(`${TITLE_NL.solved('Eerste zaak')} – Slaydoku`)
-    expect(screenTitle('/level/one/solved', context(firstSolved))).toBe('Eerste zaak opgelost – Slaydoku')
+    expect(screenTitle('/level/one/solved', context(firstSolved))).toBe(`${TITLE_EN.solved('First case')} – Slaydoku`)
+    expect(screenTitle('/level/one/solved', context(firstSolved))).toBe('First case solved – Slaydoku')
   })
 
   it('shows the list title where the app shows the list instead', () => {
@@ -43,7 +43,7 @@ describe('screenTitle', () => {
   })
 
   it('falls back to the site name for unknown routes, including /lab', () => {
-    for (const path of ['/lab', '/lab/puzzle', '/onzin', 'zomaar']) {
+    for (const path of ['/lab', '/lab/puzzle', '/nonsense', 'random']) {
       expect(screenTitle(path, context(firstSolved))).toBe(SITE_TITLE)
     }
   })
@@ -62,10 +62,10 @@ describe('installScreenTitles', () => {
     installScreenTitles({ router, doc, storage, levels: () => levels })
     expect(doc.title).toBe('Slaydoku')
     router.navigate('/level/one')
-    expect(doc.title).toBe('Eerste zaak – Slaydoku')
+    expect(doc.title).toBe('First case – Slaydoku')
     saveProgress(storage, firstSolved, levels)
     router.navigate('/level/one/solved')
-    expect(doc.title).toBe('Eerste zaak opgelost – Slaydoku')
+    expect(doc.title).toBe('First case solved – Slaydoku')
     router.navigate('/lab')
     expect(doc.title).toBe('Slaydoku')
   })
@@ -79,7 +79,7 @@ describe('installScreenTitles', () => {
     current = levels
     router.navigate('/')
     router.navigate('/level/one')
-    expect(doc.title).toBe('Eerste zaak – Slaydoku')
+    expect(doc.title).toBe('First case – Slaydoku')
   })
 
   it('stops listening when stopped', () => {

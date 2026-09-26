@@ -10,7 +10,7 @@ import type { Level } from './registry.ts'
 import { isListPath, parseRoute, resolveRoute, routePath } from './route.ts'
 import type { Refusal, Route } from './route.ts'
 import { SolvedScreen } from './SolvedScreen.tsx'
-import { LEVELS_NL } from './strings.ts'
+import { LEVELS_EN } from './strings.ts'
 import { defaultStorage } from '../../game/index.ts'
 import type { StorageLike } from '../../game/index.ts'
 import './levels.css'
@@ -93,7 +93,7 @@ export function LevelFlow({ levels: given, storage: givenStorage, now, listFoote
     <LevelList
       entries={levelEntries(levels, progress)}
       footer={listFooter?.(progress)}
-      notice={notice ? LEVELS_NL.refused[notice] : null}
+      notice={notice ? LEVELS_EN.refused[notice] : null}
       onDismissNotice={() => setNotice(null)}
       onOpen={() => setNotice(null)}
     />
@@ -120,8 +120,8 @@ function PlayRoute({ level, storage, now, firstVisitHelp, onSolved, onBack }: Pl
     <div className="level-play">
       <PlayScreen puzzle={level.puzzle} levelId={level.id} title="" roomStyles={level.roomStyles} storage={watched} now={now} firstVisitHelp={firstVisitHelp} />
       <nav className="level-play__nav">
-        <button type="button" className="level-play__back" aria-label={LEVELS_NL.backLabel} onClick={onBack}>
-          <span aria-hidden="true">{'‹'}</span> {LEVELS_NL.back}
+        <button type="button" className="level-play__back" aria-label={LEVELS_EN.backLabel} onClick={onBack}>
+          <span aria-hidden="true">{'‹'}</span> {LEVELS_EN.back}
         </button>
         <span className="level-play__title">{level.title}</span>
       </nav>

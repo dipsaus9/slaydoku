@@ -1,9 +1,9 @@
 // Phone and iPad verification, one entry point (CAD-10.7): `bun run verify:phone`.
 // Builds the production app, serves it with `vite preview` and runs every driver of this folder against it:
-//   drive.ts    the demo level (place, note, cross, hint, solve), the "Zo werkt het" card on first visit, the Uitleg
-//               and Kernwoorden buttons, clean URLs and the old #/ redirect, orientation change
+//   drive.ts    the demo level (place, note, cross, hint, solve), the "How it works" card on first visit, the Help
+//               and Keywords buttons, clean URLs and the old #/ redirect, orientation change
 //   zoom.ts     board zoom: button, two-finger pinch and pan, one-finger play on a zoomed board
-//   legend.ts   the Legenda card and the flash of the squares on the board
+//   legend.ts   the Legend card and the flash of the squares on the board
 //   screens.ts  rendered-screen check: every card text of every person and every drawn object kind's legend row, on the
 //               real page, for the demo level (and pack cases when pack files are on disk)
 //   offline.ts  offline reload, playing offline, coming back online and the update notice after a new deploy

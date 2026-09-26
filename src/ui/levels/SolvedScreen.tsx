@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { formatTime, useGhostClickGuard, withCastNames } from '../play/index.ts'
 import type { SolvedRecord } from './progress.ts'
 import type { Level } from './registry.ts'
-import { LEVELS_NL } from './strings.ts'
+import { LEVELS_EN } from './strings.ts'
 
 export interface SolvedScreenProps {
   level: Level
@@ -14,9 +14,9 @@ export interface SolvedScreenProps {
   onViewBoard: () => void
 }
 
-/** Shown right after a solve (and on reload of that URL): who was alone with het cadeau, and the time. */
+/** Shown right after a solve (and on reload of that URL): who was alone with the victim, and the time. */
 export function SolvedScreen({ level, result, next, onNext, onList, onViewBoard }: SolvedScreenProps) {
-  const t = LEVELS_NL.solved
+  const t = LEVELS_EN.solved
   // The last long press of a level opens this screen under the finger: its end must not click "next level".
   const ignoreGhostClick = useGhostClickGuard()
   // The play screen names letter-labelled suspects (A, B...) after the cast; say the same name here.

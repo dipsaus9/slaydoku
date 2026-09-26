@@ -9,10 +9,10 @@ import type { Insight } from './insight.ts'
 import { JudgementBox, JudgementTransfer } from './JudgementBox.tsx'
 import { ScoreBreakdown } from './ScoreBreakdown.tsx'
 import { SolveTrace } from './SolveTrace.tsx'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 import { TelemetryList } from './TelemetryList.tsx'
 
-const t = LAB_NL.insight
+const t = LAB_EN.insight
 
 type Computed = { status: 'computing' } | { status: 'failed' } | { status: 'ready'; insight: Insight }
 

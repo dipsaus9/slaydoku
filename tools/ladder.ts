@@ -1,5 +1,5 @@
 // Generates a puzzle solve-path first and prints it: `bun tools/ladder.ts --scene demo --tier very-easy --seed 1 [--victim r,c]`.
-// Prints the board, the ladder (the order people are placed and the cards each placement uses) and the Dutch clue lines.
+// Prints the board, the ladder (the order people are placed and the cards each placement uses) and the clue lines.
 // `--report <count>` measures success rate and time per puzzle instead. Run with no arguments for the usage.
 // Exit code: 0 generated (or measured), 1 no puzzle found, 2 usage or unreadable scene.
 import { readFileSync, writeFileSync } from 'node:fs'

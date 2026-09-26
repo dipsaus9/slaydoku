@@ -16,7 +16,7 @@ import { Modal } from './Modal.tsx'
 import { castFor, colorsFor, formatTime, noteTags, withCastNames } from './people.ts'
 import './play.css'
 import { ResultOverlay } from './ResultOverlay.tsx'
-import { PLAY_NL } from './strings.ts'
+import { PLAY_EN } from './strings.ts'
 import { SuspectPanel } from './SuspectPanel.tsx'
 import { Toolbar } from './Toolbar.tsx'
 import { toggleZoom, IDENTITY, type View } from './zoom.ts'
@@ -38,13 +38,13 @@ export interface PlayScreenProps {
   now?: () => number
   /** Seed of the extra cast (names and faces of suspects beyond the drawn eight). */
   castSeed?: string | number
-  /** Opens the "Zo werkt het" card by itself when this browser has not seen it yet (level 1 of the level flow). */
+  /** Opens the "How it works" card by itself when this browser has not seen it yet (level 1 of the level flow). */
   firstVisitHelp?: boolean
 }
 
 type Dialog = 'help' | 'legend' | 'options' | 'clear' | null
 
-/** How long the Legenda points at squares on the board before it comes back by itself. */
+/** How long the Legend points at squares on the board before it comes back by itself. */
 export const FLASH_MS = 2000
 
 /** First person after `from` (in people order, wrapping) who is not on the grid yet. */
@@ -58,12 +58,12 @@ function nextUnplaced(order: readonly string[], from: string, placed: (id: strin
 }
 
 /**
- * The puzzle screen: plattegrond with the player's notes, X marks and people; toolbar; the
+ * The puzzle screen: floor plan with the player's notes, X marks and people; toolbar; the
  * polaroid cards; help, options, hints and the result overlay. Everything the player does goes
  * through the game store (src/game), so it is undoable, saved per level and auto-checked.
  * Built for iPad Safari in landscape and portrait (see play.css).
  */
-export function PlayScreen({ puzzle: given, levelId, title = PLAY_NL.title, roomStyles, themeIcons, storage, now, castSeed, firstVisitHelp = false }: PlayScreenProps) {
+export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, roomStyles, themeIcons, storage, now, castSeed, firstVisitHelp = false }: PlayScreenProps) {
   const puzzle = useMemo(() => withCastNames(given, castSeed), [given, castSeed])
   const store = useMemo<GameStore>(
     () => createGameStore({ levelId, puzzle, storage, now }),
@@ -101,7 +101,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_NL.title, room
   useEffect(() => {
     if (dialog === 'help') markHelpSeen(helpStorage)
   }, [dialog, helpStorage])
-  // Squares the Legenda is pointing at: while set, the card steps aside so the board shows.
+  // Squares the Legend is pointing at: while set, the card steps aside so the board shows.
   const [flash, setFlash] = useState<readonly Cell[] | null>(null)
   useEffect(() => {
     if (!flash) return
@@ -176,7 +176,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_NL.title, room
           <button
             type="button"
             className="play-timer"
-            aria-label={PLAY_NL.timerHide}
+            aria-label={PLAY_EN.timerHide}
             onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: false })}
           >
             <span aria-hidden="true">{'⏱'}</span> {formatTime(elapsed)}
@@ -185,7 +185,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_NL.title, room
           <button
             type="button"
             className="play-timer play-timer--off"
-            aria-label={PLAY_NL.timerShow}
+            aria-label={PLAY_EN.timerShow}
             onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: true })}
           >
             <span aria-hidden="true">{'⏱'}</span>
@@ -208,7 +208,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_NL.title, room
           showAxisLabels={showAxisLabels}
           dispatch={store.dispatch}
           getBoard={() => store.getState().board}
-          onMessage={() => say(PLAY_NL.pickSuspect)}
+          onMessage={() => say(PLAY_EN.pickSuspect)}
           onPlaced={afterPlace}
           view={view}
           onView={setView}
@@ -277,11 +277,11 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_NL.title, room
         />
       ) : null}
       {dialog === 'clear' ? (
-        <Modal title={PLAY_NL.clearConfirm.title} onClose={() => setDialog(null)}>
-          <p>{PLAY_NL.clearConfirm.text}</p>
+        <Modal title={PLAY_EN.clearConfirm.title} onClose={() => setDialog(null)}>
+          <p>{PLAY_EN.clearConfirm.text}</p>
           <div className="play-modal__actions">
             <button type="button" className="play-btn" onClick={() => setDialog(null)}>
-              {PLAY_NL.clearConfirm.no}
+              {PLAY_EN.clearConfirm.no}
             </button>
             <button
               type="button"
@@ -291,7 +291,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_NL.title, room
                 setDialog(null)
               }}
             >
-              {PLAY_NL.clearConfirm.yes}
+              {PLAY_EN.clearConfirm.yes}
             </button>
           </div>
         </Modal>

@@ -22,14 +22,14 @@ function firstPlacement() {
 const inMarkup = (text: string): string => text.replaceAll('"', '&quot;').replaceAll("'", '&#x27;')
 
 describe('<HintBar/>', () => {
-  it('offers "Plaats voor mij" only on level 3 of a placement', () => {
+  it('offers "Place for me" only on level 3 of a placement', () => {
     const { store, hint } = firstPlacement()
-    expect(bar(3, hint)).toContain('Plaats voor mij')
+    expect(bar(3, hint)).toContain('Place for me')
     expect(bar(3, hint)).toContain(inMarkup(hint.text))
     for (const level of [1, 2] as const) {
       const lower = store.hint(level)
-      expect(bar(level, lower)).not.toContain('Plaats voor mij')
-      expect(bar(level, lower)).toContain('Meer hulp')
+      expect(bar(level, lower)).not.toContain('Place for me')
+      expect(bar(level, lower)).toContain('More help')
     }
   })
 
@@ -38,7 +38,7 @@ describe('<HintBar/>', () => {
     const hint = store.hint(3)
     expect(hint?.level === 3 && hint.instruction).toMatch(/^Note squares for /)
     expect(hint?.level === 3 && hint.placement).toBeFalsy()
-    expect(bar(3, hint)).not.toContain('Plaats voor mij')
+    expect(bar(3, hint)).not.toContain('Place for me')
   })
 
   it('shows no technique name', () => {
@@ -46,7 +46,7 @@ describe('<HintBar/>', () => {
     if (hint?.level !== 3) throw new Error('level')
     expect(hint.technique.title).not.toBe('')
     expect(bar(3, hint)).not.toContain(hint.technique.title)
-    expect(bar(3, hint)).not.toContain('Denkwijze')
+    expect(bar(3, hint)).not.toContain('Technique')
   })
 
   it('the place action puts the person on the hinted square and undo takes them off again', () => {

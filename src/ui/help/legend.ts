@@ -5,12 +5,12 @@ import { drawnKinds, specificNoun, themeObjectOf } from '../../content/themes/dr
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 
 /**
- * The rows of the Legenda card (CAD-10.9), built from the scene of the level that is open and
+ * The rows of the Legend card (CAD-10.9), built from the scene of the level that is open and
  * from nothing else: an object kind that is not on the board has no row, one that is has exactly one.
  *
- * A "kind" is what the board draws (drawn.ts): the engine type plus the icon, so a poef and a
- * tuinstoel are two rows even though both are engine type chair, and two kinds that look alike
- * (a tuinstoel and a schoolstoel both draw the plain chair) are one row a player cannot tell apart.
+ * A "kind" is what the board draws (drawn.ts): the engine type plus the icon, so a poof and a
+ * garden chair are two rows even though both are engine type chair, and two kinds that look alike
+ * (a garden chair and a school chair both draw the plain chair) are one row a player cannot tell apart.
  * The noun is the one the clue cards use (`objectNouns`); whether a person can stand on it is the
  * engine catalog's flag, never repeated here.
  */
@@ -22,7 +22,7 @@ export interface LegendObjectRow {
   themeIcon: ThemeIconId | undefined
   /** The noun the clues use for it. */
   noun: string
-  /** Other nouns of kinds drawn exactly like this one (a tuinstoel also stands for a schoolstoel). */
+  /** Other nouns of kinds drawn exactly like this one (a garden chair also stands for a school chair). */
   alsoNouns: string[]
   /** A person can stand on it (engine catalog). */
   occupiable: boolean

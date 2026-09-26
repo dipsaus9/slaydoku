@@ -1,5 +1,5 @@
 /**
- * Everything the "Zo werkt het" card and the Uitleg panel say, in Dutch. This is the one file to edit
+ * Everything the "How it works" card and the Help panel say, in English. This is the one file to edit
  * to change the wording; see README.md. `bun run test` guards the lengths.
  */
 
@@ -36,7 +36,7 @@ export interface HelpContent {
     back: string
   }
   /**
-   * The Legenda card: what is drawn on THIS board. The rows about objects, doors and windows are built
+   * The Legend card: what is drawn on THIS board. The rows about objects, doors and windows are built
    * from the level (src/ui/help/legend.ts); only the words around them live here.
    */
   legend: {
@@ -48,7 +48,7 @@ export interface HelpContent {
     /** A person can stand on it / cannot (the flag of every object row). */
     canOccupy: string
     blocked: string
-    /** Shown behind the noun of an object row that covers several kinds that look alike: "ook: ...". */
+    /** Shown behind the noun of an object row that covers several kinds that look alike: "also: ...". */
     also: string
     /** Tapping a row shows where it is on the board. */
     tapHint: string
@@ -76,62 +76,62 @@ export interface HelpContent {
 }
 
 export const help: HelpContent = {
-  version: 1,
-  title: 'Zo werkt het',
+  version: 2,
+  title: 'How it works',
   goal: [
-    'Iedereen staat ergens op het bord.',
-    'In elke rij en in elke kolom staat precies één persoon.',
-    'De kaarten vertellen waar iedereen stond.',
-    'Het cadeau staat alleen in een kamer, met precies één persoon.',
-    'Die persoon heeft het gevonden: de dader.',
+    'Everybody stands somewhere on the board.',
+    'Every row and every column holds exactly one person.',
+    'The cards tell you where everybody stood.',
+    'The victim was alone in a room with exactly one person.',
+    'That person is the murderer.',
   ],
-  stepsTitle: 'Zo speel je',
+  stepsTitle: 'How to play',
   steps: [
-    { icon: 'pick', title: 'Kies een persoon', text: 'Tik op een foto bij het bord.' },
-    { icon: 'note', title: 'Tik voor een notitie', text: 'Tik op een vakje: hier kan deze persoon staan.' },
-    { icon: 'place', title: 'Houd ingedrukt om te plaatsen', text: 'Houd een vakje ingedrukt: de persoon staat er nu echt.' },
-    { icon: 'hint', title: 'Vast? Vraag een hint', text: 'Tik op Hint voor hulp in kleine stappen.' },
+    { icon: 'pick', title: 'Pick a person', text: 'Tap a photo next to the board.' },
+    { icon: 'note', title: 'Tap to make a note', text: 'Tap a square: this person could stand here.' },
+    { icon: 'place', title: 'Hold to place', text: 'Hold a square: the person really stands there.' },
+    { icon: 'hint', title: 'Stuck? Ask for a hint', text: 'Tap Hint for help in small steps.' },
   ],
   more: {
-    title: 'Meer over de knoppen',
+    title: 'More about the buttons',
     items: [
-      ['Slepen', 'Sleep over vakjes om er meer tegelijk te vullen of te wissen.'],
-      ['X', 'Sluit vakjes uit voor de gekozen persoon.'],
-      ['Gum', 'Tik op een vakje om het te wissen. Houd de knop ingedrukt om alles te wissen.'],
-      ['Terug en Vooruit', 'Maak je laatste actie ongedaan, of doe hem opnieuw.'],
+      ['Drag', 'Drag over squares to fill or clear several at once.'],
+      ['X', 'Rule out squares for the selected person.'],
+      ['Erase', 'Tap a square to clear it. Hold the button to clear everything.'],
+      ['Undo and Redo', 'Take back your last move, or do it again.'],
     ],
   },
   keywords: {
-    button: 'Kernwoorden',
-    title: 'Kernwoorden op de kaarten',
-    otherTitle: 'Ook goed om te weten',
-    example: 'Voorbeeld',
-    back: 'Terug naar de uitleg',
+    button: 'Keywords',
+    title: 'Keywords on the cards',
+    otherTitle: 'Good to know',
+    example: 'Example',
+    back: 'Back to the guide',
   },
   legend: {
-    button: 'Legenda',
-    title: 'Legenda',
-    intro: 'Dit staat er op dit bord.',
-    objectsTitle: 'Spullen',
-    canOccupy: 'Kan bezet worden',
-    blocked: 'Geblokkeerd',
-    also: 'ook',
-    tapHint: 'Tik op een regel om te zien waar het staat.',
-    peek: 'Tik om terug te gaan naar de legenda',
-    edgesTitle: 'Deuren en ramen',
-    door: { noun: 'Deur', text: 'Een opening in de muur.' },
-    window: { noun: 'Raam', text: 'Een raam in de muur. Aanwijzingen kunnen zeggen: bij een raam.' },
-    roomsTitle: 'Kamers',
-    roomLabel: { noun: 'Naam van de kamer', text: 'Elke kamer heeft een naam. Aanwijzingen gebruiken die naam.' },
-    marksTitle: 'Op het bord',
-    note: { noun: 'Notitie', text: 'Een letter in een vakje: hier kan deze persoon staan.' },
-    cross: { noun: 'Kruis', text: 'Hier kan deze persoon niet staan.' },
-    person: { noun: 'Persoon', text: 'Een portret: deze persoon staat hier echt.' },
-    gift: { noun: 'Het cadeau', text: 'Staat ook ergens op het bord.' },
-    ruleTitle: 'De regel',
-    rule: 'Het cadeau staat alleen in een kamer, met precies één persoon.',
-    close: 'Sluiten',
+    button: 'Legend',
+    title: 'Legend',
+    intro: 'This is what is on this board.',
+    objectsTitle: 'Objects',
+    canOccupy: 'Can be occupied',
+    blocked: 'Blocked',
+    also: 'also',
+    tapHint: 'Tap a row to see where it is.',
+    peek: 'Tap to go back to the legend',
+    edgesTitle: 'Doors and windows',
+    door: { noun: 'Door', text: 'An opening in the wall.' },
+    window: { noun: 'Window', text: 'A window in the wall. Cards can say: next to a window.' },
+    roomsTitle: 'Rooms',
+    roomLabel: { noun: 'Room name', text: 'Every room has a name. Cards use that name.' },
+    marksTitle: 'On the board',
+    note: { noun: 'Note', text: 'A letter in a square: this person could stand here.' },
+    cross: { noun: 'Cross', text: 'This person cannot stand here.' },
+    person: { noun: 'Person', text: 'A portrait: this person really stands here.' },
+    gift: { noun: 'The victim', text: 'Stands somewhere on the board too.' },
+    ruleTitle: 'The rule',
+    rule: 'The victim is alone in a room with exactly one person.',
+    close: 'Close',
   },
-  close: 'Aan de slag',
-  link: 'Uitleg',
+  close: 'Start playing',
+  link: 'How it works',
 }

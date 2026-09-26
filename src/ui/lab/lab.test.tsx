@@ -18,7 +18,7 @@ import {
 import { LevelTable } from './LevelTable.tsx'
 import { packView } from './packView.ts'
 import type { GenerateRequest, WorkerMessage } from './protocol.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
 describe('lab routes', () => {
   it('parses and builds the lab paths', () => {
@@ -50,7 +50,7 @@ describe('generate form', () => {
   })
 
   it('names every problem', () => {
-    const t = LAB_NL.generate.errors
+    const t = LAB_EN.generate.errors
     expect(parseForm({ ...values, seed: '-1' })).toEqual({ ok: false, errors: [t.seed] })
     expect(parseForm({ ...values, seed: '1.5' })).toEqual({ ok: false, errors: [t.seed] })
     expect(parseForm({ ...values, seed: '' })).toEqual({ ok: false, errors: [t.seed] })
@@ -67,24 +67,24 @@ describe('generate form', () => {
     const idle = renderToStaticMarkup(
       <GenerateForm values={values} onValues={() => {}} job={{ status: 'idle' }} onStart={() => {}} onCancel={() => {}} onPlay={() => {}} />,
     )
-    expect(idle).toContain(LAB_NL.generate.submit)
-    expect(idle).not.toContain(LAB_NL.generate.cancel)
+    expect(idle).toContain(LAB_EN.generate.submit)
+    expect(idle).not.toContain(LAB_EN.generate.cancel)
     const request = { size: 6, tier: 'easy', theme: 'home', seed: 7, budgetMs: 60_000 } satisfies GenerateRequest
     const running = renderToStaticMarkup(
       <GenerateForm values={values} onValues={() => {}} job={{ status: 'running', request, phase: 'search' }} onStart={() => {}} onCancel={() => {}} onPlay={() => {}} />,
     )
-    expect(running).toContain(LAB_NL.generate.cancel)
-    expect(running).toContain(LAB_NL.generate.phase.search)
+    expect(running).toContain(LAB_EN.generate.cancel)
+    expect(running).toContain(LAB_EN.generate.phase.search)
     expect(running).toContain('<progress')
   })
 
   it('shows the reason of a failed generation', () => {
-    const failure = { reason: 'Geen puzzel gevonden', timedOut: true, attempts: 3, elapsedMs: 5000, rejections: { 'not-unique': 2, trivial: 0 } }
+    const failure = { reason: 'No puzzle found', timedOut: true, attempts: 3, elapsedMs: 5000, rejections: { 'not-unique': 2, trivial: 0 } }
     const html = renderToStaticMarkup(
       <GenerateForm values={values} onValues={() => {}} job={{ status: 'done', outcome: { ok: false, failure } }} onStart={() => {}} onCancel={() => {}} onPlay={() => {}} />,
     )
-    expect(html).toContain('Geen puzzel gevonden')
-    expect(html).toContain(LAB_NL.generate.failTimedOut)
+    expect(html).toContain('No puzzle found')
+    expect(html).toContain(LAB_EN.generate.failTimedOut)
     expect(html).toContain('not-unique 2x')
     expect(html).not.toContain('trivial')
   })
@@ -118,10 +118,10 @@ describe('verify summary', () => {
     const view: PlayView = { source: 'level', id: level.id, title: level.title, puzzle: level.puzzle, facts: [] }
     const pass = renderToStaticMarkup(<LabPlay view={view} onBack={() => {}} />)
     expect(pass).toContain('data-verify="pass"')
-    expect(pass).toContain(LAB_NL.play.pass)
+    expect(pass).toContain(LAB_EN.play.pass)
     const broken = renderToStaticMarkup(<LabPlay view={{ ...view, puzzle: { ...level.puzzle, clues: level.puzzle.clues.slice(0, 2) } }} onBack={() => {}} />)
     expect(broken).toContain('data-verify="fail"')
-    expect(broken).toContain(LAB_NL.play.fail)
+    expect(broken).toContain(LAB_EN.play.fail)
   })
 })
 
@@ -224,8 +224,8 @@ describe('worker client', () => {
   it('reports a worker that cannot be created', () => {
     const handlers = { onPhase: vi.fn(), onDone: vi.fn(), onError: vi.fn() }
     startGeneration(request, handlers, () => {
-      throw new Error('geen worker')
+      throw new Error('no worker')
     })
-    expect(handlers.onError).toHaveBeenCalledWith('geen worker')
+    expect(handlers.onError).toHaveBeenCalledWith('no worker')
   })
 })

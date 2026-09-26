@@ -14,7 +14,7 @@ export function withCastGenders(request: GenerateRequest): GenerateRequest {
 
 /**
  * The light half, run on the page after the worker found a puzzle: dresses it the way the pack
- * does (cast names, "het cadeau", room articles, Dutch title) and runs the pack checks. A check
+ * does (cast names, "the victim", room articles, title) and runs the pack checks. A check
  * that fails does not throw the puzzle away: it comes back as a warning, so the developer can still
  * open and judge it.
  */

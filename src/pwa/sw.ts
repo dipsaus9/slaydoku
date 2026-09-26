@@ -5,7 +5,7 @@
  *
  * - install: fetches every file of the build into one cache named after the build version. One failed
  *   file fails the install, so a half-filled cache never goes live and the old worker keeps serving.
- * - no skipWaiting on its own: a new worker waits until the player chooses "Opnieuw laden" (the page
+ * - no skipWaiting on its own: a new worker waits until the player chooses "Reload" (the page
  *   sends SKIP_WAITING). Taking over on its own would swap the files under a page that is running the
  *   old build (its lazy pack chunks would be gone from the cache).
  * - activate: deletes the caches of older builds and claims the open page (`clients.claim`), which is what

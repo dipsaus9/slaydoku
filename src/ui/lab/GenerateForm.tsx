@@ -7,7 +7,7 @@ import { LAB_SIZES, LAB_THEMES, LAB_TIERS, MAX_BUDGET_S, MIN_BUDGET_S, parseForm
 import type { FormValues } from './model.ts'
 import type { Job } from './useGeneration.ts'
 import type { GenerateRequest, LabFailure, LabPuzzle } from './protocol.ts'
-import { LAB_NL } from './strings.ts'
+import { LAB_EN } from './strings.ts'
 
 export interface GenerateFormProps {
   values: FormValues
@@ -34,7 +34,7 @@ function useElapsedSeconds(active: boolean): number {
 }
 
 function Running({ job, onCancel }: { job: Extract<Job, { status: 'running' }>; onCancel: () => void }) {
-  const t = LAB_NL.generate
+  const t = LAB_EN.generate
   const seconds = useElapsedSeconds(true)
   const budgetSeconds = Math.round(job.request.budgetMs / 1000)
   return (
@@ -52,7 +52,7 @@ function Running({ job, onCancel }: { job: Extract<Job, { status: 'running' }>; 
 }
 
 function Failure({ failure }: { failure: LabFailure }) {
-  const t = LAB_NL.generate
+  const t = LAB_EN.generate
   const rejected = Object.entries(failure.rejections).filter(([, n]) => n > 0)
   return (
     <div className="lab-result lab-result--fail" role="alert">
@@ -70,7 +70,7 @@ function Failure({ failure }: { failure: LabFailure }) {
 }
 
 function Success({ puzzle, onPlay }: { puzzle: LabPuzzle; onPlay: (puzzle: LabPuzzle) => void }) {
-  const t = LAB_NL.generate
+  const t = LAB_EN.generate
   return (
     <div className="lab-result lab-result--ok">
       <h3>{t.resultOk(puzzle.id)}</h3>
@@ -97,7 +97,7 @@ function Success({ puzzle, onPlay }: { puzzle: LabPuzzle; onPlay: (puzzle: LabPu
 
 /** The generate form: size, tier, theme, seed, optional gift cell. Progress and cancel while it runs; then the result or the reason it failed. */
 export function GenerateForm({ values, onValues, job, onStart, onCancel, onPlay }: GenerateFormProps) {
-  const t = LAB_NL.generate
+  const t = LAB_EN.generate
   const [errors, setErrors] = useState<string[]>([])
   const running = job.status === 'running'
   const set = (patch: Partial<FormValues>) => onValues({ ...values, ...patch })
@@ -120,7 +120,7 @@ export function GenerateForm({ values, onValues, job, onStart, onCancel, onPlay 
           <select value={values.size} disabled={running} onChange={(e) => set({ size: Number(e.target.value) })}>
             {LAB_SIZES.map((size) => (
               <option key={size} value={size}>
-                {LAB_NL.size_(size)}
+                {LAB_EN.size_(size)}
               </option>
             ))}
           </select>
@@ -130,7 +130,7 @@ export function GenerateForm({ values, onValues, job, onStart, onCancel, onPlay 
           <select value={values.tier} disabled={running} onChange={(e) => set({ tier: e.target.value as TierId })}>
             {LAB_TIERS.map((tier) => (
               <option key={tier} value={tier}>
-                {LAB_NL.tier[tier]}
+                {LAB_EN.tier[tier]}
               </option>
             ))}
           </select>

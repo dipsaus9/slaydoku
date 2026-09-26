@@ -5,8 +5,8 @@ import { LevelList } from './LevelList.tsx'
 describe('<LevelList/>', () => {
   const html = renderToStaticMarkup(<LevelList entries={[]} />)
 
-  it('has a small Uitleg link that reopens the how-it-works card (CAD-10.8)', () => {
-    expect(html).toMatch(/<button[^>]*class="[^"]*levels__help[^"]*"[^>]*>Uitleg<\/button>/)
+  it('has a small How it works link that reopens the how-it-works card (CAD-10.8)', () => {
+    expect(html).toMatch(/<button[^>]*class="[^"]*levels__help[^"]*"[^>]*>How it works<\/button>/)
   })
 
   it('does not show the card until the link is used', () => {
