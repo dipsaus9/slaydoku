@@ -6,7 +6,7 @@ import type { ThemeObject } from './types.ts'
  * What the board draws for a scene object, as far as a clue can name it.
  *
  * An engine Scene has no kind field: the random scene generator ids an object `<kind>-<n>`
- * (`tuinstoel-2`), which is how the UI finds its theme art too (`themeIconsFor`). Hand-made
+ * (`gardenChair-2`), which is how the UI finds its theme art too (`themeIconsFor`). Hand-made
  * house scenes use other ids and draw the plain engine icon of their type.
  */
 
@@ -22,7 +22,7 @@ export function themeObjectOf(object: Pick<PlacedObject, 'id' | 'type'>): ThemeO
 }
 
 /** The singular noun clue text uses for a theme object. */
-export const kindNoun = (o: Pick<ThemeObject, 'nameNl' | 'clueNoun'>): string => o.clueNoun ?? o.nameNl
+export const kindNoun = (o: Pick<ThemeObject, 'name' | 'clueNoun'>): string => o.clueNoun ?? o.name
 
 /** The `icon` of a group drawn with the engine catalog icon of its type (no theme art). */
 export const ENGINE_ICON = 'engine'
@@ -60,7 +60,7 @@ export function drawnKinds(objects: readonly Pick<PlacedObject, 'id' | 'type'>[]
 
 /**
  * The one noun that names this group exactly, or undefined when it has none: a group that holds
- * several kinds (tuinstoel and schoolstoel both draw the plain chair) or a plain engine object
+ * several kinds (garden chair and school chair both draw the plain chair) or a plain engine object
  * is only named by the engine type's own noun.
  */
 export function specificNoun(group: DrawnKind): string | undefined {

@@ -93,7 +93,7 @@ BYTE-IDENTICAL
 
 For each (size, tier, theme) the pipeline walks seeds `seedBase(tier) + 0, 1, 2, ...` (tier windows of 100: very-easy 100, easy 200,
 easy-medium 300, medium 400, hard 500, expert 600). Every seed builds a random scene for the theme (`generateScene`), a tier puzzle
-for it (`generateLadder` for very-easy to medium, the advanced generator for hard and expert), dresses it (cast names, "het cadeau", articles on room names) and runs the gates in
+for it (`generateLadder` for very-easy to medium, the advanced generator for hard and expert), dresses it (cast names, "the victim") and runs the gates in
 `src/content/packs/gates.ts`. Rejected seeds are skipped and logged, so a committed id can have a gap below it:
 
 ```

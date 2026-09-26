@@ -102,7 +102,7 @@ describe('roomLabelLayout', () => {
 
   it('wraps a long name over two lines on a short run', () => {
     const label = roomLabelLayout(tutorial, 'bedroom')
-    expect(label?.lines).toEqual(['GROTE', 'SLAAPKAMER'])
+    expect(label?.lines).toEqual(['LARGE', 'BEDROOM'])
   })
 
   it('returns nothing for an unknown room', () => {
@@ -112,15 +112,15 @@ describe('roomLabelLayout', () => {
 
 describe('resolveRoomStyles', () => {
   it('styles rooms by name hint', () => {
-    expect(styleForName('Keuken')).toBe('tiles')
+    expect(styleForName('Kitchen')).toBe('tiles')
     expect(styleForName('Backyard')).toBe('grass')
     expect(styleForName('Pond')).toBe('water')
-    expect(styleForName('Grote slaapkamer')).toBe('carpet')
+    expect(styleForName('Large Bedroom')).toBe('carpet')
     expect(styleForName('Zzz')).toBeUndefined()
   })
 
   it('lets an override win and gives a repeated pattern another tone', () => {
-    const scene = { rooms: [{ id: 'a', name: 'Hal' }, { id: 'b', name: 'Keuken' }, { id: 'c', name: 'Zzz' }] }
+    const scene = { rooms: [{ id: 'a', name: 'Hall' }, { id: 'b', name: 'Kitchen' }, { id: 'c', name: 'Zzz' }] }
     const styles = resolveRoomStyles(scene, { c: 'tiles' })
     expect(styles['c']?.pattern).toBe('tiles')
     expect(styles['a']?.variant).toBe(0)

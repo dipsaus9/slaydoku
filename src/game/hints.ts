@@ -25,7 +25,7 @@ export interface Hint1 {
   personIds: string[]
   /** Areas (room ids) the next step is about. */
   roomIds: string[]
-  /** Dutch text of this level, in plain words. */
+  /** Text of this level, in plain words. */
   text: string
 }
 
@@ -37,9 +37,9 @@ export interface Hint2 extends Omit<Hint1, 'level'> {
 
 export interface Hint3 extends Omit<Hint2, 'level'> {
   level: 3
-  /** Why, in short plain Dutch sentences (no technique names). */
+  /** Why, in short plain sentences (no technique names). */
   explanation: string
-  /** What to do, as the last sentence: "Zet Alice op rij 3, kolom 4." or "Zet een notitie voor Alice op ...". */
+  /** What to do, as the last sentence: "Place Alice on row 3, column 4." or "Note squares for Alice on ...". */
   instruction: string
   /** For the record only, never shown to the player. */
   technique: { id: string; title: string }

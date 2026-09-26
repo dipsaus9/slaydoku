@@ -90,22 +90,21 @@ describe('auto-check in the reducer', () => {
 })
 
 describe('resultMessage', () => {
-  it('words the gift, not a victim', () => {
+  it('words the victim as "the victim"', () => {
     const win = resultMessage(puzzle, { solved: true, murdererId: 'A', elapsedMs: 1 })
-    expect(win).toContain('het cadeau')
+    expect(win).toContain('the victim')
     expect(win).toContain('A')
-    expect(win.toLowerCase()).not.toContain('slachtoffer')
-    expect(resultMessage(puzzle, { solved: false, correctCount: 2, total: 4 })).toContain('2 van 4')
+    expect(resultMessage(puzzle, { solved: false, correctCount: 2, total: 4 })).toContain('2 of 4')
   })
 })
 
 describe('resultMessage wording', () => {
-  const gifted = { ...puzzle, people: puzzle.people.map((p) => (p.kind === 'victim' ? { ...p, label: 'het cadeau' } : p)) }
+  const labelled = { ...puzzle, people: puzzle.people.map((p) => (p.kind === 'victim' ? { ...p, label: 'the victim' } : p)) }
 
-  it('says the gift once, never "het cadeau (het cadeau)", whatever the victim is labelled', () => {
-    for (const p of [puzzle, gifted]) {
+  it('says the victim once, never "the victim (the victim)", whatever the victim is labelled', () => {
+    for (const p of [puzzle, labelled]) {
       const win = resultMessage(p, { solved: true, murdererId: 'A', elapsedMs: 1 })
-      expect(win).toBe('Je hebt de dader gevonden! A was alleen met het cadeau.')
+      expect(win).toBe('You found the murderer! A was alone with the victim.')
       expect(win).not.toContain('(')
     }
   })
@@ -113,7 +112,7 @@ describe('resultMessage wording', () => {
   it('names the murderer by label', () => {
     const named = { ...puzzle, people: puzzle.people.map((p) => (p.id === 'A' ? { ...p, label: 'Alice' } : p)) }
     expect(resultMessage(named, { solved: true, murdererId: 'A', elapsedMs: 1 })).toBe(
-      'Je hebt de dader gevonden! Alice was alleen met het cadeau.',
+      'You found the murderer! Alice was alone with the victim.',
     )
   })
 })

@@ -68,9 +68,9 @@ export const BASIC_TECHNIQUES: readonly Technique[] = [
 
 /** Rating scale for the basic techniques. Story CAD-4.22 adds the hard and expert bands. */
 export const BASIC_BANDS: readonly DifficultyBand[] = [
-  { minLevel: 1, id: 'very-easy', label: 'Zeer makkelijk' },
-  { minLevel: 2, id: 'easy', label: 'Makkelijk' },
-  { minLevel: 3, id: 'medium', label: 'Gemiddeld' },
+  { minLevel: 1, id: 'very-easy', label: 'Very easy' },
+  { minLevel: 2, id: 'easy', label: 'Easy' },
+  { minLevel: 3, id: 'medium', label: 'Medium' },
 ]
 
 /** What `solveHuman` uses when it is given no techniques of its own. */

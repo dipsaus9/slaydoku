@@ -10,7 +10,7 @@ import type { Deduction, HumanContext, HumanOptions, HumanResult, HumanStep, Tec
 /**
  * Solves a puzzle the way a person does: by applying named techniques one at
  * a time, easiest first, and never by guessing. Every application is recorded
- * as a step with a Dutch explanation. `solved` is false when the techniques
+ * as a step with an English explanation. `solved` is false when the techniques
  * run out before everybody is placed (the puzzle needs search or a technique
  * the catalog lacks) or when the clues contradict themselves.
  */

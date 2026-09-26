@@ -2,7 +2,7 @@ import { bothPartsText, evaluate, expandClue, isGenderClue, renderClue } from '.
 import type { CatalogClue } from '../../../clues/index.ts'
 import type { BoardView } from '../board.ts'
 import type { Deduction, Elimination, HumanContext, Technique } from '../types.ts'
-import { cellSummary, peopleNames, personName, roomName, sentences } from '../nl.ts'
+import { cellSummary, peopleNames, personName, possessive, roomName, sentences } from '../en.ts'
 
 /**
  * Clue-specific eliminations: what one clue card alone rules out. Uses the
@@ -18,7 +18,7 @@ import { cellSummary, peopleNames, personName, roomName, sentences } from '../nl
  */
 export const clueEliminations: Technique = {
   id: 'clue',
-  title: 'Aanwijzing gebruiken',
+  title: 'Use a clue',
   level: 1,
   find(board, context) {
     const total = totalCandidates(board)
@@ -81,20 +81,19 @@ function fromClue(board: BoardView, context: HumanContext, index: number): Deduc
   }
   const verdicts = [...lost.values()].map(({ people, cells }, i) => {
     const who = peopleNames(board, people)
-    const verb = people.length === 1 ? 'kan' : 'kunnen'
     const where = cellSummary(board, cells)
-    return i === 0 ? `${who} ${verb} dus niet op ${where} staan` : `Ook ${who} ${verb} niet op ${where} staan`
+    return i === 0 ? `So ${who} cannot stand on ${where}` : `${who} cannot stand on ${where} either`
   })
   const room =
     card.type === 'emptyRoom' ? board.scene.rooms.findIndex((r) => r.id === (card.args as { roomId: string }).roomId) : -1
   const twoParts = bothPartsText(card, ctx)
   const lead =
     room >= 0
-      ? `Een kaart zegt: "${text}"`
-      : `De kaart van ${personName(board, holder)} zegt: "${text}"${twoParts === null ? '' : ` ${twoParts}`}`
+      ? `A card says: "${text}"`
+      : `${possessive(personName(board, holder))} card says: "${text}"${twoParts === null ? '' : ` ${twoParts}`}`
   return {
     eliminate,
-    explanation: sentences(room >= 0 ? `${lead} Niemand kan dus in ${roomName(board, room)} staan.` : `${lead} ${verdicts.join('. ')}.`),
+    explanation: sentences(room >= 0 ? `${lead} So nobody can stand in ${roomName(board, room)}.` : `${lead} ${verdicts.join('. ')}.`),
     people: [...new Set([holder, ...others, ...eliminate.map((e) => e.person)])],
     cells: [...new Set(eliminate.map((e) => e.cell))],
     clueIndex: index,

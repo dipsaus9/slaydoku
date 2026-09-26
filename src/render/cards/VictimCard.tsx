@@ -1,8 +1,8 @@
-import { GIFT_NL } from '../../engine/clues/nl.ts'
+import { VICTIM_TEXT } from '../../engine/clues/en.ts'
 import { GiftIcon } from './GiftIcon.tsx'
 import { Polaroid } from './Polaroid.tsx'
 
-/** Polaroid of the victim, who in Slaydoku is the gift. Wording comes from `GIFT_NL`. */
+/** Polaroid of the victim, who in Slaydoku is the gift. Wording comes from `VICTIM_TEXT`. */
 export function VictimCard({ className }: { className?: string }) {
   return (
     <Polaroid
@@ -10,8 +10,8 @@ export function VictimCard({ className }: { className?: string }) {
       portrait={<GiftIcon />}
       photoColor="#f6d6dc"
       bubbleColor="#f7cfd8"
-      name={GIFT_NL.title}
-      text={GIFT_NL.clue}
+      name={VICTIM_TEXT.title}
+      text={VICTIM_TEXT.clue}
       className={className}
     />
   )

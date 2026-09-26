@@ -129,5 +129,5 @@ and run the full sweep on your own machine. The pull-request workflow (`.github/
 ## Known findings
 
 - `16-hard-home-10003` (found while writing this page): the hint audit rejects the hints of a 16x16 hard puzzle because a hint spells a count of 13
-  squares as a number instead of saying "de gemarkeerde vakjes". The pack filter drops such a candidate; the wording in the hint generator is worth a
+  squares as a number instead of saying "the marked squares". The pack filter drops such a candidate; the wording in the hint generator is worth a
   look (`src/validation/hints.ts` says what it wants).

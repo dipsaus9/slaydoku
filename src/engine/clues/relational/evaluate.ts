@@ -23,7 +23,7 @@ export function isSideOf(cell: Cell, ref: Cell, side: CompassSide): boolean {
 /**
  * `cell` lies strictly beyond the whole extent of `object` on the axis of `side`: north = in a row
  * above its topmost row, south = below its bottom row, east/west likewise with columns. This is how
- * a person reads "noordelijker dan een bed": above the whole bed, not merely above one of its cells.
+ * a person reads "further north than a bed": above the whole bed, not merely above one of its cells.
  * A one-cell object behaves like a plain cell.
  */
 export function isBeyondObject(cell: Cell, object: readonly Cell[], side: CompassSide): boolean {

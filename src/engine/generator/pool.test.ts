@@ -48,7 +48,7 @@ describe('enumerateTrueClues', () => {
   })
 
   describe('with the new kinds (CAD-9.4)', () => {
-    const genders = people.map((p, i) => (p.kind === 'victim' ? p : { ...p, gender: i % 2 === 0 ? ('vrouw' as const) : ('man' as const) }))
+    const genders = people.map((p, i) => (p.kind === 'victim' ? p : { ...p, gender: i % 2 === 0 ? ('woman' as const) : ('man' as const) }))
     const rich = enumerateTrueClues(scene, genders, solution, { newKinds: true })
     const kindsOf = new Set<string>(rich.map((c) => c.clue.type))
 

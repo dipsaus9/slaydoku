@@ -5,47 +5,47 @@
     "rooms": [
       {
         "id": "r1",
-        "name": "Receptie"
+        "name": "Reception"
       },
       {
         "id": "r2",
-        "name": "Loungehoek"
+        "name": "Lounge"
       },
       {
         "id": "r3",
-        "name": "Kantoortuin"
+        "name": "Open Office"
       },
       {
         "id": "r4",
-        "name": "Hal"
+        "name": "Lobby"
       },
       {
         "id": "r5",
-        "name": "Directiekamer"
+        "name": "Executive Office"
       },
       {
         "id": "r6",
-        "name": "Serverruimte"
+        "name": "Server Room"
       },
       {
         "id": "r7",
-        "name": "Kantine"
+        "name": "Canteen"
       },
       {
         "id": "r8",
-        "name": "Vergaderzaal"
+        "name": "Meeting Room"
       },
       {
         "id": "r9",
-        "name": "Overlegruimte"
+        "name": "Briefing Room"
       },
       {
         "id": "r10",
-        "name": "Personeelsruimte"
+        "name": "Staff Room"
       },
       {
         "id": "r11",
-        "name": "Werkkamer"
+        "name": "Workroom"
       }
     ],
     "cellRooms": [
@@ -340,7 +340,7 @@
     ],
     "objects": [
       {
-        "id": "archiefkast-1",
+        "id": "filingCabinet-1",
         "type": "cabinet",
         "cells": [
           {
@@ -350,7 +350,7 @@
         ]
       },
       {
-        "id": "bureau-1",
+        "id": "desk-1",
         "type": "desk",
         "cells": [
           {
@@ -364,7 +364,7 @@
         ]
       },
       {
-        "id": "kamerplant-1",
+        "id": "houseplant-1",
         "type": "plant",
         "cells": [
           {
@@ -374,7 +374,7 @@
         ]
       },
       {
-        "id": "archiefkast-2",
+        "id": "filingCabinet-2",
         "type": "cabinet",
         "cells": [
           {
@@ -388,7 +388,7 @@
         ]
       },
       {
-        "id": "garderobekast-1",
+        "id": "coatCabinet-1",
         "type": "wardrobe",
         "cells": [
           {
@@ -398,7 +398,7 @@
         ]
       },
       {
-        "id": "kamerplant-2",
+        "id": "houseplant-2",
         "type": "plant",
         "cells": [
           {
@@ -418,7 +418,7 @@
         ]
       },
       {
-        "id": "bureau-2",
+        "id": "desk-2",
         "type": "desk",
         "cells": [
           {
@@ -432,7 +432,7 @@
         ]
       },
       {
-        "id": "vloerkleed-1",
+        "id": "floorRug-1",
         "type": "rug",
         "cells": [
           {
@@ -454,7 +454,7 @@
         ]
       },
       {
-        "id": "vergaderstoel-1",
+        "id": "meetingChair-1",
         "type": "chair",
         "cells": [
           {
@@ -464,7 +464,7 @@
         ]
       },
       {
-        "id": "archiefkast-3",
+        "id": "filingCabinet-3",
         "type": "cabinet",
         "cells": [
           {
@@ -474,7 +474,7 @@
         ]
       },
       {
-        "id": "vloerkleed-2",
+        "id": "floorRug-2",
         "type": "rug",
         "cells": [
           {
@@ -496,7 +496,7 @@
         ]
       },
       {
-        "id": "boekenkast-1",
+        "id": "bookcase-1",
         "type": "bookshelf",
         "cells": [
           {
@@ -506,7 +506,7 @@
         ]
       },
       {
-        "id": "bureaustoel-1",
+        "id": "officeChair-1",
         "type": "chair",
         "cells": [
           {
@@ -516,7 +516,7 @@
         ]
       },
       {
-        "id": "bureaustoel-2",
+        "id": "officeChair-2",
         "type": "chair",
         "cells": [
           {
@@ -526,7 +526,7 @@
         ]
       },
       {
-        "id": "bureau-3",
+        "id": "desk-3",
         "type": "desk",
         "cells": [
           {
@@ -544,7 +544,7 @@
         ]
       },
       {
-        "id": "bureaustoel-3",
+        "id": "officeChair-3",
         "type": "chair",
         "cells": [
           {
@@ -554,7 +554,7 @@
         ]
       },
       {
-        "id": "wachtbank-1",
+        "id": "waitingSofa-1",
         "type": "sofa",
         "cells": [
           {
@@ -572,7 +572,7 @@
         ]
       },
       {
-        "id": "boekenkast-2",
+        "id": "bookcase-2",
         "type": "bookshelf",
         "cells": [
           {
@@ -582,7 +582,7 @@
         ]
       },
       {
-        "id": "balie-1",
+        "id": "receptionDesk-1",
         "type": "kitchenCounter",
         "cells": [
           {
@@ -600,7 +600,7 @@
         ]
       },
       {
-        "id": "bureaustoel-4",
+        "id": "officeChair-4",
         "type": "chair",
         "cells": [
           {
@@ -610,7 +610,7 @@
         ]
       },
       {
-        "id": "bureaustoel-5",
+        "id": "officeChair-5",
         "type": "chair",
         "cells": [
           {
@@ -620,7 +620,7 @@
         ]
       },
       {
-        "id": "bureaustoel-6",
+        "id": "officeChair-6",
         "type": "chair",
         "cells": [
           {
@@ -630,7 +630,7 @@
         ]
       },
       {
-        "id": "bureaustoel-7",
+        "id": "officeChair-7",
         "type": "chair",
         "cells": [
           {
@@ -640,7 +640,7 @@
         ]
       },
       {
-        "id": "bureaustoel-8",
+        "id": "officeChair-8",
         "type": "chair",
         "cells": [
           {
@@ -650,7 +650,7 @@
         ]
       },
       {
-        "id": "boekenkast-3",
+        "id": "bookcase-3",
         "type": "bookshelf",
         "cells": [
           {
@@ -664,7 +664,7 @@
         ]
       },
       {
-        "id": "bureau-4",
+        "id": "desk-4",
         "type": "desk",
         "cells": [
           {
@@ -678,7 +678,7 @@
         ]
       },
       {
-        "id": "kamerplant-3",
+        "id": "houseplant-3",
         "type": "plant",
         "cells": [
           {
@@ -688,7 +688,7 @@
         ]
       },
       {
-        "id": "boekenkast-4",
+        "id": "bookcase-4",
         "type": "bookshelf",
         "cells": [
           {
@@ -698,7 +698,7 @@
         ]
       },
       {
-        "id": "bureaustoel-9",
+        "id": "officeChair-9",
         "type": "chair",
         "cells": [
           {
@@ -708,7 +708,7 @@
         ]
       },
       {
-        "id": "vergadertafel-1",
+        "id": "meetingTable-1",
         "type": "diningTable",
         "cells": [
           {
@@ -726,7 +726,7 @@
         ]
       },
       {
-        "id": "bureaustoel-10",
+        "id": "officeChair-10",
         "type": "chair",
         "cells": [
           {
@@ -736,7 +736,7 @@
         ]
       },
       {
-        "id": "bureau-5",
+        "id": "desk-5",
         "type": "desk",
         "cells": [
           {
@@ -750,7 +750,7 @@
         ]
       },
       {
-        "id": "garderobekast-2",
+        "id": "coatCabinet-2",
         "type": "wardrobe",
         "cells": [
           {
@@ -760,7 +760,7 @@
         ]
       },
       {
-        "id": "bureau-6",
+        "id": "desk-6",
         "type": "desk",
         "cells": [
           {
@@ -774,7 +774,7 @@
         ]
       },
       {
-        "id": "vergadertafel-2",
+        "id": "meetingTable-2",
         "type": "diningTable",
         "cells": [
           {
@@ -792,7 +792,7 @@
         ]
       },
       {
-        "id": "flipover-1",
+        "id": "flipchart-1",
         "type": "easel",
         "cells": [
           {
@@ -802,7 +802,7 @@
         ]
       },
       {
-        "id": "vergaderstoel-2",
+        "id": "meetingChair-2",
         "type": "chair",
         "cells": [
           {
@@ -812,7 +812,7 @@
         ]
       },
       {
-        "id": "vergaderstoel-3",
+        "id": "meetingChair-3",
         "type": "chair",
         "cells": [
           {
@@ -822,7 +822,7 @@
         ]
       },
       {
-        "id": "koffiehoek-1",
+        "id": "coffeeCounter-1",
         "type": "kitchenCounter",
         "cells": [
           {
@@ -840,7 +840,7 @@
         ]
       },
       {
-        "id": "koffiehoek-2",
+        "id": "coffeeCounter-2",
         "type": "kitchenCounter",
         "cells": [
           {
@@ -858,7 +858,7 @@
         ]
       },
       {
-        "id": "bureau-7",
+        "id": "desk-7",
         "type": "desk",
         "cells": [
           {
@@ -872,7 +872,7 @@
         ]
       },
       {
-        "id": "kamerplant-4",
+        "id": "houseplant-4",
         "type": "plant",
         "cells": [
           {
@@ -882,7 +882,7 @@
         ]
       },
       {
-        "id": "kamerplant-5",
+        "id": "houseplant-5",
         "type": "plant",
         "cells": [
           {
@@ -892,7 +892,7 @@
         ]
       },
       {
-        "id": "bureau-8",
+        "id": "desk-8",
         "type": "desk",
         "cells": [
           {
@@ -910,7 +910,7 @@
         ]
       },
       {
-        "id": "bureaustoel-11",
+        "id": "officeChair-11",
         "type": "chair",
         "cells": [
           {
@@ -920,7 +920,7 @@
         ]
       },
       {
-        "id": "wachtbank-2",
+        "id": "waitingSofa-2",
         "type": "sofa",
         "cells": [
           {
@@ -938,7 +938,7 @@
         ]
       },
       {
-        "id": "kamerplant-6",
+        "id": "houseplant-6",
         "type": "plant",
         "cells": [
           {
@@ -948,7 +948,7 @@
         ]
       },
       {
-        "id": "bureaustoel-12",
+        "id": "officeChair-12",
         "type": "chair",
         "cells": [
           {
@@ -958,7 +958,7 @@
         ]
       },
       {
-        "id": "balie-2",
+        "id": "receptionDesk-2",
         "type": "kitchenCounter",
         "cells": [
           {
@@ -972,7 +972,7 @@
         ]
       },
       {
-        "id": "bedrijfsauto-1",
+        "id": "companyCar-1",
         "type": "car",
         "cells": [
           {
@@ -986,7 +986,7 @@
         ]
       },
       {
-        "id": "wachtbank-3",
+        "id": "waitingSofa-3",
         "type": "sofa",
         "cells": [
           {
@@ -1004,7 +1004,7 @@
         ]
       },
       {
-        "id": "bureaustoel-13",
+        "id": "officeChair-13",
         "type": "chair",
         "cells": [
           {
@@ -1014,7 +1014,7 @@
         ]
       },
       {
-        "id": "bureaustoel-14",
+        "id": "officeChair-14",
         "type": "chair",
         "cells": [
           {
@@ -1024,7 +1024,7 @@
         ]
       },
       {
-        "id": "bureaustoel-15",
+        "id": "officeChair-15",
         "type": "chair",
         "cells": [
           {
@@ -1034,7 +1034,7 @@
         ]
       },
       {
-        "id": "vergaderstoel-4",
+        "id": "meetingChair-4",
         "type": "chair",
         "cells": [
           {
@@ -1044,7 +1044,7 @@
         ]
       },
       {
-        "id": "bureaustoel-16",
+        "id": "officeChair-16",
         "type": "chair",
         "cells": [
           {

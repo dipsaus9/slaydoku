@@ -1,7 +1,7 @@
-import { countNl, renderClue } from '../../../clues/index.ts'
+import { countWord, renderClue } from '../../../clues/index.ts'
 import type { CatalogClue } from '../../../clues/index.ts'
 import type { BoardView } from '../../human/board.ts'
-import { cellList, peopleNames, personName, sentences } from '../../human/nl.ts'
+import { cellList, peopleNames, personName, sentences } from '../../human/en.ts'
 import type { Elimination, Technique } from '../../human/types.ts'
 import { linkModel } from '../links.ts'
 import type { Link } from '../links.ts'
@@ -29,7 +29,7 @@ const MAX_GROUPS = 5
  */
 export const combinedClues: Technique = {
   id: 'clue-combined',
-  title: 'Aanwijzingen combineren',
+  title: 'Combine clues',
   level: 4,
   find(board, context) {
     const model = linkModel(board, context)
@@ -62,7 +62,7 @@ export const combinedClues: Technique = {
       return {
         eliminate,
         explanation: sentences(
-          `De kaarten van ${name} en ${neighbours} horen bij elkaar: ${cards.join(' ')}${tied.length > 3 ? ` Er zijn nog ${countNl(tied.length - 3)} van zulke kaarten.` : ''} Als ${name} op ${cellList(board, eliminate.map((e) => e.cell))} staat, is er voor ${neighbours} geen combinatie van vakjes meer die bij al die kaarten past zonder een rij of kolom te delen. Daar staat ${name} dus niet.`,
+          `The cards of ${name} and ${neighbours} belong together: ${cards.join(' ')}${tied.length > 3 ? ` There ${tied.length - 3 === 1 ? 'is' : 'are'} ${countWord(tied.length - 3)} more like these.` : ''} If ${name} stands on ${cellList(board, eliminate.map((e) => e.cell))}, there is no combination of squares left for ${neighbours} that fits all those cards without sharing a row or column. So ${name} does not stand there.`,
         ),
         people: [q, ...used.map((g) => g.neighbour)],
         cells: [...new Set(eliminate.map((e) => e.cell))],

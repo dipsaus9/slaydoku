@@ -43,7 +43,7 @@ describe('puzzleFingerprint', () => {
     ['a removed door or window', (p) => void p.scene.edgeFeatures.pop()],
     ['a person label', (p) => void (p.people[0]!.label = 'Zoë')],
     ['a person kind', (p) => void (p.people[0]!.kind = p.people[0]!.kind === 'suspect' ? 'victim' : 'suspect')],
-    ['a gender', (p) => void (p.people[0]!.gender = 'vrouw')],
+    ['a gender', (p) => void (p.people[0]!.gender = 'woman')],
     ['a clue argument', (p) => void (p.clues[0]!.args = { objectType: 'bed' })],
     ['a clue type', (p) => void (p.clues[1]!.type = 'besideObject')],
     ['a removed clue', (p) => void p.clues.pop()],

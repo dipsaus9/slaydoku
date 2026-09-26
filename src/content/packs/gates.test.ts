@@ -61,7 +61,7 @@ describe('entryProblems: the ladder gates of the tiers very easy to medium (CAD-
   it('a gender card needs a cast with genders: it fails the entry when a suspect has none (CAD-9.4)', () => {
     const bad = entry()
     const [holder, other] = bad.puzzle.people.filter((p) => p.kind === 'suspect')
-    holder!.gender = 'vrouw'
+    holder!.gender = 'woman'
     other!.gender = 'man'
     delete bad.puzzle.people.filter((p) => p.kind === 'suspect')[2]!.gender
     bad.puzzle.clues.push({ personId: holder!.id, type: 'roomHasGender', args: { gender: 'man' } })

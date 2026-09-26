@@ -9,15 +9,15 @@ Steps: draw the plan, write the scene file, validate it, write a test, wire it i
 
 ## 1. Draw the plan on the grid
 
-Snap the plan to squares. On a square grid of N x N the game has N people (N-1 suspects plus the gift), so N = 9 means 8 suspects. Decide
+Snap the plan to squares. On a square grid of N x N the game has N people (N-1 suspects plus the victim), so N = 9 means 8 suspects. Decide
 before you type:
 
 - **Rooms.** Every wall between two rooms is a thick wall. Rooms can be L-shaped but must be connected. Outdoor areas (garden) are rooms too.
-- **The gift room.** The gift (victim) must be alone with exactly one suspect, the murderer. So the room that holds the gift needs two free cells
+- **The victim room.** The victim must be alone with exactly one suspect, the murderer. So the room that holds the victim needs two free cells
   that share neither a row nor a column, and the room must not span so many rows that it always holds more people. A big open room fails:
   wall the bed or sofa area off into a small room. Rule 8 in [rules.md](rules.md).
 - **Every row and column needs an occupiable cell**, or nobody can stand in that line (rule 3).
-- **Gift cells.** Choose the cells where the gift may lie, always occupiable ones (bed, sofa, floor next to the bed). The demo scene puts it on the sofa.
+- **Victim cells.** Choose the cells where the victim may lie, always occupiable ones (bed, sofa, floor next to the bed). The demo scene puts it on the sofa.
 
 ## 2. Write the scene file
 
@@ -36,19 +36,19 @@ const LAYOUT = [
   'SSSSHH',
   'SSSSHH',
 ]
-const ROOM_IDS: Record<string, string> = { K: 'keuken', G: 'gang', S: 'slaapkamer', H: 'hal' }
+const ROOM_IDS: Record<string, string> = { K: 'kitchen', G: 'corridor', S: 'bedroom', H: 'hall' }
 
 const at = (row: number, col: number): Cell => ({ row, col })
 
 export const myScene: Scene = {
   width: 6,
   height: 6,
-  // Names carry their article: "de Keuken", "het Toilet". Clues read them as stored.
+  // Names are bare: "Kitchen", "Hall". Clues add "the" ("A was in the Kitchen.").
   rooms: [
-    { id: 'keuken', name: 'de Keuken' },
-    { id: 'gang', name: 'de Gang' },
-    { id: 'slaapkamer', name: 'de Slaapkamer' },
-    { id: 'hal', name: 'de Hal' },
+    { id: 'kitchen', name: 'Kitchen' },
+    { id: 'corridor', name: 'Corridor' },
+    { id: 'bedroom', name: 'Bedroom' },
+    { id: 'hall', name: 'Hall' },
   ],
   cellRooms: LAYOUT.map((line) => [...line].map((ch) => ROOM_IDS[ch]!)),
   objects: [
@@ -62,15 +62,15 @@ export const myScene: Scene = {
   ],
 }
 
-/** Where the gift may lie. */
-export const MY_SCENE_GIFT_CELLS: readonly Cell[] = myScene.objects.find((o) => o.id === 'bed')?.cells ?? []
+/** Where the victim may lie. */
+export const MY_SCENE_VICTIM_CELLS: readonly Cell[] = myScene.objects.find((o) => o.id === 'bed')?.cells ?? []
 
 /** Floor look per room: 'wood' | 'tiles' | 'grass' | 'water' | 'stone' | 'carpet'. */
 export const myRoomStyles: Record<string, FloorPattern> = {
-  keuken: 'tiles',
-  gang: 'stone',
-  slaapkamer: 'carpet',
-  hal: 'tiles',
+  kitchen: 'tiles',
+  corridor: 'stone',
+  bedroom: 'carpet',
+  hall: 'tiles',
 }
 ```
 
@@ -94,7 +94,7 @@ Rules for the pieces:
 ## 3. Validate
 
 Structural check (empty array = valid) plus the admissibility check that proves the scene can host a legal placement and lists the rooms that can
-hold the gift:
+hold the victim:
 
 ```sh
 bun -e "
@@ -107,14 +107,14 @@ console.log(a.ok, a.victimRooms)
 "
 ```
 
-Swap in your own import. `checkScene` messages name the JSON path (`scene.objects[3].cells`, ...). Your gift room must appear in `victimRooms`,
-otherwise no puzzle can put the gift there.
+Swap in your own import. `checkScene` messages name the JSON path (`scene.objects[3].cells`, ...). Your victim room must appear in `victimRooms`,
+otherwise no puzzle can put the victim there.
 
 ## 4. Write a scene test
 
 Prove, for your scene: it is valid and survives a JSON round trip (`checkScene`, `parseScene`, `serializeScene`); objects are classified
-occupiable or blocking as intended (`isOccupiableType`); `hasIcon(type, cells)` is true for every object; every room has a floor style; the gift
-cells are occupiable; every row and column keeps an occupiable cell, and a valid placement exists for each gift cell. Run it alone with
+occupiable or blocking as intended (`isOccupiableType`); `hasIcon(type, cells)` is true for every object; every room has a floor style; the victim
+cells are occupiable; every row and column keeps an occupiable cell, and a valid placement exists for each victim cell. Run it alone with
 `bunx vitest run src/content/<name>/scene.test.ts`.
 
 ## 5. Wire it into the tools

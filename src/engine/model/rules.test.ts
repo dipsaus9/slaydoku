@@ -18,7 +18,7 @@ describe('tutorial puzzle (murdokus.nl, 4x4)', () => {
     const { people, scene } = tutorialPuzzle
     expect(people.filter((p) => p.kind === 'suspect')).toHaveLength(3)
     expect(people.filter((p) => p.kind === 'victim')).toHaveLength(1)
-    expect(scene.rooms.map((r) => r.name)).toEqual(['Woonkamer', 'Grote slaapkamer'])
+    expect(scene.rooms.map((r) => r.name)).toEqual(['Living Room', 'Large Bedroom'])
     expect([scene.width, scene.height]).toEqual([4, 4])
   })
 

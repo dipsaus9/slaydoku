@@ -1,6 +1,6 @@
 import type { BoardView } from '../../human/board.ts'
-import { countNl } from '../../../clues/index.ts'
-import { lineNames, peopleNames, sentences } from '../../human/nl.ts'
+import { countWord } from '../../../clues/index.ts'
+import { lineNames, peopleNames, sentences } from '../../human/en.ts'
 import type { Deduction, Elimination, Technique } from '../../human/types.ts'
 import { snapshot, subsets } from '../snapshot.ts'
 import type { Snapshot } from '../snapshot.ts'
@@ -53,11 +53,11 @@ function naked(snap: Snapshot, rows: boolean, size: number): Deduction | null {
       }
     }
     if (eliminate.length === 0) continue
-    const noun = rows ? 'rijen' : 'kolommen'
+    const noun = rows ? 'rows' : 'columns'
     return {
       eliminate,
       explanation: sentences(
-        `${peopleNames(board, group)} kunnen alleen nog in ${lineNames(rows, [...lines])} staan: ${countNl(size)} mensen voor ${countNl(size)} ${noun}. Wie waar staat weten we nog niet, maar die ${noun} zijn samen voor hen. Niemand anders kan daar staan.`,
+        `${peopleNames(board, group)} can only stand in ${lineNames(rows, [...lines])} now: ${countWord(size)} people for ${countWord(size)} ${noun}. We do not know who stands where, but those ${noun} belong to them together. Nobody else can stand there.`,
       ),
       people: group,
       cells: [...new Set(eliminate.map((e) => e.cell))],
@@ -105,11 +105,11 @@ function hidden(snap: Snapshot, rows: boolean, size: number): Deduction | null {
     if (eliminate.length === 0) continue
     const list = lineNames(rows, lines)
     const group = [...who]
-    const noun = rows ? 'rij' : 'kolom'
+    const noun = rows ? 'row' : 'column'
     const explanation =
       size === 1
-        ? `In ${list} kan alleen ${peopleNames(board, group)} nog staan. Elke ${noun} heeft iemand, dus ${peopleNames(board, group)} staat daar en nergens anders.`
-        : `In ${list} kunnen alleen ${peopleNames(board, group)} nog staan. Elke ${noun} heeft iemand, dus zij nemen die ${countNl(size)} ${rows ? 'rijen' : 'kolommen'} samen in en staan nergens anders.`
+        ? `Only ${peopleNames(board, group)} can still stand in ${list}. Every ${noun} holds somebody, so ${peopleNames(board, group)} stands there and nowhere else.`
+        : `Only ${peopleNames(board, group)} can still stand in ${list}. Every ${noun} holds somebody, so they fill those ${countWord(size)} ${rows ? 'rows' : 'columns'} together and stand nowhere else.`
     return { eliminate, explanation: sentences(explanation), people: group, cells: [...new Set(eliminate.map((e) => e.cell))] }
   }
   return null

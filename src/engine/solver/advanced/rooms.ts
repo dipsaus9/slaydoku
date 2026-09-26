@@ -1,11 +1,11 @@
 import type { CatalogClue } from '../../clues/index.ts'
-import { countNl } from '../../clues/index.ts'
-import { giftName, peopleNames, roomName } from '../human/nl.ts'
+import { countWord } from '../../clues/index.ts'
+import { victimName, peopleNames, roomName } from '../human/en.ts'
 import type { Snapshot } from './snapshot.ts'
 
 /**
  * A bound on how many people stand in a room. `why` is the reason as a clause that fits after
- * "want": "Alice staat zeker in de Eethoek".
+ * "because": "Alice is sure to be in the Dining Nook".
  */
 export interface Bound {
   value: number
@@ -94,20 +94,20 @@ export function roomBounds(snap: Snapshot, clues: readonly CatalogClue[]): RoomB
     const lowerHi = (value: number, why: string) => {
       if (value < hi.value) hi = { value, why }
     }
-    if (sure.length > 0) raiseLo(placed + sure.length, `${peopleNames(board, sure)} ${sure.length === 1 ? 'staat' : 'staan'} zeker in ${name}`)
+    if (sure.length > 0) raiseLo(placed + sure.length, `${peopleNames(board, sure)} ${sure.length === 1 ? 'is' : 'are'} sure to be in ${name}`)
     if (snap.square) {
       if (rows.confined.length > 0) {
         const r = rows.confined[0] as number
-        raiseLo(placed + rows.confined.length, `in ${rows.confined.length === 1 ? `rij ${r + 1}` : `${countNl(rows.confined.length)} rijen`} kan alleen nog iemand in ${name} staan`)
+        raiseLo(placed + rows.confined.length, `${rows.confined.length === 1 ? `row ${r + 1}` : `${countWord(rows.confined.length)} rows`} can only be filled from ${name}`)
       }
       if (cols.confined.length > 0) {
         const k = cols.confined[0] as number
-        raiseLo(placed + cols.confined.length, `in ${cols.confined.length === 1 ? `kolom ${k + 1}` : `${countNl(cols.confined.length)} kolommen`} kan alleen nog iemand in ${name} staan`)
+        raiseLo(placed + cols.confined.length, `${cols.confined.length === 1 ? `column ${k + 1}` : `${countWord(cols.confined.length)} columns`} can only be filled from ${name}`)
       }
     }
-    lowerHi(placed + rows.reachable.length, `${name} heeft nog maar ${countNl(rows.reachable.length)} vrije ${rows.reachable.length === 1 ? 'rij' : 'rijen'}`)
-    lowerHi(placed + cols.reachable.length, `${name} heeft nog maar ${countNl(cols.reachable.length)} vrije ${cols.reachable.length === 1 ? 'kolom' : 'kolommen'}`)
-    lowerHi(placed + reach.length, `er ${reach.length === 1 ? 'kan' : 'kunnen'} nog maar ${countNl(reach.length)} ${reach.length === 1 ? 'persoon' : 'mensen'} in ${name} komen`)
+    lowerHi(placed + rows.reachable.length, `${name} has only ${countWord(rows.reachable.length)} free ${rows.reachable.length === 1 ? 'row' : 'rows'} left`)
+    lowerHi(placed + cols.reachable.length, `${name} has only ${countWord(cols.reachable.length)} free ${cols.reachable.length === 1 ? 'column' : 'columns'} left`)
+    lowerHi(placed + reach.length, `only ${countWord(reach.length)} ${reach.length === 1 ? 'person' : 'people'} can still get into ${name}`)
     // Without a square grid an empty row or column is fine, so no line is 'confined' (needs somebody).
     const none: number[] = []
     out.push({ room, placed, reach, sure, confinedRows: snap.square ? rows.confined : none, confinedCols: snap.square ? cols.confined : none, lo, hi })
@@ -123,7 +123,7 @@ export function roomBounds(snap: Snapshot, clues: readonly CatalogClue[]): RoomB
   const victim = board.victim
   if (victim >= 0) {
     const room = board.isPlaced(victim) ? board.room(board.placedAt(victim)) : board.certainRoom(victim)
-    if (room >= 0) fix(room, 2, `${roomName(board, room)} heeft ${giftName(board)} en precies één verdachte`, true)
+    if (room >= 0) fix(room, 2, `${roomName(board, room)} holds ${victimName(board)} and exactly one suspect`, true)
   }
   const label = (id: string) => board.people.find((q) => q.id === id)?.label ?? id
   const roomOfSure = (id: string): number => {
@@ -135,14 +135,14 @@ export function roomBounds(snap: Snapshot, clues: readonly CatalogClue[]): RoomB
     const args = clue.args as Record<string, unknown>
     if (clue.type === 'aloneWith' && typeof args.otherId === 'string') {
       const room = Math.max(roomOfSure(clue.personId), roomOfSure(args.otherId))
-      if (room >= 0) fix(room, 2, `${roomName(board, room)} heeft alleen ${label(clue.personId)} en ${label(args.otherId)}`, true)
+      if (room >= 0) fix(room, 2, `${roomName(board, room)} holds only ${label(clue.personId)} and ${label(args.otherId)}`, true)
     } else if (clue.type === 'aloneWithGender') {
       const room = roomOfSure(clue.personId)
       const who = (clue.args as { gender: string }).gender
-      if (room >= 0) fix(room, 2, `${roomName(board, room)} heeft alleen ${label(clue.personId)} en een ${who}`, true)
+      if (room >= 0) fix(room, 2, `${roomName(board, room)} holds only ${label(clue.personId)} and a ${who}`, true)
     } else if (isAloneish(clue)) {
       const room = roomOfSure(clue.personId)
-      if (room >= 0) fix(room, 1, `${label(clue.personId)} is alleen in ${roomName(board, room)}`, true)
+      if (room >= 0) fix(room, 1, `${label(clue.personId)} is alone in ${roomName(board, room)}`, true)
     }
   }
   // Everybody stands somewhere: what the other rooms cannot hold, this room must.
@@ -150,7 +150,7 @@ export function roomBounds(snap: Snapshot, clues: readonly CatalogClue[]): RoomB
     const sumHi = out.reduce((sum, b) => sum + b.hi.value, 0)
     for (const b of out) {
       const forced = total - (sumHi - b.hi.value)
-      if (forced > b.lo.value) b.lo = { value: forced, why: `alle andere kamers samen hebben plaats voor maar ${countNl(sumHi - b.hi.value)} ${sumHi - b.hi.value === 1 ? 'persoon' : 'mensen'}` }
+      if (forced > b.lo.value) b.lo = { value: forced, why: `all the other rooms together have space for only ${countWord(sumHi - b.hi.value)} ${sumHi - b.hi.value === 1 ? 'person' : 'people'}` }
     }
   }
 

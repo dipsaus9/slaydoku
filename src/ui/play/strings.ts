@@ -1,4 +1,4 @@
-/** Dutch wording of the play screen. Clue and gift wording live in engine/clues/nl.ts. */
+/** Dutch wording of the play screen. Clue and gift wording live in engine/clues/en.ts. */
 export const PLAY_NL = {
   title: 'Slaydoku',
   tools: {

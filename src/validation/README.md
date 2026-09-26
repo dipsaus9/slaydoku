@@ -23,21 +23,21 @@ it crosses out at most 12 squares, and what it frees up is worked out in the pla
 
 - The walk finishes: every step has a hint at all three levels and everybody ends on their true square. On the
   registered levels it takes at most 1.3 x the number of people in hint requests (`walk.test.ts`).
-- Every level is plain Dutch: not empty, no English, no stray whitespace, capital first, full stop last,
-  no solver jargon (`kandidaat`, `techniek`, ...), no technique ids, no code (`r3k4`, `undefined`, braces),
-  and no count of squares as a number above four (`de 61 gemarkeerde vakjes` reads badly: the squares are lit on the board).
+- Every level is plain English: not empty, no Dutch, no stray whitespace, capital first, full stop last,
+  no solver jargon (`candidate`, `technique`, ...), no technique ids, no code (`r3c4`, `undefined`, braces),
+  and no count of squares as a number above four (`the 61 marked squares` reads badly: the squares are lit on the board).
 - Level 1 names the person (all of them up to three) and only points at areas that exist.
-- Level 2 names the squares (a crossing up to four, a person's possible squares up to six; more are `de gemarkeerde vakjes`)
+- Level 2 names the squares (a crossing up to four, a person's possible squares up to six; more are `the marked squares`)
   and the person, and never lights more than 12 squares (more than six possible squares are never a note).
-- Level 3 is the explanation followed by one explicit instruction: `Zet <naam> op rij X, kolom Y.` for a placement,
-  `Zet een notitie voor <naam> op ...` naming every possible square for a note, `Zet een kruisje ...` naming the
+- Level 3 is the explanation followed by one explicit instruction: `Place <name> on row X, column Y.` for a placement,
+  `Note squares for <name> on ...` naming every possible square for a note, `Put a cross ...` naming the
   squares for a crossing.
 - Length limits (`HINT_LIMITS`): level 1 up to 220 characters, level 2 up to 200, level 3 up to 420; the harder the
   technique the longer its explanation may be: 600 for hard (level 4) and 800 for expert (level 5) techniques.
 
 ## Clues (`auditClues`)
 
-- Every card renders as one Dutch sentence (capital, full stop, no code).
+- Every card renders as one English sentence (capital, full stop, no code).
 - Every card is unambiguous: what it names exists (holder, other person, area, object, row or column), no two people
   share a label, no two areas share a name, no two cards say the same.
 - Every card kind is one the tier allows. Hard and expert allow the whole catalog. Very easy to medium (the ladder tiers of CAD-8.3)
@@ -46,7 +46,7 @@ it crosses out at most 12 squares, and what it frees up is worked out in the pla
   `sameRoom`, `differentRoom`, `notWith`, `directionOf`, `exactDistance`, `diagonal`, `quadrant`) only from medium up (`kindAllowedIn` in `clues.ts`). `inRoomEdge` (CAD-9.2) needs no other person and is allowed everywhere; it is direct when it names the room ("van de Keuken"), not when it leaves the room to the holder.
   A combined card (`both`, CAD-9.3) is allowed from easy-medium up (CAD-9.4) when each of its parts is (`clueAllowedIn`), and on hard and expert like any kind. It is direct when both parts are (`isDirectClue`).
   `DIRECT_CLUE_KINDS` and `isDirectClue` live in `src/engine/clues/direct.ts`, so the audit and `src/engine/difficulty` measure the same share.
-- A combined card is one natural Dutch sentence: `auditClues` runs `checkClue` on it (two different well-formed parts, no nesting) and flags a text that names the holder more than once, has other than exactly one "en" between the parts, contains a pronoun, is more than one sentence or is longer than `MAX_COMBINED_TEXT` (200) characters. The hint audit accepts its hints ("De kaart van Henry heeft twee delen: ...", the card is not quoted a second time so the hint stays under the length limit).
+- A combined card is one natural English sentence: `auditClues` runs `checkClue` on it (two different well-formed parts, no nesting) and flags a text that names the holder more than once, has other than exactly one "and" between the parts, contains a pronoun, is more than one sentence or is longer than `MAX_COMBINED_TEXT` (200) characters. The hint audit accepts its hints ("De kaart van Henry heeft twee delen: ...", the card is not quoted a second time so the hint stays under the length limit).
 - The share of direct clues reaches the minimum of the tier.
 
 ### Minimum share of direct clues per tier
@@ -69,10 +69,21 @@ The floor is set a little under what generated puzzles of the tier reach. With t
 placement (`src/engine/solvable`), and a single card that leaves one square is mostly a comparison ("noordelijker dan een bed"), so the share of
 plain cards is only floored, not aimed at. Measure it on a fresh sample with `bun run validate:generation`.
 
+## No Dutch left in the game code
+
+The project started from a Dutch prototype. `dutch.test.ts` keeps that text from coming back: it reads every file under
+`src/engine`, `src/game`, `src/validation` and `src/content` (tests, fixtures and JSON data included), takes the contents of
+the string literals (comments and identifiers are ignored; JSON files count by their string values) and fails on any whole word
+of the small list in `dutch.ts` (`de`, `het`, `een`, `stond`, `naast`, `vakje`, `kamer`, `cadeau`, `rij`, `kolom`, ...).
+The list holds only words that are not English and not names: `was` and `van` are English too, so they are not on it. The same
+list is used by `auditHints`, so a Dutch hint text is also rejected while a puzzle is built. The scan skips `dutch.ts` and its test
+(they are the list) and `src/content/help` (interface text, translated in SLAY-1.2, where that skip is to be removed). `src/ui` and
+`src/pwa` are not scanned yet for the same reason.
+
 ## When a puzzle fails
 
 - Pack entry: the generator drops the candidate and tries the next seed, so a committed id can leave a gap
   (see `src/content/packs/README.md`). To replace committed puzzles after a rule change, run
   `bun run pack --sizes <n> --tiers <t> --count 2` for the affected files and list the replaced ids in the PR.
 - A hint that fails on many puzzles points at the wording of the hints or of a solver explanation, not at the
-  puzzle: fix the text (`src/game/hints.ts`, `src/engine/solver/human/nl.ts`), not the pack.
+  puzzle: fix the text (`src/game/hints.ts`, `src/engine/solver/human/en.ts`), not the pack.

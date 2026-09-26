@@ -28,10 +28,9 @@ score v2 band (`src/engine/difficulty`).
 | Path | What |
 |---|---|
 | `types.ts` | `PackEntry`, `PackFile`, `PackIndex`, `IndexEntry` and `PACK_FORMAT`. |
-| `build.ts` | Builds one entry (`buildEntry`): random scene, tier generator, dressing (cast names, articles, title), all gates. |
+| `build.ts` | Builds one entry (`buildEntry`): random scene, tier generator, dressing (cast names, "the victim", title), all gates. |
 | `gates.ts` | The quality gates (`entryProblems`) and the duplicate keys (`boardKey`, `puzzleKey`). |
 | `format.ts`, `read.ts`, `ids.ts` | Serialisation (one puzzle per line, fixed key order), parsing and cross-file checks, stable ids and file names. |
-| `articles.ts` | `de` / `het` for room names. |
 | `sweep.ts` | The generation sweep behind `bun run validate:generation`: success rate, gate rejections and time per size x tier x theme cell. |
 | `sample.testing.ts` | Test support: builds a small pack on the spot. |
 
@@ -45,7 +44,7 @@ the puzzles (id, size, tier, theme, title, clue count, rating, file, `fp`). An e
 ```
 id          "9-easy-home-201"  (size-tier-theme-seed, stable)
 size, tier, theme, seed
-title       Dutch: theme + template on the room where the gift lies
+title       English: theme + template on the room where the victim lies ("Family home: Foul play in the Kitchen")
 clueCount   cards including the victim card
 rating      {score 0-100, level = hardest technique 1-5, steps of the human walk}
 cast        suspect names in seat order (the labels of the suspects); the people also carry their genders
@@ -53,8 +52,8 @@ puzzle      a plain Puzzle: scene, people, solution, clues (`bun run verify` rea
 ```
 
 Suspects carry the placeholder cast names (`buildCastForBoard`: Alice, Ben, Chloe, Dan, Emma, Frank, Grace, Henry, then generated extras up to 15
-on 16x16, seeded by the puzzle id), the victim is `het cadeau`, and room names carry their article (`de Keuken`, `het Toilet`). Genders alternate
-vrouw/man in the fixed eight and stay balanced with the extras; gender cards need a gender on every suspect, and the gift has none.
+on 16x16, seeded by the puzzle id), the victim is `the victim`, and room names stay bare (`Kitchen`, `Toilet`; clue text adds "the"). Genders alternate
+woman/man in the fixed eight and stay balanced with the extras; gender cards need a gender on every suspect, and the victim has none.
 
 ## Commands
 
@@ -96,4 +95,4 @@ reuses ids.
 - No duplicates: no two puzzles share a board or a whole puzzle; ids unique.
 - Hints and cards: `auditHints` and `auditClues` (`src/validation`).
 - Genders: a gender card needs a gender on every suspect.
-- Shape: size, people count, cast labels, `het cadeau`, articles on every room name, title, index equals the files.
+- Shape: size, people count, cast labels, `the victim`, bare room names, title, index equals the files.

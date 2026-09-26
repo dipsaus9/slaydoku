@@ -6,12 +6,12 @@ import type { Puzzle } from './types.ts'
  * the solution: no art, no clue text.
  *
  * Solution, 1-based as on the site: V r1c1, A r2c3, C r3c4, B r4c2; A is the
- * murderer (alone with V in the Woonkamer).
+ * murderer (alone with V in the Living Room).
  *
- *   r1  V   .   table  .          Woonkamer
- *   r2  tv  .   A      .          Woonkamer
- *   r3  .   bed .      C | window Grote slaapkamer
- *   r4  .   bed .      plant      Grote slaapkamer
+ *   r1  V   .   table  .          Living Room
+ *   r2  tv  .   A      .          Living Room
+ *   r3  .   bed .      C | window Large Bedroom
+ *   r4  .   bed .      plant      Large Bedroom
  *
  * The bed covers r3c2 and r4c2; B stands on its lower cell.
  */
@@ -20,8 +20,8 @@ export const tutorialPuzzle: Puzzle = {
     width: 4,
     height: 4,
     rooms: [
-      { id: 'living', name: 'Woonkamer' },
-      { id: 'bedroom', name: 'Grote slaapkamer' },
+      { id: 'living', name: 'Living Room' },
+      { id: 'bedroom', name: 'Large Bedroom' },
     ],
     cellRooms: [
       ['living', 'living', 'living', 'living'],

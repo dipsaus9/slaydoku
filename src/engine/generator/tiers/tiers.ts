@@ -9,7 +9,7 @@ export type ClueKind = CatalogClue['type']
 
 /**
  * The tier ids are those of the human-solvability scale (`SOLVABLE_TIERS` in src/engine/solvable/tiers.ts, CAD-5.6): one table of tiers. What this
- * file adds per tier is what the generator needs (Dutch label, clue kinds, clue policy, technique levels); the order comes from that table.
+ * file adds per tier is what the generator needs (label, clue kinds, clue policy, technique levels); the order comes from that table.
  */
 export type TierId = SolvableTierId
 
@@ -31,7 +31,7 @@ export interface CluePolicy {
 
 export interface TierDefinition {
   id: TierId
-  /** Dutch name for the UI. */
+  /** Name for the UI. */
   label: string
   /** 0 = easiest; taken from `SOLVABLE_TIERS`. */
   order: number
@@ -114,27 +114,27 @@ const ALL_KINDS: readonly ClueKind[] = [...STRUCTURAL_CLUE_TYPES, ...RELATIONAL_
  */
 export const TIERS: readonly TierDefinition[] = [
   {
-    id: 'very-easy', label: 'Zeer makkelijk', order: orderOf('very-easy'), allowedKinds: EASY_KINDS, fallbackKinds: ['inRow', 'inColumn'],
+    id: 'very-easy', label: 'Very easy', order: orderOf('very-easy'), allowedKinds: EASY_KINDS, fallbackKinds: ['inRow', 'inColumn'],
     minTechniqueLevel: 1, maxTechniqueLevel: 1, minScore: 0, maxScore: 19,
     clues: { maxExtraClues: 4, maxCluesPerSuspect: 2 }, availability: 'now',
   },
   {
-    id: 'easy', label: 'Makkelijk', order: orderOf('easy'), allowedKinds: EASY_KINDS, fallbackKinds: ['inRow', 'inColumn'],
+    id: 'easy', label: 'Easy', order: orderOf('easy'), allowedKinds: EASY_KINDS, fallbackKinds: ['inRow', 'inColumn'],
     minTechniqueLevel: 2, maxTechniqueLevel: 2, minScore: 20, maxScore: 34,
     clues: { maxExtraClues: 4, maxCluesPerSuspect: 2 }, availability: 'now',
   },
   {
-    id: 'easy-medium', label: 'Makkelijk-gemiddeld', order: orderOf('easy-medium'), allowedKinds: EASY_MEDIUM_KINDS, fallbackKinds: ['inRow', 'inColumn'],
+    id: 'easy-medium', label: 'Easy-medium', order: orderOf('easy-medium'), allowedKinds: EASY_MEDIUM_KINDS, fallbackKinds: ['inRow', 'inColumn'],
     minTechniqueLevel: 2, maxTechniqueLevel: 2, minScore: 35, maxScore: 54,
     clues: { maxExtraClues: 5, maxCluesPerSuspect: 3 }, availability: 'now',
   },
   {
-    id: 'medium', label: 'Gemiddeld', order: orderOf('medium'), allowedKinds: MEDIUM_KINDS, fallbackKinds: [],
+    id: 'medium', label: 'Medium', order: orderOf('medium'), allowedKinds: MEDIUM_KINDS, fallbackKinds: [],
     minTechniqueLevel: 3, maxTechniqueLevel: 3, minScore: 55, maxScore: 69,
     clues: { maxExtraClues: 5, maxCluesPerSuspect: 3 }, availability: 'now',
   },
   {
-    id: 'hard', label: 'Moeilijk', order: orderOf('hard'), allowedKinds: ALL_KINDS, fallbackKinds: [],
+    id: 'hard', label: 'Hard', order: orderOf('hard'), allowedKinds: ALL_KINDS, fallbackKinds: [],
     minTechniqueLevel: 4, maxTechniqueLevel: 4, minScore: 70, maxScore: 84,
     clues: { maxExtraClues: 6, maxCluesPerSuspect: 3 }, availability: 'advanced',
   },

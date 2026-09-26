@@ -52,27 +52,27 @@ describe('sceneForSpec', () => {
 })
 
 describe('formatLadderReport', () => {
-  it('prints board, ladder, cards in Dutch with the cast and the gift', () => {
+  it('prints board, ladder, cards with the cast and the victim', () => {
     const outcome = generateLadder(demoScene, 'very-easy', 1, { victimCell: { row: 8, col: 6 } })
     if (!outcome.ok) throw new Error(outcome.message)
     const text = formatLadderReport(outcome, 'demo')
     expect(text).toContain('Board')
     expect(text).toContain('Ladder')
     expect(text).toMatch(/Cards \(\d+/)
-    expect(text).toContain('Het cadeau was alleen met de dader.')
-    expect(text).toContain('het cadeau on r9c7')
+    expect(text).toContain('The victim was alone with the murderer.')
+    expect(text).toContain('The victim on r9c7')
     expect(text).toMatch(/Ben|Alice|Dan|Chloe|Emma|Frank|Grace|Henry/)
     expect(text).toContain('ladderCheck (1 card per placement, person references off): ok')
-    expect(text).not.toMatch(/\b[A-H] (stond|was)\b/)
+    expect(text).not.toMatch(/\b[A-H] (stood|was)\b/)
   })
 
-  it('relabels suspects with the cast and the victim as het cadeau', { timeout: 60_000 }, () => {
+  it('relabels suspects with the cast and the victim as the victim', { timeout: 60_000 }, () => {
     const outcome = generateLadder(sceneForSeed(12, 1), 'easy', 1)
     if (!outcome.ok) throw new Error(outcome.message)
     const labels = withCastLabels(outcome.puzzle).people.map((p) => p.label)
-    expect(labels.slice(0, 8)).toEqual(['het cadeau', 'Alice', 'Ben', 'Chloe', 'Dan', 'Emma', 'Frank', 'Grace'])
+    expect(labels.slice(0, 8)).toEqual(['the victim', 'Alice', 'Ben', 'Chloe', 'Dan', 'Emma', 'Frank', 'Grace'])
     expect(labels[8]).toBe('Henry')
-    expect(labels[9]).toBe('Gast 9')
+    expect(labels[9]).toBe('Guest 9')
   })
 })
 

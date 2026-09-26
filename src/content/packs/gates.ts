@@ -12,7 +12,7 @@ import { solveAdvanced } from '../../engine/solver/advanced/index.ts'
 import type { HumanResult } from '../../engine/solver/human/index.ts'
 import { scoreBandProblem } from '../../engine/difficulty/index.ts'
 import { SOLVABLE_TIERS, assessTier, ladderCheck, ladderMeetsTier, ladderOptions } from '../../engine/solvable/index.ts'
-import { GIFT_LABEL, packId } from './ids.ts'
+import { VICTIM_LABEL, packId } from './ids.ts'
 import type { PackEntry, PackRating } from './types.ts'
 
 /**
@@ -100,14 +100,14 @@ export function entryProblems(entry: PackEntry): string[] {
   const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
   const victims = puzzle.people.filter((p) => p.kind === 'victim')
   if (puzzle.people.length !== size || victims.length !== 1) at(`needs ${size} people: ${size - 1} suspects and one victim`)
-  if (victims[0]?.label !== GIFT_LABEL) at(`victim label is "${victims[0]?.label}", not "${GIFT_LABEL}"`)
+  if (victims[0]?.label !== VICTIM_LABEL) at(`victim label is "${victims[0]?.label}", not "${VICTIM_LABEL}"`)
   if (JSON.stringify(suspects.map((p) => p.label)) !== JSON.stringify(entry.cast)) at('suspect labels differ from the cast')
   if (new Set(entry.cast).size !== entry.cast.length) at('cast names are not unique')
   if (entry.title.trim() === '') at('empty title')
-  // Gender cards need a cast with genders (CAD-9.4): every suspect has one when any card asks about them (the gift has none).
+  // Gender cards need a cast with genders (CAD-9.4): every suspect has one when any card asks about them (the victim has none).
   const usesGender = puzzle.clues.some((c) => expandClue(c as CatalogClue).some((part) => isGenderClue(part)))
   if (usesGender && suspects.some((p) => p.gender === undefined)) at('a gender card, but not every suspect has a gender')
-  for (const room of puzzle.scene.rooms) if (!/^(de|het) \S/.test(room.name)) at(`room name "${room.name}" has no article`)
+  for (const room of puzzle.scene.rooms) if (/^the\s/i.test(room.name)) at(`room name "${room.name}" carries an article, clue text adds "the" itself`)
   if (puzzle.clues.length !== entry.clueCount) at(`clueCount ${entry.clueCount} but ${puzzle.clues.length} clues`)
 
   const { min, max } = clueRange(size)

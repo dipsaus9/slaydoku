@@ -5,10 +5,10 @@ import type { Scene } from '../../engine/model/index.ts'
  * rooms, outdoor areas, a window and doors. Used by the renderer tests and for
  * eyeballing the style.
  *
- *   G G G G P P P S S        G Tuin (L-shaped)   P Vijver
- *   G G G G P P P S S        S Terras            K Keuken
- *   G G K K K P S S S        W Woonkamer         B Slaapkamer
- *   G G K K K K S S S        H Hal
+ *   G G G G P P P S S        G Garden (L-shaped)  P Pond
+ *   G G G G P P P S S        S Terrace           K Kitchen
+ *   G G K K K P S S S        W Living room       B Bedroom
+ *   G G K K K K S S S        H Hall
  *   G H H K K K W W W
  *   G H H H W W W W W
  *   B B H H W W W W W
@@ -31,13 +31,13 @@ export const sample9x9: Scene = {
   width: 9,
   height: 9,
   rooms: [
-    { id: 'G', name: 'Tuin' },
-    { id: 'P', name: 'Vijver' },
-    { id: 'S', name: 'Terras' },
-    { id: 'K', name: 'Keuken' },
-    { id: 'H', name: 'Hal' },
-    { id: 'W', name: 'Grote woonkamer' },
-    { id: 'B', name: 'Slaapkamer' },
+    { id: 'G', name: 'Garden' },
+    { id: 'P', name: 'Pond' },
+    { id: 'S', name: 'Terrace' },
+    { id: 'K', name: 'Kitchen' },
+    { id: 'H', name: 'Hall' },
+    { id: 'W', name: 'Large living room' },
+    { id: 'B', name: 'Bedroom' },
   ],
   cellRooms: layout.map((line) => [...line]),
   objects: [

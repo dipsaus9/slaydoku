@@ -6,7 +6,7 @@ Three separate jobs, from small to large:
 |---|---|
 | A. New **object kind in an existing theme** (a "hangmat" in the park) that reuses existing art | one theme file |
 | B. New **theme-only icon** (own art for one theme's object, engine type unchanged) | `THEME_ICON_IDS`, art, registry, theme file |
-| C. New **engine object type** (new catalog entry, art and Dutch noun; usable in house scenes and clues) | catalog, type list, Dutch noun, art, registry |
+| C. New **engine object type** (new catalog entry, art and noun; usable in house scenes and clues) | catalog, type list, noun, art, registry |
 | D. New **scene theme** (a whole new set of rooms and objects for random boards) | new theme file, registry, tests, packs |
 
 Look at what exists first. The contact sheet draws every icon in every footprint and rotation, and every theme object:
@@ -44,14 +44,14 @@ Themes live in `src/content/themes/<theme>.ts` ([office.ts](../../src/content/th
 with `themeObject({...})`:
 
 ```ts
-themeObject({ kind: 'bureaustoel', nameNl: 'bureaustoel', engineType: 'chair', themeIcon: 'officeChair',
+themeObject({ kind: 'officeChair', name: 'office chair', engineType: 'chair', themeIcon: 'officeChair',
               weight: 10, footprints: [rect(1, 1)], placement: 'anywhere' }),
 ```
 
 | Field | Meaning |
 |---|---|
 | `kind` | Theme-local id, unique in the theme. Rooms refer to it in `favours`. |
-| `nameNl` | Dutch display name. |
+| `name` | Display name (singular noun; a plural such as "lockers" also sets `clueNoun: 'locker'`). Clue text says "an office chair", so it must read after "a/an". |
 | `engineType` | The engine `ObjectType` it becomes in a scene. This decides occupiable or blocking (the flag is copied from the catalog, never typed by hand). |
 | `themeIcon` | Optional own art ([job B](#b-add-a-theme-only-icon)). Without it the engine icon of `engineType` is drawn. |
 | `weight` | Relative chance among objects of the same class (occupiable, blocking). |
@@ -82,16 +82,17 @@ resolve under every rotation and mirror.
 
 ## C. Add an engine object type
 
-Use this when the object should exist in house scenes, in clues ("naast een fiets") and everywhere. Steps 1 to 4 are all needed;
-`bun run typecheck` fails until every record is complete (`OBJECT_CATALOG`, `OBJECTS_NL` and `ICON_DEFINITIONS` are typed
+Use this when the object should exist in house scenes, in clues ("next to a bicycle") and everywhere. Steps 1 to 4 are all needed;
+`bun run typecheck` fails until every record is complete (`OBJECT_CATALOG`, `OBJECT_WORDS` and `ICON_DEFINITIONS` are typed
 `Record<ObjectType, ...>`).
 
-1. `src/engine/model/types.ts`: add the name to the `ObjectType` union (English camelCase, like `bicycle`; only the noun in step 3 is Dutch).
+1. `src/engine/model/types.ts`: add the name to the `ObjectType` union (English camelCase, like `bicycle`).
 2. `src/engine/model/catalog.ts`: add to `OBJECT_CATALOG`: `{ occupiable: true|false, footprint: cells(min, max) }`. Occupiable means a person may stand on it (chair, rug,
    bed, sofa, car, oil slick, painting); everything else blocks. Do not change the flag of an existing type: the
    committed puzzles depend on it.
-3. `src/engine/clues/nl.ts`: add to `OBJECTS_NL` (for `bicycle`): `{ noun: 'fiets', on: 'op een fiets', verb: 'stond' }`. `on` is the
-   phrase after "stond" ("in een auto", "op een bed"), `verb` is `stond`, `zat` or `lag`. This is the only file with Dutch clue text.
+3. `src/engine/clues/en.ts`: add to `OBJECT_WORDS` (for `bicycle`): `{ noun: 'bicycle', prep: 'on', verb: 'stood' }`. `prep` is `on` or
+   `in` ("in a car", "on a bed"), `verb` is `stood`, `sat` or `lay`. The article ("a bicycle", "an easel") is added for you. This is
+   the only file with clue text.
 4. Art in `src/render/icons/art/house.tsx`, `living.tsx` or `outdoor.tsx`, and its footprints in `src/render/icons/registry.tsx`:
 
    ```ts
@@ -102,8 +103,8 @@ Use this when the object should exist in house scenes, in clues ("naast een fiet
    (facing south): rotations and mirrors are derived.
 5. If the catalog gives a footprint range, every drawn variant must have a cell count inside it (tested).
 
-Then run `bunx vitest run src/engine/model/catalog.test.ts src/render/icons/icons.test.tsx src/engine/clues/nl.test.ts` and `bun run typecheck`.
-The tests check that the catalog, the icon registry and the Dutch nouns cover the same type list (the object lists come from the
+Then run `bunx vitest run src/engine/model/catalog.test.ts src/render/icons/icons.test.tsx src/engine/clues/en.test.ts` and `bun run typecheck`.
+The tests check that the catalog, the icon registry and the noun table cover the same type list (the object lists come from the
 catalog), that a type has an icon with at least one footprint, that variants stay inside their cells, and that every type renders
 in `onObject` and `besideObject` sentences.
 
@@ -125,19 +126,16 @@ regenerating ([regenerate-packs.md](regenerate-packs.md)).
 ## D. Add a scene theme
 
 1. `src/content/themes/types.ts`: add the id to the `ThemeId` union.
-2. New file `src/content/themes/<id>.ts` exporting a `SceneTheme` (`id`, `nameNl` shown in pack titles, `rooms`, `objects`); copy
+2. New file `src/content/themes/<id>.ts` exporting a `SceneTheme` (`id`, `name` shown in pack titles, `rooms`, `objects`); copy
    [office.ts](../../src/content/themes/office.ts). Requirements, all tested by
    [themes.test.ts](../../src/content/themes/themes.test.ts):
-   - at least 16 unique Dutch room names (a 16x16 board uses up to that many); each room lists the object kinds it `favours`;
+   - at least 16 unique room names, bare and natural after "in the" ("Kitchen", "Meeting Room") (a 16x16 board uses up to that many); each room lists the object kinds it `favours`;
    - at least 6 occupiable and 6 blocking object kinds;
    - the rules of job A for every object.
 3. Register it in `src/content/themes/index.ts` (`SCENE_THEMES`, and the export list).
 4. `src/content/themes/themes.test.ts`: the list `REQUIRED` and the test name "defines the five required themes" name all themes exactly;
    add yours.
-5. Room names are stored with an article in packs ("de Keuken", "het Toilet"). Every noun is "de" unless it is in `HET_ROOMS`
-   or ends in "lokaal" (`src/content/packs/articles.ts`). Add your neuter room names to `HET_ROOMS`. A name that reads badly after
-   "in" goes in `RENAMED`. The pack test checks every theme room name gets an article
-   ([packs.test.ts](../../src/content/packs/packs.test.ts)).
+5. Room names are stored bare in packs ("Kitchen", "Toilet"); clue text adds "the" (`roomName` in `src/engine/clues/en.ts`). Pick names that read well after "in the" ("Electronics Department", not "Electronics"). The pack test checks every theme room name is bare and plain ([packs.test.ts](../../src/content/packs/packs.test.ts)).
 6. Preview scenes with the snippet at the top of this page, then regenerate the packs. `packs.test.ts` requires every theme in every
    (size, tier) file ("covers every theme in every (size, tier)"), so a new theme fails the tests until the packs are rebuilt:
    [regenerate-packs.md](regenerate-packs.md). Check the folder size stays under 4 MiB.

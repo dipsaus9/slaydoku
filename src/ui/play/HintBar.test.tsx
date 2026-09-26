@@ -18,8 +18,8 @@ function firstPlacement() {
   return { store, hint }
 }
 
-/** The text as it appears in the markup (quotes are escaped). */
-const inMarkup = (text: string): string => text.replaceAll('"', '&quot;')
+/** The text as it appears in the markup (quotes and apostrophes are escaped). */
+const inMarkup = (text: string): string => text.replaceAll('"', '&quot;').replaceAll("'", '&#x27;')
 
 describe('<HintBar/>', () => {
   it('offers "Plaats voor mij" only on level 3 of a placement', () => {
@@ -36,7 +36,7 @@ describe('<HintBar/>', () => {
   it('has no place button when level 3 asks for a note on the possible squares', { timeout: 60_000 }, () => {
     const store = createGameStore({ levelId: 'test', puzzle: hardPuzzle(), storage: null, now: () => 0 })
     const hint = store.hint(3)
-    expect(hint?.level === 3 && hint.instruction).toMatch(/^Zet een notitie voor /)
+    expect(hint?.level === 3 && hint.instruction).toMatch(/^Note squares for /)
     expect(hint?.level === 3 && hint.placement).toBeFalsy()
     expect(bar(3, hint)).not.toContain('Plaats voor mij')
   })

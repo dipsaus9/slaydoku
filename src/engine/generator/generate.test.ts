@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEMO_GIFT_CELLS, demoScene } from '../../content/demo/scene.ts'
+import { DEMO_VICTIM_CELLS, demoScene } from '../../content/demo/scene.ts'
 import { checkClue, evaluate } from '../clues/index.ts'
 import type { CatalogClue } from '../clues/index.ts'
 import { deriveMurderer, parsePuzzle, serializePuzzle, validateSolution } from '../model/index.ts'
@@ -101,7 +101,7 @@ describe('generate', () => {
   })
 
   describe('pinned victim cell', () => {
-    const houses: [string, Scene, readonly { row: number; col: number }[]][] = [['demo house', demoScene, DEMO_GIFT_CELLS]]
+    const houses: [string, Scene, readonly { row: number; col: number }[]][] = [['demo house', demoScene, DEMO_VICTIM_CELLS]]
     for (const [name, scene, cells] of houses) {
       it(`puts the victim on the gift cell on ${name}`, () => {
         expect(cells.length).toBeGreaterThan(0)

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { generate, makePeople } from '../../engine/generator/index.ts'
 import { tutorialPuzzle } from '../../engine/model/tutorial.fixture.ts'
 import { colorsFor, formatTime, GIFT_TAG, noteTags, withCastNames } from './people.ts'
-import { DEMO_GIFT_CELLS, demoScene } from '../../content/demo/scene.ts'
+import { DEMO_VICTIM_CELLS, demoScene } from '../../content/demo/scene.ts'
 
 const person = (id: string, label: string) => ({ id, kind: 'suspect' as const, label })
 
@@ -44,12 +44,12 @@ describe('withCastNames', () => {
   })
 
   it('brings the gender of the fixed cast and leaves the gift without one', () => {
-    const puzzle = generate(demoScene, { seed: 7, victimCell: DEMO_GIFT_CELLS[0] })
+    const puzzle = generate(demoScene, { seed: 7, victimCell: DEMO_VICTIM_CELLS[0] })
     const played = withCastNames(puzzle)
     const suspects = played.people.filter((p) => p.kind === 'suspect')
     expect(suspects.map((p) => [p.label, p.gender])).toEqual([
-      ['Alice', 'vrouw'], ['Ben', 'man'], ['Chloe', 'vrouw'], ['Dan', 'man'],
-      ['Emma', 'vrouw'], ['Frank', 'man'], ['Grace', 'vrouw'], ['Henry', 'man'],
+      ['Alice', 'woman'], ['Ben', 'man'], ['Chloe', 'woman'], ['Dan', 'man'],
+      ['Emma', 'woman'], ['Frank', 'man'], ['Grace', 'woman'], ['Henry', 'man'],
     ])
     expect(played.people.find((p) => p.kind === 'victim')?.gender).toBeUndefined()
   })
@@ -60,7 +60,7 @@ describe('withCastNames', () => {
   })
 
   it('works on a generated 9x9', () => {
-    const puzzle = generate(demoScene, { seed: 7, victimCell: DEMO_GIFT_CELLS[0] })
+    const puzzle = generate(demoScene, { seed: 7, victimCell: DEMO_VICTIM_CELLS[0] })
     expect(withCastNames(puzzle).people.filter((p) => p.kind === 'suspect')).toHaveLength(8)
   })
 })

@@ -5,7 +5,7 @@
 
 /** What a human solving walk-through of one puzzle looks like, measured. */
 export interface DifficultyMetrics {
-  /** People in the puzzle (suspects plus the gift). Metrics per person compare grids of any size. */
+  /** People in the puzzle (suspects plus the victim). Metrics per person compare grids of any size. */
   people: number
   /** Clue cards in the puzzle. */
   clueCount: number

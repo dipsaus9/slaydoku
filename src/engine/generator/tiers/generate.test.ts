@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEMO_GIFT_CELLS, demoScene } from '../../../content/demo/scene.ts'
+import { DEMO_VICTIM_CELLS, demoScene } from '../../../content/demo/scene.ts'
 import { checkClue, evaluate } from '../../clues/index.ts'
 import type { CatalogClue } from '../../clues/index.ts'
 import { validateSolution } from '../../model/index.ts'
@@ -76,7 +76,7 @@ describe('generateTier on a 9x9 scene', () => {
 })
 
 describe('generateTier on the demo house with a pinned victim', () => {
-  const houses: [string, Scene, readonly Cell[]][] = [['demo house', demoScene, DEMO_GIFT_CELLS]]
+  const houses: [string, Scene, readonly Cell[]][] = [['demo house', demoScene, DEMO_VICTIM_CELLS]]
   for (const [name, scene, cells] of houses) {
     for (const id of ['easy', 'easy-medium', 'medium'] as const) {
       it(`${name}: ${id} on the first gift cell`, () => {

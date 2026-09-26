@@ -140,7 +140,7 @@ export function GenerateForm({ values, onValues, job, onStart, onCancel, onPlay 
           <select value={values.theme} disabled={running} onChange={(e) => set({ theme: e.target.value as ThemeId })}>
             {LAB_THEMES.map((theme) => (
               <option key={theme} value={theme}>
-                {getTheme(theme).nameNl}
+                {getTheme(theme).name}
               </option>
             ))}
           </select>

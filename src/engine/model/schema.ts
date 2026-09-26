@@ -176,7 +176,7 @@ export function checkPuzzle(value: unknown): SchemaIssue[] {
       ) {
         return bad(at, 'Expected { id, kind: "suspect" | "victim", label }.')
       }
-      if (person.gender !== undefined && !isGender(person.gender)) bad(`${at}.gender`, 'Expected "vrouw" or "man".')
+      if (person.gender !== undefined && !isGender(person.gender)) bad(`${at}.gender`, 'Expected "woman" or "man".')
       if (personIds.has(person.id)) bad(at, `Duplicate person id "${person.id}".`)
       personIds.add(person.id)
       if (person.kind === 'victim') victims++

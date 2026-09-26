@@ -55,9 +55,9 @@ function centroid(cells: Cell[]): { row: number; col: number } {
   return { row: sum.row / cells.length, col: sum.col / cells.length }
 }
 
-/** "het Fietsenhok" -> "Fietsenhok": room names carry their article, the map label does not. */
+/** "the Kitchen" -> "Kitchen": a room name may carry its article, the map label never does. */
 export function bareRoomName(name: string): string {
-  const bare = name.replace(/^(de|het|'t)\s+/i, '').trim()
+  const bare = name.replace(/^the\s+/i, '').trim()
   return bare === '' ? name : bare
 }
 
@@ -107,7 +107,7 @@ export function roomLabelLayout(scene: Scene, roomId: string): RoomLabelLayout |
       : best,
   )
 
-  // Room names carry their article ("het Fietsenhok"); the map shows the bare noun.
+  // A room name may carry its article ("the Kitchen"); the map shows the bare noun.
   const name = bareRoomName(room.name).toUpperCase()
   const words = name.split(/\s+/).filter(Boolean)
   const available = length(run) - 2 * RUN_INSET - PILL_PAD_X

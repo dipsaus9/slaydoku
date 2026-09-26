@@ -1,6 +1,6 @@
 import type { CatalogClue } from '../../../clues/index.ts'
-import { countNl } from '../../../clues/index.ts'
-import { countPeople, giftName, lineNames, peopleNames, roomName, sentences } from '../../human/nl.ts'
+import { countWord } from '../../../clues/index.ts'
+import { countPeople, victimName, lineNames, peopleNames, roomName, sentences } from '../../human/en.ts'
 import type { Deduction, Elimination, Technique } from '../../human/types.ts'
 import { roomBounds } from '../rooms.ts'
 import type { RoomBounds } from '../rooms.ts'
@@ -22,7 +22,7 @@ const outsideRoom = (snap: Snapshot, person: number, room: number): Elimination[
  */
 export const roomHiddenSingle: Technique = {
   id: 'room-hidden-single',
-  title: 'Verborgen enkele persoon per kamer',
+  title: 'Hidden single person per room',
   level: 4,
   find(board, context) {
     const snap = snapshot(board)
@@ -36,7 +36,7 @@ export const roomHiddenSingle: Technique = {
       return {
         eliminate,
         explanation: sentences(
-          `In ${name} ${needed === 1 ? 'moet' : 'moeten'} nog minstens ${countPeople(needed)} staan, want ${b.lo.why}. Alleen ${who} ${b.reach.length === 1 ? 'kan' : 'kunnen'} daar nog komen, dus ${b.reach.length === 1 ? 'die staat' : 'zij staan'} daar.`,
+          `At least ${countWord(needed)} more ${needed === 1 ? 'person' : 'people'} must stand in ${name}, because ${b.lo.why}. Only ${who} can still get there, so ${b.reach.length === 1 ? 'that person stands' : 'they stand'} there.`,
         ),
         people: b.reach,
         cells: [...new Set(eliminate.map((e) => e.cell))],
@@ -58,7 +58,7 @@ export const roomHiddenSingle: Technique = {
  */
 export const roomCapacity: Technique = {
   id: 'room-capacity',
-  title: 'Kamer zit vol',
+  title: 'Room is full',
   level: 4,
   find(board, context) {
     const snap = snapshot(board)
@@ -79,11 +79,10 @@ function saturated(snap: Snapshot, b: RoomBounds): Deduction | null {
   const eliminate = others.flatMap((p) => inRoom(snap, p, b.room).map((cell) => ({ person: p, cell })))
   if (eliminate.length === 0) return null
   const name = roomName(board, b.room)
-  const sure = b.sure.length > 0 ? ` ${peopleNames(board, b.sure)} ${b.sure.length === 1 ? 'staat' : 'staan'} er al zeker.` : ''
-  const can = b.hi.value === 1 ? 'kan' : 'kunnen'
+  const sure = b.sure.length > 0 ? ` ${peopleNames(board, b.sure)} ${b.sure.length === 1 ? 'is' : 'are'} already sure to be there.` : ''
   return {
     eliminate,
-    explanation: sentences(`In ${name} ${can} hooguit ${countPeople(b.hi.value)} staan, want ${b.hi.why}.${sure} Niemand anders kan daar dus nog staan.`),
+    explanation: sentences(`At most ${countPeople(b.hi.value)} can stand in ${name}, because ${b.hi.why}.${sure} So nobody else can stand there.`),
     people: [...b.sure, ...new Set(eliminate.map((e) => e.person))],
     cells: [...new Set(eliminate.map((e) => e.cell))],
   }
@@ -106,12 +105,12 @@ function lines(snap: Snapshot, b: RoomBounds): Deduction | null {
       }
     }
     if (eliminate.length === 0) continue
-    const noun = rows ? 'rijen' : 'kolommen'
+    const noun = rows ? 'rows' : 'columns'
     const names = lineNames(rows, confined)
     return {
       eliminate,
       explanation: sentences(
-        `In ${name} ${b.hi.value === 1 ? 'kan' : 'kunnen'} hooguit ${countPeople(b.hi.value)} staan, want ${b.hi.why}. ${names} ${confined.length === 1 ? 'levert' : 'leveren'} er al ${countNl(confined.length)}. Andere ${noun} hebben dus geen plek meer in ${name}.`,
+        `At most ${countPeople(b.hi.value)} can stand in ${name}, because ${b.hi.why}. ${names} already ${confined.length === 1 ? 'supplies' : 'supply'} ${countWord(confined.length)}. So other ${noun} have no room left in ${name}.`,
       ),
       people: [...new Set(eliminate.map((e) => e.person))],
       cells: [...new Set(eliminate.map((e) => e.cell))],
@@ -128,7 +127,7 @@ function lines(snap: Snapshot, b: RoomBounds): Deduction | null {
  */
 export const victimCount: Technique = {
   id: 'victim-count',
-  title: 'Kamer van het cadeau tellen',
+  title: 'Count the room of the victim',
   level: 4,
   find(board, context) {
     const victim = board.victim
@@ -139,12 +138,12 @@ export const victimCount: Technique = {
       if (eliminate.length === 0) continue
       const name = roomName(board, b.room)
       let why: string | null = null
-      if (b.lo.value > 2) why = `${name} moet minstens ${countPeople(b.lo.value)} hebben, want ${b.lo.why}. ${giftName(board)} is met precies één verdachte`
-      else if (b.hi.value < 2) why = `${name} kan hooguit ${countPeople(b.hi.value)} hebben, want ${b.hi.why}. ${giftName(board)} is met een verdachte`
+      if (b.lo.value > 2) why = `${name} must hold at least ${countPeople(b.lo.value)}, because ${b.lo.why}. ${victimName(board)} is with exactly one suspect`
+      else if (b.hi.value < 2) why = `${name} can hold at most ${countPeople(b.hi.value)}, because ${b.hi.why}. ${victimName(board)} is with a suspect`
       if (!why) continue
       return {
         eliminate,
-        explanation: sentences(`${why} en kan daar dus niet zijn.`),
+        explanation: sentences(`${why}, so cannot be there.`),
         people: [victim],
         cells: eliminate.map((e) => e.cell),
       }
@@ -161,7 +160,7 @@ export const victimCount: Technique = {
  */
 export const clueRoomCount: Technique = {
   id: 'clue-room-count',
-  title: 'Aanwijzing en kamerbezetting',
+  title: 'Clue and room occupancy',
   level: 5,
   find(board, context) {
     const snap = snapshot(board)
@@ -184,13 +183,13 @@ export const clueRoomCount: Technique = {
         const name = roomName(board, b.room)
         const reason =
           b.lo.value > size
-            ? `${name} moet minstens ${countPeople(b.lo.value)} hebben, want ${b.lo.why}`
-            : `${name} kan hooguit ${countPeople(b.hi.value)} hebben, want ${b.hi.why}`
+            ? `${name} must hold at least ${countPeople(b.lo.value)}, because ${b.lo.why}`
+            : `${name} can hold at most ${countPeople(b.hi.value)}, because ${b.hi.why}`
         const who = peopleNames(board, members)
         return {
           eliminate,
           explanation: sentences(
-            `Volgens de kaart ${size === 1 ? 'is' : 'zijn'} ${who} ${size === 1 ? 'alleen' : 'samen alleen'} in een kamer, dus daar ${size === 1 ? 'staat' : 'staan'} precies ${countPeople(size)}. ${reason}. ${who} ${size === 1 ? 'kan' : 'kunnen'} dus niet in ${name} staan.`,
+            `A card says ${who} ${size === 1 ? 'is' : 'are'} ${size === 1 ? 'alone' : 'alone together'} in a room, so exactly ${countPeople(size)} ${size === 1 ? 'stands' : 'stand'} there. ${reason}. So ${who} cannot stand in ${name}.`,
           ),
           people: members,
           cells: eliminate.map((e) => e.cell),

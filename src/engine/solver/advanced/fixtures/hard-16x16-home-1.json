@@ -5,51 +5,51 @@
     "rooms": [
       {
         "id": "r1",
-        "name": "Gang"
+        "name": "Corridor"
       },
       {
         "id": "r2",
-        "name": "Serre"
+        "name": "Conservatory"
       },
       {
         "id": "r3",
-        "name": "Keuken"
+        "name": "Kitchen"
       },
       {
         "id": "r4",
-        "name": "Eetkamer"
+        "name": "Dining Room"
       },
       {
         "id": "r5",
-        "name": "Woonkamer"
+        "name": "Living Room"
       },
       {
         "id": "r6",
-        "name": "Logeerkamer"
+        "name": "Guest Room"
       },
       {
         "id": "r7",
-        "name": "Studeerkamer"
+        "name": "Study"
       },
       {
         "id": "r8",
-        "name": "Kinderkamer"
+        "name": "Nursery"
       },
       {
         "id": "r9",
-        "name": "Bijkeuken"
+        "name": "Utility Room"
       },
       {
         "id": "r10",
-        "name": "Slaapkamer"
+        "name": "Bedroom"
       },
       {
         "id": "r11",
-        "name": "Vliering"
+        "name": "Attic"
       },
       {
         "id": "r12",
-        "name": "Berging"
+        "name": "Storeroom"
       }
     ],
     "cellRooms": [
@@ -344,7 +344,7 @@
     ],
     "objects": [
       {
-        "id": "televisie-1",
+        "id": "television-1",
         "type": "tv",
         "cells": [
           {
@@ -354,7 +354,7 @@
         ]
       },
       {
-        "id": "stoel-1",
+        "id": "chair-1",
         "type": "chair",
         "cells": [
           {
@@ -364,7 +364,7 @@
         ]
       },
       {
-        "id": "boekenkast-1",
+        "id": "bookcase-1",
         "type": "bookshelf",
         "cells": [
           {
@@ -374,7 +374,7 @@
         ]
       },
       {
-        "id": "kledingkast-1",
+        "id": "wardrobe-1",
         "type": "wardrobe",
         "cells": [
           {
@@ -392,7 +392,7 @@
         ]
       },
       {
-        "id": "salontafel-1",
+        "id": "coffeeTable-1",
         "type": "table",
         "cells": [
           {
@@ -402,7 +402,7 @@
         ]
       },
       {
-        "id": "hoekbank-1",
+        "id": "cornerSofa-1",
         "type": "sofa",
         "cells": [
           {
@@ -420,7 +420,7 @@
         ]
       },
       {
-        "id": "boekenkast-2",
+        "id": "bookcase-2",
         "type": "bookshelf",
         "cells": [
           {
@@ -430,7 +430,7 @@
         ]
       },
       {
-        "id": "bank-1",
+        "id": "sofa-1",
         "type": "sofa",
         "cells": [
           {
@@ -448,7 +448,7 @@
         ]
       },
       {
-        "id": "bank-2",
+        "id": "sofa-2",
         "type": "sofa",
         "cells": [
           {
@@ -466,7 +466,7 @@
         ]
       },
       {
-        "id": "tapijt-1",
+        "id": "rug-1",
         "type": "rug",
         "cells": [
           {
@@ -476,7 +476,7 @@
         ]
       },
       {
-        "id": "tapijt-2",
+        "id": "rug-2",
         "type": "rug",
         "cells": [
           {
@@ -490,7 +490,7 @@
         ]
       },
       {
-        "id": "tapijt-3",
+        "id": "rug-3",
         "type": "rug",
         "cells": [
           {
@@ -500,7 +500,7 @@
         ]
       },
       {
-        "id": "dressoir-1",
+        "id": "sideboard-1",
         "type": "cabinet",
         "cells": [
           {
@@ -518,7 +518,7 @@
         ]
       },
       {
-        "id": "eettafel-1",
+        "id": "diningTable-1",
         "type": "diningTable",
         "cells": [
           {
@@ -532,7 +532,7 @@
         ]
       },
       {
-        "id": "tapijt-4",
+        "id": "rug-4",
         "type": "rug",
         "cells": [
           {
@@ -554,7 +554,7 @@
         ]
       },
       {
-        "id": "televisie-2",
+        "id": "television-2",
         "type": "tv",
         "cells": [
           {
@@ -564,7 +564,7 @@
         ]
       },
       {
-        "id": "stoel-2",
+        "id": "chair-2",
         "type": "chair",
         "cells": [
           {
@@ -574,7 +574,7 @@
         ]
       },
       {
-        "id": "tapijt-5",
+        "id": "rug-5",
         "type": "rug",
         "cells": [
           {
@@ -588,7 +588,7 @@
         ]
       },
       {
-        "id": "kamerplant-1",
+        "id": "houseplant-1",
         "type": "plant",
         "cells": [
           {
@@ -598,7 +598,7 @@
         ]
       },
       {
-        "id": "stoel-3",
+        "id": "chair-3",
         "type": "chair",
         "cells": [
           {
@@ -608,7 +608,7 @@
         ]
       },
       {
-        "id": "eenpersoonsbed-1",
+        "id": "singleBed-1",
         "type": "bed",
         "cells": [
           {
@@ -622,7 +622,7 @@
         ]
       },
       {
-        "id": "aanrecht-1",
+        "id": "kitchenCounter-1",
         "type": "kitchenCounter",
         "cells": [
           {
@@ -640,7 +640,7 @@
         ]
       },
       {
-        "id": "stoel-4",
+        "id": "chair-4",
         "type": "chair",
         "cells": [
           {
@@ -650,7 +650,7 @@
         ]
       },
       {
-        "id": "stoel-5",
+        "id": "chair-5",
         "type": "chair",
         "cells": [
           {
@@ -660,7 +660,7 @@
         ]
       },
       {
-        "id": "kledingkast-2",
+        "id": "wardrobe-2",
         "type": "wardrobe",
         "cells": [
           {
@@ -674,7 +674,7 @@
         ]
       },
       {
-        "id": "kist-1",
+        "id": "chest-1",
         "type": "chest",
         "cells": [
           {
@@ -684,7 +684,7 @@
         ]
       },
       {
-        "id": "hoekbank-2",
+        "id": "cornerSofa-2",
         "type": "sofa",
         "cells": [
           {
@@ -710,7 +710,7 @@
         ]
       },
       {
-        "id": "dressoir-2",
+        "id": "sideboard-2",
         "type": "cabinet",
         "cells": [
           {
@@ -728,7 +728,7 @@
         ]
       },
       {
-        "id": "kledingkast-3",
+        "id": "wardrobe-3",
         "type": "wardrobe",
         "cells": [
           {
@@ -738,7 +738,7 @@
         ]
       },
       {
-        "id": "televisie-3",
+        "id": "television-3",
         "type": "tv",
         "cells": [
           {
@@ -748,7 +748,7 @@
         ]
       },
       {
-        "id": "stoel-6",
+        "id": "chair-6",
         "type": "chair",
         "cells": [
           {
@@ -758,7 +758,7 @@
         ]
       },
       {
-        "id": "bureau-1",
+        "id": "desk-1",
         "type": "desk",
         "cells": [
           {
@@ -772,7 +772,7 @@
         ]
       },
       {
-        "id": "wastafel-1",
+        "id": "washbasin-1",
         "type": "sink",
         "cells": [
           {
@@ -782,7 +782,7 @@
         ]
       },
       {
-        "id": "tweepersoonsbed-1",
+        "id": "doubleBed-1",
         "type": "bed",
         "cells": [
           {
@@ -804,7 +804,7 @@
         ]
       },
       {
-        "id": "aanrecht-2",
+        "id": "kitchenCounter-2",
         "type": "kitchenCounter",
         "cells": [
           {
@@ -818,7 +818,7 @@
         ]
       },
       {
-        "id": "kamerplant-2",
+        "id": "houseplant-2",
         "type": "plant",
         "cells": [
           {
@@ -828,7 +828,7 @@
         ]
       },
       {
-        "id": "auto-1",
+        "id": "car-1",
         "type": "car",
         "cells": [
           {
@@ -842,7 +842,7 @@
         ]
       },
       {
-        "id": "stoel-7",
+        "id": "chair-7",
         "type": "chair",
         "cells": [
           {
@@ -852,7 +852,7 @@
         ]
       },
       {
-        "id": "kamerplant-3",
+        "id": "houseplant-3",
         "type": "plant",
         "cells": [
           {
@@ -862,7 +862,7 @@
         ]
       },
       {
-        "id": "kledingkast-4",
+        "id": "wardrobe-4",
         "type": "wardrobe",
         "cells": [
           {
@@ -872,7 +872,7 @@
         ]
       },
       {
-        "id": "kamerplant-4",
+        "id": "houseplant-4",
         "type": "plant",
         "cells": [
           {
@@ -882,7 +882,7 @@
         ]
       },
       {
-        "id": "aanrecht-3",
+        "id": "kitchenCounter-3",
         "type": "kitchenCounter",
         "cells": [
           {
@@ -896,7 +896,7 @@
         ]
       },
       {
-        "id": "bureau-2",
+        "id": "desk-2",
         "type": "desk",
         "cells": [
           {
@@ -914,7 +914,7 @@
         ]
       },
       {
-        "id": "stoel-8",
+        "id": "chair-8",
         "type": "chair",
         "cells": [
           {
@@ -924,7 +924,7 @@
         ]
       },
       {
-        "id": "stoel-9",
+        "id": "chair-9",
         "type": "chair",
         "cells": [
           {
@@ -934,7 +934,7 @@
         ]
       },
       {
-        "id": "stoel-10",
+        "id": "chair-10",
         "type": "chair",
         "cells": [
           {
@@ -944,7 +944,7 @@
         ]
       },
       {
-        "id": "boekenkast-3",
+        "id": "bookcase-3",
         "type": "bookshelf",
         "cells": [
           {
@@ -954,7 +954,7 @@
         ]
       },
       {
-        "id": "eenpersoonsbed-2",
+        "id": "singleBed-2",
         "type": "bed",
         "cells": [
           {
@@ -968,7 +968,7 @@
         ]
       },
       {
-        "id": "dressoir-3",
+        "id": "sideboard-3",
         "type": "cabinet",
         "cells": [
           {
@@ -986,7 +986,7 @@
         ]
       },
       {
-        "id": "kist-2",
+        "id": "chest-2",
         "type": "chest",
         "cells": [
           {
@@ -996,7 +996,7 @@
         ]
       },
       {
-        "id": "hoekbank-3",
+        "id": "cornerSofa-3",
         "type": "sofa",
         "cells": [
           {

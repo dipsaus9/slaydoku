@@ -37,7 +37,7 @@ export interface GeneratedScene {
 
 /**
  * Random Murdoku scene: irregular rooms of mixed size (big L-shapes, small
- * closets), Dutch room names from the theme, doors so every room is reachable,
+ * closets), room names from the theme, doors so every room is reachable,
  * windows on the outer edge of indoor rooms and themed objects with their
  * placement hints. The scene is guaranteed to admit a valid full placement
  * (see `checkAdmissible`); failed tries are retried internally with a seed

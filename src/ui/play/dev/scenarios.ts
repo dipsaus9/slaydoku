@@ -2,7 +2,7 @@ import { generate } from '../../../engine/generator/index.ts'
 import type { Puzzle } from '../../../engine/model/index.ts'
 import { puzzle as tutorialWithClues } from '../../../game/fixture.ts'
 import { createGameStore, type StorageLike } from '../../../game/index.ts'
-import { DEMO_GIFT_CELLS, demoRoomStyles, demoScene } from '../../../content/demo/scene.ts'
+import { DEMO_VICTIM_CELLS, demoRoomStyles, demoScene } from '../../../content/demo/scene.ts'
 import type { FloorPattern } from '../../../render/scene/index.ts'
 import { withCastNames } from '../people.ts'
 
@@ -22,7 +22,7 @@ export interface DevSetup {
 
 export function devLevel(level: DevLevel): DevSetup {
   if (level === 'tutorial') return { levelId: 'dev-tutorial', puzzle: tutorialWithClues }
-  const puzzle = generate(demoScene, { seed: 3, victimCell: DEMO_GIFT_CELLS[0] })
+  const puzzle = generate(demoScene, { seed: 3, victimCell: DEMO_VICTIM_CELLS[0] })
   return { levelId: 'dev-house', puzzle, roomStyles: demoRoomStyles }
 }
 

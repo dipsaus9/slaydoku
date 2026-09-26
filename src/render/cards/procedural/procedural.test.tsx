@@ -143,11 +143,11 @@ describe('buildCast', () => {
     const count = (genders: readonly string[], gender: string) => genders.filter((g) => g === gender).length
 
     it('alternates the genders of the fixed eight', () => {
-      expect(buildCast(8).genders).toEqual(['vrouw', 'man', 'vrouw', 'man', 'vrouw', 'man', 'vrouw', 'man'])
+      expect(buildCast(8).genders).toEqual(['woman', 'man', 'woman', 'man', 'woman', 'man', 'woman', 'man'])
       expect(buildCastForBoard(9).genders).toEqual(buildCast(8).genders)
-      expect(buildCast(5).genders).toEqual(['vrouw', 'man', 'vrouw', 'man', 'vrouw'])
+      expect(buildCast(5).genders).toEqual(['woman', 'man', 'woman', 'man', 'woman'])
       expect(CAST.map((m) => [m.name, m.gender])).toEqual([
-        ['Alice', 'vrouw'], ['Ben', 'man'], ['Chloe', 'vrouw'], ['Dan', 'man'], ['Emma', 'vrouw'], ['Frank', 'man'], ['Grace', 'vrouw'], ['Henry', 'man'],
+        ['Alice', 'woman'], ['Ben', 'man'], ['Chloe', 'woman'], ['Dan', 'man'], ['Emma', 'woman'], ['Frank', 'man'], ['Grace', 'woman'], ['Henry', 'man'],
       ])
     })
 
@@ -159,15 +159,15 @@ describe('buildCast', () => {
           expect(cast.genders).toHaveLength(cast.names.length)
           cast.entries.slice(8).forEach((e) => expect(e.gender).toBe(byName.get(e.name)))
           // Four of each in the eight, then extras alternate: the cast never differs by more than one.
-          expect(Math.abs(count(cast.genders, 'man') - count(cast.genders, 'vrouw'))).toBeLessThanOrEqual(1)
+          expect(Math.abs(count(cast.genders, 'man') - count(cast.genders, 'woman'))).toBeLessThanOrEqual(1)
         }
       }
-      expect(buildCastForBoard(12, 'a').genders.slice(8)).toEqual(['vrouw', 'man', 'vrouw'])
+      expect(buildCastForBoard(12, 'a').genders.slice(8)).toEqual(['woman', 'man', 'woman'])
     })
 
     it('every pool name has a gender and the full cast still fills every name', () => {
       expect(GENDERED_NAMES.map((n) => n.name)).toEqual(NAME_POOL)
-      expect(GENDERED_NAMES.every((n) => n.gender === 'man' || n.gender === 'vrouw')).toBe(true)
+      expect(GENDERED_NAMES.every((n) => n.gender === 'man' || n.gender === 'woman')).toBe(true)
       expect(buildCast(MAX_SUSPECTS, 'full').genders).toHaveLength(MAX_SUSPECTS)
     })
   })

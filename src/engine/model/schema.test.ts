@@ -24,9 +24,9 @@ describe('Person.gender', () => {
     expect(checkPuzzle(tutorialPuzzle)).toEqual([])
   })
 
-  it('accepts vrouw and man and survives the JSON round trip', () => {
+  it('accepts woman and man and survives the JSON round trip', () => {
     const puzzle = fresh()
-    puzzle.people[1]!.gender = 'vrouw'
+    puzzle.people[1]!.gender = 'woman'
     puzzle.people[2]!.gender = 'man'
     expect(checkPuzzle(puzzle)).toEqual([])
     expect(parsePuzzle(serializePuzzle(puzzle))).toEqual({ ok: true, value: puzzle })

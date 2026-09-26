@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { checkScene, isOccupiable, isOccupiableType, parseScene, serializeScene } from '../../engine/model/index.ts'
 import { checkAdmissible } from '../../engine/scenegen/index.ts'
 import { hasIcon } from '../../render/icons/index.ts'
-import { DEMO_GIFT_CELLS, demoRoomStyles, demoScene } from './scene.ts'
+import { DEMO_VICTIM_CELLS, demoRoomStyles, demoScene } from './scene.ts'
 
 describe('the demo scene', () => {
   it('is a valid 9x9 scene that survives a JSON round trip', () => {
@@ -13,10 +13,11 @@ describe('the demo scene', () => {
     expect(parsed.ok && parsed.value).toEqual(demoScene)
   })
 
-  it('has four rooms with articles, each with a floor style', () => {
-    expect(demoScene.rooms.map((r) => r.id)).toEqual(['keuken', 'hal', 'slaapkamer', 'woonkamer'])
+  it('has four rooms with bare names, each with a floor style', () => {
+    expect(demoScene.rooms.map((r) => r.id)).toEqual(['kitchen', 'hall', 'bedroom', 'living'])
     for (const room of demoScene.rooms) {
-      expect(room.name).toMatch(/^(de|het) [A-Z]/)
+      expect(room.name).toMatch(/^[A-Z]/)
+      expect(room.name).not.toMatch(/^the /i)
       expect(demoRoomStyles[room.id]).toBeDefined()
     }
   })
@@ -31,12 +32,12 @@ describe('the demo scene', () => {
     }
   })
 
-  it('has gift cells on the sofa, all occupiable, in a room that can hold the gift', () => {
-    expect(DEMO_GIFT_CELLS).toHaveLength(3)
-    for (const cell of DEMO_GIFT_CELLS) expect(isOccupiable(demoScene, cell)).toBe(true)
+  it('has victim cells on the sofa, all occupiable, in a room that can hold the victim', () => {
+    expect(DEMO_VICTIM_CELLS).toHaveLength(3)
+    for (const cell of DEMO_VICTIM_CELLS) expect(isOccupiable(demoScene, cell)).toBe(true)
     const admissible = checkAdmissible(demoScene)
     expect(admissible.ok).toBe(true)
-    expect(admissible.victimRooms).toContain('woonkamer')
+    expect(admissible.victimRooms).toContain('living')
   })
 
   it('keeps an occupiable cell in every row and column', () => {

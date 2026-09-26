@@ -58,7 +58,7 @@ describe('SceneView', () => {
     const html = render({ scene: tutorial })
     expect(html).toContain('data-room="living"')
     expect(html).toContain('data-room-label="living"')
-    expect(html).toContain('>WOONKAMER<')
+    expect(html).toContain('>LIVING ROOM<')
     expect(html).toContain('data-layer="walls"')
   })
 

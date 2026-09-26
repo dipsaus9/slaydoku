@@ -89,8 +89,8 @@ export interface Scene {
 
 export type PersonKind = 'suspect' | 'victim'
 
-/** Optional gender of a person, used by the gender clues. Dutch nouns, so clue text can name them (vrouw/man). */
-export type Gender = 'vrouw' | 'man'
+/** Optional gender of a person, used by the gender clues. English nouns, so clue text can name them (woman/man). */
+export type Gender = 'woman' | 'man'
 
 export interface Person {
   /** Stable id, e.g. "A" or "victim". */
@@ -98,7 +98,7 @@ export interface Person {
   kind: PersonKind
   /** Display label, e.g. a letter or a name. */
   label: string
-  /** Optional. Puzzles where nobody has a gender never get gender clues; the victim (the gift) has none. */
+  /** Optional. Puzzles where nobody has a gender never get gender clues; the victim has none. */
   gender?: Gender
 }
 

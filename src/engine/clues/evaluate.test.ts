@@ -304,7 +304,7 @@ describe('aloneWith: only these two in the room', () => {
 })
 
 describe('roomHasGender: at least one OTHER person of that gender in the holder room', () => {
-  const woman = { personId: A, type: 'roomHasGender', args: { gender: 'vrouw' } } as const
+  const woman = { personId: A, type: 'roomHasGender', args: { gender: 'woman' } } as const
   const man = { personId: A, type: 'roomHasGender', args: { gender: 'man' } } as const
   const holds = (clue: StructuralClue, placements: ReturnType<typeof stand>, expected: boolean, label: string) =>
     it(`${label} -> ${expected}`, () => expect(evaluate(clue, scene, placements, people)).toBe(expected))
@@ -326,7 +326,7 @@ describe('roomHasGender: at least one OTHER person of that gender in the holder 
 })
 
 describe('aloneWithGender: exactly one other person in the room, of that gender', () => {
-  const woman = { personId: A, type: 'aloneWithGender', args: { gender: 'vrouw' } } as const
+  const woman = { personId: A, type: 'aloneWithGender', args: { gender: 'woman' } } as const
   const man = { personId: A, type: 'aloneWithGender', args: { gender: 'man' } } as const
   const holds = (clue: StructuralClue, placements: ReturnType<typeof stand>, expected: boolean, label: string) =>
     it(`${label} -> ${expected}`, () => expect(evaluate(clue, scene, placements, people)).toBe(expected))
@@ -429,8 +429,8 @@ describe('inRoomEdge: top/bottom row, leftmost/rightmost column of a room', () =
     width: 5,
     height: 5,
     rooms: [
-      { id: 'L', name: 'Hoek' },
-      { id: 'R', name: 'het Restant' },
+      { id: 'L', name: 'Corner' },
+      { id: 'R', name: 'Remainder' },
     ],
     cellRooms: ['LRRRR', 'LRRRR', 'LLLRR', 'RRRRR', 'RRRRR'].map((row) => [...row]),
     objects: [],

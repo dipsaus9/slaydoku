@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { GIFT_NL, renderClue } from '../../engine/clues/nl.ts'
+import { VICTIM_TEXT, renderClue } from '../../engine/clues/en.ts'
 import type { Clue, Person } from '../../engine/model/index.ts'
 import { CardGrid } from './CardGrid.tsx'
 import { CAST } from './cast.ts'
@@ -9,7 +9,7 @@ import { SuspectCard } from './SuspectCard.tsx'
 import { VictimCard } from './VictimCard.tsx'
 
 const alice: Person = { id: 'alice', kind: 'suspect', label: 'Alice' }
-const scene = { rooms: [{ id: 'living', name: 'Woonkamer' }] }
+const scene = { rooms: [{ id: 'living', name: 'Living Room' }] }
 const strip = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
 
 describe('SuspectCard', () => {
@@ -21,7 +21,7 @@ describe('SuspectCard', () => {
   })
 
   it('shows the whole of a long clue, unclipped', () => {
-    const long = `${'Alice was alleen met Chloe in de Grote slaapkamer bij een raam. '.repeat(5)}Einde.`
+    const long = `${'Alice was alone with Chloe in the Large Bedroom next to a window. '.repeat(5)}The end.`
     const html = renderToStaticMarkup(<SuspectCard person={alice} clue={long} />)
     expect(html).toContain(long)
   })
@@ -63,9 +63,9 @@ describe('SuspectCard', () => {
 })
 
 describe('the cast', () => {
-  it('alternates vrouw and man over the eight placeholder members', () => {
+  it('alternates woman and man over the eight placeholder members', () => {
     expect(Object.fromEntries(CAST.map((m) => [m.name, m.gender]))).toEqual({
-      Ben: 'man', Alice: 'vrouw', Dan: 'man', Chloe: 'vrouw', Emma: 'vrouw', Frank: 'man', Grace: 'vrouw', Henry: 'man',
+      Ben: 'man', Alice: 'woman', Dan: 'man', Chloe: 'woman', Emma: 'woman', Frank: 'man', Grace: 'woman', Henry: 'man',
     })
   })
 })
@@ -73,25 +73,19 @@ describe('the cast', () => {
 describe('VictimCard', () => {
   const html = renderToStaticMarkup(<VictimCard />)
 
-  it('is the gift, worded from nl.ts', () => {
-    expect(html).toContain(GIFT_NL.title)
-    expect(html).toContain(GIFT_NL.clue)
-    expect(strip(html)).toContain('Het cadeau Was alleen met de dader.')
+  it('is the victim, worded from en.ts', () => {
+    expect(html).toContain(VICTIM_TEXT.title)
+    expect(html).toContain(VICTIM_TEXT.clue)
+    expect(strip(html)).toContain('The victim Was alone with the murderer.')
   })
 
-  it('uses no murder wording anywhere in markup or card sources', () => {
-    const words = /moord|vermoord|slachtoffer|murder|killer/i
-    expect(html).not.toMatch(words)
-    expect(html).not.toMatch(/victim/i)
+  it('keeps the wording in en.ts: no card component spells out the victim rule itself', () => {
     const dir = new URL('./', import.meta.url)
-    const sources = [
-      ...readdirSync(dir).filter((f) => /\.(tsx?|css)$/.test(f) && !/\.test\./.test(f)),
-      ...readdirSync(new URL('./avatars/', import.meta.url)).map((f) => `avatars/${f}`),
-    ]
-    expect(sources.length).toBeGreaterThan(10)
+    const sources = readdirSync(dir).filter((f) => /\.(tsx?|css)$/.test(f) && !/\.test\./.test(f))
+    expect(sources.length).toBeGreaterThan(5)
     for (const file of sources) {
       const source = readFileSync(new URL(file, dir), 'utf8')
-      expect(source.replace(/aloneWithMurderer/g, ''), file).not.toMatch(words)
+      expect(source, file).not.toMatch(/alone with the murderer/i)
     }
   })
 })
@@ -112,13 +106,13 @@ describe('CardGrid', () => {
 
   it('renders a card per suspect plus the gift', () => {
     expect(html.match(/class="polaroid /g)).toHaveLength(9)
-    expect(html).toContain('Het cadeau')
+    expect(html).toContain('The victim')
   })
 
   it('renders each clue through renderClue', () => {
     const context = { scene, people }
     expect(html).toContain(renderClue(clues[0] as never, context))
-    expect(html).toContain('Alice was samen met Henry.')
+    expect(html).toContain('Alice was with Henry.')
   })
 
   it('carries the selected and placed states to the right cards', () => {

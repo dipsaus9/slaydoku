@@ -10,7 +10,7 @@ import { SOLVABLE_TIERS, ladderCheck, ladderMeetsTier, ladderOptions, tierFor } 
 import { getLevels } from '../ui/levels/registry.ts'
 import { auditClues, auditHints, walkHints } from '../validation/index.ts'
 import { CAST } from '../render/cards/index.ts'
-import { DEMO_GIFT_CELLS, demoRoomStyles, demoScene } from './demo/scene.ts'
+import { DEMO_VICTIM_CELLS, demoRoomStyles, demoScene } from './demo/scene.ts'
 import { demoLevels } from './levels.ts'
 
 const parsed = parsePuzzle(demoJson)
@@ -28,7 +28,7 @@ describe('the registered levels', () => {
   })
 })
 
-describe('the demo level (ladder tier easy, seed 2, gift on the sofa)', () => {
+describe('the demo level (ladder tier easy, seed 2, victim on the sofa)', () => {
   it('passes verify: rules hold, exactly one solution, matches the stored one', () => {
     const report = verifyPuzzle(demoJson)
     expect(report.problems).toEqual([])
@@ -42,9 +42,9 @@ describe('the demo level (ladder tier easy, seed 2, gift on the sofa)', () => {
     for (const room of demoScene.rooms) expect(demoRoomStyles[room.id], room.id).toBeDefined()
   })
 
-  it('pins the gift on a legal gift cell and keeps the murderer rule', () => {
+  it('pins the victim on a legal victim cell and keeps the murderer rule', () => {
     const victim = puzzle.solution.find((p) => puzzle.people.find((q) => q.id === p.personId)?.kind === 'victim')!
-    expect(DEMO_GIFT_CELLS.some((g) => g.row === victim.cell.row && g.col === victim.cell.col)).toBe(true)
+    expect(DEMO_VICTIM_CELLS.some((g) => g.row === victim.cell.row && g.col === victim.cell.col)).toBe(true)
     expect(validateSolution(puzzle).ok).toBe(true)
     expect(deriveMurderer(puzzle, puzzle.solution)).not.toBeNull()
   })
@@ -83,21 +83,21 @@ describe('the demo level (ladder tier easy, seed 2, gift on the sofa)', () => {
     expect(new Set(puzzle.clues.map((c) => c.type)).size).toBeGreaterThanOrEqual(5)
   })
 
-  it('every room name carries its article and every clue reads right', () => {
-    for (const room of puzzle.scene.rooms) expect(room.name, room.id).toMatch(/^(de|het) [A-Z]/)
+  it('every room name is bare and every clue reads right', () => {
+    for (const room of puzzle.scene.rooms) expect(room.name, room.id).toMatch(/^[A-Z][a-z]/)
     const ctx = { scene: puzzle.scene, people: puzzle.people }
     for (const clue of puzzle.clues) {
       const line = renderClue(clue as CatalogClue, ctx)
       expect(line).toMatch(/^[A-Z]/)
-      expect(line).not.toMatch(/\b(de|het) (de|het)\b/)
+      expect(line).not.toMatch(/\bthe the\b/)
     }
   })
 
-  it('carries the placeholder cast names and genders in order, the gift has neither', () => {
+  it('carries the placeholder cast names and genders in order, the victim has neither', () => {
     const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
     expect(suspects.map((p) => [p.label, p.gender])).toEqual(CAST.map((m) => [m.name, m.gender]))
     const victim = puzzle.people.find((p) => p.kind === 'victim')!
-    expect(victim.label).toBe('het cadeau')
+    expect(victim.label).toBe('the victim')
     expect(victim.gender).toBeUndefined()
   })
 })

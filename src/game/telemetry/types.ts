@@ -22,7 +22,7 @@ export interface TelemetryRecord {
   /** Seconds the session was in the foreground: pauses while the tab is hidden, stops when solved. */
   activeSeconds: number
   hints: HintUses
-  /** Placements that came from the "Plaats voor mij" button of a level 3 hint. */
+  /** Placements that came from the place-for-me button of a level 3 hint. */
   hintPlacements: number
   /** Placements on a square that is not the person's true square. */
   wrongPlacements: number

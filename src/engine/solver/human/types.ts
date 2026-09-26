@@ -25,7 +25,7 @@ export interface Elimination {
 export interface Deduction {
   place?: { person: number; cell: number }
   eliminate: Elimination[]
-  /** Dutch explanation, written for a player. */
+  /** Explanation, written for a player. */
   explanation: string
   /** People the deduction talks about. */
   people: number[]
@@ -43,7 +43,7 @@ export interface Deduction {
 export interface Technique {
   /** Stable machine id, e.g. `scan`. */
   id: string
-  /** Dutch name shown to players, e.g. "Rij voor rij scannen". */
+  /** Name shown to players, e.g. "Row by row, column by column". */
   title: string
   /**
    * Difficulty tier, 1 = obvious. Lower levels are tried first, and the
@@ -62,7 +62,7 @@ export interface Technique {
 export interface DifficultyBand {
   minLevel: number
   id: string
-  /** Dutch label. */
+  /** Label. */
   label: string
 }
 
@@ -72,7 +72,7 @@ export interface HumanStep {
   index: number
   technique: string
   level: number
-  /** Dutch explanation of the step. */
+  /** Explanation of the step. */
   explanation: string
   /** Ids of the people the step is about. */
   people: string[]

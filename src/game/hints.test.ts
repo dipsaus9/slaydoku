@@ -31,7 +31,7 @@ describe('hint levels on the empty grid', () => {
     const hint = getHint(puzzle, empty(), 1)
     expect(hint).toMatchObject({ level: 1, personIds: ['C'] })
     expect(Object.keys(hint as object).sort()).toEqual(['level', 'personIds', 'roomIds', 'text'])
-    expect((hint as { text: string }).text).not.toMatch(/r\d+k\d+/)
+    expect((hint as { text: string }).text).not.toMatch(/r\d+[kc]\d+/)
   })
 
   it('level 2 adds cells, still no explanation', () => {
@@ -41,12 +41,12 @@ describe('hint levels on the empty grid', () => {
     expect((hint as { cells: unknown[] }).cells.length).toBeGreaterThan(0)
   })
 
-  it('level 3 adds the Dutch reasoning, the instruction and the technique for the record', () => {
+  it('level 3 adds the reasoning, the instruction and the technique for the record', () => {
     const hint = getHint(puzzle, empty(), 3)
     if (hint?.level !== 3) throw new Error('level')
-    expect(hint.explanation).toContain('De kaart van C zegt: "C stond bij een raam."')
+    expect(hint.explanation).toContain('C\'s card says: "C stood next to a window."')
     expect(hint.text).toBe(`${hint.explanation} ${hint.instruction}`)
-    expect(hint.instruction).toBe('Zet C op rij 3, kolom 4.')
+    expect(hint.instruction).toBe('Place C on row 3, column 4.')
     expect(hint.technique).toEqual({ id: 'single-candidate', title: expect.any(String) })
   })
 
@@ -70,10 +70,10 @@ describe('the best next move', () => {
 
   it('a placement reads as card and person, then the square, then the reasoning and an explicit instruction', () => {
     const [first] = hintPath(puzzle)
-    expect(first?.level1).toBe('Lees de kaart van C: "C stond bij een raam." Met alle kaarten samen kan C nog maar op één vakje staan.')
-    expect(first?.level2).toBe('Kijk naar rij 3, kolom 4. Daar moet C staan.')
+    expect(first?.level1).toBe('Read C\'s card: "C stood next to a window." With all the cards together, C can only stand on one square.')
+    expect(first?.level2).toBe('Look at row 3, column 4. C must stand there.')
     expect(first?.level3).toBe(
-      'De kaart van C zegt: "C stond bij een raam." Alle kaarten samen laten voor C maar één vakje over: rij 3, kolom 4. Zet C op rij 3, kolom 4.',
+      'C\'s card says: "C stood next to a window." All the cards together leave only one square for C: row 3, column 4. Place C on row 3, column 4.',
     )
   })
 
@@ -137,13 +137,13 @@ describe('when nobody has one possible square', () => {
     const h3 = getHint(hard, empty(), 3)
     if (h1?.level !== 1 || h2?.level !== 2 || h3?.level !== 3) throw new Error('levels')
     // Level 1: the card and how many squares are possible.
-    expect(h1.text).toMatch(/^Lees de kaart van \S+: ".+" Met alle kaarten samen kan \S+ nog maar op \S+ vakjes staan\.$/)
+    expect(h1.text).toMatch(/^Read \S+'s card: ".+" With all the cards together, \S+ can only stand on \S+ squares\.$/)
     // Level 2: only the possible squares, named.
     expect(h2.cells).toEqual(next?.focus?.cells)
-    expect(h2.text).toMatch(/^\S+ kan alleen op rij \d+, kolom \d+.* staan\. Die vakjes zijn gemarkeerd op het bord\.$/)
+    expect(h2.text).toMatch(/^\S+ can only stand on row \d+, column \d+.*\. Those squares are marked on the board\.$/)
     // Level 3: the reasoning and an explicit instruction to make a note.
-    expect(h3.instruction).toMatch(/^Zet een notitie voor \S+ op rij \d+, kolom \d+.*\.$/)
-    expect(h3.explanation).toContain('Welk vakje het is, weten we nog niet.')
+    expect(h3.instruction).toMatch(/^Note squares for \S+ on row \d+, column \d+.*\.$/)
+    expect(h3.explanation).toContain('We do not know yet which one it is.')
     expect(h3.placement).toBeUndefined()
   })
 
@@ -170,7 +170,7 @@ describe('when nobody has one possible square', () => {
   it('after the last technique beyond the basic ones every hint is a placement: the freed squares are worked out in it', () => {
     const path = hintPath(hard)
     const lastCrossing = path.map((h) => h.placed).lastIndexOf(false)
-    expect(path.slice(0, lastCrossing + 1).some((h) => h.level3.includes('Zet een kruisje'))).toBe(true)
+    expect(path.slice(0, lastCrossing + 1).some((h) => h.level3.includes('Put a cross'))).toBe(true)
     expect(path.slice(lastCrossing + 1).every((h) => h.placed)).toBe(true)
     expect(path.length).toBeLessThanOrEqual(hard.people.length + 4)
   })
@@ -200,47 +200,47 @@ describe('hints on generated puzzles', () => {
   })
 })
 
-describe('the gift label in hint text', () => {
-  const gifted: typeof puzzle = {
+describe('the victim label in hint text', () => {
+  const victimised: typeof puzzle = {
     ...puzzle,
-    people: puzzle.people.map((p) => (p.kind === 'victim' ? { ...p, label: 'het cadeau' } : p)),
+    people: puzzle.people.map((p) => (p.kind === 'victim' ? { ...p, label: 'the victim' } : p)),
   }
-  const sentenceStart = /(^|[.!?]\s+)het cadeau/
+  const sentenceStart = /(^|[.!?]\s+)the victim/
 
   it('starts with a capital when it opens a sentence, in the hint and in the explanation', () => {
     const step = {
       index: 1,
       technique: 'clue',
       level: 1,
-      explanation: 'het cadeau is in de Keuken. Dat is de dader. het cadeau kan dus niet naast het cadeau staan.',
+      explanation: 'the victim is in the Kitchen. That is the murderer. the victim cannot stand next to the victim.',
       people: ['V'],
       cells: [at.V],
       placed: { personId: 'V', cell: at.V },
       eliminated: [],
     }
     // The solver's own step (no person to look at): the way the lab tells a step of the solve trace.
-    const h2 = hintFor(gifted, { step, placement: step.placed }, 2)
-    expect(h2.text).toBe('Kijk naar rij 1, kolom 1. Daar moet het cadeau staan.')
-    const h3 = hintFor(gifted, { step, placement: step.placed }, 3)
+    const h2 = hintFor(victimised, { step, placement: step.placed }, 2)
+    expect(h2.text).toBe('Look at row 1, column 1. The victim must stand there.')
+    const h3 = hintFor(victimised, { step, placement: step.placed }, 3)
     if (h3.level !== 3) throw new Error('level')
     expect(h3.explanation).toBe(
-      'Het cadeau is in de Keuken. Dat is de dader. Het cadeau kan dus niet naast het cadeau staan.',
+      'The victim is in the Kitchen. That is the murderer. The victim cannot stand next to the victim.',
     )
-    expect(h3.instruction).toBe('Zet het cadeau op rij 1, kolom 1.')
+    expect(h3.instruction).toBe('Place the victim on row 1, column 1.')
     expect(h3.text).toBe(`${h3.explanation} ${h3.instruction}`)
-    expect(hintFor(gifted, { step, placement: step.placed }, 1).text).toBe('Kijk eens naar het cadeau in de Woonkamer.')
+    expect(hintFor(victimised, { step, placement: step.placed }, 1).text).toBe('Take a look at the victim in the Living Room.')
   })
 
-  it('the best-move hints about the gift start with a capital too', () => {
+  it('the best-move hints about the victim start with a capital too', () => {
     const last = run(empty(), { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'B', cell: at.B }, { type: 'place', personId: 'A', cell: at.A })
-    const texts = [1, 2, 3].map((level) => getHint(gifted, last, level as 1 | 2 | 3)?.text ?? '')
-    expect(texts[0]).toBe('Kijk eens naar het cadeau. Met alle kaarten samen kan het cadeau nog maar op één vakje staan.')
-    expect(texts[1]).toBe('Kijk naar rij 1, kolom 1. Daar moet het cadeau staan.')
-    expect(texts[2]).toMatch(/^Alle kaarten samen, met de rijen en kolommen van wie al staat, laten voor het cadeau maar één vakje over: rij 1, kolom 1\. Zet het cadeau op rij 1, kolom 1\.$/)
+    const texts = [1, 2, 3].map((level) => getHint(victimised, last, level as 1 | 2 | 3)?.text ?? '')
+    expect(texts[0]).toBe('Take a look at the victim. With all the cards together, the victim can only stand on one square.')
+    expect(texts[1]).toBe('Look at row 1, column 1. The victim must stand there.')
+    expect(texts[2]).toMatch(/^All the cards together, with the rows and columns of the people already placed, leave only one square for the victim: row 1, column 1\. Place the victim on row 1, column 1\.$/)
   })
 
-  it('no hint along a whole game leaves the gift lower case at a sentence start', () => {
-    const path = hintPath(gifted)
+  it('no hint along a whole game leaves the victim lower case at a sentence start', () => {
+    const path = hintPath(victimised)
     expect(path.length).toBeGreaterThan(3)
     for (const h of path) for (const text of [h.level1, h.level2, h.level3]) expect(text).not.toMatch(sentenceStart)
   })
@@ -252,8 +252,8 @@ describe('hint texts on the demo level and a hard puzzle', () => {
     hard: hardPuzzle(),
   }
   const techniqueIds = defaultRegistry.list().map((t) => t.id)
-  const dutch = /\b(de|het|een|kijk|zet|staat|kan|kaart|rij|kolom|vakjes?|op)\b/i
-  const jargon = new RegExp(`\\b(${[...techniqueIds, 'techniek', 'eliminatie', 'kandidaat', 'deductie'].join('|')})\\b`, 'i')
+  const english = /\b(the|look|place|put|stand|card|row|column|squares?|on)\b/i
+  const jargon = new RegExp(`\\b(${[...techniqueIds, 'technique', 'elimination', 'candidate', 'deduction'].join('|')})\\b`, 'i')
 
   describe.each(Object.entries(houses))('%s', (name, p) => {
     const path = hintPath(p)
@@ -263,12 +263,12 @@ describe('hint texts on the demo level and a hard puzzle', () => {
       expect(path[0]?.placed).toBe(name === 'demo')
     })
 
-    it('every text of every step is filled, Dutch, jargon-free and short enough', () => {
+    it('every text of every step is filled, English, jargon-free and short enough', () => {
       path.forEach((h, i) => {
         const where = `${name} step ${i + 1}`
         for (const [text, max] of [[h.level1, 220], [h.level2, 220], [h.level3, 420]] as const) {
           expect(text.trim(), where).not.toBe('')
-          expect(text, where).toMatch(dutch)
+          expect(text, where).toMatch(english)
           expect(text, where).not.toMatch(jargon)
           expect(text.length, `${where}: ${text}`).toBeLessThan(max)
         }
@@ -277,7 +277,7 @@ describe('hint texts on the demo level and a hard puzzle', () => {
 
     it('ends every level-3 text with what to do: place somebody, or note or cross squares', () => {
       for (const h of path) {
-        expect(h.level3).toMatch(h.placed ? /Zet .+ op rij \d+, kolom \d+\.$/ : /Zet een (kruisje|notitie) .+\.$/)
+        expect(h.level3).toMatch(h.placed ? /Place .+ on row \d+, column \d+\.$/ : /(Put a cross|Note squares) .+\.$/)
       }
     })
 

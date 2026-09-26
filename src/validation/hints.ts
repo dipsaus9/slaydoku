@@ -1,6 +1,7 @@
 import { advancedRegistry } from '../engine/solver/advanced/registry.ts'
 import type { Cell, Puzzle } from '../engine/model/index.ts'
 import type { Hint1, Hint2, Hint3 } from '../game/hints.ts'
+import { DUTCH_RE, wordMatcher } from './dutch.ts'
 import { walkHints } from './walk.ts'
 import type { HintWalk, WalkStep } from './walk.ts'
 
@@ -11,11 +12,11 @@ export const HINT_LIMITS = {
   level3: { min: 30, max: 420 },
   /** A hard technique (level 4: rectangles and fish) names whole rows and columns, so it needs more room. */
   level3Hard: { min: 30, max: 600 },
-  /** An expert technique (level 5: "Stel dat ... dan ... dat kan niet") walks through suppositions. */
+  /** An expert technique (level 5: "Suppose ... then ... that is impossible") walks through suppositions. */
   level3Expert: { min: 30, max: 800 },
 } as const
 
-/** Up to this many squares a hint spells out; more are "de gemarkeerde vakjes" on the board (same as `hintText.ts`). */
+/** Up to this many squares a hint spells out; more are "the marked squares" on the board (same as `hintText.ts`). */
 export const MAX_NAMED_CELLS = 4
 /** A hint never asks the player to cross out more squares than this. */
 export const MAX_CROSSED_SQUARES = 12
@@ -26,53 +27,43 @@ export const MAX_NAMED_PEOPLE = 3
 
 /** Words of the solver's own vocabulary that a player must never read. */
 const JARGON = [
-  'kandidaat', 'kandidaten', 'eliminatie', 'elimineer', 'elimineren', 'techniek', 'technieken', 'solver', 'deductie',
-  'algoritme', 'heuristiek', 'singleton', 'contradictie', 'constraint', 'naked', 'hidden', 'pair', 'triple', 'quad',
-  'fish', 'chain', 'candidate', 'technique', 'rectangle', 'intersect', 'scan',
+  'candidate', 'candidates', 'elimination', 'eliminate', 'eliminates', 'eliminating', 'technique', 'techniques', 'solver',
+  'deduction', 'algorithm', 'heuristic', 'singleton', 'contradiction', 'constraint', 'naked', 'hidden', 'pair', 'triple',
+  'quad', 'fish', 'chain', 'rectangle', 'intersect', 'scan', 'cell', 'cells',
 ]
 
-/** English words that give away a text nobody translated. */
-const ENGLISH = [
-  'the', 'and', 'you', 'cell', 'cells', 'row', 'column', 'place', 'put', 'because', 'with', 'from', 'this', 'that', 'clue',
-  'card', 'hint', 'step', 'should', 'must', 'cannot', 'only', 'square', 'squares', 'person', 'room', 'next',
-]
-
-const wordRe = (words: readonly string[]): RegExp =>
-  new RegExp(`(?<![\\p{L}\\d-])(?:${words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\p{L}\\d-])`, 'iu')
-
-const JARGON_RE = wordRe(JARGON)
-const ENGLISH_RE = wordRe(ENGLISH)
+const JARGON_RE = wordMatcher(JARGON)
 /**
- * The solver's technique ids ("single-candidate", "victim-room", ...). Their Dutch titles are ordinary
- * phrases ("Nog maar één vakje") that a good hint may use, so only the ids are banned.
+ * The solver's technique ids ("single-candidate", "victim-room", ...). Their titles are ordinary
+ * phrases ("Only one square left") that a good hint may use, so only the ids are banned.
  */
-const TECHNIQUE_ID_RE = wordRe(advancedRegistry.list().map((t) => t.id).filter((id) => id.length > 5))
-/** Ids and code the player must not see: r3k4, "undefined", "[object Object]", braces, snake_case. */
-const CODE_RE = /\br\d+k\d+\b|undefined|NaN|\bnull\b|\[object|[{}<>_]|=>/
-/** "62 vakjes", "nog 13 andere vakjes": a count of squares as a number, above what a hint spells out. */
-const CELL_COUNT_RE = /\b(\d+)\s+(?:andere\s+)?vakjes\b/g
-/** The Dutch words a hint of any level is built from; at least one must be there. */
-const DUTCH_RE = /\b(de|het|een|naar|kijk|zet|op|in|kaart|vakje|vakjes|kruisje|bord|staan|rij|kolom)\b/i
+const TECHNIQUE_ID_RE = wordMatcher(advancedRegistry.list().map((t) => t.id).filter((id) => id.length > 5))
+/** Ids and code the player must not see: r3c4, "undefined", "[object Object]", braces, snake_case. */
+const CODE_RE = /\br\d+[kc]\d+\b|undefined|NaN|\bnull\b|\[object|[{}<>_]|=>/
+/** "62 squares", "13 other squares": a count of squares as a number, above what a hint spells out. */
+const CELL_COUNT_RE = /\b(\d+)\s+(?:other\s+)?squares\b/g
+/** The English words a hint of any level is built from; at least one must be there. */
+const ENGLISH_RE = /\b(the|a|an|at|on|in|look|place|put|note|stand|stands|card|cards|square|squares|cross|board|row|column)\b/i
 
-/** Numbers of a spelled list: "5, 7 en 8" gives 5, 7 and 8. */
+/** Numbers of a spelled list: "5, 7 and 8" gives 5, 7 and 8. */
 const numbersOf = (list: string): number[] => (list.match(/\d+/g) ?? []).map(Number)
 
 /**
- * True when `text` names `cell` the way the hints do: "rij 3, kolom 4", or several squares of one row or
- * column together: "rij 9, kolom 5, 7 en 8" and "kolom 6, rij 8 en 9".
+ * True when `text` names `cell` the way the hints do: "row 3, column 4", or several squares of one row or
+ * column together: "row 9, column 5, 7 and 8" and "column 6, row 8 and 9".
  */
 function namesCell(text: string, cell: Cell): boolean {
   const row = cell.row + 1
   const col = cell.col + 1
-  const inRow = [...text.matchAll(/rij (\d+), kolom ((?:\d+(?:, | en )?)+)/g)]
-  const inColumn = [...text.matchAll(/kolom (\d+), rij ((?:\d+(?:, | en )?)+)/g)]
+  const inRow = [...text.matchAll(/row (\d+), column ((?:\d+(?:, | and )?)+)/g)]
+  const inColumn = [...text.matchAll(/column (\d+), row ((?:\d+(?:, | and )?)+)/g)]
   return (
     inRow.some((m) => Number(m[1]) === row && numbersOf(m[2] as string).includes(col)) ||
     inColumn.some((m) => Number(m[1]) === col && numbersOf(m[2] as string).includes(row))
   )
 }
 
-const cellName = (cell: Cell): string => `rij ${cell.row + 1}, kolom ${cell.col + 1}`
+const cellName = (cell: Cell): string => `row ${cell.row + 1}, column ${cell.col + 1}`
 
 /** Problems any hint text has, whatever its level. */
 function textProblems(text: string): string[] {
@@ -81,7 +72,7 @@ function textProblems(text: string): string[] {
   if (text !== text.trim() || /\s{2,}/.test(text)) problems.push('stray whitespace')
   if (!/^\p{Lu}/u.test(text)) problems.push('does not start with a capital')
   if (!/[.!?]["”]?$/.test(text)) problems.push('does not end in a full stop')
-  if (!DUTCH_RE.test(text) || ENGLISH_RE.test(text)) problems.push(`is not plain Dutch (${ENGLISH_RE.exec(text)?.[0] ?? 'no Dutch words'})`)
+  if (!ENGLISH_RE.test(text) || DUTCH_RE.test(text)) problems.push(`is not plain English (${DUTCH_RE.exec(text)?.[0] ?? 'no English words'})`)
   const jargon = JARGON_RE.exec(text)?.[0]
   if (jargon) problems.push(`uses the solver word "${jargon}"`)
   const technique = TECHNIQUE_ID_RE.exec(text)?.[0]
@@ -89,7 +80,7 @@ function textProblems(text: string): string[] {
   const code = CODE_RE.exec(text)?.[0]
   if (code) problems.push(`shows code "${code}"`)
   for (const match of text.matchAll(CELL_COUNT_RE)) {
-    if (Number(match[1]) > MAX_NAMED_CELLS) problems.push(`spells a count of ${match[1]} squares as a number; say "de gemarkeerde vakjes"`)
+    if (Number(match[1]) > MAX_NAMED_CELLS) problems.push(`spells a count of ${match[1]} squares as a number; say "the marked squares"`)
   }
   return problems
 }
@@ -132,7 +123,7 @@ function level2Problems(puzzle: Puzzle, hint: Hint2, step: WalkStep): string[] {
     for (const cell of cells) {
       if (!namesCell(hint.text, cell)) problems.push(`does not name the square ${cellName(cell)}`)
     }
-  } else if (!/gemarkeerde vakjes/.test(hint.text)) {
+  } else if (!/marked squares/.test(hint.text)) {
     problems.push(`${cells.length} squares but the text does not point at the marked squares`)
   }
   if (cells.length > MAX_CROSSED_SQUARES) problems.push(`asks for ${cells.length} squares, at most ${MAX_CROSSED_SQUARES}`)
@@ -159,20 +150,20 @@ function level3Problems(puzzle: Puzzle, hint: Hint3, step: WalkStep): string[] {
   const { placement } = step.next
   if (placement) {
     const label = puzzle.people.find((p) => p.id === placement.personId)?.label ?? ''
-    const expected = `Zet ${label} op ${cellName(placement.cell)}.`
+    const expected = `Place ${label} on ${cellName(placement.cell)}.`
     if (hint.instruction.toLowerCase() !== expected.toLowerCase()) problems.push(`instruction "${hint.instruction}" is not "${expected}"`)
     if (!hint.placement) problems.push('a placement step without a placement')
   } else if (step.next.focus) {
     const label = puzzle.people.find((p) => p.id === step.next.focus?.personId)?.label ?? ''
-    if (!hint.instruction.toLowerCase().startsWith(`zet een notitie voor ${label.toLowerCase()} op `) || !hint.instruction.endsWith('.')) {
+    if (!hint.instruction.toLowerCase().startsWith(`note squares for ${label.toLowerCase()} on `) || !hint.instruction.endsWith('.')) {
       problems.push(`instruction "${hint.instruction}" does not say where to note ${label}`)
     }
     for (const cell of step.next.focus.cells) {
       if (!namesCell(hint.instruction, cell)) problems.push(`instruction does not name the square ${cellName(cell)}`)
     }
   } else {
-    if (!/^Zet een kruisje\b.*\.$/.test(hint.instruction)) problems.push(`instruction "${hint.instruction}" does not say where to put a cross`)
-    if (!/gemarkeerde vakjes|rij \d|kolom \d/.test(hint.instruction)) problems.push('instruction names no square')
+    if (!/^Put a cross\b.*\.$/.test(hint.instruction)) problems.push(`instruction "${hint.instruction}" does not say where to put a cross`)
+    if (!/marked squares|row \d|column \d/.test(hint.instruction)) problems.push('instruction names no square')
   }
   if (hint.instruction.split(/(?<=[.!?])\s+/).length !== 1) problems.push('the instruction is more than one sentence')
   return problems
@@ -185,12 +176,12 @@ function level3Problems(puzzle: Puzzle, hint: Hint3, step: WalkStep): string[] {
  *
  * - The walk itself must finish: every step has a hint at all three levels and everybody ends
  *   up on their true square.
- * - Every level: plain Dutch (no English, no stray whitespace, starts with a capital, ends in a full
+ * - Every level: plain English (no Dutch, no stray whitespace, starts with a capital, ends in a full
  *   stop), no solver jargon or technique names, no ids or code, no count of squares as a number.
  * - Level 1 names the person (all of them up to three) and only points at areas that exist.
- * - Level 2 names the square (up to four; more are "de gemarkeerde vakjes") and, for a placement, the person.
- * - Level 3 is the explanation followed by one explicit instruction: "Zet <naam> op rij X, kolom Y."
- *   or "Zet een kruisje ...".
+ * - Level 2 names the square (up to four; more are "the marked squares") and, for a placement, the person.
+ * - Level 3 is the explanation followed by one explicit instruction: "Place <name> on row X, column Y.",
+ *   "Note squares for <name> on ..." or "Put a cross ...".
  * - Length limits per level (`HINT_LIMITS`).
  */
 export const auditHints = (puzzle: Puzzle): string[] => auditWalk(puzzle, walkHints(puzzle))

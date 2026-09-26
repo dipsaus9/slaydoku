@@ -1,6 +1,6 @@
 import { cellKey, cellsBesideFeature, isOccupiableType, OBJECT_TYPES } from '../../engine/model/index.ts'
 import type { Cell, EdgeFeatureKind, ObjectType, PlacedObject, Scene } from '../../engine/model/index.ts'
-import { OBJECTS_NL } from '../../engine/clues/nl.ts'
+import { OBJECT_WORDS } from '../../engine/clues/en.ts'
 import { drawnKinds, specificNoun, themeObjectOf } from '../../content/themes/drawn.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 
@@ -61,7 +61,7 @@ export function legendOf(scene: Scene): Legend {
       const members = scene.objects.filter(
         (o) => o.type === type && (themeObjectOf(o)?.themeIcon ?? 'engine') === group.icon,
       )
-      const noun = specificNoun(group) ?? OBJECTS_NL[type].noun
+      const noun = specificNoun(group) ?? OBJECT_WORDS[type].noun
       rows.push({
         key: `${type}:${group.icon}`,
         type,

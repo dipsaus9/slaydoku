@@ -36,7 +36,7 @@ describe('solve trace view', () => {
     for (const step of insight.trace) {
       expect(html).toContain(`data-step="${step.index}"`)
       expect(html).toContain(step.title)
-      for (const level of [1, 2, 3] as const) expect(html).toContain(step.hints[level].replaceAll('"', '&quot;'))
+      for (const level of [1, 2, 3] as const) expect(html).toContain(step.hints[level].replaceAll('"', '&quot;').replaceAll("'", '&#x27;'))
     }
     expect(html).toContain(t.hint(1))
     expect(html).toContain(t.hint(3))

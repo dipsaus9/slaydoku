@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEMO_GIFT_CELLS, demoScene } from '../../../content/demo/scene.ts'
+import { DEMO_VICTIM_CELLS, demoScene } from '../../../content/demo/scene.ts'
 import type { Scene } from '../../model/index.ts'
 import { ladderCheck } from '../../solvable/ladder.ts'
 import { precision } from '../../solvable/precision.ts'
@@ -41,7 +41,7 @@ describe('generateLadder', () => {
     const houses: { name: string; scene: Scene; cells: readonly { row: number; col: number }[]; hopeless: string[]; rareEasy?: string[] }[] = [
       // Very easy needs one card per placement, and a card that covers a square of the gift's row or column never
       // gets smaller (the gift is placed last): a scene can have gift cells for which no such path exists; list them as `hopeless`.
-      { name: 'demo house', scene: demoScene, cells: DEMO_GIFT_CELLS, hopeless: [] },
+      { name: 'demo house', scene: demoScene, cells: DEMO_VICTIM_CELLS, hopeless: [] },
     ]
     for (const { name, scene, cells, hopeless, rareEasy = [] } of houses) {
       it.each(LADDER_TIER_IDS)(`${name}: pins the gift on every gift cell (%s)`, { timeout: 120_000 }, (tier) => {

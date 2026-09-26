@@ -63,7 +63,7 @@ export function isOccupiableType(type: ObjectType): boolean {
   return OBJECT_CATALOG[type].occupiable
 }
 
-export const GENDERS: readonly Gender[] = ['vrouw', 'man']
+export const GENDERS: readonly Gender[] = ['woman', 'man']
 
 export function isGender(value: unknown): value is Gender {
   return typeof value === 'string' && (GENDERS as readonly string[]).includes(value)
