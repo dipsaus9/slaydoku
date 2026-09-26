@@ -15,54 +15,54 @@ const puzzleOf = (objects: PlacedObject[], clues: CatalogClue[]) =>
 const besideChair = { personId: 'A', type: 'besideObject', args: { objectType: 'chair' } } as CatalogClue
 
 describe('auditObjectNames', () => {
-  const poefAndTuinstoel = [obj('tuinstoel-1', 'chair', 0, 0), obj('poef-1', 'chair', 3, 3)]
+  const poofAndGardenChair = [obj('gardenChair-1', 'chair', 0, 0), obj('poof-1', 'chair', 3, 3)]
 
   it('passes the wording that names every drawn kind', () => {
-    expect(auditObjectNames(puzzleOf(poefAndTuinstoel, [besideChair]))).toEqual([])
+    expect(auditObjectNames(puzzleOf(poofAndGardenChair, [besideChair]))).toEqual([])
   })
 
-  it('fails "stoel" when a poef and a tuinstoel are both on the board', () => {
-    const problems = auditObjectNames(puzzleOf(poefAndTuinstoel, [besideChair]), legacyNouns)
-    // the plain-icon tuinstoel is a "stoel", the poef is not: one group is named, the other left out
-    expect(problems).toEqual(['card 1: leaves out poef, which the clue counts too'])
+  it('fails "chair" when a poof and a garden chair are both on the board', () => {
+    const problems = auditObjectNames(puzzleOf(poofAndGardenChair, [besideChair]), legacyNouns)
+    // the plain-icon garden chair is a "chair", the poof is not: one group is named, the other left out
+    expect(problems).toEqual(['card 1: leaves out poof, which the clue counts too'])
   })
 
   it('fails a noun that leaves a drawn kind out', () => {
-    const problems = auditObjectNames(puzzleOf(poefAndTuinstoel, [besideChair]), () => ['poef'])
-    expect(problems).toEqual(['card 1: leaves out tuinstoel, which the clue counts too'])
+    const problems = auditObjectNames(puzzleOf(poofAndGardenChair, [besideChair]), () => ['poof'])
+    expect(problems).toEqual(['card 1: leaves out garden chair, which the clue counts too'])
   })
 
   it('fails the engine noun when another kind of the type is drawn differently', () => {
     // hammock and bed are engine type bed with different art; "bed" names only the plain one
-    const both = [obj('hangmat-1', 'bed', 0, 0), obj('ligbed-1', 'bed', 3, 3)]
+    const both = [obj('hammock-1', 'bed', 0, 0), obj('sunLounger-1', 'bed', 3, 3)]
     const bed = { personId: 'A', type: 'onObject', args: { objectType: 'bed' } } as CatalogClue
-    expect(auditObjectNames(puzzleOf(both, [bed]), legacyNouns)).toEqual(['card 1: leaves out hangmat, which the clue counts too'])
+    expect(auditObjectNames(puzzleOf(both, [bed]), legacyNouns)).toEqual(['card 1: leaves out hammock, which the clue counts too'])
     // a plain engine bed and a themed bed with the same plain art are one drawn kind
-    const plain = [obj('bed-a', 'bed', 0, 0), obj('ligbed-1', 'bed', 3, 3)]
+    const plain = [obj('bed-a', 'bed', 0, 0), obj('sunLounger-1', 'bed', 3, 3)]
     expect(auditObjectNames(puzzleOf(plain, [bed]), legacyNouns)).toEqual([])
   })
 
   it('accepts the group noun when every member is drawn alike', () => {
-    const alike = [obj('schoolstoel-1', 'chair', 0, 0), obj('vergaderstoel-1', 'chair', 1, 1)]
+    const alike = [obj('schoolChair-1', 'chair', 0, 0), obj('meetingChair-1', 'chair', 1, 1)]
     expect(auditObjectNames(puzzleOf(alike, [besideChair]))).toEqual([])
     expect(auditObjectNames(puzzleOf(alike, [besideChair]), legacyNouns)).toEqual([])
     // a member noun alone does not name a group of several kinds
-    expect(auditObjectNames(puzzleOf(alike, [besideChair]), () => ['schoolstoel'])).toHaveLength(1)
+    expect(auditObjectNames(puzzleOf(alike, [besideChair]), () => ['school chair'])).toHaveLength(1)
   })
 
   it('fails a type that has no object on the board', () => {
-    const problems = auditObjectNames(puzzleOf([obj('tuinstoel-1', 'chair', 0, 0)], [{ personId: 'A', type: 'onObject', args: { objectType: 'rug' } } as CatalogClue]))
+    const problems = auditObjectNames(puzzleOf([obj('gardenChair-1', 'chair', 0, 0)], [{ personId: 'A', type: 'onObject', args: { objectType: 'rug' } } as CatalogClue]))
     expect(problems).toHaveLength(1)
-    expect(problems[0]).toMatch(/^card 1: names a tapijt/)
+    expect(problems[0]).toMatch(/^card 1: names a rug/)
   })
 
   it('ignores clues that name no object', () => {
-    expect(auditObjectNames(puzzleOf(poefAndTuinstoel, [{ personId: 'A', type: 'alone', args: {} } as CatalogClue]))).toEqual([])
+    expect(auditObjectNames(puzzleOf(poofAndGardenChair, [{ personId: 'A', type: 'alone', args: {} } as CatalogClue]))).toEqual([])
   })
 
   it('numbers the card', () => {
     const clues = [{ personId: 'A', type: 'alone', args: {} } as CatalogClue, besideChair]
-    expect(auditObjectNames(puzzleOf(poefAndTuinstoel, clues), () => ['poef'])[0]).toMatch(/^card 2: /)
+    expect(auditObjectNames(puzzleOf(poofAndGardenChair, clues), () => ['poof'])[0]).toMatch(/^card 2: /)
   })
 })
 

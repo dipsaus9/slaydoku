@@ -1,5 +1,5 @@
 import type { CatalogClue } from '../../engine/clues/index.ts'
-import { renderClue } from '../../engine/clues/nl.ts'
+import { renderClue } from '../../engine/clues/en.ts'
 import type { Clue, Person, Scene } from '../../engine/model/index.ts'
 import type { CardLook } from './procedural/index.ts'
 import { SuspectCard } from './SuspectCard.tsx'

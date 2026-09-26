@@ -1,4 +1,4 @@
-import { cellName, colName, joinNl, manyNl, personName, rowName, sentences } from '../../human/nl.ts'
+import { cellName, colName, joinList, manyWord, personName, rowName, sentences } from '../../human/en.ts'
 import type { BoardView } from '../../human/board.ts'
 import type { Elimination, Technique } from '../../human/types.ts'
 import { linkModel } from '../links.ts'
@@ -25,7 +25,7 @@ const CHAIN_SHOWN = 6
  */
 export const chain: Technique = {
   id: 'chain',
-  title: 'Ketenredenering',
+  title: 'Chain reasoning',
   level: 5,
   find(board, context) {
     const model = linkModel(board, context)
@@ -40,7 +40,7 @@ function describe(board: BoardView, found: Refutation[]) {
   const eliminate: Elimination[] = found.map((f) => ({ person: f.person, cell: f.cell }))
   const parts = found.slice(0, SHOWN).map((f) => explainOne(board, f))
   const more = found.length - SHOWN
-  const tail = more > 0 ? ` Met dezelfde redenering vallen nog ${manyNl(more)} ${more === 1 ? 'ander vakje' : 'andere vakjes'} af.` : ''
+  const tail = more > 0 ? ` The same reasoning rules out ${manyWord(more)} other ${more === 1 ? 'square' : 'squares'}.` : ''
   return {
     eliminate,
     explanation: sentences(`${parts.join(' ')}${tail}`),
@@ -52,11 +52,11 @@ function describe(board: BoardView, found: Refutation[]) {
 function explainOne(board: BoardView, f: Refutation): string {
   const who = personName(board, f.person)
   const steps = f.forced.slice(0, CHAIN_SHOWN).map((x) => `${personName(board, x.person)} op ${cellName(board, x.cell)}`)
-  const cut = f.forced.length > CHAIN_SHOWN ? ' enzovoort' : ''
-  const lead = steps.length > 0 ? `Dan moeten ${joinNl(steps, 'en', '; ')} staan${cut}. Daardoor ` : 'Dan '
+  const cut = f.forced.length > CHAIN_SHOWN ? ' and so on' : ''
+  const lead = steps.length > 0 ? `That forces ${joinList(steps, 'and', '; ')}${cut}. As a result, ` : 'Then '
   const end =
     f.dead.kind === 'person'
-      ? `heeft ${personName(board, f.dead.index)} nergens meer een vakje.`
-      : `heeft ${f.dead.kind === 'row' ? rowName(f.dead.index) : colName(f.dead.index)} geen vrij vakje meer.`
-  return `Stel dat ${who} op ${cellName(board, f.cell)} staat. ${lead}${end} Dat kan niet, dus ${who} staat daar niet.`
+      ? `${personName(board, f.dead.index)} has no square left.`
+      : `${f.dead.kind === 'row' ? rowName(f.dead.index) : colName(f.dead.index)} has no free square left.`
+  return `Suppose ${who} stands on ${cellName(board, f.cell)}. ${lead}${end} That is impossible, so ${who} does not stand there.`
 }

@@ -5,51 +5,51 @@
     "rooms": [
       {
         "id": "r1",
-        "name": "Handenarbeidlokaal"
+        "name": "Craft Room"
       },
       {
         "id": "r2",
-        "name": "Klaslokaal"
+        "name": "Classroom"
       },
       {
         "id": "r3",
-        "name": "Bibliotheek"
+        "name": "Library"
       },
       {
         "id": "r4",
-        "name": "Kleuterklas"
+        "name": "Kindergarten"
       },
       {
         "id": "r5",
-        "name": "Computerlokaal"
+        "name": "Computer Room"
       },
       {
         "id": "r6",
-        "name": "Muzieklokaal"
+        "name": "Music Room"
       },
       {
         "id": "r7",
-        "name": "Lerarenkamer"
+        "name": "Staff Room"
       },
       {
         "id": "r8",
-        "name": "Conciergehok"
+        "name": "Caretaker Room"
       },
       {
         "id": "r9",
-        "name": "Natuurkundelokaal"
+        "name": "Science Room"
       },
       {
         "id": "r10",
-        "name": "Directiekamer"
+        "name": "Principal Office"
       },
       {
         "id": "r11",
-        "name": "Ziekenboeg"
+        "name": "Sick Bay"
       },
       {
         "id": "r12",
-        "name": "Kantine"
+        "name": "Canteen"
       }
     ],
     "cellRooms": [
@@ -344,7 +344,7 @@
     ],
     "objects": [
       {
-        "id": "schoolbord-1",
+        "id": "blackboard-1",
         "type": "easel",
         "cells": [
           {
@@ -354,7 +354,7 @@
         ]
       },
       {
-        "id": "schoolstoel-1",
+        "id": "schoolChair-1",
         "type": "chair",
         "cells": [
           {
@@ -364,7 +364,7 @@
         ]
       },
       {
-        "id": "schoolstoel-2",
+        "id": "schoolChair-2",
         "type": "chair",
         "cells": [
           {
@@ -374,7 +374,7 @@
         ]
       },
       {
-        "id": "schooltafel-1",
+        "id": "schoolDesk-1",
         "type": "desk",
         "cells": [
           {
@@ -388,7 +388,7 @@
         ]
       },
       {
-        "id": "schoolstoel-3",
+        "id": "schoolChair-3",
         "type": "chair",
         "cells": [
           {
@@ -398,7 +398,7 @@
         ]
       },
       {
-        "id": "wasbak-1",
+        "id": "sink-1",
         "type": "sink",
         "cells": [
           {
@@ -408,7 +408,7 @@
         ]
       },
       {
-        "id": "leeshoekbank-1",
+        "id": "readingSofa-1",
         "type": "sofa",
         "cells": [
           {
@@ -426,7 +426,7 @@
         ]
       },
       {
-        "id": "lerarenbureau-1",
+        "id": "teacherDesk-1",
         "type": "desk",
         "cells": [
           {
@@ -440,7 +440,7 @@
         ]
       },
       {
-        "id": "schooltafel-2",
+        "id": "schoolDesk-2",
         "type": "desk",
         "cells": [
           {
@@ -454,7 +454,7 @@
         ]
       },
       {
-        "id": "speelgoedkist-1",
+        "id": "toyChest-1",
         "type": "chest",
         "cells": [
           {
@@ -464,7 +464,7 @@
         ]
       },
       {
-        "id": "schooltafel-3",
+        "id": "schoolDesk-3",
         "type": "desk",
         "cells": [
           {
@@ -478,7 +478,7 @@
         ]
       },
       {
-        "id": "schooltafel-4",
+        "id": "schoolDesk-4",
         "type": "desk",
         "cells": [
           {
@@ -492,7 +492,7 @@
         ]
       },
       {
-        "id": "schooltafel-5",
+        "id": "schoolDesk-5",
         "type": "desk",
         "cells": [
           {
@@ -506,7 +506,7 @@
         ]
       },
       {
-        "id": "schooltafel-6",
+        "id": "schoolDesk-6",
         "type": "desk",
         "cells": [
           {
@@ -520,7 +520,7 @@
         ]
       },
       {
-        "id": "digibord-1",
+        "id": "smartBoard-1",
         "type": "tv",
         "cells": [
           {
@@ -530,7 +530,7 @@
         ]
       },
       {
-        "id": "schooltafel-7",
+        "id": "schoolDesk-7",
         "type": "desk",
         "cells": [
           {
@@ -544,7 +544,7 @@
         ]
       },
       {
-        "id": "schoolstoel-4",
+        "id": "schoolChair-4",
         "type": "chair",
         "cells": [
           {
@@ -554,7 +554,7 @@
         ]
       },
       {
-        "id": "schoolstoel-5",
+        "id": "schoolChair-5",
         "type": "chair",
         "cells": [
           {
@@ -564,7 +564,7 @@
         ]
       },
       {
-        "id": "schoolbus-1",
+        "id": "schoolBus-1",
         "type": "car",
         "cells": [
           {
@@ -578,7 +578,7 @@
         ]
       },
       {
-        "id": "wasbak-2",
+        "id": "sink-2",
         "type": "sink",
         "cells": [
           {
@@ -588,7 +588,7 @@
         ]
       },
       {
-        "id": "fietsenrek-1",
+        "id": "bikeRack-1",
         "type": "bicycle",
         "cells": [
           {
@@ -602,7 +602,7 @@
         ]
       },
       {
-        "id": "lerarenbureau-2",
+        "id": "teacherDesk-2",
         "type": "desk",
         "cells": [
           {
@@ -616,7 +616,7 @@
         ]
       },
       {
-        "id": "schoolstoel-6",
+        "id": "schoolChair-6",
         "type": "chair",
         "cells": [
           {
@@ -626,7 +626,7 @@
         ]
       },
       {
-        "id": "kluisjes-1",
+        "id": "lockers-1",
         "type": "wardrobe",
         "cells": [
           {
@@ -644,7 +644,7 @@
         ]
       },
       {
-        "id": "schoolstoel-7",
+        "id": "schoolChair-7",
         "type": "chair",
         "cells": [
           {
@@ -654,7 +654,7 @@
         ]
       },
       {
-        "id": "gymmat-1",
+        "id": "gymMat-1",
         "type": "rug",
         "cells": [
           {
@@ -668,7 +668,7 @@
         ]
       },
       {
-        "id": "schoolstoel-8",
+        "id": "schoolChair-8",
         "type": "chair",
         "cells": [
           {
@@ -678,7 +678,7 @@
         ]
       },
       {
-        "id": "schoolstoel-9",
+        "id": "schoolChair-9",
         "type": "chair",
         "cells": [
           {
@@ -688,7 +688,7 @@
         ]
       },
       {
-        "id": "schooltafel-8",
+        "id": "schoolDesk-8",
         "type": "desk",
         "cells": [
           {
@@ -702,7 +702,7 @@
         ]
       },
       {
-        "id": "schooltafel-9",
+        "id": "schoolDesk-9",
         "type": "desk",
         "cells": [
           {
@@ -716,7 +716,7 @@
         ]
       },
       {
-        "id": "schooltafel-10",
+        "id": "schoolDesk-10",
         "type": "desk",
         "cells": [
           {
@@ -730,7 +730,7 @@
         ]
       },
       {
-        "id": "schooltafel-11",
+        "id": "schoolDesk-11",
         "type": "desk",
         "cells": [
           {
@@ -744,7 +744,7 @@
         ]
       },
       {
-        "id": "schooltafel-12",
+        "id": "schoolDesk-12",
         "type": "desk",
         "cells": [
           {
@@ -758,7 +758,7 @@
         ]
       },
       {
-        "id": "schooltafel-13",
+        "id": "schoolDesk-13",
         "type": "desk",
         "cells": [
           {
@@ -772,7 +772,7 @@
         ]
       },
       {
-        "id": "wasbak-3",
+        "id": "sink-3",
         "type": "sink",
         "cells": [
           {
@@ -782,7 +782,7 @@
         ]
       },
       {
-        "id": "kamerplant-1",
+        "id": "houseplant-1",
         "type": "plant",
         "cells": [
           {
@@ -792,7 +792,7 @@
         ]
       },
       {
-        "id": "schoolbord-2",
+        "id": "blackboard-2",
         "type": "easel",
         "cells": [
           {
@@ -806,7 +806,7 @@
         ]
       },
       {
-        "id": "schooltafel-14",
+        "id": "schoolDesk-14",
         "type": "desk",
         "cells": [
           {
@@ -820,7 +820,7 @@
         ]
       },
       {
-        "id": "schooltafel-15",
+        "id": "schoolDesk-15",
         "type": "desk",
         "cells": [
           {
@@ -834,7 +834,7 @@
         ]
       },
       {
-        "id": "schooltafel-16",
+        "id": "schoolDesk-16",
         "type": "desk",
         "cells": [
           {
@@ -848,7 +848,7 @@
         ]
       },
       {
-        "id": "digibord-2",
+        "id": "smartBoard-2",
         "type": "tv",
         "cells": [
           {
@@ -858,7 +858,7 @@
         ]
       },
       {
-        "id": "leestapijt-1",
+        "id": "readingRug-1",
         "type": "rug",
         "cells": [
           {
@@ -880,7 +880,7 @@
         ]
       },
       {
-        "id": "schooltafel-17",
+        "id": "schoolDesk-17",
         "type": "desk",
         "cells": [
           {
@@ -894,7 +894,7 @@
         ]
       },
       {
-        "id": "schooltafel-18",
+        "id": "schoolDesk-18",
         "type": "desk",
         "cells": [
           {
@@ -908,7 +908,7 @@
         ]
       },
       {
-        "id": "zitzak-1",
+        "id": "beanbag-1",
         "type": "chair",
         "cells": [
           {
@@ -918,7 +918,7 @@
         ]
       },
       {
-        "id": "zitzak-2",
+        "id": "beanbag-2",
         "type": "chair",
         "cells": [
           {
@@ -928,7 +928,7 @@
         ]
       },
       {
-        "id": "schoolstoel-10",
+        "id": "schoolChair-10",
         "type": "chair",
         "cells": [
           {
@@ -938,7 +938,7 @@
         ]
       },
       {
-        "id": "speelgoedkist-2",
+        "id": "toyChest-2",
         "type": "chest",
         "cells": [
           {
@@ -948,7 +948,7 @@
         ]
       },
       {
-        "id": "digibord-3",
+        "id": "smartBoard-3",
         "type": "tv",
         "cells": [
           {
@@ -958,7 +958,7 @@
         ]
       },
       {
-        "id": "schoolbord-3",
+        "id": "blackboard-3",
         "type": "easel",
         "cells": [
           {
@@ -972,7 +972,7 @@
         ]
       },
       {
-        "id": "boekenkast-1",
+        "id": "bookcase-1",
         "type": "bookshelf",
         "cells": [
           {
@@ -986,7 +986,7 @@
         ]
       },
       {
-        "id": "schoolstoel-11",
+        "id": "schoolChair-11",
         "type": "chair",
         "cells": [
           {
@@ -996,7 +996,7 @@
         ]
       },
       {
-        "id": "leeshoekbank-2",
+        "id": "readingSofa-2",
         "type": "sofa",
         "cells": [
           {

@@ -1,14 +1,14 @@
 import { ENGINE_ICON, drawnKinds, specificNoun } from '../../content/themes/drawn.ts'
 import type { DrawnKind } from '../../content/themes/drawn.ts'
 import type { ObjectType, Puzzle, Scene } from '../model/index.ts'
-import { OBJECTS_NL, objectNouns } from './nl.ts'
+import { OBJECT_WORDS, objectNouns } from './en.ts'
 
 /**
  * Audit of the object nouns in clue text. A clue about an object type (beside a chair) is true
  * for every object of that engine type, but the board draws some types as several different
  * things: a beanbag, a garden chair and a school chair are all engine type chair. A player who counts what
  * they see needs a noun that names exactly one drawn kind, and a clue that covers a type names
- * every kind of it. Wording lives in nl.ts (`objectNouns`); this only checks it.
+ * every kind of it. Wording lives in en.ts (`objectNouns`); this only checks it.
  *
  * Problems are plain English strings, like `auditClues`, so a pack gate can list them.
  */
@@ -19,11 +19,11 @@ export type NounsFor = (scene: Pick<Scene, 'objects'>, type: ObjectType) => stri
 export const currentNouns: NounsFor = (scene, type) => objectNouns(scene.objects, type)
 
 /** The pre-CAD-8.1 wording: one engine noun per type, whatever is drawn. Kept to measure what it got wrong. */
-export const legacyNouns: NounsFor = (_scene, type) => [OBJECTS_NL[type].noun]
+export const legacyNouns: NounsFor = (_scene, type) => [OBJECT_WORDS[type].noun]
 
-/** A drawn kind, described for a message: "tuinstoel", "schoolstoel/zitzak" (look alike). */
+/** A drawn kind, described for a message: "garden chair", "school chair/beanbag" (look alike). */
 const describe = (group: DrawnKind, type: ObjectType): string =>
-  group.plain ? [OBJECTS_NL[type].noun, ...group.nouns].join('/') : group.nouns.join('/')
+  group.plain ? [OBJECT_WORDS[type].noun, ...group.nouns].join('/') : group.nouns.join('/')
 
 /**
  * Whether `noun` names this drawn kind: its own noun, or the engine noun when the group is drawn
@@ -31,7 +31,7 @@ const describe = (group: DrawnKind, type: ObjectType): string =>
  * names every such group of the type, so with two of them it matches several.
  */
 function names(noun: string, group: DrawnKind, type: ObjectType): boolean {
-  return noun === specificNoun(group) || (noun === OBJECTS_NL[type].noun && group.icon === ENGINE_ICON)
+  return noun === specificNoun(group) || (noun === OBJECT_WORDS[type].noun && group.icon === ENGINE_ICON)
 }
 
 /** The object type a clue talks about, if any (every clue kind that carries `objectType`). */
@@ -57,7 +57,7 @@ export function auditObjectNames(puzzle: Pick<Puzzle, 'scene' | 'clues'>, nounsF
     if (type === undefined) return
     const at = (msg: string) => problems.push(`card ${i + 1}: ${msg}`)
     const groups = drawnKinds(puzzle.scene.objects, type)
-    if (groups.length === 0) return at(`names a ${OBJECTS_NL[type].noun}, which matches none of the drawn objects: the board has none`)
+    if (groups.length === 0) return at(`names a ${OBJECT_WORDS[type].noun}, which matches none of the drawn objects: the board has none`)
     const seen = new Set<DrawnKind>()
     let clean = true
     for (const noun of nounsFor(puzzle.scene, type)) {

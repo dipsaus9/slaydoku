@@ -102,7 +102,7 @@ export function checkClue(
     case 'aloneWithGender':
       if (holder && holder.kind === 'victim') issues.push(`"${clue.type}" cannot be on the victim card.`)
       if (!isGender(args.gender)) {
-        issues.push('Argument "gender" must be "vrouw" or "man".')
+        issues.push('Argument "gender" must be "woman" or "man".')
       } else if (!people.some((p) => p.id !== clue.personId && p.gender === args.gender)) {
         issues.push(`Nobody else in the puzzle has gender "${args.gender}".`)
       }

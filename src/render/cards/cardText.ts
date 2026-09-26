@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { CatalogClue } from '../../engine/clues/index.ts'
-import { renderClue } from '../../engine/clues/nl.ts'
+import { renderClue } from '../../engine/clues/en.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { CardGrid } from './CardGrid.tsx'
 

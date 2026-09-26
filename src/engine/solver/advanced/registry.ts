@@ -17,25 +17,25 @@ export const EXPERT_LEVEL = 5
  */
 export const ADVANCED_TECHNIQUES: readonly Technique[] = [
   // hard
-  hiddenLines(1, 2, 'hidden-lines', HARD_LEVEL, 'Verborgen paren in rijen en kolommen'),
-  nakedLines(3, 'naked-triple', HARD_LEVEL, 'Drietal over rijen en kolommen'),
+  hiddenLines(1, 2, 'hidden-lines', HARD_LEVEL, 'Hidden pairs in rows and columns'),
+  nakedLines(3, 'naked-triple', HARD_LEVEL, 'Triple across rows and columns'),
   roomHiddenSingle,
   roomCapacity,
   victimCount,
-  fish(2, 2, 'rectangle', HARD_LEVEL, 'Rechthoek uitsluiten'),
+  fish(2, 2, 'rectangle', HARD_LEVEL, 'Rule out a rectangle'),
   intersectWide,
   combinedClues,
   // expert
-  hiddenLines(3, 4, 'hidden-lines-large', EXPERT_LEVEL, 'Verborgen drietallen in rijen en kolommen'),
-  nakedLines(4, 'naked-quad', EXPERT_LEVEL, 'Viertal over rijen en kolommen'),
-  fish(3, 4, 'fish', EXPERT_LEVEL, 'Grote rechthoek uitsluiten'),
+  hiddenLines(3, 4, 'hidden-lines-large', EXPERT_LEVEL, 'Hidden triples in rows and columns'),
+  nakedLines(4, 'naked-quad', EXPERT_LEVEL, 'Quad across rows and columns'),
+  fish(3, 4, 'fish', EXPERT_LEVEL, 'Rule out a large rectangle'),
   clueRoomCount,
   chain,
 ]
 
 /** Rating bands above medium: hard puzzles need a level-4 technique, expert ones a level-5 technique. */
 export const ADVANCED_BANDS: readonly DifficultyBand[] = [
-  { minLevel: HARD_LEVEL, id: 'hard', label: 'Moeilijk' },
+  { minLevel: HARD_LEVEL, id: 'hard', label: 'Hard' },
   { minLevel: EXPERT_LEVEL, id: 'expert', label: 'Expert' },
 ]
 

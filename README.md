@@ -3,8 +3,8 @@
 Slaydoku is a murder mystery logic puzzle in the style of Murdoku: read the suspects' statements, place everybody on the floor plan, and work out
 who was alone with the victim. The goal is a new puzzle every day, one per UTC day, with Wordle-like sharing of the result.
 
-**Status: work in progress.** The daily flow, the schedule and the English text are not built yet. What runs today is one demo level, the play
-screen with hints and a legend, and the puzzle generator behind it. The text of the game is still Dutch.
+**Status: work in progress.** The daily flow, the schedule and the English interface text are not built yet. What runs today is one demo level, the play
+screen with hints and a legend, and the puzzle generator behind it. The clue, hint and solver text is English; the interface strings (menus, help, PWA) are still Dutch until story SLAY-1.2.
 
 ## Run it
 
@@ -37,7 +37,7 @@ puzzle file), `bun run pack` (the puzzle pack pipeline), `bun run validate:gener
 
 | Path | What |
 |---|---|
-| `src/engine/` | Model and rules, clues (with the Dutch wording), solvers, generators, difficulty and human-solvability scales |
+| `src/engine/` | Model and rules, clues (with the English wording), solvers, generators, difficulty and human-solvability scales |
 | `src/content/` | Demo scene and level, themes for random scenes, the pack pipeline, help text |
 | `src/game/` | Game state, hints, persistence, telemetry |
 | `src/render/` | Board, icons, suspect cards and portraits |

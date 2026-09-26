@@ -2,28 +2,28 @@ import { renderClue } from '../../clues/index.ts'
 import type { CatalogClue } from '../../clues/index.ts'
 import { isOccupiable, occupiableCells, roomIdAt } from '../../model/index.ts'
 import type { Cell, Gender, Puzzle } from '../../model/index.ts'
-import { GIFT_NL } from '../../clues/nl.ts'
+import { VICTIM_TEXT, upperFirst } from '../../clues/en.ts'
 import { precision } from '../../solvable/precision.ts'
 import type { LadderReport } from './generate.ts'
 
 /** The placeholder cast, in suspect order (same order as `CAST` in the card renderer). */
 export const CAST_NAMES = ['Alice', 'Ben', 'Chloe', 'Dan', 'Emma', 'Frank', 'Grace', 'Henry'] as const
 
-/** Their genders (vrouw/man) in the same order: they alternate, Alice vrouw, Ben man ... Henry man. */
-export const CAST_GENDERS: readonly Gender[] = ['vrouw', 'man', 'vrouw', 'man', 'vrouw', 'man', 'vrouw', 'man']
+/** Their genders (woman/man) in the same order: they alternate, Alice woman, Ben man ... Henry man. */
+export const CAST_GENDERS: readonly Gender[] = ['woman', 'man', 'woman', 'man', 'woman', 'man', 'woman', 'man']
 
-/** The genders of the first `count` suspects of the cast: the fixed eight, then vrouw and man alternating (extra people, "Gast 9"...). */
+/** The genders of the first `count` suspects of the cast: the fixed eight, then woman and man alternating (extra people, "Guest 9"...). */
 export const castGenders = (count: number): Gender[] =>
-  Array.from({ length: count }, (_, i) => CAST_GENDERS[i] ?? (i % 2 === 0 ? 'vrouw' : 'man'))
+  Array.from({ length: count }, (_, i) => CAST_GENDERS[i] ?? (i % 2 === 0 ? 'woman' : 'man'))
 
-/** Suspects A, B... take the cast names in order (extra people are "Gast 9"...); the victim is "het cadeau". Ids stay. */
+/** Suspects A, B... take the cast names in order (extra people are "Guest 9"...); the victim is "the victim". Ids stay. */
 export function withCastLabels(puzzle: Puzzle): Puzzle {
   let n = 0
   return {
     ...puzzle,
     people: puzzle.people.map((p) => {
-      if (p.kind === 'victim') return { ...p, label: GIFT_NL.noun }
-      const name = CAST_NAMES[n] ?? `Gast ${n + 1}`
+      if (p.kind === 'victim') return { ...p, label: VICTIM_TEXT.noun }
+      const name = CAST_NAMES[n] ?? `Guest ${n + 1}`
       n++
       return { ...p, label: name }
     }),
@@ -32,7 +32,7 @@ export function withCastLabels(puzzle: Puzzle): Puzzle {
 
 const at = (cell: Cell) => `r${cell.row + 1}c${cell.col + 1}`
 
-/** The board: the order each person is placed (G = het cadeau), `.` free, `#` blocked; then the rooms. */
+/** The board: the order each person is placed (G = the victim), `.` free, `#` blocked; then the rooms. */
 function boardLines(report: LadderReport): string[] {
   const { scene, people } = report.puzzle
   const stepOf = new Map(report.steps.map((s) => [s.personId, s.index]))
@@ -52,18 +52,18 @@ function boardLines(report: LadderReport): string[] {
     rows.push(`  r${String(row + 1).padStart(2)}  ${cells.join('')}`)
   }
   const legend = scene.rooms.map((r) => `${roomLetter.get(r.id)} = ${r.name}`).join(', ')
-  return [header, ...rows, `  (number = order of placing, G = ${GIFT_NL.noun}, # = blocked, letter = room: ${legend})`]
+  return [header, ...rows, `  (number = order of placing, G = ${VICTIM_TEXT.noun}, # = blocked, letter = room: ${legend})`]
 }
 
 /**
  * The whole result as text for the terminal: scene, tier, the board with the order people are placed,
- * the ladder (per placement the cards it uses), all cards in Dutch as they lie on the table, and the
- * oracle's verdict. Names are the cast, the victim is "het cadeau".
+ * the ladder (per placement the cards it uses), all cards as they lie on the table, and the
+ * oracle's verdict. Names are the cast, the victim is "the victim".
  */
 export function formatLadderReport(report: LadderReport, sceneName: string): string {
   const puzzle = withCastLabels(report.puzzle)
   const ctx = { scene: puzzle.scene, people: puzzle.people }
-  const label = (id: string) => puzzle.people.find((p) => p.id === id)?.label ?? id
+  const label = (id: string) => upperFirst(puzzle.people.find((p) => p.id === id)?.label ?? id)
   const sentence = (clue: CatalogClue) => renderClue(clue, ctx)
   const prec = precision(report.puzzle)
   const victim = report.puzzle.solution.find((p) => p.personId === puzzle.people.find((q) => q.kind === 'victim')?.id)
@@ -72,7 +72,7 @@ export function formatLadderReport(report: LadderReport, sceneName: string): str
     `${sceneName} ${puzzle.scene.width}x${puzzle.scene.height}, tier ${report.tier} (meets ${report.assessed}), seed ${report.seed}, ` +
       `${report.attempts} solution${report.attempts === 1 ? '' : 's'} sampled, ${report.elapsedMs} ms`,
   )
-  lines.push(`${GIFT_NL.title} on ${victim ? at(victim.cell) : '?'}, ${occupiableCells(puzzle.scene).length} free squares`)
+  lines.push(`${VICTIM_TEXT.title} on ${victim ? at(victim.cell) : '?'}, ${occupiableCells(puzzle.scene).length} free squares`)
   lines.push('', 'Board', ...boardLines(report))
 
   lines.push('', 'Ladder (the order the people are placed; each placement uses the cards named, plus the rows and columns of the people before)')

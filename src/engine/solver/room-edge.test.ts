@@ -10,10 +10,10 @@ describe('the room-edge clue in the solvers (CAD-9.2)', () => {
     expect(verifyPuzzle(serializePuzzle(edgeLadder))).toMatchObject({ ok: true, solutionCount: 1, matchesStored: true })
   })
 
-  it('the human solver places everybody and explains the card in Dutch', () => {
+  it('the human solver places everybody and explains the card in English', () => {
     const result = solveHuman(edgeLadder.scene, edgeLadder.people, edgeLadder.clues as CatalogClue[])
     expect(result.solved).toBe(true)
     const text = result.steps.map((s) => s.explanation).join('\n')
-    expect(text).toContain('B stond in de onderste rij van de Rechts.')
+    expect(text).toContain('B stood in the bottom row of the East Wing.')
   })
 })

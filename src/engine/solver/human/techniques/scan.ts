@@ -1,6 +1,6 @@
 import type { BoardView } from '../board.ts'
 import type { Deduction, Elimination, Technique } from '../types.ts'
-import { cellName, colName, peopleNames, personName, rowName, sentences } from '../nl.ts'
+import { cellName, colName, peopleNames, personName, rowName, sentences } from '../en.ts'
 
 /**
  * Scan rows and columns: a free row or column with exactly one square anybody
@@ -12,7 +12,7 @@ import { cellName, colName, peopleNames, personName, rowName, sentences } from '
  */
 export const scan: Technique = {
   id: 'scan',
-  title: 'Rij voor rij, kolom voor kolom',
+  title: 'Row by row, column by column',
   level: 2,
   find(board) {
     if (board.width !== board.height) return null
@@ -42,13 +42,13 @@ function single(board: BoardView, rows: boolean, line: number): Deduction | null
   const lineName = rows ? rowName(line) : colName(line)
   // Within a known row only the column tells the squares apart (and the other way round).
   const freeSquare = rows ? colName(board.col(cell)) : rowName(board.row(cell))
-  const opening = `Iedere rij en kolom heeft iemand, en in ${lineName} is nog maar één vakje vrij: ${freeSquare}.`
+  const opening = `Every row and column holds somebody, and in ${lineName} only one square is still free: ${freeSquare}.`
   if (who.length === 1) {
     const person = who[0] as number
     return {
       place: { person, cell },
       eliminate: [],
-      explanation: sentences(`${opening} Alleen ${personName(board, person)} kan daar nog staan. Dus op ${cellName(board, cell)} staat ${personName(board, person)}.`),
+      explanation: sentences(`${opening} Only ${personName(board, person)} can still stand there. So ${personName(board, person)} stands on ${cellName(board, cell)}.`),
       people: [person],
       cells: [cell],
     }
@@ -70,7 +70,7 @@ function single(board: BoardView, rows: boolean, line: number): Deduction | null
   return {
     eliminate,
     explanation: sentences(
-      `${opening} Daar staat een van deze mensen: ${peopleNames(board, who, 'of')}. Wie het is weten we nog niet, maar ${taken} is in elk geval bezet, dus niemand anders kan daar staan.`,
+      `${opening} One of these people stands there: ${peopleNames(board, who, 'or')}. We do not know who yet, but ${taken} is taken either way, so nobody else can stand there.`,
     ),
     people: who,
     cells: [cell, ...new Set(hit)],

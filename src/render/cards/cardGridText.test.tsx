@@ -1,13 +1,13 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { renderClue } from '../../engine/clues/nl.ts'
+import { renderClue } from '../../engine/clues/en.ts'
 import type { CatalogClue } from '../../engine/clues/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
 import { demoLevels } from '../../content/levels.ts'
 import { CardGrid } from './CardGrid.tsx'
 
-const strip = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+const strip = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/\s+/g, ' ').trim()
 const named: [string, Puzzle][] = [
   ['demo', demoLevels[0]!.puzzle],
   ...generatedPuzzles().map((g): [string, Puzzle] => [g.id, g.puzzle]),

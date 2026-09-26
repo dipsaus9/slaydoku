@@ -20,10 +20,10 @@ This file records what was removed, replaced or disabled on the way, and what th
 
 ## Replaced
 
-- **Placeholder cast.** `CAST` is now Alice, Ben, Chloe, Dan, Emma, Frank, Grace, Henry (unique first letters, genders alternate vrouw/man), drawn with
+- **Placeholder cast.** `CAST` is now Alice, Ben, Chloe, Dan, Emma, Frank, Grace, Henry (unique first letters, genders alternate woman/man), drawn with
   the procedural portrait generator. The ladder tools (`CAST_NAMES`, `CAST_GENDERS`) and the pack cast builder use the same names.
 - **One demo level.** `src/content/demo/scene.ts` is a made-up 9x9 house (four rooms). `src/content/demo/puzzle.json` is the ladder generator's output for
-  tier easy, seed 2, gift on the sofa (`bun tools/ladder.ts --scene demo --tier easy --seed 2 --victim 9,7 --cast --out src/content/demo/puzzle.json`).
+  tier easy, seed 2, victim on the sofa (`bun tools/ladder.ts --scene demo --tier easy --seed 2 --victim 9,7 --cast --out src/content/demo/puzzle.json`).
   `src/content/levels.ts` registers it as level `demo`. `demo` is the built-in scene name of `tools/generate.ts`, `tools/ladder.ts`,
   `tools/screen-level.ts` and `src/engine/generator/tiers/main.ts`.
 - **Tests that read committed data** now build what they need on the spot: `src/content/generated.testing.ts` (a sample of generated puzzles per theme),
@@ -69,9 +69,11 @@ Removed from `package.json` (the code behind them was measuring the removed cont
 
 ## Still to rebuild
 
-1. **English text.** Everything the player reads is Dutch: `src/engine/clues/nl.ts` (clue sentences), `src/engine/solver/human/nl.ts` (hint
-   explanations), `src/game/hintText.ts`, `src/content/help/help.ts`, `src/ui/*/strings.ts`, `src/pwa/strings.ts`, the lab strings, the theme room and
-   object names, the gift wording ("het cadeau" is still the victim), `<html lang>` and `og:locale`.
+1. **English interface text.** The engine text is English since SLAY-1.1: clue sentences (`src/engine/clues/en.ts`), solver explanations
+   (`src/engine/solver/human/en.ts` and the advanced techniques), hints (`src/game/hintText.ts`), theme room and object names, generated titles, and
+   "the victim" for the gift (`dutch.test.ts` keeps Dutch out of `src/engine`, `src/game`, `src/validation` and `src/content`). Still Dutch until
+   SLAY-1.2: `src/content/help/help.ts`, `src/ui/*/strings.ts` (including the keyword glossary, whose examples still quote the old Dutch cards),
+   `src/pwa/strings.ts`, the lab strings, `<html lang>` and `og:locale`. Remove the `src/content/help` skip from `dutch.test.ts` when that story lands.
 2. **Daily schedule.** One puzzle per UTC day: a schedule (puzzle per date, generated ahead and committed or served), the date-based level id, the
    "next puzzle in ..." state, and a plan for regenerating puzzles without breaking saved boards (`puzzleFingerprint` already guards that).
 3. **Daily flow and sharing.** Replace the level list, unlock order and solved screen with the daily flow; Wordle-like share text (result grid, time,

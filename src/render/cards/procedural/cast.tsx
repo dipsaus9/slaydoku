@@ -20,7 +20,7 @@ export interface CastEntry {
   name: string
   /** True for the eight fixed cast members, false for generated extras. */
   drawn: boolean
-  /** The fixed eight alternate vrouw/man; generated extras get one so that the cast is balanced (see `buildCast`). */
+  /** The fixed eight alternate woman/man; generated extras get one so that the cast is balanced (see `buildCast`). */
   gender: Gender
   look: CardLook
 }
@@ -48,10 +48,10 @@ export const suspectsForSize = (size: number) => size - 1
  * the pool, shuffled by `seed` without repeating and never reusing a fixed
  * name; avatars from `generateAvatars`, pairwise different. Same seed, same cast.
  *
- * Genders (CAD-9.4, for the gender clues): the fixed eight alternate vrouw/man (Alice vrouw, Ben man, Chloe vrouw, Dan man,
- * Emma vrouw, Frank man, Grace vrouw, Henry man: four each). Extras ALTERNATE so the whole cast stays
- * balanced: each extra takes the gender the cast has fewer of so far (vrouw on a tie) and the first unused name of that
- * gender in the seeded order. A name reads as one gender (`GENDERED_NAMES`), so a card never says "Daan" and "vrouw".
+ * Genders (CAD-9.4, for the gender clues): the fixed eight alternate woman/man (Alice woman, Ben man, Chloe woman, Dan man,
+ * Emma woman, Frank man, Grace woman, Henry man: four each). Extras ALTERNATE so the whole cast stays
+ * balanced: each extra takes the gender the cast has fewer of so far (woman on a tie) and the first unused name of that
+ * gender in the seeded order. A name reads as one gender (`GENDERED_NAMES`), so a card never says "Daan" and "woman".
  */
 export function buildCast(suspectCount: number, seed: string | number = 'slaydoku'): BuiltCast {
   if (!Number.isInteger(suspectCount) || suspectCount < 0 || suspectCount > MAX_SUSPECTS) {
@@ -93,10 +93,10 @@ export function buildCast(suspectCount: number, seed: string | number = 'slaydok
 function pickExtraNames(taken: readonly Gender[], count: number, seed: string | number): GenderedName[] {
   const order = shuffled(GENDERED_NAMES, createRng(`names:${seed}`))
   const left = new Set(order)
-  const balance = { vrouw: taken.filter((g) => g === 'vrouw').length, man: taken.filter((g) => g === 'man').length }
+  const balance = { woman: taken.filter((g) => g === 'woman').length, man: taken.filter((g) => g === 'man').length }
   const out: GenderedName[] = []
   for (let i = 0; i < count; i++) {
-    const wanted: Gender = balance.man < balance.vrouw ? 'man' : 'vrouw'
+    const wanted: Gender = balance.man < balance.woman ? 'man' : 'woman'
     // The pool always holds both genders; the fallback only matters if one ran dry on a full-size cast.
     const next = order.find((n) => left.has(n) && n.gender === wanted) ?? order.find((n) => left.has(n)) as GenderedName
     left.delete(next)

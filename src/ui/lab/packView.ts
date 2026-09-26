@@ -7,7 +7,7 @@ import { LAB_NL } from './strings.ts'
 const packFacts = (entry: Pick<PackEntry, 'size' | 'tier' | 'theme' | 'clueCount' | 'rating'>): string[] => [
   LAB_NL.size_(entry.size),
   LAB_NL.tier[entry.tier],
-  getTheme(entry.theme).nameNl,
+  getTheme(entry.theme).name,
   LAB_NL.play.clues(entry.clueCount),
   LAB_NL.play.score(entry.rating.score),
 ]

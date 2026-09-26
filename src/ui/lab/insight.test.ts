@@ -46,7 +46,7 @@ describe('solve trace', () => {
     for (const level of [1, 2, 3] as const) {
       expect(trace[0]!.hints[level]).toBe(hintFor(puzzle, { step: first! }, level).text)
     }
-    expect(getHint(puzzle, initialState(), 1)?.text).toMatch(/^Lees de kaart van /)
+    expect(getHint(puzzle, initialState(), 1)?.text).toMatch(/^Read \S+'s card: /)
   })
 
   it('names a placement step with the square it places on', () => {

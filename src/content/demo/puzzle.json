@@ -4,121 +4,121 @@
     "height": 9,
     "rooms": [
       {
-        "id": "keuken",
-        "name": "de Keuken"
+        "id": "kitchen",
+        "name": "Kitchen"
       },
       {
-        "id": "hal",
-        "name": "de Hal"
+        "id": "hall",
+        "name": "Hall"
       },
       {
-        "id": "slaapkamer",
-        "name": "de Slaapkamer"
+        "id": "bedroom",
+        "name": "Bedroom"
       },
       {
-        "id": "woonkamer",
-        "name": "de Woonkamer"
+        "id": "living",
+        "name": "Living Room"
       }
     ],
     "cellRooms": [
       [
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "hal",
-        "hal",
-        "hal",
-        "hal"
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "hall",
+        "hall",
+        "hall",
+        "hall"
       ],
       [
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "hal",
-        "hal",
-        "hal",
-        "hal"
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "hall",
+        "hall",
+        "hall",
+        "hall"
       ],
       [
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "hal",
-        "hal",
-        "hal",
-        "hal"
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "hall",
+        "hall",
+        "hall",
+        "hall"
       ],
       [
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "keuken",
-        "hal",
-        "hal",
-        "hal",
-        "hal"
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "kitchen",
+        "hall",
+        "hall",
+        "hall",
+        "hall"
       ],
       [
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer"
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "living",
+        "living",
+        "living",
+        "living",
+        "living"
       ],
       [
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer"
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "living",
+        "living",
+        "living",
+        "living",
+        "living"
       ],
       [
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer"
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "living",
+        "living",
+        "living",
+        "living",
+        "living"
       ],
       [
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer"
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "living",
+        "living",
+        "living",
+        "living",
+        "living"
       ],
       [
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "slaapkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer",
-        "woonkamer"
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "bedroom",
+        "living",
+        "living",
+        "living",
+        "living",
+        "living"
       ]
     ],
     "objects": [
@@ -151,7 +151,7 @@
         ]
       },
       {
-        "id": "chair-keuken-a",
+        "id": "chair-kitchen-a",
         "type": "chair",
         "cells": [
           {
@@ -161,7 +161,7 @@
         ]
       },
       {
-        "id": "chair-keuken-b",
+        "id": "chair-kitchen-b",
         "type": "chair",
         "cells": [
           {
@@ -171,7 +171,7 @@
         ]
       },
       {
-        "id": "plant-keuken",
+        "id": "plant-kitchen",
         "type": "plant",
         "cells": [
           {
@@ -195,7 +195,7 @@
         ]
       },
       {
-        "id": "plant-hal",
+        "id": "plant-hall",
         "type": "plant",
         "cells": [
           {
@@ -233,7 +233,7 @@
         ]
       },
       {
-        "id": "plant-slaapkamer",
+        "id": "plant-bedroom",
         "type": "plant",
         "cells": [
           {
@@ -281,7 +281,7 @@
         ]
       },
       {
-        "id": "plant-woonkamer",
+        "id": "plant-living",
         "type": "plant",
         "cells": [
           {
@@ -338,13 +338,13 @@
     {
       "id": "V",
       "kind": "victim",
-      "label": "het cadeau"
+      "label": "the victim"
     },
     {
       "id": "A",
       "kind": "suspect",
       "label": "Alice",
-      "gender": "vrouw"
+      "gender": "woman"
     },
     {
       "id": "B",
@@ -356,7 +356,7 @@
       "id": "C",
       "kind": "suspect",
       "label": "Chloe",
-      "gender": "vrouw"
+      "gender": "woman"
     },
     {
       "id": "D",
@@ -368,7 +368,7 @@
       "id": "E",
       "kind": "suspect",
       "label": "Emma",
-      "gender": "vrouw"
+      "gender": "woman"
     },
     {
       "id": "F",
@@ -380,7 +380,7 @@
       "id": "G",
       "kind": "suspect",
       "label": "Grace",
-      "gender": "vrouw"
+      "gender": "woman"
     },
     {
       "id": "H",
@@ -459,7 +459,7 @@
       "personId": "E",
       "type": "inCorner",
       "args": {
-        "roomId": "keuken"
+        "roomId": "kitchen"
       }
     },
     {
@@ -482,7 +482,7 @@
       "args": {
         "side": "west",
         "objectType": "wardrobe",
-        "roomId": "slaapkamer"
+        "roomId": "bedroom"
       }
     },
     {

@@ -63,14 +63,14 @@ export const ROOM_STYLES: Record<FloorPattern, RoomStyle> = {
 
 const CYCLE: FloorPattern[] = ['wood', 'carpet', 'tiles', 'grass', 'stone', 'water']
 
-/** Name keywords (Dutch and English) that hint at a floor kind. First match wins. */
+/** Name keywords that hint at a floor kind. First match wins. */
 const NAME_HINTS: [FloorPattern, RegExp][] = [
-  ['water', /vijver|pond|zwembad|pool|lake|water|meer|fontein|fountain/i],
-  ['grass', /tuin|garden|backyard|yard|gras|lawn|park|golf|weide|field|bos\b|forest/i],
-  ['stone', /terras|patio|garage|oprit|driveway|courtyard|binnenplaats|shed|schuur|pad\b|path|street|straat|parking/i],
-  ['tiles', /keuken|kitchen|badkamer|bathroom|toilet|wc\b|hal\b|gang|hall|lobby|entrance|foyer|wasruimte|laundry/i],
-  ['carpet', /slaapkamer|bedroom|lounge|sunroom|serre|kinderkamer|nursery|waiting|wacht/i],
-  ['wood', /woonkamer|living|studeer|kantoor|office|study|library|bibliotheek|gallery|galerie|eet|dining|kamer|room/i],
+  ['water', /pond|pool|lake|water|fountain/i],
+  ['grass', /garden|backyard|yard|lawn|park|golf|meadow|field|grove|orchard|forest|playground|zoo/i],
+  ['stone', /terrace|patio|garage|driveway|courtyard|shed|path|street|parking/i],
+  ['tiles', /kitchen|bathroom|toilet|wc\b|hall|corridor|lobby|entrance|foyer|laundry|utility/i],
+  ['carpet', /bedroom|lounge|sunroom|conservatory|nursery|waiting|kindergarten/i],
+  ['wood', /living|study|office|library|gallery|dining|room/i],
 ]
 
 export function styleForName(name: string): FloorPattern | undefined {

@@ -24,7 +24,7 @@ import { join } from 'node:path'
 import { parsePuzzle } from '../../src/engine/model/index.ts'
 import type { Puzzle } from '../../src/engine/model/index.ts'
 import type { CatalogClue } from '../../src/engine/clues/index.ts'
-import { GIFT_NL, renderClue } from '../../src/engine/clues/nl.ts'
+import { VICTIM_TEXT, renderClue } from '../../src/engine/clues/en.ts'
 import { parsePackFile } from '../../src/content/packs/read.ts'
 import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
 import { help } from '../../src/content/help/help.ts'
@@ -193,9 +193,9 @@ async function subjectCheck(subject: Subject) {
   const nCards = puzzle.clues.length
   const giftCards = cards.filter((c) => c.gift)
   const victim = puzzle.people.find((p) => p.kind === 'victim')
-  // The gift is a person of the puzzle too, and holds one clue, the rule that the murderer ends up alone with it: its card carries the fixed line of the gift (GIFT_NL), not a generated sentence.
+  // The gift is a person of the puzzle too, and holds one clue, the rule that the murderer ends up alone with it: its card carries the fixed line of the gift (VICTIM_TEXT), not a generated sentence.
   const giftClues = victim ? puzzle.clues.filter((c) => c.personId === victim.id) : []
-  const giftWant = giftClues.length === 1 && giftClues[0]!.type === 'aloneWithMurderer' ? [GIFT_NL.clue] : giftClues.map((c) => renderClue(c as CatalogClue, context))
+  const giftWant = giftClues.length === 1 && giftClues[0]!.type === 'aloneWithMurderer' ? [VICTIM_TEXT.clue] : giftClues.map((c) => renderClue(c as CatalogClue, context))
   const onScreenLines = cards.reduce((n, c) => n + c.lines.length, 0)
   check(`${label}: one polaroid per suspect (${suspects.length}) plus the gift card`, suspectCards.length === suspects.length && cards.filter((c) => c.gift).length === 1, `${suspectCards.length} suspect cards, ${cards.length - suspectCards.length} gift`)
   const mismatches = expected.filter((e, i) => JSON.stringify(e) !== JSON.stringify({ name: suspectCards[i]?.name, lines: suspectCards[i]?.lines }))

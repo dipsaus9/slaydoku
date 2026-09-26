@@ -1,5 +1,5 @@
-import { countNl } from '../../../clues/index.ts'
-import { cellList, lineNames, personName, sentences } from '../../human/nl.ts'
+import { countWord } from '../../../clues/index.ts'
+import { cellList, lineNames, personName, sentences } from '../../human/en.ts'
 import type { Deduction, Elimination, Technique } from '../../human/types.ts'
 import { snapshot, subsets } from '../snapshot.ts'
 import type { Snapshot } from '../snapshot.ts'
@@ -63,13 +63,13 @@ function pattern(snap: Snapshot, rows: boolean, size: number): Deduction | null 
     )
     const own = lineNames(rows, lines)
     const cross = lineNames(!rows, [...opposite])
-    const noun = rows ? 'rijen' : 'kolommen'
-    const crossNoun = rows ? 'kolommen' : 'rijen'
+    const noun = rows ? 'rows' : 'columns'
+    const crossNoun = rows ? 'columns' : 'rows'
     const first = eliminate[0] as Elimination
     return {
       eliminate,
       explanation: sentences(
-        `In ${own} zijn alleen nog deze vakjes vrij: ${cellList(board, corners)}. Ze liggen allemaal in ${cross}. ${countNl(size)} ${noun} hebben dus ${countNl(size)} ${crossNoun} nodig: samen nemen ze ${cross} in beslag. Buiten ${own} kan daarom niemand in ${cross} staan, ook ${personName(board, first.person)} niet.`,
+        `In ${own}, only these squares are still free: ${cellList(board, corners)}. They all lie in ${cross}. So ${countWord(size)} ${noun} need ${countWord(size)} ${crossNoun}: together they use up ${cross}. Outside ${own}, nobody can stand in ${cross}, and that includes ${personName(board, first.person)}.`,
       ),
       people: [...new Set(eliminate.map((e) => e.person))],
       cells: [...new Set([...corners, ...eliminate.map((e) => e.cell)])],
@@ -86,7 +86,7 @@ function pattern(snap: Snapshot, rows: boolean, size: number): Deduction | null 
  */
 export const intersectWide: Technique = {
   id: 'intersect-wide',
-  title: 'Kruisende vakjes uitsluiten (ruim)',
+  title: 'Rule out crossing squares (wide)',
   level: 4,
   find(board) {
     const snap = snapshot(board)
@@ -118,7 +118,7 @@ export const intersectWide: Technique = {
       return {
         eliminate,
         explanation: sentences(
-          `${name} kan nog op ${countNl(own.length)} vakjes staan, en elk daarvan ligt in dezelfde rij of kolom als ${cellList(board, cells)}. Als daar iemand anders zou staan, houdt ${name} niets over. Daar kan dus niemand anders staan.`,
+          `${name} can still stand on ${countWord(own.length)} squares, and each of them lies in the same row or column as ${cellList(board, cells)}. If somebody else stood there, ${name} would have nothing left. So nobody else can stand there.`,
         ),
         people: [a],
         cells: [...own, ...cells],

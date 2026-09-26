@@ -33,8 +33,8 @@ export interface ThemeFootprint {
  */
 export interface ThemeObject {
   kind: string
-  /** Dutch display name, for legends and clue text. */
-  nameNl: string
+  /** Display name, for legends and clue text. */
+  name: string
   engineType: ObjectType
   /** Copied from the engine catalog for `engineType`; a person can stand on it. */
   occupiable: boolean
@@ -42,7 +42,7 @@ export interface ThemeObject {
   weight: number
   footprints: ThemeFootprint[]
   placement: PlacementHint
-  /** Singular noun for clue text when `nameNl` is a plural ("kluisjes" reads "een kluisje"). Absent: `nameNl`. */
+  /** Singular noun for clue text when `name` is a plural ("lockers" reads "a locker"). Absent: `name`. */
   clueNoun?: string
   /** Own theme art. Absent: the engine catalog icon of `engineType` is used. */
   themeIcon?: ThemeIconId
@@ -50,7 +50,7 @@ export interface ThemeObject {
   maxPerRoom?: number
 }
 
-/** A Dutch room name, with the objects that belong in such a room. */
+/** A room name (bare, without "the"), with the objects that belong in such a room. */
 export interface ThemeRoom {
   name: string
   /** Object kinds of this theme that fit this room; the generator boosts them. */
@@ -63,7 +63,7 @@ export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop'
 
 export interface SceneTheme {
   id: ThemeId
-  nameNl: string
+  name: string
   /** Pool the generator draws room names from (no repeats within one scene). */
   rooms: ThemeRoom[]
   objects: ThemeObject[]

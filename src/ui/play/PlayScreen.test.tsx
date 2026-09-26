@@ -30,8 +30,8 @@ describe('<PlayScreen/>', () => {
   })
 
   it('shows every suspect card by cast name, plus the gift', () => {
-    for (const name of ['Alice', 'Ben', 'Chloe', 'Het cadeau']) expect(html).toContain(name)
-    expect(html).toContain('Alice stond naast een tafel.')
+    for (const name of ['Alice', 'Ben', 'Chloe', 'The victim']) expect(html).toContain(name)
+    expect(html).toContain('Alice stood next to a table.')
   })
 
   it('has the toolbar tools in Dutch', () => {

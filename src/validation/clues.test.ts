@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { OBJECTS_NL, renderClue } from '../engine/clues/index.ts'
+import { OBJECT_WORDS, renderClue } from '../engine/clues/index.ts'
 import type { CatalogClue } from '../engine/clues/index.ts'
 import { TIERS } from '../engine/generator/tiers/index.ts'
 import type { Puzzle } from '../engine/model/index.ts'
@@ -79,7 +79,7 @@ describe('auditClues: direct share per tier', () => {
   })
 })
 
-describe('auditClues: every card is one clear Dutch sentence', () => {
+describe('auditClues: every card is one clear English sentence', () => {
   it('flags a card that names an area, person or object the board does not have', () => {
     expect(auditClues(withClues([victim, { personId: 'A', type: 'inRoom', args: { roomId: 'attic' } }]), 'easy').join()).toContain('names area attic, which does not exist')
     expect(auditClues(withClues([victim, { personId: 'A', type: 'withPerson', args: { otherId: 'Z' } }]), 'easy-medium').join()).toContain('names Z, who does not exist')
@@ -113,12 +113,12 @@ describe('auditClues: ambiguous wording', () => {
   })
 
   it('flags two areas with one name', () => {
-    const same: Puzzle = { ...puzzle, scene: { ...puzzle.scene, rooms: puzzle.scene.rooms.map((r) => ({ ...r, name: 'Kamer' })) } }
-    expect(auditClues(same, 'easy').join()).toContain('two areas are called "kamer"')
+    const same: Puzzle = { ...puzzle, scene: { ...puzzle.scene, rooms: puzzle.scene.rooms.map((r) => ({ ...r, name: 'Chamber' })) } }
+    expect(auditClues(same, 'easy').join()).toContain('two areas are called "chamber"')
   })
 
-  it('no two object types share a Dutch noun, so "een tafel" names one kind of object', () => {
-    const nouns = Object.values(OBJECTS_NL).map((o) => o.noun)
+  it('no two object types share a noun, so "a table" names one kind of object', () => {
+    const nouns = Object.values(OBJECT_WORDS).map((o) => o.noun)
     expect(new Set(nouns).size).toBe(nouns.length)
   })
 })
@@ -129,9 +129,9 @@ describe('auditClues: combined cards (two facts on one card)', () => {
   const inLiving = { type: 'inRoom', args: { roomId: 'living' } }
   const cornerPart = { type: 'inCorner', args: {} }
 
-  it('accepts a natural combined card: the holder once, "en" between the parts', () => {
+  it('accepts a natural combined card: the holder once, "and" between the parts', () => {
     const card = combined(nextToTable, inLiving)
-    expect(renderClue(card, { scene: puzzle.scene, people: puzzle.people })).toBe('A stond naast een tafel en was in de Woonkamer.')
+    expect(renderClue(card, { scene: puzzle.scene, people: puzzle.people })).toBe('A stood next to a table and was in the Living Room.')
     expect(auditClues(withClues([victim, card, bed]), 'hard')).toEqual([])
     expect(auditClues(withClues([victim, card, bed]), 'easy-medium')).toEqual([])
     expect(auditClues(withClues([victim, card, bed]), 'easy').join()).toContain('kind both is not used in easy puzzles')
@@ -166,24 +166,24 @@ describe('auditClues: combined cards (two facts on one card)', () => {
     expect(auditClues(withClues([victim, combined(combined(nextToTable, inLiving), cornerPart)]), 'hard').join()).toContain('cannot be a combined card')
     expect(auditClues(withClues([victim, combined(cornerPart, { type: 'sameRoom', args: { otherId: 'B' } })]), 'hard').join()).toContain('cannot be part of a combined card')
     // The tutorial cast has no genders: nobody else is a woman.
-    expect(auditClues(withClues([victim, combined(nextToTable, { type: 'roomHasGender', args: { gender: 'vrouw' } })]), 'hard').join()).toContain('Nobody else')
+    expect(auditClues(withClues([victim, combined(nextToTable, { type: 'roomHasGender', args: { gender: 'woman' } })]), 'hard').join()).toContain('Nobody else')
   })
 
   it('flags a card whose text names the holder twice', () => {
-    // B is labelled like the holder: "A was samen met A en stond in de hoek."
+    // B is labelled like the holder: "A was with A and stood in a corner."
     const twin: Puzzle = { ...puzzle, people: puzzle.people.map((p) => (p.id === 'B' ? { ...p, label: 'A' } : p)) }
     const problems = auditClues({ ...twin, clues: [victim, combined({ type: 'withPerson', args: { otherId: 'B' } }, cornerPart)] }, 'medium').join()
     expect(problems).toContain('names the holder 2 times')
   })
 
   it('flags a pronoun in the text', () => {
-    const named: Puzzle = { ...puzzle, scene: { ...puzzle.scene, rooms: puzzle.scene.rooms.map((r) => (r.id === 'living' ? { ...r, name: 'haar kamer' } : r)) } }
+    const named: Puzzle = { ...puzzle, scene: { ...puzzle.scene, rooms: puzzle.scene.rooms.map((r) => (r.id === 'living' ? { ...r, name: 'her room' } : r)) } }
     expect(auditClues({ ...named, clues: [victim, combined(cornerPart, inLiving)] }, 'hard').join()).toContain('uses a pronoun')
   })
 
   it('flags a sentence too long for a card', () => {
-    const wordy = 'zeer '.repeat(45).trim()
-    const long: Puzzle = { ...puzzle, scene: { ...puzzle.scene, rooms: puzzle.scene.rooms.map((r) => (r.id === 'living' ? { ...r, name: `de ${wordy} kamer` } : r)) } }
+    const wordy = 'very '.repeat(45).trim()
+    const long: Puzzle = { ...puzzle, scene: { ...puzzle.scene, rooms: puzzle.scene.rooms.map((r) => (r.id === 'living' ? { ...r, name: `the ${wordy} room` } : r)) } }
     expect(auditClues({ ...long, clues: [victim, combined(cornerPart, inLiving)] }, 'hard').join()).toContain(`a combined card takes at most ${MAX_COMBINED_TEXT}`)
   })
 

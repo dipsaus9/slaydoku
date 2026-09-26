@@ -17,7 +17,7 @@ export interface AvatarTraits {
 export interface CastMember {
   /** Display name; also how a person's label finds their avatar. */
   name: string
-  /** Gender of the person, for the gender clues (vrouw/man). */
+  /** Gender of the person, for the gender clues (woman/man). */
   gender: Gender
   Avatar: ComponentType<AvatarProps>
   traits: AvatarTraits
@@ -37,7 +37,7 @@ interface Seed {
 const SEEDS: readonly Seed[] = [
   {
     name: 'Alice',
-    gender: 'vrouw',
+    gender: 'woman',
     clothesName: 'teal',
     look: { skin: '#f6d2b4', hairStyle: 'long', hairColor: '#4a3222', clothesStyle: 'vneck', clothesColor: '#2fa39a', accessory: 'none', accentColor: '#c8423d', mouth: 'smile', brows: 'straight' },
   },
@@ -49,7 +49,7 @@ const SEEDS: readonly Seed[] = [
   },
   {
     name: 'Chloe',
-    gender: 'vrouw',
+    gender: 'woman',
     clothesName: 'pink',
     look: { skin: '#8a5236', hairStyle: 'bun', hairColor: '#1f1a24', clothesStyle: 'hoodie', clothesColor: '#d96aa3', accessory: 'hoops', accentColor: '#e0a526', mouth: 'smile', brows: 'raised' },
   },
@@ -61,7 +61,7 @@ const SEEDS: readonly Seed[] = [
   },
   {
     name: 'Emma',
-    gender: 'vrouw',
+    gender: 'woman',
     clothesName: 'violet',
     look: { skin: '#c98c5e', hairStyle: 'bob', hairColor: '#e6c46b', clothesStyle: 'stripes', clothesColor: '#a05bbf', accessory: 'squareGlasses', accentColor: '#7d4fb0', mouth: 'neutral', brows: 'raised' },
   },
@@ -73,7 +73,7 @@ const SEEDS: readonly Seed[] = [
   },
   {
     name: 'Grace',
-    gender: 'vrouw',
+    gender: 'woman',
     clothesName: 'yellow',
     look: { skin: '#6b3d2a', hairStyle: 'ponytail', hairColor: '#a3441f', clothesStyle: 'collar', clothesColor: '#e3b93c', accessory: 'headband', accentColor: '#c8423d', mouth: 'grin', brows: 'straight' },
   },
@@ -85,7 +85,7 @@ const SEEDS: readonly Seed[] = [
   },
 ]
 
-/** The eight suspects of the placeholder cast, in seat order. Genders alternate vrouw/man. Portraits are procedural busts. */
+/** The eight suspects of the placeholder cast, in seat order. Genders alternate woman/man. Portraits are procedural busts. */
 export const CAST: readonly CastMember[] = SEEDS.map(({ name, gender, clothesName, look }) => ({
   name,
   gender,

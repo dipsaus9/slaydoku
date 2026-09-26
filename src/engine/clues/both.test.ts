@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Person, Placement } from '../model/index.ts'
 import { checkClue } from './check.ts'
 import { evaluate } from './evaluate.ts'
-import { bothFragments, bothPartsText, renderClue } from './nl.ts'
+import { bothFragments, bothPartsText, renderClue } from './en.ts'
 import { people, scene, stand } from './testing.fixture.ts'
 import { bothParts, expandClue, isBothClue, STRUCTURAL_CLUE_TYPES } from './types.ts'
 import type { BothClue, ClueBody } from './types.ts'
@@ -12,10 +12,10 @@ const A = 'A'
 
 const both = (a: ClueBody, b: ClueBody, personId = A): BothClue => ({ personId, type: 'both', args: { a, b } })
 
-/** The fixture cast with Dutch first names, the way a real puzzle labels them. */
+/** The fixture cast with first names, the way a real puzzle labels them. */
 const cast: Person[] = [
   { id: 'A', kind: 'suspect', label: 'Henry', gender: 'man' },
-  { id: 'B', kind: 'suspect', label: 'Chloe', gender: 'vrouw' },
+  { id: 'B', kind: 'suspect', label: 'Chloe', gender: 'woman' },
   { id: 'C', kind: 'suspect', label: 'Dan', gender: 'man' },
   { id: 'V', kind: 'victim', label: 'het cadeau' },
 ]
@@ -41,7 +41,7 @@ describe('both: the catalog entry', () => {
 
 describe('both: evaluate is the conjunction', () => {
   // The table is at (1,1) in the kitchen; a chair at (0,1); a woman (B) and a man (C) can share the room.
-  const card = both({ type: 'besideObject', args: { objectType: 'table' } }, { type: 'roomHasGender', args: { gender: 'vrouw' } })
+  const card = both({ type: 'besideObject', args: { objectType: 'table' } }, { type: 'roomHasGender', args: { gender: 'woman' } })
 
   it('is true only when both parts are', () => {
     expect(evaluate(card, scene, stand(A, 1, 0, 'B', 2, 2), cast)).toBe(true) // beside the table, B in the kitchen
@@ -64,7 +64,7 @@ describe('both: checkClue', () => {
 
   it('accepts two different parts of the holder, gender parts included', () => {
     expect(checkClue(ok, puzzle)).toEqual([])
-    const gendered = both({ type: 'besideObject', args: { objectType: 'table' } }, { type: 'roomHasGender', args: { gender: 'vrouw' } })
+    const gendered = both({ type: 'besideObject', args: { objectType: 'table' } }, { type: 'roomHasGender', args: { gender: 'woman' } })
     expect(checkClue(gendered, puzzle)).toEqual([])
   })
 
@@ -95,7 +95,7 @@ describe('both: checkClue', () => {
     expect(checkClue(both({ type: 'inCorner', args: {} }, { type: 'withPerson', args: { otherId: 'A' } }), puzzle).join()).toContain('Part "b"')
     // Nobody else is a woman: the gender part is not satisfiable by anyone.
     const lonely = { scene, people: [people[0] as Person, people[2] as Person, people[3] as Person] }
-    expect(checkClue(both({ type: 'inCorner', args: {} }, { type: 'roomHasGender', args: { gender: 'vrouw' } }), lonely).join()).toContain('Nobody else')
+    expect(checkClue(both({ type: 'inCorner', args: {} }, { type: 'roomHasGender', args: { gender: 'woman' } }), lonely).join()).toContain('Nobody else')
     // a gender part on the victim card
     expect(checkClue(both({ type: 'inCorner', args: {} }, { type: 'roomHasGender', args: { gender: 'man' } }, 'V'), puzzle).join()).toContain('victim')
   })
@@ -108,57 +108,57 @@ describe('both: checkClue', () => {
   })
 
   it('rejects two parts that both leave the holder out of the sentence (use onObject for squareWithObject)', () => {
-    const card = both({ type: 'roomHasGender', args: { gender: 'vrouw' } }, { type: 'squareWithObject', args: { objectType: 'table' } })
+    const card = both({ type: 'roomHasGender', args: { gender: 'woman' } }, { type: 'squareWithObject', args: { objectType: 'table' } })
     expect(checkClue(card, puzzle).join()).toContain('onObject')
   })
 })
 
-describe('both: Dutch text, name once, "en" between the parts', () => {
+describe('both: text, name once, "and" between the parts', () => {
   const pairs: [string, BothClue, string][] = [
     [
       'the example: beside a table and a woman in the room',
-      both({ type: 'besideObject', args: { objectType: 'table' } }, { type: 'roomHasGender', args: { gender: 'vrouw' } }),
-      'Henry stond naast een tafel en er was minstens één vrouw in dezelfde ruimte.',
+      both({ type: 'besideObject', args: { objectType: 'table' } }, { type: 'roomHasGender', args: { gender: 'woman' } }),
+      'Henry stood next to a table and there was at least one woman in the same room.',
     ],
     [
       'the part that names the holder comes first, whatever the stored order',
-      both({ type: 'roomHasGender', args: { gender: 'vrouw' } }, { type: 'besideObject', args: { objectType: 'table' } }),
-      'Henry stond naast een tafel en er was minstens één vrouw in dezelfde ruimte.',
+      both({ type: 'roomHasGender', args: { gender: 'woman' } }, { type: 'besideObject', args: { objectType: 'table' } }),
+      'Henry stood next to a table and there was at least one woman in the same room.',
     ],
     [
       'an object and a room',
       both({ type: 'onObject', args: { objectType: 'car' } }, { type: 'inRoom', args: { roomId: 'living' } }),
-      'Henry zat in een auto en was in de Woonkamer.',
+      'Henry sat in a car and was in the Living Room.',
     ],
     [
       'a corner and alone',
       both({ type: 'inCorner', args: {} }, { type: 'alone', args: {} }),
-      'Henry stond in de hoek en was alleen.',
+      'Henry stood in a corner and was alone.',
     ],
     [
       'alone with a woman and beside a window',
-      both({ type: 'aloneWithGender', args: { gender: 'vrouw' } }, { type: 'besideFeature', args: { feature: 'window' } }),
-      'Henry was alleen met een vrouw en stond bij een raam.',
+      both({ type: 'aloneWithGender', args: { gender: 'woman' } }, { type: 'besideFeature', args: { feature: 'window' } }),
+      'Henry was alone with a woman and stood next to a window.',
     ],
     [
       'with a named person and on the top line of the board',
       both({ type: 'withPerson', args: { otherId: 'B' } }, { type: 'onLine', args: { axis: 'row', position: 'first' } }),
-      'Henry was samen met Chloe en stond in de bovenste rij.',
+      'Henry was with Chloe and stood in the top row.',
     ],
     [
       'a numbered row and the edge of a named room',
       both({ type: 'inRow', args: { index: 2 } }, { type: 'inRoomEdge', args: { roomId: 'study', edge: 'east' } }),
-      'Henry stond in de 3e rij en stond in de meest rechtse kolom van het Kantoor.',
+      'Henry stood in row 3 and stood in the rightmost column of the Study.',
     ],
     [
       'the only one on an object, and in one of two rooms',
       both({ type: 'onlyOnObject', args: { objectType: 'chair' } }, { type: 'inRoomOr', args: { roomIds: ['kitchen', 'study'] } }),
-      'Henry was de enige persoon op een stoel en was in de Keuken of in het Kantoor.',
+      'Henry was the only person on a chair and was in the Kitchen or the Study.',
     ],
     [
       'the holder is another person: the name is theirs',
       both({ type: 'besideObject', args: { objectType: 'bookshelf', exactlyOne: true } }, { type: 'inFrontOfDoor', args: {} }, 'C'),
-      'Dan stond naast precies één boekenkast en stond voor een deur.',
+      'Dan stood next to exactly one bookshelf and stood in front of a door.',
     ],
   ]
 
@@ -174,30 +174,30 @@ describe('both: Dutch text, name once, "en" between the parts', () => {
   it('never says a pronoun, and names the holder exactly once', () => {
     for (const [, clue] of pairs) {
       const text = say(clue)
-      expect(text).not.toMatch(/\b(hij|zij|ze|hem|haar|zijn|hun)\b/i)
+      expect(text).not.toMatch(/\b(he|she|him|her|his|hers)\b/i)
       const holder = cast.find((p) => p.id === clue.personId)?.label as string
       expect(text.split(holder)).toHaveLength(2)
-      expect(text.split(' en ')).toHaveLength(2)
+      expect(text.split(' and ')).toHaveLength(2)
       expect(text.endsWith('.')).toBe(true)
     }
   })
 
-  it('still words the pair that checkClue rejects (no subject for the sentence) without a hij or zij', () => {
+  it('still words the pair that checkClue rejects (no subject for the sentence) without a he or she', () => {
     const rejected = both({ type: 'roomHasGender', args: { gender: 'man' } }, { type: 'squareWithObject', args: { objectType: 'framedPainting' } })
-    expect(say(rejected)).toBe('Er was minstens één man in de ruimte van Henry en er stond een ingelijst schilderij op hetzelfde vakje.')
+    expect(say(rejected)).toBe("There was at least one man in Henry's room and there was a framed painting on the same square.")
   })
 
   it('explains the card as two parts, each a sentence of its own', () => {
     const card = pairs[0]?.[1] as BothClue
     expect(bothPartsText(card, ctx)).toBe(
-      'Deze kaart heeft twee delen: "Henry stond naast een tafel" en "Er was minstens één vrouw in de ruimte van Henry". Beide delen moeten kloppen.',
+      'This card has two parts: "Henry stood next to a table" and "There was at least one woman in Henry\'s room". Both parts must be true.',
     )
     expect(bothPartsText({ personId: A, type: 'inCorner', args: {} }, ctx)).toBeNull()
   })
 
-  it('names the room of the holder ("de ruimte") when there is no room to name, and stays one sentence', () => {
-    const text = say(both({ type: 'inRoomEdge', args: { edge: 'north' } }, { type: 'roomHasGender', args: { gender: 'vrouw' } }))
-    expect(text).toBe('Henry stond in de bovenste rij van de ruimte en er was minstens één vrouw in dezelfde ruimte.')
+  it('names the room of the holder ("the room") when there is no room to name, and stays one sentence', () => {
+    const text = say(both({ type: 'inRoomEdge', args: { edge: 'north' } }, { type: 'roomHasGender', args: { gender: 'woman' } }))
+    expect(text).toBe('Henry stood in the top row of the room and there was at least one woman in the same room.')
   })
 })
 
@@ -232,7 +232,7 @@ const PARTS: ClueBody[] = [
   { type: 'alone', args: { roomId: 'bedroom' } },
   { type: 'withPerson', args: { otherId: 'B' } },
   { type: 'aloneWith', args: { otherId: 'C', roomId: 'study' } },
-  { type: 'roomHasGender', args: { gender: 'vrouw' } },
+  { type: 'roomHasGender', args: { gender: 'woman' } },
   { type: 'roomHasGender', args: { gender: 'man' } },
   { type: 'aloneWithGender', args: { gender: 'man' } },
   { type: 'inRow', args: { index: 2 } },
@@ -301,7 +301,7 @@ describe('both: property test over generated combined cards', () => {
     }
   })
 
-  it('the text contains both facts, the holder once, one "en", and reads like the parts alone', () => {
+  it('the text contains both facts, the holder once, one "and", and reads like the parts alone', () => {
     for (const card of cards) {
       const text = renderClue(card, ctx)
       const { first, second } = bothFragments(card, ctx)
@@ -310,7 +310,7 @@ describe('both: property test over generated combined cards', () => {
       expect(text).toMatch(/^\p{Lu}/u)
       expect(text.endsWith('.')).toBe(true)
       expect(text.split('Henry')).toHaveLength(2)
-      expect(text).not.toMatch(/\b(hij|zij|ze|hem|haar|zijn|hun)\b/i)
+      expect(text).not.toMatch(/\b(he|she|him|her|his|hers)\b/i)
       // Every part that is a predicate reads exactly as it does on a card of its own, minus the name.
       for (const part of bothParts(card)) {
         const alone = renderClue(part, ctx)

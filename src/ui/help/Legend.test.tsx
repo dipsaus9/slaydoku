@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
 import { demoLevels } from '../../content/levels.ts'
 import { themeObjectOf } from '../../content/themes/drawn.ts'
-import { objectNouns } from '../../engine/clues/nl.ts'
+import { objectNouns } from '../../engine/clues/en.ts'
 import { OBJECT_CATALOG, cellKey } from '../../engine/model/index.ts'
 import type { PlacedObject, Puzzle, Scene } from '../../engine/model/index.ts'
 import { help } from '../../content/help/help.ts'
@@ -83,44 +83,44 @@ describe('legendOf on generated scenes', () => {
     })
   }
 
-  it('lists mixed chairs by their own names: a poef next to a tuinstoel are two rows', () => {
+  it('lists mixed chairs by their own names: a poof next to a garden chair are two rows', () => {
     const scene: Scene = {
       width: 3,
       height: 1,
-      rooms: [{ id: 'r', name: 'Tuin' }],
+      rooms: [{ id: 'r', name: 'Garden' }],
       cellRooms: [['r', 'r', 'r']],
       objects: [
-        { id: 'tuinstoel-1', type: 'chair', cells: [{ row: 0, col: 0 }] },
-        { id: 'poef-1', type: 'chair', cells: [{ row: 0, col: 1 }] },
-        { id: 'tuinstoel-2', type: 'chair', cells: [{ row: 0, col: 2 }] },
+        { id: 'gardenChair-1', type: 'chair', cells: [{ row: 0, col: 0 }] },
+        { id: 'poof-1', type: 'chair', cells: [{ row: 0, col: 1 }] },
+        { id: 'gardenChair-2', type: 'chair', cells: [{ row: 0, col: 2 }] },
       ],
       edgeFeatures: [],
     }
     const legend = expectRowsMatchScene(scene)
     expect(legend.objects.map((r) => [r.noun, r.occupiable, r.cells.length])).toEqual([
-      ['tuinstoel', true, 2],
-      ['poef', true, 1],
+      ['garden chair', true, 2],
+      ['poof', true, 1],
     ])
     expect(legend.objects[0]!.themeIcon).toBeUndefined()
     expect(legend.objects[1]!.themeIcon).toBe('beanbag')
   })
 
-  it('names chairs that look alike (tuinstoel, schoolstoel) with the plain noun and lists the others as "ook"', () => {
+  it('names chairs that look alike (garden chair, school chair) with the plain noun and lists the others as "ook"', () => {
     const scene: Scene = {
       width: 2,
       height: 1,
-      rooms: [{ id: 'r', name: 'Tuin' }],
+      rooms: [{ id: 'r', name: 'Garden' }],
       cellRooms: [['r', 'r']],
       objects: [
-        { id: 'tuinstoel-1', type: 'chair', cells: [{ row: 0, col: 0 }] },
-        { id: 'schoolstoel-1', type: 'chair', cells: [{ row: 0, col: 1 }] },
+        { id: 'gardenChair-1', type: 'chair', cells: [{ row: 0, col: 0 }] },
+        { id: 'schoolChair-1', type: 'chair', cells: [{ row: 0, col: 1 }] },
       ],
       edgeFeatures: [],
     }
     const [row, ...rest] = expectRowsMatchScene(scene).objects
     expect(rest).toHaveLength(0)
-    expect(row!.noun).toBe('stoel')
-    expect(row!.alsoNouns).toEqual(['tuinstoel', 'schoolstoel'])
+    expect(row!.noun).toBe('chair')
+    expect(row!.alsoNouns).toEqual(['garden chair', 'school chair'])
   })
 
   it('holds on every generated scene, and the sample has mixed chairs to prove it', () => {
@@ -134,7 +134,7 @@ describe('legendOf on generated scenes', () => {
 
   it('has no row for a kind that is not on the board, even when the theme has it', () => {
     const legend = legendOf(generatedPuzzles().find((p) => p.theme === 'shop')!.puzzle.scene)
-    expect(legend.objects.some((r) => r.noun === 'tuinstoel')).toBe(false)
+    expect(legend.objects.some((r) => r.noun === 'garden chair')).toBe(false)
   })
 })
 

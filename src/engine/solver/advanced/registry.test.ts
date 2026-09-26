@@ -90,7 +90,7 @@ describe('solveAdvanced', () => {
     expect(solveAdvanced(expert.scene, expert.people, expert.clues, { maxLevel: 4 }).solved).toBe(false)
   })
 
-  it('every hard or expert step carries a Dutch explanation', () => {
+  it('every hard or expert step carries a an explanation', () => {
     for (const puzzle of [hard, expert]) {
       const result = solveAdvanced(puzzle.scene, puzzle.people, puzzle.clues)
       const advanced = result.steps.filter((s) => s.level >= 4)

@@ -10,7 +10,7 @@ import type { RelationalClue } from './relational/types.ts'
  * the card holder, `type` the kind, `args` the parameters. Parameters are
  * person ids, room ids, object types and indexes only, never free text, so
  * a solver or generator can enumerate every possible clue of a scene.
- * Row and column indexes are 0-based like `Cell`; the Dutch text shows them
+ * Row and column indexes are 0-based like `Cell`; the clue text shows them
  * 1-based.
  */
 
@@ -104,7 +104,7 @@ export type ClueBody = PartClue extends infer C ? (C extends PartClue ? Omit<C, 
 /**
  * A combined card: exactly two facts about the SAME holder on one card, true when both are (the conjunction).
  * `a` and `b` are two different parts (`ClueBody`: `type` and `args`, no holder), never another combined
- * card. In Dutch it reads as one sentence with the holder's name once and "en" between the parts.
+ * card. It reads as one sentence with the holder's name once and "and" between the parts.
  */
 export type BothClue = Kind<'both', { a: ClueBody; b: ClueBody }>
 

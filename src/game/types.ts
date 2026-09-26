@@ -56,7 +56,7 @@ export type GameStatus = 'playing' | 'solved'
 export type CheckResult =
   | {
       solved: true
-      /** The suspect who was alone with the gift (het cadeau): the murderer role. */
+      /** The suspect who was alone with the victim: the murderer role. */
       murdererId: string
       /** Time it took, frozen at the moment of solving. */
       elapsedMs: number

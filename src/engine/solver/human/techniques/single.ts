@@ -1,6 +1,6 @@
 import type { BoardView } from '../board.ts'
 import type { HumanContext, Technique } from '../types.ts'
-import { cellName, onObject, personName, sentences } from '../nl.ts'
+import { cellName, onObject, personName, sentences } from '../en.ts'
 
 /**
  * Single candidate: somebody has one square left. The official solution
@@ -13,7 +13,7 @@ import { cellName, onObject, personName, sentences } from '../nl.ts'
  */
 export const singleCandidate: Technique = {
   id: 'single-candidate',
-  title: 'Nog maar één vakje',
+  title: 'Only one square left',
   level: 1,
   find(board, context) {
     const pending: number[] = []
@@ -27,7 +27,7 @@ export const singleCandidate: Technique = {
       place: { person, cell },
       eliminate: [],
       explanation: sentences(
-        `${personName(board, person)} kan nog maar op één vakje staan: ${cellName(board, cell)}${onObject(board, cell)}. Die rij en kolom zijn daarmee bezet.`,
+        `${personName(board, person)} can only stand on one square now: ${cellName(board, cell)}${onObject(board, cell)}. That row and column are taken with it.`,
       ),
       people: [person],
       cells: [cell],

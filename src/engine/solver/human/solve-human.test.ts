@@ -31,7 +31,7 @@ describe('solveHuman: result shape', () => {
     }
   })
 
-  it('records ordered steps with technique id, people, cells and a Dutch explanation', () => {
+  it('records ordered steps with technique id, people, cells and an English explanation', () => {
     expect(result.steps.length).toBeGreaterThan(0)
     result.steps.forEach((step, i) => {
       expect(step.index).toBe(i + 1)
@@ -43,11 +43,11 @@ describe('solveHuman: result shape', () => {
     })
     const placed = result.steps.flatMap((s) => (s.placed ? [s.placed.personId] : []))
     expect(placed.sort()).toEqual(people.map((p) => p.id).sort())
-    expect(result.steps.some((s) => /kan nog maar op één vakje staan: rij \d+, kolom \d+/.test(s.explanation))).toBe(true)
+    expect(result.steps.some((s) => /can only stand on one square now: row \d+, column \d+/.test(s.explanation))).toBe(true)
   })
 
   it('scores by hardest technique and step count, and rates the puzzle', () => {
-    expect(result.maxTechnique).toEqual({ id: 'clue', title: 'Aanwijzing gebruiken', level: 1 })
+    expect(result.maxTechnique).toEqual({ id: 'clue', title: 'Use a clue', level: 1 })
     expect(result.score).toBe(100 + result.steps.length)
     expect(result.rating?.id).toBe('very-easy')
   })
@@ -150,7 +150,7 @@ describe('technique catalog is data', () => {
   const scene: Scene = {
     width: 2,
     height: 2,
-    rooms: [{ id: 'r', name: 'Kamer' }],
+    rooms: [{ id: 'r', name: 'Chamber' }],
     cellRooms: [['r', 'r'], ['r', 'r']],
     objects: [],
     edgeFeatures: [],

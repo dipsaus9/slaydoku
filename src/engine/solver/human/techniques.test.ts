@@ -10,7 +10,7 @@ import { singleCandidate } from './techniques/single.ts'
 import { victimRoom } from './techniques/victim-room.ts'
 import type { HumanContext } from './types.ts'
 
-/** A 4x4 grid, top half "Boven", bottom half "Onder", with an optional rug at r1k1 (row 0, col 0). */
+/** A 4x4 grid, top half "North Wing", bottom half "South Wing", with an optional rug at r1c1 (row 0, col 0). */
 function scene(objects: Scene['objects'] = []): Scene {
   const top = ['top', 'top', 'top', 'top']
   const bottom = ['bottom', 'bottom', 'bottom', 'bottom']
@@ -18,8 +18,8 @@ function scene(objects: Scene['objects'] = []): Scene {
     width: 4,
     height: 4,
     rooms: [
-      { id: 'top', name: 'Boven' },
-      { id: 'bottom', name: 'Onder' },
+      { id: 'top', name: 'North Wing' },
+      { id: 'bottom', name: 'South Wing' },
     ],
     cellRooms: [top, top, bottom, bottom],
     objects,
@@ -50,12 +50,12 @@ const context = (board: Board, clues: CatalogClue[] = []): HumanContext => ({
 })
 
 describe('single-candidate', () => {
-  it('places somebody who has one square left, with a Dutch explanation', () => {
+  it('places somebody who has one square left, with an English explanation', () => {
     const board = new Board(scene(), people)
     only(board, 1, [[2, 3]])
     const found = singleCandidate.find(board, context(board))
     expect(found?.place).toEqual({ person: 1, cell: cell(2, 3) })
-    expect(found?.explanation).toBe('B kan nog maar op één vakje staan: rij 3, kolom 4. Die rij en kolom zijn daarmee bezet.')
+    expect(found?.explanation).toBe('B can only stand on one square now: row 3, column 4. That row and column are taken with it.')
   })
 
   it('finds nothing while everybody has a choice', () => {
@@ -85,13 +85,13 @@ describe('scan', () => {
     const found = scan.find(board, context(board))
     expect(found?.place).toEqual({ person: 0, cell: cell(0, 1) })
     expect(found?.explanation).toBe(
-      'Iedere rij en kolom heeft iemand, en in rij 1 is nog maar één vakje vrij: kolom 2. Alleen A kan daar nog staan. Dus op rij 1, kolom 2 staat A.',
+      'Every row and column holds somebody, and in row 1 only one square is still free: column 2. Only A can still stand there. So A stands on row 1, column 2.',
     )
   })
 
   it('closes the column when several people could be the one on the square', () => {
     const board = new Board(scene(), people)
-    // Row 0 keeps only r1k2, reachable by A and B; C and V cannot reach it.
+    // Row 0 keeps only r1c2, reachable by A and B; C and V cannot reach it.
     for (let p = 0; p < 4; p++) {
       for (const c of board.candidates(p)) {
         const keep = board.row(c) === 0 && board.col(c) === 1 && p < 2
@@ -101,11 +101,11 @@ describe('scan', () => {
     const found = scan.find(board, context(board))
     expect(found?.place).toBeUndefined()
     expect(found?.people).toEqual([0, 1])
-    // Column 2 (index 1) belongs to the occupant of r1k2: nobody else may use it below.
+    // Column 2 (index 1) belongs to the occupant of r1c2: nobody else may use it below.
     expect(found?.eliminate.every((e) => board.col(e.cell) === 1 && e.cell !== cell(0, 1))).toBe(true)
     expect(found?.eliminate.length).toBeGreaterThan(0)
     expect(found?.explanation).toBe(
-      'Iedere rij en kolom heeft iemand, en in rij 1 is nog maar één vakje vrij: kolom 2. Daar staat een van deze mensen: A of B. Wie het is weten we nog niet, maar kolom 2 is in elk geval bezet, dus niemand anders kan daar staan.',
+      'Every row and column holds somebody, and in row 1 only one square is still free: column 2. One of these people stands there: A or B. We do not know who yet, but column 2 is taken either way, so nobody else can stand there.',
     )
   })
 
@@ -126,7 +126,7 @@ describe('overload', () => {
     expect(found?.eliminate.every((e) => e.person >= 2 && board.row(e.cell) <= 1)).toBe(true)
     expect(found?.eliminate.length).toBe(2 * 8)
     expect(found?.explanation).toBe(
-      'A en B kunnen alleen nog in rij 1 en 2 staan. Wie in welke rij staat weten we nog niet, maar die rijen zijn samen voor hen: niemand anders kan daar staan.',
+      'A and B can only stand in rows 1 and 2 now. We do not know who takes which row, but those rows belong to them together, so nobody else can stand there.',
     )
   })
 
@@ -136,7 +136,7 @@ describe('overload', () => {
     const found = overload.find(board, context(board))
     expect(found?.people).toEqual([2])
     expect(found?.eliminate.every((e) => board.col(e.cell) === 3 && e.person !== 2)).toBe(true)
-    expect(found?.explanation).toBe('C kan alleen nog in kolom 4 staan. Die kolom is dus voor C: niemand anders kan daar staan.')
+    expect(found?.explanation).toBe('C can only stand in column 4 now. That column belongs to C, so nobody else can stand there.')
   })
 
   it('a bigger group size is just a parameter', () => {
@@ -161,7 +161,7 @@ describe('intersect', () => {
     expect(found?.eliminate.length).toBe(3 * 2)
     expect(found?.eliminate.every((e) => e.person !== 0)).toBe(true)
     expect(found?.explanation).toBe(
-      'A kan alleen nog op rij 1, kolom 1 en rij 2, kolom 2 staan. Elk van die vakjes deelt een rij of kolom met rij 1, kolom 2 en rij 2, kolom 1. Als daar iemand anders zou staan, houdt A niets over. Daar kan dus niemand anders staan.',
+      'A can only stand on row 1, column 1 and row 2, column 2 now. Each of those squares shares a row or column with row 1, column 2 and row 2, column 1. If somebody else stood there, A would have nothing left. So nobody else can stand there.',
     )
   })
 
@@ -173,7 +173,7 @@ describe('intersect', () => {
 
   it('handles squares that line up: a crossing of two objects is blocked', () => {
     const board = new Board(scene(), people)
-    // A sits on one of two perpendicular two-square objects; r2k2 sees all four squares.
+    // A sits on one of two perpendicular two-square objects; r2c2 sees all four squares.
     only(board, 0, [[1, 0], [1, 2], [0, 1], [2, 1]])
     const found = intersect.find(board, context(board))
     expect(found?.eliminate.some((e) => e.person === 1 && e.cell === cell(1, 1))).toBe(true)
@@ -188,7 +188,7 @@ describe('victim-room', () => {
     const found = victimRoom.find(board, context(board))
     expect(found?.eliminate.every((e) => e.person === 3 && board.room(e.cell) === 0)).toBe(true)
     expect(found?.explanation).toBe(
-      'A en B staan zeker in de Boven. V is met precies één verdachte en kan daar dus niet zijn.',
+      'A and B are sure to be in the North Wing. V is with exactly one suspect, so cannot be there.',
     )
   })
 
@@ -199,7 +199,7 @@ describe('victim-room', () => {
     const found = victimRoom.find(board, context(board))
     expect(found?.eliminate.every((e) => e.person === 1 && board.room(e.cell) === 1)).toBe(true)
     expect(found?.explanation).toBe(
-      'Geen enkele verdachte kan nog in de Onder staan. V is met een verdachte en kan daar dus niet zijn.',
+      'No suspect can still stand in the South Wing. V is with a suspect, so cannot be there.',
     )
   })
 
@@ -211,7 +211,7 @@ describe('victim-room', () => {
     expect(found?.people).toContain(3)
     expect(found?.eliminate.every((e) => e.person !== 0 && board.room(e.cell) === 0)).toBe(true)
     expect(found?.explanation).toBe(
-      'V is in de Boven, samen met A. Dat is de dader, dus geen andere verdachte kan daar staan.',
+      'V is in the North Wing, together with A. That is the murderer, so no other suspect can stand there.',
     )
   })
 
@@ -222,7 +222,7 @@ describe('victim-room', () => {
     const found = victimRoom.find(board, context(board))
     expect(found?.eliminate.every((e) => e.person === 0 && board.room(e.cell) === 1)).toBe(true)
     expect(found?.explanation).toBe(
-      'V is in de Boven en moet daar met een verdachte zijn. Alleen A kan daar nog komen, dus die staat daar.',
+      'V is in the North Wing and must be there with a suspect. Only A can still get there, so that person stands there.',
     )
   })
 
@@ -242,7 +242,7 @@ describe('clue', () => {
     expect(found?.clueIndex).toBe(0)
     expect(found?.eliminate.length).toBe(14)
     expect(found?.explanation).toBe(
-      'De kaart van A zegt: "A stond op een tapijt." A kan dus niet op 14 vakjes (onder andere rij 1, kolom 2 en rij 1, kolom 3) staan.',
+      "A's card says: \"A stood on a rug.\" So A cannot stand on 14 squares (among them row 1, column 2 and row 1, column 3).",
     )
   })
 
@@ -272,7 +272,7 @@ describe('clue', () => {
     const found = clueEliminations.find(board, context(board, clues))
     expect(found?.eliminate.length).toBe(4 * 8)
     expect(found?.explanation).toBe(
-      'Een kaart zegt: "Er was niemand in de Boven." Niemand kan dus in de Boven staan.',
+      'A card says: "There was nobody in the North Wing." So nobody can stand in the North Wing.',
     )
   })
 

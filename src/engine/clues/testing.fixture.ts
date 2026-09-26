@@ -15,10 +15,10 @@ export const scene: Scene = {
   width: 6,
   height: 6,
   rooms: [
-    { id: 'kitchen', name: 'Keuken' },
-    { id: 'living', name: 'Woonkamer' },
-    { id: 'bedroom', name: 'Slaapkamer' },
-    { id: 'study', name: 'het Kantoor' },
+    { id: 'kitchen', name: 'Kitchen' },
+    { id: 'living', name: 'Living Room' },
+    { id: 'bedroom', name: 'Bedroom' },
+    { id: 'study', name: 'Study' },
   ],
   cellRooms: ['KKKLLL', 'KKKLLL', 'KKKLLL', 'BBBSSS', 'BBBSSS', 'BBBSSS'].map((row) =>
     [...row].map((ch) => ROOM_OF[ch] as string),
@@ -52,7 +52,7 @@ export const scene: Scene = {
 /** A and C are men, B is a woman; the victim has no gender. */
 export const people: Person[] = [
   { id: 'A', kind: 'suspect', label: 'A', gender: 'man' },
-  { id: 'B', kind: 'suspect', label: 'B', gender: 'vrouw' },
+  { id: 'B', kind: 'suspect', label: 'B', gender: 'woman' },
   { id: 'C', kind: 'suspect', label: 'C', gender: 'man' },
   { id: 'V', kind: 'victim', label: 'V' },
 ]

@@ -41,11 +41,11 @@ describe('the gender clues in the solvers', () => {
     expect(result).toMatchObject({ ok: true, solutionCount: 1, matchesStored: true })
   })
 
-  it('the human solver places everybody and explains the gender card in Dutch', () => {
+  it('the human solver places everybody and explains the gender card in English', () => {
     const result = solveHuman(genderLadder.scene, genderLadder.people, genderLadder.clues as CatalogClue[])
     expect(result.solved).toBe(true)
     const text = result.steps.map((s) => s.explanation).join('\n')
-    expect(text).toContain('B was alleen met een man.')
+    expect(text).toContain('B was alone with a man.')
   })
 
   it('never remove a true position and count exactly the solutions, on 12 random 5x5 sets', { timeout: 120_000 }, () => {
@@ -57,14 +57,14 @@ describe('the gender clues in the solvers', () => {
       // Random genders, some people without one; the victim has none.
       const people: Person[] = base.map((p) => {
         const roll = random()
-        const gender: Gender | undefined = p.kind === 'victim' || roll < 0.2 ? undefined : roll < 0.6 ? 'vrouw' : 'man'
+        const gender: Gender | undefined = p.kind === 'victim' || roll < 0.2 ? undefined : roll < 0.6 ? 'woman' : 'man'
         return gender ? { ...p, gender } : p
       })
       const solution = randomSolution(scene, people, random)
       const gendered: CatalogClue[] = []
       for (const holder of people.filter((p) => p.kind === 'suspect')) {
         for (const type of ['roomHasGender', 'aloneWithGender'] as const) {
-          for (const gender of ['vrouw', 'man'] as const) {
+          for (const gender of ['woman', 'man'] as const) {
             const clue = { personId: holder.id, type, args: { gender } } as CatalogClue
             if (checkClue(clue, { scene, people }).length === 0 && evaluate(clue, scene, solution, people)) gendered.push(clue)
           }

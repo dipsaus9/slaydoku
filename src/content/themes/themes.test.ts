@@ -26,12 +26,12 @@ describe('scene themes', () => {
         expect(blocking.length).toBeGreaterThanOrEqual(6)
       })
 
-      it('has no stairs: nobody can stand on them and "trap" clues confused players (CAD-8.6)', () => {
+      it('has no stairs: nobody can stand on them and "stairs" clues confused players (CAD-8.6)', () => {
         expect(theme.objects.filter((o) => o.engineType === 'stairs').map((o) => o.kind)).toEqual([])
-        for (const room of theme.rooms) expect(room.favours.some((k) => /trap/.test(k)), room.name).toBe(false)
+        for (const room of theme.rooms) expect(room.favours.some((k) => /stairs/.test(k)), room.name).toBe(false)
       })
 
-      it('has enough Dutch room names for a 16x16 board, unique and non-empty', () => {
+      it('has enough room names for a 16x16 board, unique and non-empty', () => {
         const names = theme.rooms.map((r) => r.name)
         expect(names.length).toBeGreaterThanOrEqual(16)
         expect(new Set(names.map((n) => n.toLowerCase())).size).toBe(names.length)
@@ -39,9 +39,9 @@ describe('scene themes', () => {
         for (const name of names) expect(name.length).toBeGreaterThan(2)
       })
 
-      it('has unique kinds and Dutch names', () => {
+      it('has unique kinds and names', () => {
         expect(new Set(theme.objects.map((o) => o.kind)).size).toBe(theme.objects.length)
-        for (const o of theme.objects) expect(o.nameNl.length, o.kind).toBeGreaterThan(2)
+        for (const o of theme.objects) expect(o.name.length, o.kind).toBeGreaterThan(2)
       })
 
       it('takes the occupiable flag from the engine catalog', () => {
@@ -143,33 +143,33 @@ describe('drawn kinds (clue nouns)', () => {
   it('gives a kind name shared by several themes the same noun, engine type and art', () => {
     for (const o of all) {
       for (const other of all.filter((x) => x.kind === o.kind)) {
-        expect([other.nameNl, other.clueNoun, other.engineType, other.themeIcon], o.kind).toEqual([o.nameNl, o.clueNoun, o.engineType, o.themeIcon])
+        expect([other.name, other.clueNoun, other.engineType, other.themeIcon], o.kind).toEqual([o.name, o.clueNoun, o.engineType, o.themeIcon])
       }
     }
   })
 
   it('finds the theme object behind a generated object id, only for its own engine type', () => {
-    expect(themeObjectOf({ id: 'tuinstoel-3', type: 'chair' })?.kind).toBe('tuinstoel')
-    expect(themeObjectOf({ id: 'tuinstoel-3', type: 'rug' })).toBeUndefined()
+    expect(themeObjectOf({ id: 'gardenChair-3', type: 'chair' })?.kind).toBe('gardenChair')
+    expect(themeObjectOf({ id: 'gardenChair-3', type: 'rug' })).toBeUndefined()
     expect(themeObjectOf({ id: 'plant-gallery-top', type: 'plant' })).toBeUndefined()
   })
 
   it('groups the chair kinds by what is drawn', () => {
     const objects = [
-      { id: 'tuinstoel-1', type: 'chair' as const },
-      { id: 'schoolstoel-1', type: 'chair' as const },
-      { id: 'zitzak-1', type: 'chair' as const },
-      { id: 'poef-1', type: 'chair' as const },
+      { id: 'gardenChair-1', type: 'chair' as const },
+      { id: 'schoolChair-1', type: 'chair' as const },
+      { id: 'beanbag-1', type: 'chair' as const },
+      { id: 'poof-1', type: 'chair' as const },
     ]
     const groups = drawnKinds(objects, 'chair')
     expect(groups.map((g) => [g.icon, g.nouns, specificNoun(g)])).toEqual([
-      [ENGINE_ICON, ['tuinstoel', 'schoolstoel'], undefined],
-      ['beanbag', ['zitzak', 'poef'], undefined],
+      [ENGINE_ICON, ['garden chair', 'school chair'], undefined],
+      ['beanbag', ['beanbag', 'poof'], undefined],
     ])
   })
 
   it('has a singular clue noun for every kind that names a plural', () => {
-    expect(kindNoun(all.find((o) => o.kind === 'kluisjes')!)).toBe('kluisje')
-    expect(kindNoun(all.find((o) => o.kind === 'kratten')!)).toBe('krat')
+    expect(kindNoun(all.find((o) => o.kind === 'lockers')!)).toBe('locker')
+    expect(kindNoun(all.find((o) => o.kind === 'crates')!)).toBe('crate')
   })
 })

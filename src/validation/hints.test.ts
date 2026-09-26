@@ -57,38 +57,38 @@ describe('auditHints: every level', () => {
     it(`level ${level}: empty text`, () => {
       expect(audit((s) => setText(s, at, level, '')).join()).toContain('empty text')
     })
-    it(`level ${level}: not Dutch`, () => {
-      expect(audit((s) => setText(s, at, level, 'Look at the cell and put the cross there.')).join()).toContain('is not plain Dutch')
+    it(`level ${level}: not English`, () => {
+      expect(audit((s) => setText(s, at, level, 'Kijk naar het bord en zet het kruisje daar.')).join()).toContain('is not plain English')
     })
     it(`level ${level}: solver jargon`, () => {
-      expect(audit((s) => setText(s, at, level, 'Kijk naar de kandidaten van A in de Woonkamer.')).join()).toContain('solver word "kandidaten"')
+      expect(audit((s) => setText(s, at, level, 'Look at the candidates of A in the Living Room.')).join()).toContain('solver word "candidates"')
     })
     it(`level ${level}: technique id or title`, () => {
-      expect(audit((s) => setText(s, at, level, 'Kijk naar A, dat is een single-candidate.')).join()).toContain('names the technique "single-candidate"')
+      expect(audit((s) => setText(s, at, level, 'Look at A, that is a single-candidate.')).join()).toContain('names the technique "single-candidate"')
     })
     it(`level ${level}: code and ids`, () => {
-      expect(audit((s) => setText(s, at, level, 'Kijk naar A op r3k4.')).join()).toContain('shows code "r3k4"')
-      expect(audit((s) => setText(s, at, level, 'Kijk naar A op undefined.')).join()).toContain('shows code')
+      expect(audit((s) => setText(s, at, level, 'Look at A on r3c4.')).join()).toContain('shows code "r3c4"')
+      expect(audit((s) => setText(s, at, level, 'Look at A on undefined.')).join()).toContain('shows code')
     })
     it(`level ${level}: no capital, no full stop, stray whitespace`, () => {
-      expect(audit((s) => setText(s, at, level, 'kijk naar A en het bord.')).join()).toContain('does not start with a capital')
-      expect(audit((s) => setText(s, at, level, 'Kijk naar A en het bord')).join()).toContain('does not end in a full stop')
-      expect(audit((s) => setText(s, at, level, 'Kijk  naar A en het bord. ')).join()).toContain('stray whitespace')
+      expect(audit((s) => setText(s, at, level, 'look at A and the board.')).join()).toContain('does not start with a capital')
+      expect(audit((s) => setText(s, at, level, 'Look at A and the board')).join()).toContain('does not end in a full stop')
+      expect(audit((s) => setText(s, at, level, 'Look  at A and the board. ')).join()).toContain('stray whitespace')
     })
   }
 
-  it('a count of squares as a number above what a hint spells out (the "61 gemarkeerde vakjes" hint)', () => {
-    expect(audit((s) => setText(s, crossing, 2, 'Kijk naar de 61 vakjes op het bord.')).join()).toContain('spells a count of 61 squares as a number')
-    expect(audit((s) => setText(s, crossing, 2, 'Kijk naar de 3 vakjes op het bord.')).join()).not.toContain('spells a count')
+  it('a count of squares as a number above what a hint spells out (the "61 marked squares" hint)', () => {
+    expect(audit((s) => setText(s, crossing, 2, 'Look at the 61 squares on the board.')).join()).toContain('spells a count of 61 squares as a number')
+    expect(audit((s) => setText(s, crossing, 2, 'Look at the 3 squares on the board.')).join()).not.toContain('spells a count')
   })
 })
 
 describe('auditHints: length limits', () => {
   it('too short and too long at each level', () => {
-    expect(audit((s) => setText(s, crossing, 1, 'Kijk A.')).join()).toMatch(/level 1: \d+ characters, expected 12-220/)
-    expect(audit((s) => setText(s, crossing, 1, `Kijk naar het bord. ${'Het is een lange zin. '.repeat(12)}`.trim())).join()).toMatch(/level 1: \d+ characters/)
-    expect(audit((s) => setText(s, crossing, 2, `Kijk naar het bord ${'en dan nog eens. '.repeat(14)}`.trim() + '.')).join()).toMatch(/level 2: \d+ characters, expected 12-200/)
-    expect(audit((s) => setLevel3(s, crossing, 'Te lang. '.repeat(100).trim(), 'Zet een kruisje op rij 1, kolom 1.')).join()).toMatch(/level 3: \d+ characters, expected 30-600/)
+    expect(audit((s) => setText(s, crossing, 1, 'Look A.')).join()).toMatch(/level 1: \d+ characters, expected 12-220/)
+    expect(audit((s) => setText(s, crossing, 1, `Look at the board. ${'This is a long sentence. '.repeat(12)}`.trim())).join()).toMatch(/level 1: \d+ characters/)
+    expect(audit((s) => setText(s, crossing, 2, `Look at the board ${'and then again. '.repeat(14)}`.trim() + '.')).join()).toMatch(/level 2: \d+ characters, expected 12-200/)
+    expect(audit((s) => setLevel3(s, crossing, 'Too long. '.repeat(100).trim(), 'Put a cross on row 1, column 1.')).join()).toMatch(/level 3: \d+ characters, expected 30-600/)
   })
 })
 
@@ -96,7 +96,7 @@ describe('auditHints: names the person and the square', () => {
   it('level 1 must name the person it is about', () => {
     const who = good.steps[crossing]!.level1.personIds[0]!
     const label = puzzle.people.find((p) => p.id === who)!.label
-    const problems = audit((s) => setText(s, crossing, 1, 'Kijk eens goed naar het bord en de kaarten.'))
+    const problems = audit((s) => setText(s, crossing, 1, 'Take a good look at the board and the cards.'))
     expect(problems.join()).toContain(`does not name ${label}`)
   })
 
@@ -109,22 +109,22 @@ describe('auditHints: names the person and the square', () => {
   it('level 2 must name the square, and for a placement the person', () => {
     const cell = good.steps[placing]!.level2.cells[0]!
     const label = puzzle.people.find((p) => p.id === good.steps[placing]!.next.placement!.personId)!.label
-    const noSquare = audit((s) => setText(s, placing, 2, `Kijk naar het bord. Daar moet ${label} staan.`))
-    expect(noSquare.join()).toContain(`does not name the square rij ${cell.row + 1}, kolom ${cell.col + 1}`)
-    const noPerson = audit((s) => setText(s, placing, 2, `Kijk naar rij ${cell.row + 1}, kolom ${cell.col + 1}. Daar moet iemand staan.`))
+    const noSquare = audit((s) => setText(s, placing, 2, `Look at the board. ${label} must stand there.`))
+    expect(noSquare.join()).toContain(`does not name the square row ${cell.row + 1}, column ${cell.col + 1}`)
+    const noPerson = audit((s) => setText(s, placing, 2, `Look at row ${cell.row + 1}, column ${cell.col + 1}. Somebody must stand there.`))
     expect(noPerson.join()).toContain(`does not name ${label}`)
   })
 
   it('level 2 must name the right row and column, alone or grouped', () => {
     const cell = good.steps[placing]!.level2.cells[0]!
     const label = puzzle.people.find((p) => p.id === good.steps[placing]!.next.placement!.personId)!.label
-    const wrongRow = audit((s) => setText(s, placing, 2, `Kijk naar rij ${cell.row + 2}, kolom ${cell.col + 1}. Daar moet ${label} staan.`))
+    const wrongRow = audit((s) => setText(s, placing, 2, `Look at row ${cell.row + 2}, column ${cell.col + 1}. ${label} must stand there.`))
     expect(wrongRow.join()).toContain('does not name the square')
-    const onlyColumn = audit((s) => setText(s, placing, 2, `Kijk naar kolom ${cell.col + 1}. Daar moet ${label} staan.`))
+    const onlyColumn = audit((s) => setText(s, placing, 2, `Look at column ${cell.col + 1}. ${label} must stand there.`))
     expect(onlyColumn.join()).toContain('does not name the square')
     const grouped = audit((s) => {
       s[crossing]!.level2.cells = [{ row: 8, col: 4 }, { row: 8, col: 6 }, { row: 8, col: 7 }]
-      setText(s, crossing, 2, 'Kijk naar rij 9, kolom 5, 7 en 8. Die vakjes zijn gemarkeerd op het bord.')
+      setText(s, crossing, 2, 'Look at row 9, column 5, 7 and 8. Those squares are marked on the board.')
     })
     expect(grouped.join()).not.toContain('does not name the square')
   })
@@ -139,28 +139,28 @@ describe('auditHints: names the person and the square', () => {
     const many = Array.from({ length: 7 }, (_, i) => ({ row: i % 4, col: Math.floor(i / 4) }))
     const problems = audit((s) => {
       s[crossing]!.level2.cells = many
-      setText(s, crossing, 2, 'Kijk goed naar het bord.')
+      setText(s, crossing, 2, 'Take a good look at the board.')
     })
     expect(problems.join()).toContain('7 squares but the text does not point at the marked squares')
   })
 })
 
 describe('auditHints: level 3 ends with an explicit instruction', () => {
-  it('a placement must say "Zet <naam> op rij X, kolom Y."', () => {
+  it('a placement must say "Place <name> on row X, column Y."', () => {
     const { personId, cell } = good.steps[placing]!.next.placement!
     const label = puzzle.people.find((p) => p.id === personId)!.label
-    const expected = `Zet ${label} op rij ${cell.row + 1}, kolom ${cell.col + 1}.`
-    const wrong = cell.row === 0 && cell.col === 0 ? `Zet ${label} op rij 2, kolom 2.` : `Zet ${label} op rij 1, kolom 1.`
-    const problems = audit((s) => setLevel3(s, placing, 'Er is nog maar één vakje.', wrong))
+    const expected = `Place ${label} on row ${cell.row + 1}, column ${cell.col + 1}.`
+    const wrong = cell.row === 0 && cell.col === 0 ? `Place ${label} on row 2, column 2.` : `Place ${label} on row 1, column 1.`
+    const problems = audit((s) => setLevel3(s, placing, 'Only one square is left.', wrong))
     expect(problems.join()).toContain(`instruction "${wrong}" is not "${expected}"`)
-    expect(audit((s) => setLevel3(s, placing, 'Er is nog maar één vakje.', 'Probeer het daar eens.')).join()).toContain(`is not "${expected}"`)
+    expect(audit((s) => setLevel3(s, placing, 'Only one square is left.', 'Try it there.')).join()).toContain(`is not "${expected}"`)
   })
 
-  it('a note must say "Zet een notitie voor <naam> op ..." and name every possible square', () => {
+  it('a note must say "Note squares for <name> on ..." and name every possible square', () => {
     const { focus } = good.steps[noting]!.next
     const label = puzzle.people.find((p) => p.id === focus!.personId)!.label
-    expect(audit((s) => setLevel3(s, noting, 'Er zijn twee vakjes.', 'Schrijf ze maar op.')).join()).toContain('does not say where to note')
-    expect(audit((s) => setLevel3(s, noting, 'Er zijn twee vakjes.', `Zet een notitie voor ${label} op rij 1, kolom 1.`)).join()).toContain('instruction does not name the square')
+    expect(audit((s) => setLevel3(s, noting, 'There are two squares.', 'Write them down.')).join()).toContain('does not say where to note')
+    expect(audit((s) => setLevel3(s, noting, 'There are two squares.', `Note squares for ${label} on row 1, column 1.`)).join()).toContain('instruction does not name the square')
   })
 
   it('a note is about at most six possible squares, a crossing about at most twelve', () => {
@@ -172,29 +172,29 @@ describe('auditHints: level 3 ends with an explicit instruction', () => {
 
   it('a hint about one person names that person at level 2', () => {
     const label = puzzle.people.find((p) => p.id === good.steps[noting]!.next.focus!.personId)!.label
-    expect(audit((s) => setText(s, noting, 2, 'Kijk naar het bord. Die vakjes zijn gemarkeerd.')).join()).toContain(`does not name ${label}`)
+    expect(audit((s) => setText(s, noting, 2, 'Look at the board. Those squares are marked.')).join()).toContain(`does not name ${label}`)
   })
 
-  it('a crossing must say "Zet een kruisje ..." and name the squares', () => {
-    expect(audit((s) => setLevel3(s, crossing, 'Er vallen vakjes af.', 'Kruis ze maar weg.')).join()).toContain('does not say where to put a cross')
-    expect(audit((s) => setLevel3(s, crossing, 'Er vallen vakjes af.', 'Zet een kruisje voor A.')).join()).toContain('instruction names no square')
+  it('a crossing must say "Put a cross ..." and name the squares', () => {
+    expect(audit((s) => setLevel3(s, crossing, 'Some squares fall away.', 'Cross them out.')).join()).toContain('does not say where to put a cross')
+    expect(audit((s) => setLevel3(s, crossing, 'Some squares fall away.', 'Put a cross for A.')).join()).toContain('instruction names no square')
   })
 
   it('the text must be the explanation followed by the instruction, and end with it', () => {
     expect(audit((s) => (s[crossing]!.level3.text = `${s[crossing]!.level3.instruction} ${s[crossing]!.level3.explanation}`)).join()).toContain(
       'text is not the explanation followed by the instruction',
     )
-    expect(audit((s) => setLevel3(s, crossing, '', 'Zet een kruisje op rij 1, kolom 1.')).join()).toContain('has no explanation')
+    expect(audit((s) => setLevel3(s, crossing, '', 'Put a cross on row 1, column 1.')).join()).toContain('has no explanation')
   })
 
   it('the instruction is one sentence', () => {
-    expect(audit((s) => setLevel3(s, crossing, 'Er vallen vakjes af.', 'Zet een kruisje op rij 1, kolom 1. Doe dat nu.')).join()).toContain('more than one sentence')
+    expect(audit((s) => setLevel3(s, crossing, 'Some squares fall away.', 'Put a cross on row 1, column 1. Do it now.')).join()).toContain('more than one sentence')
   })
 })
 
 describe('auditHints: the level-3 limit follows the technique', () => {
-  const long = `${'Er vallen vakjes af omdat het niet anders kan. '.repeat(11).trim()}`
-  const cross = 'Zet een kruisje op rij 1, kolom 1.'
+  const long = `${'Some squares fall away because it cannot be otherwise. '.repeat(8).trim()}`
+  const cross = 'Put a cross on row 1, column 1.'
   const withTechnique = (id: string) =>
     audit((s) => {
       setLevel3(s, crossing, long, cross)

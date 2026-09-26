@@ -60,8 +60,8 @@ describe('the combined card in the solvers', () => {
     const result = solveHuman(puzzle.scene, puzzle.people, puzzle.clues as CatalogClue[])
     expect(result.solved).toBe(true)
     const text = result.steps.map((s) => s.explanation).join('\n')
-    expect(text).toContain('B stond in de 2e kolom en was alleen met een man.')
-    expect(text).toContain('Deze kaart heeft twee delen: "B stond in de 2e kolom" en "B was alleen met een man". Beide delen moeten kloppen.')
+    expect(text).toContain('B stood in column 2 and was alone with a man.')
+    expect(text).toContain('This card has two parts: "B stood in column 2" and "B was alone with a man". Both parts must be true.')
   })
 
   it('never remove a true position and count exactly the solutions, on 12 random 5x5 sets with combined cards', { timeout: 120_000 }, () => {
@@ -72,7 +72,7 @@ describe('the combined card in the solvers', () => {
       const base = makePeople(5)
       const people: Person[] = base.map((p) => {
         const roll = random()
-        const gender: Gender | undefined = p.kind === 'victim' || roll < 0.2 ? undefined : roll < 0.6 ? 'vrouw' : 'man'
+        const gender: Gender | undefined = p.kind === 'victim' || roll < 0.2 ? undefined : roll < 0.6 ? 'woman' : 'man'
         return gender ? { ...p, gender } : p
       })
       const solution = randomSolution(scene, people, random)
@@ -80,7 +80,7 @@ describe('the combined card in the solvers', () => {
       const gendered: PartClue[] = []
       for (const holder of people.filter((p) => p.kind === 'suspect')) {
         for (const type of ['roomHasGender', 'aloneWithGender'] as const) {
-          for (const gender of ['vrouw', 'man'] as const) {
+          for (const gender of ['woman', 'man'] as const) {
             const clue = { personId: holder.id, type, args: { gender } } as PartClue
             if (checkClue(clue, { scene, people }).length === 0 && evaluate(clue, scene, solution, people)) gendered.push(clue)
           }

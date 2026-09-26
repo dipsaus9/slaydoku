@@ -72,11 +72,11 @@ function ObjectTile({ object }: { object: ThemeObject }) {
         height={size.rows * CELL}
         viewBox={`0 0 ${size.cols * 100} ${size.rows * 100}`}
         role="img"
-        aria-label={object.nameNl}
+        aria-label={object.name}
       >
         <ThemeObjectIconGlyph object={object} cells={footprint.cells} />
       </svg>
-      <figcaption>{object.nameNl}</figcaption>
+      <figcaption>{object.name}</figcaption>
     </figure>
   )
 }
@@ -87,7 +87,7 @@ function ThemeCard({ theme }: { theme: SceneTheme }) {
   return (
     <section className="card" data-theme={theme.id}>
       <h3>
-        {theme.nameNl} ({theme.id})
+        {theme.name} ({theme.id})
       </h3>
       <div className="variant-label">Kan bezet worden ({occupiable.length})</div>
       <div className="tiles">

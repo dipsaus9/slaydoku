@@ -4,8 +4,8 @@ import { sampleFile } from './sample.testing.ts'
 import { TIERS } from '../../engine/generator/tiers/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import {
-  ALL_THEME_ROOM_NAMES, HET_ROOMS, PACK_FORMAT, boardKey, clueRange, dress, indexEntryOf, kindCounts, minKinds, packFile, packId,
-  packSetProblems, sortPackFiles, parseIndex, parsePackFile, puzzleKey, seedBase, serializeIndex, serializePack, titleFor, varietyProblem, withArticle,
+  PACK_FORMAT, VICTIM_LABEL, boardKey, clueRange, dress, indexEntryOf, kindCounts, minKinds, packFile, packId,
+  packSetProblems, sortPackFiles, parseIndex, parsePackFile, puzzleKey, seedBase, serializeIndex, serializePack, titleFor, varietyProblem,
 } from './index.ts'
 import type { PackFile } from './index.ts'
 import { SCENE_THEMES } from '../themes/index.ts'
@@ -18,18 +18,13 @@ const index = parseIndex(serializeIndex(files.flatMap((f) => f.puzzles)))
 const puzzleOf = (clues: { personId: string; type: string }[]): Puzzle =>
   ({ scene: { width: 6, height: 6, rooms: [], cellRooms: [], objects: [], edgeFeatures: [] }, people: [], solution: [], clues }) as unknown as Puzzle
 
-describe('room articles', () => {
-  it('gives every theme room name a de/het article', () => {
-    for (const name of ALL_THEME_ROOM_NAMES) expect(withArticle(name), name).toMatch(/^(de|het) \S/)
+describe('room names', () => {
+  const names = SCENE_THEMES.flatMap((theme) => theme.rooms.map((room) => room.name))
+  it('stores every theme room name bare: clue text adds "the"', () => {
+    for (const name of names) expect(name, name).not.toMatch(/^the\s/i)
   })
-  it('only lists het-words that are theme room names', () => {
-    for (const name of HET_ROOMS) expect(ALL_THEME_ROOM_NAMES, name).toContain(name)
-  })
-  it('reads the well-known rooms right', () => {
-    expect(withArticle('Toilet')).toBe('het Toilet')
-    expect(withArticle('Keuken')).toBe('de Keuken')
-    expect(withArticle('Muzieklokaal')).toBe('het Muzieklokaal')
-    expect(withArticle('Speelplaats')).toBe('de Speelplaats')
+  it('reads after "in the" as a natural place', () => {
+    for (const name of names) expect(name, name).toMatch(/^[A-Z][A-Za-z' ]+$/)
   })
 })
 
@@ -68,21 +63,22 @@ describe('building blocks', () => {
     expect(packId(9, 'easy-medium', 'home', 301)).toBe('9-easy-medium-home-301')
     expect(packFile(9, 'easy-medium')).toBe('9-easy-medium.json')
   })
-  it('dresses a puzzle: cast names, het cadeau, articles', () => {
+  it('dresses a puzzle: cast names and "the victim", room names stay bare', () => {
     const puzzle = {
-      scene: { width: 2, height: 2, rooms: [{ id: 'r1', name: 'Keuken' }, { id: 'r2', name: 'Toilet' }], cellRooms: [['r1', 'r2'], ['r1', 'r2']], objects: [], edgeFeatures: [] },
+      scene: { width: 2, height: 2, rooms: [{ id: 'r1', name: 'Kitchen' }, { id: 'r2', name: 'Toilet' }], cellRooms: [['r1', 'r2'], ['r1', 'r2']], objects: [], edgeFeatures: [] },
       people: [{ id: 'V', kind: 'victim', label: 'V' }, { id: 'A', kind: 'suspect', label: 'A' }, { id: 'B', kind: 'suspect', label: 'B' }],
       solution: [], clues: [],
     } as unknown as Puzzle
     const dressed = dress(puzzle, ['Ben', 'Alice'])
-    expect(dressed.people.map((p) => p.label)).toEqual(['het cadeau', 'Ben', 'Alice'])
-    expect(dressed.scene.rooms.map((r) => r.name)).toEqual(['de Keuken', 'het Toilet'])
+    expect(dressed.people.map((p) => p.label)).toEqual([VICTIM_LABEL, 'Ben', 'Alice'])
+    expect(VICTIM_LABEL).toBe('the victim')
+    expect(dressed.scene.rooms.map((r) => r.name)).toEqual(['Kitchen', 'Toilet'])
     expect(dressed.scene.rooms.map((r) => r.id)).toEqual(['r1', 'r2'])
   })
-  it('titles a puzzle in Dutch by theme and the room of the gift', () => {
-    const scene = { width: 1, height: 1, rooms: [{ id: 'r1', name: 'de Keuken' }], cellRooms: [['r1']], objects: [], edgeFeatures: [] }
-    expect(titleFor(scene, 'home', 0, 0, 0)).toBe('Woonhuis: Het cadeau in de Keuken')
-    expect(titleFor(scene, 'home', 0, 0, 1)).toBe('Woonhuis: Onraad in de Keuken')
+  it('titles a puzzle in English by theme and the room of the victim', () => {
+    const scene = { width: 1, height: 1, rooms: [{ id: 'r1', name: 'Kitchen' }], cellRooms: [['r1']], objects: [], edgeFeatures: [] }
+    expect(titleFor(scene, 'home', 0, 0, 0)).toBe('Family home: The victim in the Kitchen')
+    expect(titleFor(scene, 'home', 0, 0, 1)).toBe('Family home: Foul play in the Kitchen')
   })
   it('serializes a pack as a header plus one puzzle per line, and an index the same way', () => {
     const file = files[0]!

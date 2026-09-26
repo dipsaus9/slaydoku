@@ -1,5 +1,5 @@
 import type { Elimination, Technique } from '../types.ts'
-import { cellList, personName, sentences } from '../nl.ts'
+import { cellList, personName, sentences } from '../en.ts'
 
 /**
  * Intersecting squares (official technique "intersect"): when every square a
@@ -11,7 +11,7 @@ import { cellList, personName, sentences } from '../nl.ts'
  */
 export const intersect: Technique = {
   id: 'intersect',
-  title: 'Kruisende vakjes uitsluiten',
+  title: 'Rule out crossing squares',
   level: 3,
   find(board) {
     for (let a = 0; a < board.people.length; a++) {
@@ -34,7 +34,7 @@ export const intersect: Technique = {
       return {
         eliminate,
         explanation: sentences(
-          `${name} kan alleen nog op ${cellList(board, own)} staan. Elk van die vakjes deelt een rij of kolom met ${cellList(board, cells)}. Als daar iemand anders zou staan, houdt ${name} niets over. Daar kan dus niemand anders staan.`,
+          `${name} can only stand on ${cellList(board, own)} now. Each of those squares shares a row or column with ${cellList(board, cells)}. If somebody else stood there, ${name} would have nothing left. So nobody else can stand there.`,
         ),
         people: [a],
         cells: [...own, ...cells],

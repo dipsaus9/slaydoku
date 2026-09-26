@@ -26,7 +26,7 @@ export type LadderTierId = 'very-easy' | 'easy' | 'easy-medium' | 'medium'
 export const LADDER_TIER_IDS: readonly LadderTierId[] = ['very-easy', 'easy', 'easy-medium', 'medium']
 
 export interface LadderGenerateOptions {
-  /** Pin the victim (the gift) to this cell (0-based); it must be an occupiable cell. */
+  /** Pin the victim to this cell (0-based); it must be an occupiable cell. */
   victimCell?: Cell
   /**
    * Demand that `tierFor(puzzle)` is the requested tier (the puzzle does not also fit an easier tier),
@@ -39,7 +39,7 @@ export interface LadderGenerateOptions {
   maxAttempts?: number
   /**
    * Gender of each suspect in the order A, B ... (a shorter list leaves the rest without). With genders the pool gets the
-   * gender cards ("Er was minstens één vrouw in de ruimte van X", "X was alleen met een man"), usable from medium up;
+   * gender cards ("There was at least one woman in X's room", "X was alone with a man"), usable from medium up;
    * without, none are drawn (CAD-9.1). The pack gives the generated cast names genders (`buildCastForBoard`).
    */
   genders?: readonly (Gender | undefined)[]
@@ -190,8 +190,8 @@ function cardsFor(id: LadderTierId, allowed: (clue: CatalogClue) => boolean, sce
 
 /**
  * Generates a puzzle solve-path first, for a scene of any size, on the human-solvability scale of
- * `src/engine/solvable`. It samples the solution (the gift pinned to `victimCell` when given; the
- * gift room always holds exactly one suspect), picks an order of the people and, for each, the cards
+ * `src/engine/solvable`. It samples the solution (the victim pinned to `victimCell` when given; the
+ * victim room always holds exactly one suspect), picks an order of the people and, for each, the cards
  * that leave one square once the rows and columns of the people placed before are crossed off
  * (`planLadder`); the victim card comes last. Cards that name a person only name somebody placed
  * earlier. The result is then judged by the oracle, not by the plan: `ladderCheck` must pass the

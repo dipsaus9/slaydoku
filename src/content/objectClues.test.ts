@@ -11,10 +11,10 @@ import { generatedPuzzles } from './generated.testing.ts'
  * it. Every puzzle of the demo level and of a generated sample is checked against an independent
  * (bounding box) statement of the rule, not against the evaluator alone, so the rule holds by construction.
  *
- * - "noordelijker dan een bed": strictly above the whole bed (row < the bed's topmost row) for at least
+ * - "further north than a bed": strictly above the whole bed (row < the bed's topmost row) for at least
  *   one bed; south/east/west likewise with the bottom row / columns. A person in the rows or columns the
  *   object itself spans is never beyond it.
- * - "naast" / "niet naast" / "direct boven een X": next to a square of one object, but not standing on it.
+ * - "next to" / "did not stand next to" / "directly above a X": next to a square of one object, but not standing on it.
  * - No scene has stairs: nobody can stand on them, and they made confusing clues.
  */
 
@@ -57,7 +57,7 @@ function besideIndependent(puzzle: Puzzle, cell: Cell, o: PlacedObject): boolean
   )
 }
 
-const SIDE_WORD: Record<string, string> = { north: 'noordelijker', south: 'zuidelijker', east: 'oostelijker', west: 'westelijker' }
+const SIDE_WORD: Record<string, string> = { north: 'further north', south: 'further south', east: 'further east', west: 'further west' }
 const DIRECTION_OF_OBJECT_SIDES = ['north', 'south', 'east', 'west']
 
 const holderCell = (puzzle: Puzzle, clue: { personId: string }): Cell =>
@@ -97,11 +97,11 @@ describe('object clues mean the whole object', () => {
         expect(witnesses.length, `${name}: ${renderClue(clue, ctx)}`).toBeGreaterThan(0)
         expect(evaluate(clue, puzzle.scene, puzzle.solution), name).toBe(true)
 
-        // Wording: the compass word of the side, then "dan een <object>".
+        // Wording: the compass word of the side, then "than a <object>".
         const text = renderClue(clue, ctx)
         expect(text, name).toContain(SIDE_WORD[side])
         expect(DIRECTION_OF_OBJECT_SIDES).toContain(side)
-        expect(text, name).toMatch(/ dan een [a-zé ,]+\.$/)
+        expect(text, name).toMatch(/ than an? [a-zé ,]+\.$/)
 
         // Same rows/columns as a multi-cell object's own extent: never beyond THAT object.
         for (const o of objects) {

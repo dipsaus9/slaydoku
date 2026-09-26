@@ -25,14 +25,14 @@ describe('checkClue', () => {
       ['withPerson', { otherId: 'B', roomId: 'kitchen' }],
       ['aloneWith', { otherId: 'V' }],
       ['emptyRoom', { roomId: 'living' }],
-      ['roomHasGender', { gender: 'vrouw' }],
+      ['roomHasGender', { gender: 'woman' }],
       ['aloneWithGender', { gender: 'man' }],
       ['inRow', { index: 5 }],
       ['inColumn', { index: 0 }],
       ['onLine', { axis: 'row', position: 'first' }],
       ['inRoomEdge', { edge: 'north' }],
       ['inRoomEdge', { roomId: 'kitchen', edge: 'east' }],
-      ['both', { a: { type: 'besideObject', args: { objectType: 'table' } }, b: { type: 'roomHasGender', args: { gender: 'vrouw' } } }],
+      ['both', { a: { type: 'besideObject', args: { objectType: 'table' } }, b: { type: 'roomHasGender', args: { gender: 'woman' } } }],
       ['aloneWithMurderer', {}, 'V'],
     ]
     expect(new Set(good.map(([type]) => type))).toEqual(new Set(STRUCTURAL_CLUE_TYPES))
@@ -87,8 +87,8 @@ describe('checkClue', () => {
     expect(check('roomHasGender', { gender: 'robot' })).toHaveLength(1)
     expect(check('aloneWithGender')).toHaveLength(1)
     // B is the only woman: a card of B about "a woman" has nobody to be about.
-    expect(check('roomHasGender', { gender: 'vrouw' }, 'B')).toHaveLength(1)
-    expect(check('aloneWithGender', { gender: 'vrouw' }, 'B')).toHaveLength(1)
+    expect(check('roomHasGender', { gender: 'woman' }, 'B')).toHaveLength(1)
+    expect(check('aloneWithGender', { gender: 'woman' }, 'B')).toHaveLength(1)
     expect(check('roomHasGender', { gender: 'man' }, 'B')).toEqual([])
   })
 

@@ -18,7 +18,7 @@ function scene(rows: string[]): Scene {
   return {
     width: rows[0]?.length ?? 0,
     height: rows.length,
-    rooms: ids.map((id) => ({ id, name: `Kamer ${id}` })),
+    rooms: ids.map((id) => ({ id, name: `Room ${id}` })),
     cellRooms: rows.map((row) => [...row]),
     objects: [],
     edgeFeatures: [],
@@ -74,7 +74,7 @@ describe('hidden lines', () => {
     expect(removed(found, A).every((c) => board.row(c) !== 0)).toBe(true)
     expect(removed(found, B)).toEqual([])
     expect(found?.explanation).toBe(
-      'In rij 1 kan alleen A nog staan. Elke rij heeft iemand, dus A staat daar en nergens anders.',
+      'Only A can still stand in row 1. Every row holds somebody, so A stands there and nowhere else.',
     )
   })
 
@@ -84,7 +84,7 @@ describe('hidden lines', () => {
     const found = find(hiddenLines(2, 2, 'hidden-pair', 4, 'Verborgen'), board)
     expectRealChange(board, found)
     expect(found?.explanation).toBe(
-      'In rij 1 en 2 kunnen alleen A en B nog staan. Elke rij heeft iemand, dus zij nemen die twee rijen samen in en staan nergens anders.',
+      'Only A and B can still stand in rows 1 and 2. Every row holds somebody, so they fill those two rows together and stand nowhere else.',
     )
     expect(new Set(found?.people)).toEqual(new Set([A, B]))
     expect(removed(found, A).every((c) => board.row(c) >= 2)).toBe(true)
@@ -97,7 +97,7 @@ describe('hidden lines', () => {
     const found = find(hiddenLines(1, 1, 'h', 4, 'Verborgen'), board)
     expect(found?.people).toEqual([A])
     expect(found?.explanation).toBe(
-      'In kolom 4 kan alleen A nog staan. Elke kolom heeft iemand, dus A staat daar en nergens anders.',
+      'Only A can still stand in column 4. Every column holds somebody, so A stands there and nowhere else.',
     )
   })
 
@@ -119,7 +119,7 @@ describe('naked triple and quad', () => {
     expect(removed(found, V).every((c) => board.col(c) <= 2)).toBe(true)
     expect(removed(found, V)).toHaveLength(12)
     expect(found?.explanation).toBe(
-      'A, B en C kunnen alleen nog in kolom 1, 2 en 3 staan: drie mensen voor drie kolommen. Wie waar staat weten we nog niet, maar die kolommen zijn samen voor hen. Niemand anders kan daar staan.',
+      'A, B and C can only stand in columns 1, 2 and 3 now: three people for three columns. We do not know who stands where, but those columns belong to them together. Nobody else can stand there.',
     )
   })
 
@@ -142,7 +142,7 @@ describe('rectangle and fish', () => {
       expect(board.row(e.cell)).toBeGreaterThan(1)
     }
     expect(found?.explanation).toBe(
-      'In rij 1 en 2 zijn alleen nog deze vakjes vrij: rij 1, kolom 1; rij 1, kolom 3; rij 2, kolom 1 en rij 2, kolom 3. Ze liggen allemaal in kolom 1 en 3. Twee rijen hebben dus twee kolommen nodig: samen nemen ze kolom 1 en 3 in beslag. Buiten rij 1 en 2 kan daarom niemand in kolom 1 en 3 staan, ook A niet.',
+      'In rows 1 and 2, only these squares are still free: row 1, column 1; row 1, column 3; row 2, column 1 and row 2, column 3. They all lie in columns 1 and 3. So two rows need two columns: together they use up columns 1 and 3. Outside rows 1 and 2, nobody can stand in columns 1 and 3, and that includes A.',
     )
   })
 
@@ -154,7 +154,7 @@ describe('rectangle and fish', () => {
     const found = fish(3, 3, 'fish', 5, 'Vis').find(board, context(board))
     expectRealChange(board, found)
     expect(found?.explanation).toBe(
-      'In rij 1, 2 en 3 zijn alleen nog deze vakjes vrij: rij 1, kolom 1; rij 1, kolom 2; rij 1, kolom 3; rij 2, kolom 1 en nog vijf andere vakjes. Ze liggen allemaal in kolom 1, 2 en 3. Drie rijen hebben dus drie kolommen nodig: samen nemen ze kolom 1, 2 en 3 in beslag. Buiten rij 1, 2 en 3 kan daarom niemand in kolom 1, 2 en 3 staan, ook A niet.',
+      'In rows 1, 2 and 3, only these squares are still free: row 1, column 1; row 1, column 2; row 1, column 3; row 2, column 1 and five other squares. They all lie in columns 1, 2 and 3. So three rows need three columns: together they use up columns 1, 2 and 3. Outside rows 1, 2 and 3, nobody can stand in columns 1, 2 and 3, and that includes A.',
     )
     expect(new Set(found?.eliminate.map((e) => board.col(e.cell)))).toEqual(new Set([0, 1, 2]))
   })
@@ -165,7 +165,7 @@ describe('rectangle and fish', () => {
     const found = fish(2, 2, 'rectangle', 4, 'Rechthoek').find(board, context(board))
     expectRealChange(board, found)
     expect(found?.explanation).toBe(
-      'In rij 1 en 3 zijn alleen nog deze vakjes vrij: rij 1, kolom 3; rij 1, kolom 4; rij 3, kolom 3 en rij 3, kolom 4. Ze liggen allemaal in kolom 3 en 4. Twee rijen hebben dus twee kolommen nodig: samen nemen ze kolom 3 en 4 in beslag. Buiten rij 1 en 3 kan daarom niemand in kolom 3 en 4 staan, ook A niet.',
+      'In rows 1 and 3, only these squares are still free: row 1, column 3; row 1, column 4; row 3, column 3 and row 3, column 4. They all lie in columns 3 and 4. So two rows need two columns: together they use up columns 3 and 4. Outside rows 1 and 3, nobody can stand in columns 3 and 4, and that includes A.',
     )
     for (const e of found?.eliminate ?? []) expect([1, 3]).toContain(board.row(e.cell))
   })
@@ -174,14 +174,14 @@ describe('rectangle and fish', () => {
 describe('intersect-wide', () => {
   it('a person whose squares all lie in one row and column rules out the crossing', () => {
     const board = new Board(TWO_ROOMS, people)
-    // A keeps row 0 and column 0: seven squares, all sharing a line with r1k1.
+    // A keeps row 0 and column 0: seven squares, all sharing a line with r1c1.
     limit(board, A, (r, c) => r === 0 || c === 0)
     const found = intersectWide.find(board, context(board))
     expectRealChange(board, found)
     expect(removed(found, B)).toEqual([at(0, 0)])
     expect(removed(found, A)).toEqual([])
     expect(found?.explanation).toBe(
-      'A kan nog op zeven vakjes staan, en elk daarvan ligt in dezelfde rij of kolom als rij 1, kolom 1. Als daar iemand anders zou staan, houdt A niets over. Daar kan dus niemand anders staan.',
+      'A can still stand on seven squares, and each of them lies in the same row or column as row 1, column 1. If somebody else stood there, A would have nothing left. So nobody else can stand there.',
     )
   })
 
@@ -195,14 +195,14 @@ describe('intersect-wide', () => {
 describe('room techniques', () => {
   it('hidden single by room: rows only one room reaches need people from those who can get there', () => {
     const board = new Board(TWO_ROOMS, people)
-    // Both top rows lie in Kamer t, so two people stand there; only A and B can reach it.
+    // Both top rows lie in Room t, so two people stand there; only A and B can reach it.
     for (const p of [C, V]) limit(board, p, (r) => r >= 2)
     const found = roomHiddenSingle.find(board, context(board))
     expectRealChange(board, found)
     expect(new Set(found?.people)).toEqual(new Set([A, B]))
     expect(removed(found, A).every((c) => board.room(c) === 1)).toBe(true)
     expect(found?.explanation).toBe(
-      'In de Kamer t moeten nog minstens twee mensen staan, want in twee rijen kan alleen nog iemand in de Kamer t staan. Alleen A en B kunnen daar nog komen, dus zij staan daar.',
+      'At least two more people must stand in the Room t, because two rows can only be filled from the Room t. Only A and B can still get there, so they stand there.',
     )
   })
 
@@ -212,7 +212,7 @@ describe('room techniques', () => {
     const found = roomCapacity.find(board, context(board))
     expectRealChange(board, found)
     expect(found?.explanation).toBe(
-      'In de Kamer t kunnen hooguit twee mensen staan, want de Kamer t heeft nog maar twee vrije rijen. A en B staan er al zeker. Niemand anders kan daar dus nog staan.',
+      'At most two people can stand in the Room t, because the Room t has only two free rows left. A and B are already sure to be there. So nobody else can stand there.',
     )
     expect(removed(found, C).every((c) => board.room(c) === 0)).toBe(true)
     expect(removed(found, V).length).toBeGreaterThan(0)
@@ -227,7 +227,7 @@ describe('room techniques', () => {
     const found = roomCapacity.find(board, context(board))
     expectRealChange(board, found)
     expect(found?.explanation).toBe(
-      'In de Kamer t kunnen hooguit twee mensen staan, want de Kamer t heeft V en precies één verdachte. Rij 1 en 2 leveren er al twee. Andere rijen hebben dus geen plek meer in de Kamer t.',
+      'At most two people can stand in the Room t, because the Room t holds V and exactly one suspect. Rows 1 and 2 already supply two. So other rows have no room left in the Room t.',
     )
     // Rows 0 and 1 already supply the two people; the squares of row 2 in t go.
     expect(new Set(found?.eliminate.map((e) => board.row(e.cell)))).toEqual(new Set([2]))
@@ -241,7 +241,7 @@ describe('room techniques', () => {
     for (const p of [1, 2]) limit(board, p, (r, c) => wide.cellRooms[r]?.[c] !== 't')
     const ctx: HumanContext = { scene: wide, people: three, clues: [], memo: new Map() }
     const found = roomCapacity.find(board, ctx)
-    // A on r1k2 with B and V in the b room is a real solution (column 2 stays empty).
+    // A on r1c2 with B and V in the b room is a real solution (column 2 stays empty).
     expect(found?.eliminate.some((e) => e.person === 0 && e.cell === 1) ?? false).toBe(false)
     expect(roomHiddenSingle.find(board, ctx)?.eliminate.some((e) => e.person === 0 && e.cell === 1) ?? false).toBe(false)
   })
@@ -254,7 +254,7 @@ describe('room techniques', () => {
     expect(found?.people).toEqual([V])
     expect(removed(found, V).every((c) => board.room(c) === 0)).toBe(true)
     expect(found?.explanation).toBe(
-      'De Kamer t moet minstens drie mensen hebben, want in drie rijen kan alleen nog iemand in de Kamer t staan. V is met precies één verdachte en kan daar dus niet zijn.',
+      'The Room t must hold at least three people, because three rows can only be filled from the Room t. V is with exactly one suspect, so cannot be there.',
     )
   })
 
@@ -266,7 +266,7 @@ describe('room techniques', () => {
     expectRealChange(board, found)
     expect(removed(found, V).every((c) => board.room(c) === 1)).toBe(true)
     expect(found?.explanation).toBe(
-      'De Kamer b kan hooguit één persoon hebben, want de Kamer b heeft nog maar één vrije rij. V is met een verdachte en kan daar dus niet zijn.',
+      'The Room b can hold at most one person, because the Room b has only one free row left. V is with a suspect, so cannot be there.',
     )
   })
 
@@ -277,7 +277,7 @@ describe('room techniques', () => {
     const found = clueRoomCount.find(board, context(board, clues))
     expectRealChange(board, found)
     expect(found?.explanation).toBe(
-      'Volgens de kaart is A alleen in een kamer, dus daar staat precies één persoon. De Kamer t moet minstens drie mensen hebben, want in drie rijen kan alleen nog iemand in de Kamer t staan. A kan dus niet in de Kamer t staan.',
+      'A card says A is alone in a room, so exactly one person stands there. The Room t must hold at least three people, because three rows can only be filled from the Room t. So A cannot stand in the Room t.',
     )
     expect(found?.people).toEqual([A])
     expect(found?.clueIndex).toBe(0)
@@ -291,7 +291,7 @@ describe('room techniques', () => {
     const found = clueRoomCount.find(board, context(board, clues))
     expectRealChange(board, found)
     expect(found?.explanation).toBe(
-      'Volgens de kaart zijn A en B samen alleen in een kamer, dus daar staan precies twee mensen. De Kamer t moet minstens drie mensen hebben, want in drie rijen kan alleen nog iemand in de Kamer t staan. A en B kunnen dus niet in de Kamer t staan.',
+      'A card says A and B are alone together in a room, so exactly two people stand there. The Room t must hold at least three people, because three rows can only be filled from the Room t. So A and B cannot stand in the Room t.',
     )
     expect(new Set(found?.people)).toEqual(new Set([A, B]))
     // The top room needs three people, the bottom room can hold one: neither suits the pair.
@@ -310,16 +310,16 @@ describe('combined clues', () => {
 
   it('joint support: a square needs one partner that satisfies both cards', () => {
     const board = new Board(wide, people)
-    // B on r3k1 or r4k4; A on r1k2 (diagonal partner r3k... none in B's set) or r1k4.
+    // B on r3c1 or r4c4; A on r1c2 (diagonal partner r3k... none in B's set) or r1c4.
     only(board, B, [[2, 0], [3, 3]])
     only(board, A, [[0, 1], [1, 3]])
     const found = combinedClues.find(board, context(board, clues))
-    // A r1k2: north of both B squares, but diagonal to neither (r3k1: dr=2 dc=1, r4k4: dr=3 dc=2).
+    // A r1c2: north of both B squares, but diagonal to neither (r3c1: dr=2 dc=1, r4c4: dr=3 dc=2).
     expect(found).not.toBeNull()
     expect(removed(found, A)).toContain(at(0, 1))
     expect(found?.clueIndex).toBeDefined()
     expect(found?.explanation).toBe(
-      'De kaarten van A en B horen bij elkaar: "A stond noordelijker dan B." "A stond op dezelfde diagonaal als B." Als A op rij 1, kolom 2 en rij 2, kolom 4 staat, is er voor B geen combinatie van vakjes meer die bij al die kaarten past zonder een rij of kolom te delen. Daar staat A dus niet.',
+      'The cards of A and B belong together: "A stood further north than B." "A stood on the same diagonal as B." If A stands on row 1, column 2 and row 2, column 4, there is no combination of squares left for B that fits all those cards without sharing a row or column. So A does not stand there.',
     )
   })
 
@@ -336,7 +336,7 @@ describe('combined clues', () => {
     expect(model.links).toHaveLength(2)
     const link = model.links[1]
     if (!link) throw new Error('no link')
-    // Diagonal: r1k1 with r2k2 (adjacent diagonal) fits, r1k1 with r1k2 shares a row.
+    // Diagonal: r1c1 with r2c2 (adjacent diagonal) fits, r1c1 with r1c2 shares a row.
     expect(link.compat[at(0, 0) * 16 + at(1, 1)]).toBe(1)
     expect(link.compat[at(0, 0) * 16 + at(0, 1)]).toBe(0)
     expect(link.compat[at(0, 0) * 16 + at(2, 1)]).toBe(0)
@@ -346,7 +346,7 @@ describe('combined clues', () => {
 describe('chain reasoning', () => {
   it('refutes a square whose supposition leaves somebody nowhere to stand', () => {
     const board = new Board(TWO_ROOMS, people)
-    // A on r1k1 would take row 1 and column 1, and B has only r1k2 and r2k1 left: both closed.
+    // A on r1c1 would take row 1 and column 1, and B has only r1c2 and r2c1 left: both closed.
     only(board, A, [[0, 0], [2, 2]])
     only(board, B, [[0, 1], [1, 0]])
     const found = chain.find(board, context(board))
@@ -354,7 +354,7 @@ describe('chain reasoning', () => {
     expect(removed(found, A)).toContain(at(0, 0))
     expect(removed(found, A)).not.toContain(at(2, 2))
     expect(found?.explanation).toBe(
-      'Stel dat A op rij 1, kolom 1 staat. Dan heeft B nergens meer een vakje. Dat kan niet, dus A staat daar niet. Stel dat C op rij 1, kolom 1 staat. Dan heeft B nergens meer een vakje. Dat kan niet, dus C staat daar niet. Met dezelfde redenering vallen nog veel andere vakjes af.',
+      'Suppose A stands on row 1, column 1. Then B has no square left. That is impossible, so A does not stand there. Suppose C stands on row 1, column 1. Then B has no square left. That is impossible, so C does not stand there. The same reasoning rules out many other squares.',
     )
   })
 
@@ -367,7 +367,7 @@ describe('chain reasoning', () => {
     const trial = new Trial(board, model)
     const refuted = trial.suppose(A, at(0, 0))
     expect(refuted).not.toBeNull()
-    // A takes row 1 and column 1, which leaves B and C each with r2k2 only: one of them is placed, the other is left with nothing.
+    // A takes row 1 and column 1, which leaves B and C each with r2c2 only: one of them is placed, the other is left with nothing.
     expect(refuted?.forced.length).toBeGreaterThanOrEqual(2)
     expect(refuted?.forced.some((f) => f.cell === at(1, 1))).toBe(true)
     expect(refuted?.dead.kind).toBe('person')
@@ -383,11 +383,11 @@ describe('chain reasoning', () => {
     keep(1, [5, 6])
     keep(2, [10, 11, 12])
     const ctx: HumanContext = { scene: wide, people: three, clues: [], memo: new Map() }
-    // Real solutions: A on r1k1 or r1k2, B on r2k2 or r2k1, V on r3k3 (columns 4 and 5 stay empty).
-    // Only V's two squares in the first columns are refuted; nothing of A or B, and never V on r3k3.
+    // Real solutions: A on r1c1 or r1c2, B on r2c2 or r2c1, V on r3c3 (columns 4 and 5 stay empty).
+    // Only V's two squares in the first columns are refuted; nothing of A or B, and never V on r3c3.
     const found = chain.find(board, ctx)
     expect(found?.eliminate.every((e) => e.person === 2 && (e.cell === 10 || e.cell === 11))).toBe(true)
-    expect(found?.explanation).not.toContain('geen vrij vakje')
+    expect(found?.explanation).not.toContain('no free square left')
   })
 
   it('leaves squares alone when the chain works out', () => {
@@ -399,7 +399,7 @@ describe('chain reasoning', () => {
 })
 
 describe('catalog shape', () => {
-  it('every technique explains itself in Dutch through a title and stays on levels 4 and 5', () => {
+  it('every technique explains itself in English through a title and stays on levels 4 and 5', () => {
     for (const technique of ADVANCED_TECHNIQUES) {
       expect(technique.title.length).toBeGreaterThan(5)
       expect([4, 5]).toContain(technique.level)

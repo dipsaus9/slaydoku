@@ -16,7 +16,7 @@ function load(name: string, text: string): Puzzle {
 
 /**
  * The registered levels, in play order (level N + 1 unlocks when level N is solved). For now one demo
- * level: the demo house (`demo/scene.ts`), ladder tier easy, seed 2, gift on the sofa, placeholder cast.
+ * level: the demo house (`demo/scene.ts`), ladder tier easy, seed 2, victim on the sofa, placeholder cast.
  * Regenerate it with `bun tools/ladder.ts --scene demo --tier easy --seed 2 --victim 9,7 --cast --out src/content/demo/puzzle.json`.
  */
 export const demoLevels: readonly Level[] = [

@@ -5,13 +5,13 @@ import type { ScaleFailure } from '../../engine/generator/scale/index.ts'
 import { TIERS } from '../../engine/generator/tiers/index.ts'
 import type { TierId } from '../../engine/generator/tiers/index.ts'
 import type { Gender, Person, Puzzle, Scene } from '../../engine/model/index.ts'
+import { roomName } from '../../engine/clues/index.ts'
 import { generateScene } from '../../engine/scenegen/index.ts'
 import { buildCastForBoard } from '../../render/cards/procedural/index.ts'
 import { getTheme } from '../themes/index.ts'
 import type { ThemeId } from '../themes/index.ts'
-import { withArticle } from './articles.ts'
 import { boardKey, entryProblems, isLadderTier, puzzleKey, ratingOf } from './gates.ts'
-import { GIFT_LABEL, packId } from './ids.ts'
+import { VICTIM_LABEL, packId } from './ids.ts'
 import type { PackEntry } from './types.ts'
 
 /** Board sizes of the pack, and the size of the seed window one (size, tier, theme) may search. */
@@ -25,35 +25,35 @@ export const PACK_BUDGET_MS = 180_000
 export const seedBase = (tier: TierId): number => (TIERS.findIndex((t) => t.id === tier) + 1) * SEED_WINDOW
 
 const TITLE_TEMPLATES = [
-  'Het cadeau in {room}',
-  'Onraad in {room}',
-  'Mysterie in {room}',
-  'Raadsel in {room}',
-  'Speurwerk in {room}',
+  'The victim in {room}',
+  'Foul play in {room}',
+  'Mystery in {room}',
+  'A riddle in {room}',
+  'Detective work in {room}',
 ] as const
 
-/** Dutch title: theme, then a template on the room where the gift lies, e.g. "Woonhuis: Onraad in de Keuken". */
+/** Title: theme, then a template on the room where the victim lies, e.g. "Family home: Foul play in the Kitchen". */
 export function titleFor(scene: Scene, theme: ThemeId, victimRow: number, victimCol: number, seed: number): string {
   const roomId = scene.cellRooms[victimRow]![victimCol]!
-  const room = scene.rooms.find((r) => r.id === roomId)!.name
+  const room = roomName({ scene, people: [] }, roomId)
   const template = TITLE_TEMPLATES[seed % TITLE_TEMPLATES.length]!
-  return `${getTheme(theme).nameNl}: ${template.replace('{room}', room)}`
+  return `${getTheme(theme).name}: ${template.replace('{room}', room)}`
 }
 
 /**
- * The generator's puzzle dressed for the pack: cast names as labels (and their genders, see `buildCast`), "het cadeau" as victim
- * (no gender), articles on room names. A puzzle the ladder generator built with these genders already carries them.
+ * The generator's puzzle dressed for the pack: cast names as labels (and their genders, see `buildCast`), "the victim" as victim
+ * (no gender). Room names stay bare ("Kitchen"); clue text adds "the". A puzzle the ladder generator built with these
+ * genders already carries them.
  */
 export function dress(puzzle: Puzzle, cast: readonly string[], genders: readonly Gender[] = []): Puzzle {
   let next = 0
   const people: Person[] = puzzle.people.map((p) => {
-    if (p.kind === 'victim') return { ...p, label: GIFT_LABEL }
+    if (p.kind === 'victim') return { ...p, label: VICTIM_LABEL }
     const at = next++
     const gender = genders[at]
     return gender === undefined ? { ...p, label: cast[at]! } : { ...p, label: cast[at]!, gender }
   })
-  const scene: Scene = { ...puzzle.scene, rooms: puzzle.scene.rooms.map((r) => ({ ...r, name: withArticle(r.name) })) }
-  return { ...puzzle, scene, people }
+  return { ...puzzle, people }
 }
 
 /** A failed candidate: `problems` lists what the gates found in a puzzle the generator did build; without it the generator itself found no puzzle inside the budget. */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { generateTier } from '../engine/generator/tiers/index.ts'
 import type { TierId } from '../engine/generator/tiers/index.ts'
-import { DEMO_GIFT_CELLS, demoScene } from '../content/demo/scene.ts'
+import { DEMO_VICTIM_CELLS, demoScene } from '../content/demo/scene.ts'
 import { demoLevels } from '../content/levels.ts'
 import { combinedGenderLadder, combinedLadder } from '../engine/solvable/testing.fixture.ts'
 import { auditClues, auditHints, walkHints } from './index.ts'
@@ -24,14 +24,14 @@ describe('the audit works for any puzzle', () => {
       expect(auditClues(puzzle, 'hard')).toEqual([])
       const walk = walkHints(puzzle)
       expect(walk.solved).toBe(true)
-      const explained = walk.steps.map((s) => s.level3.text).filter((text) => text.includes('heeft twee delen: "'))
+      const explained = walk.steps.map((s) => s.level3.text).filter((text) => text.includes('has two parts: "'))
       expect(explained.length).toBeGreaterThan(0)
-      for (const text of explained) expect(text).toContain('Beide delen moeten kloppen.')
+      for (const text of explained) expect(text).toContain('Both parts must be true.')
     })
   }
 
   it('a freshly generated puzzle is audited with the same functions', () => {
-    const puzzle = generateTier(demoScene, { seed: 5, tier: 'very-easy', victimCell: DEMO_GIFT_CELLS[0]! })
+    const puzzle = generateTier(demoScene, { seed: 5, tier: 'very-easy', victimCell: DEMO_VICTIM_CELLS[0]! })
     expect(auditHints(puzzle)).toEqual([])
     expect(auditClues(puzzle, 'very-easy')).toEqual([])
   })

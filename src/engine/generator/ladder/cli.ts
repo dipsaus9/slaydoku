@@ -21,18 +21,18 @@ export interface LadderCliArgs {
   loose: boolean
   /** Also print the puzzle JSON. */
   json: boolean
-  /** Write (and print) the puzzle with the cast names and "het cadeau" as labels, the way the committed levels carry them. */
+  /** Write (and print) the puzzle with the cast names and "the victim" as labels, the way the committed levels carry them. */
   cast: boolean
 }
 
 export const LADDER_USAGE =
   'Usage: bun tools/ladder.ts --scene <demo | scene.json | <size> | generated:<size>> ' +
   `--tier <${LADDER_TIER_IDS.join(' | ')}> --seed <n> [--victim <row,col>] [--out <puzzle.json>] [--budget <ms>] [--loose] [--json] [--cast]\n` +
-  '  Prints the puzzle, its ladder (the order the people are placed and the cards each placement uses) and the Dutch clue lines.\n' +
+  '  Prints the puzzle, its ladder (the order the people are placed and the cards each placement uses) and the clue lines.\n' +
   '  --report <count>  instead measure <count> seeds (from --seed): success rate and time per puzzle. --scene and --tier take a comma list (--tier all).\n' +
   '  --victim is 1-based (row,col as in r1c1). <size> is a random themed scene of that size per seed (6 to 16).\n' +
-  '  --cast writes the puzzle with the cast names (Alice, Ben ...) and "het cadeau" as labels, the way the demo level carries them,\n' +
-  '    and gives the people the cast genders (Alice vrouw, Ben man ...), so the gender cards can be used (medium up).\n' +
+  '  --cast writes the puzzle with the cast names (Alice, Ben ...) and "the victim" as labels, the way the demo level carries them,\n' +
+  '    and gives the people the cast genders (Alice woman, Ben man ...), so the gender cards can be used (medium up).\n' +
   '  --loose accepts a puzzle that also meets an easier tier; by default the tier is exact (tierFor gives the requested tier).'
 
 /** Parses the ladder CLI arguments. Throws Error with a readable message on bad input. */

@@ -1,6 +1,6 @@
 import type { BoardView } from '../board.ts'
 import type { Deduction, Elimination, Technique } from '../types.ts'
-import { giftName, peopleNames, roomName, sentences } from '../nl.ts'
+import { victimName, peopleNames, roomName, sentences } from '../en.ts'
 
 /**
  * Room and victim reasoning: the victim shares their room with exactly one
@@ -12,7 +12,7 @@ import { giftName, peopleNames, roomName, sentences } from '../nl.ts'
  */
 export const victimRoom: Technique = {
   id: 'victim-room',
-  title: 'Kamer van het cadeau',
+  title: 'Room of the victim',
   level: 2,
   find(board) {
     if (board.victim < 0) return null
@@ -48,7 +48,7 @@ function crowded(board: BoardView, sure: number[][]): Deduction | null {
     return {
       eliminate,
       explanation: sentences(
-        `${peopleNames(board, inside)} staan zeker in ${roomName(board, room)}. ${giftName(board)} is met precies één verdachte en kan daar dus niet zijn.`,
+        `${peopleNames(board, inside)} ${inside.length === 1 ? 'is' : 'are'} sure to be in ${roomName(board, room)}. ${victimName(board)} is with exactly one suspect, so cannot be there.`,
       ),
       people: [board.victim, ...inside],
       cells: eliminate.map((e) => e.cell),
@@ -66,7 +66,7 @@ function unreachable(board: BoardView, reach: number[][]): Deduction | null {
     return {
       eliminate,
       explanation: sentences(
-        `Geen enkele verdachte kan nog in ${roomName(board, room)} staan. ${giftName(board)} is met een verdachte en kan daar dus niet zijn.`,
+        `No suspect can still stand in ${roomName(board, room)}. ${victimName(board)} is with a suspect, so cannot be there.`,
       ),
       people: [board.victim],
       cells: eliminate.map((e) => e.cell),
@@ -95,7 +95,7 @@ function settled(
     return {
       eliminate,
       explanation: sentences(
-        `${giftName(board)} is in ${name}, samen met ${peopleNames(board, inside)}. Dat is de dader, dus geen andere verdachte kan daar staan.`,
+        `${victimName(board)} is in ${name}, together with ${peopleNames(board, inside)}. That is the murderer, so no other suspect can stand there.`,
       ),
       people: [board.victim, ...inside, ...new Set(eliminate.map((e) => e.person))],
       cells: [...new Set(eliminate.map((e) => e.cell))],
@@ -112,7 +112,7 @@ function settled(
     return {
       eliminate,
       explanation: sentences(
-        `${giftName(board)} is in ${name} en moet daar met een verdachte zijn. Alleen ${peopleNames(board, only)} kan daar nog komen, dus die staat daar.`,
+        `${victimName(board)} is in ${name} and must be there with a suspect. Only ${peopleNames(board, only)} can still get there, so that person stands there.`,
       ),
       people: [board.victim, s],
       cells: eliminate.map((e) => e.cell),

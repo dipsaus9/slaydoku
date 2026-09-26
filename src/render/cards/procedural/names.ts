@@ -1,12 +1,12 @@
 import type { Gender } from '../../../engine/model/index.ts'
 
-/** A name for an extra suspect and the gender it reads as (the gender clues name people by gender: vrouw/man). */
+/** A name for an extra suspect and the gender it reads as (the gender clues name people by gender: woman/man). */
 export interface GenderedName {
   name: string
   gender: Gender
 }
 
-const v = (name: string): GenderedName => ({ name, gender: 'vrouw' })
+const v = (name: string): GenderedName => ({ name, gender: 'woman' })
 const m = (name: string): GenderedName => ({ name, gender: 'man' })
 
 /**

@@ -42,7 +42,7 @@ describe('gateOf', () => {
     expect(gateOf('x: clue kind inRow used 4 of 6 times')).toBe('variety')
     expect(gateOf('x: 13 clues, expected 6-12')).toBe('clue-count')
     expect(gateOf('x: clues: 0% direct clues, expert needs at least 15%')).toBe('clue-audit')
-    expect(gateOf('x: clue noun: "de tafel" names two kinds')).toBe('noun-audit')
+    expect(gateOf('x: clue noun: "the table" names two kinds')).toBe('noun-audit')
     expect(gateOf('x: ladderCheck: not solvable on the easy ladder')).toBe('tier')
     expect(gateOf('x: tierFor gives medium, not easy')).toBe('tier')
     expect(gateOf('x: the human solver does not place everybody as stored')).toBe('human-solve')

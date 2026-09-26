@@ -1,10 +1,10 @@
-import { bothPartsText, capitalizeLabel, countNl, renderClue, roomName, upperFirst } from '../engine/clues/index.ts'
+import { bothPartsText, capitalizeLabel, countWord, possessive, renderClue, roomName, upperFirst } from '../engine/clues/index.ts'
 import type { CatalogClue } from '../engine/clues/index.ts'
 import { cellKey, roomIdAt } from '../engine/model/index.ts'
 import type { Cell, Puzzle } from '../engine/model/index.ts'
 import { advancedRegistry } from '../engine/solver/advanced/registry.ts'
 import type { HumanStep } from '../engine/solver/human/index.ts'
-import { joinNl } from '../engine/solver/human/nl.ts'
+import { joinList } from '../engine/solver/human/en.ts'
 import type { Hint, Hint3, HintLevel, NextStep } from './hints.ts'
 import type { Focus } from './knowledge.ts'
 
@@ -15,29 +15,29 @@ export const MAX_NAMED_CELLS = 4
 const MAX_NAMED_ROOMS = 2
 const MAX_NAMED_PEOPLE = 3
 
-/** "rij 3, kolom 4": the same wording the solver explanations use for a square. */
-const cellName = (cell: Cell): string => `rij ${cell.row + 1}, kolom ${cell.col + 1}`
+/** "row 3, column 4": the same wording the solver explanations use for a square. */
+const cellName = (cell: Cell): string => `row ${cell.row + 1}, column ${cell.col + 1}`
 
 /**
- * Squares as a player says them. One square: "rij 3, kolom 4". Several in one row or column share
- * it: "rij 9, kolom 5, 7 en 8". Otherwise each is spelled out.
+ * Squares as a player says them. One square: "row 3, column 4". Several in one row or column share
+ * it: "row 9, column 5, 7 and 8". Otherwise each is spelled out.
  */
 export function cellsText(cells: readonly Cell[]): string {
   const sorted = [...cells].sort((a, b) => a.row - b.row || a.col - b.col)
   const [first] = sorted
   if (first && sorted.length > 1 && sorted.every((c) => c.row === first.row)) {
-    return `rij ${first.row + 1}, kolom ${joinNl(sorted.map((c) => String(c.col + 1)))}`
+    return `row ${first.row + 1}, column ${joinList(sorted.map((c) => String(c.col + 1)))}`
   }
   if (first && sorted.length > 1 && sorted.every((c) => c.col === first.col)) {
-    return `kolom ${first.col + 1}, rij ${joinNl(sorted.map((c) => String(c.row + 1)))}`
+    return `column ${first.col + 1}, row ${joinList(sorted.map((c) => String(c.row + 1)))}`
   }
-  return joinNl(sorted.map(cellName), 'en', '; ')
+  return joinList(sorted.map(cellName), 'and', '; ')
 }
 
 interface Card {
   owner: string
   text: string
-  /** For a combined card: "De kaart van Henry heeft twee delen: ...", the whole explanation (the card is not quoted a second time). Null for every other card. */
+  /** For a combined card: "Henry's card has two parts: ...", the whole explanation (the card is not quoted a second time). Null for every other card. */
   parts: string | null
   room: boolean
 }
@@ -49,7 +49,7 @@ function clueCard(puzzle: Puzzle, clueIndex: number | undefined): Card | null {
   if (!clue) return null
   const owner = puzzle.people.find((p) => p.id === clue.personId)?.label ?? clue.personId
   const ctx = { scene: puzzle.scene, people: puzzle.people }
-  return { owner, text: renderClue(clue, ctx), parts: bothPartsText(clue, ctx, `De kaart van ${owner}`), room: clue.type === 'emptyRoom' }
+  return { owner, text: renderClue(clue, ctx), parts: bothPartsText(clue, ctx, `${possessive(owner)} card`), room: clue.type === 'emptyRoom' }
 }
 
 const dedupe = (cells: Cell[]): Cell[] => {
@@ -61,15 +61,15 @@ const dedupe = (cells: Cell[]): Cell[] => {
 function wording(puzzle: Puzzle) {
   const labelOf = (id: string) => puzzle.people.find((p) => p.id === id)?.label ?? id
   const roomOf = (id: string) => roomName({ scene: puzzle.scene, people: puzzle.people }, id)
-  // A person label such as "het cadeau" can start a sentence: give it a capital there.
-  const gift = puzzle.people.find((p) => p.kind === 'victim')?.label ?? ''
-  const sentences = (text: string) => capitalizeLabel(upperFirst(text), gift)
+  // A person label such as "the victim" can start a sentence: give it a capital there.
+  const victim = puzzle.people.find((p) => p.kind === 'victim')?.label ?? ''
+  const sentences = (text: string) => capitalizeLabel(upperFirst(text), victim)
   const roomsOf = (cells: Cell[]) => [...new Set(cells.flatMap((c) => roomIdAt(puzzle.scene, c) ?? []))]
   return { labelOf, roomOf, sentences, roomsOf }
 }
 
-/** "één vakje", "drie vakjes". */
-const squaresText = (n: number): string => `${countNl(n)} ${n === 1 ? 'vakje' : 'vakjes'}`
+/** "one square", "three squares". */
+const squaresText = (n: number): string => `${countWord(n)} ${n === 1 ? 'square' : 'squares'}`
 
 /** The techniques of the solver, for the record on a hint. */
 const techniqueOf = (id: string): { id: string; title: string } => ({
@@ -91,18 +91,18 @@ function reasoning(next: NextStep, focus: Focus, cards: Card[], label: string, a
     const parts = [...focus.chain.map((s) => s.explanation), step.explanation]
     let used = parts
     while (used.length > 1 && used.join(' ').length > MAX_REASONING) used = used.slice(1)
-    return (used.length < parts.length ? ['Eerdere stappen sloten al andere vakjes uit.', ...used] : used).join(' ')
+    return (used.length < parts.length ? ['Earlier steps already ruled out other squares.', ...used] : used).join(' ')
   }
   const [first, second] = cards
   const said = first
-    ? [first.room ? `Een kaart zegt: "${first.text}"` : (first.parts ?? `De kaart van ${first.owner} zegt: "${first.text}"`)]
+    ? [first.room ? `A card says: "${first.text}"` : (first.parts ?? `${possessive(first.owner)} card says: "${first.text}"`)]
     : []
-  if (first && second && (first.parts ?? first.text).length + second.text.length <= 160 && focus.cells.length <= MAX_NAMED_CELLS) said.push(`Op een andere kaart staat: "${second.text}"`)
-  const together = focus.placed ? 'Alle kaarten samen, met de rijen en kolommen van wie al staat,' : 'Alle kaarten samen'
+  if (first && second && (first.parts ?? first.text).length + second.text.length <= 160 && focus.cells.length <= MAX_NAMED_CELLS) said.push(`Another card says: "${second.text}"`)
+  const together = focus.placed ? 'All the cards together, with the rows and columns of the people already placed,' : 'All the cards together'
   const left =
     placement || focus.cells.length === 1
-      ? `${together} laten voor ${label} maar één vakje over: ${at}.`
-      : `${together} laten voor ${label} ${countNl(focus.cells.length)} vakjes over. Welk vakje het is, weten we nog niet.`
+      ? `${together} leave only one square for ${label}: ${at}.`
+      : `${together} leave ${countWord(focus.cells.length)} possible squares for ${label}. We do not know yet which one it is.`
   return [...said, left].join(' ')
 }
 
@@ -124,19 +124,19 @@ export function focusHint(puzzle: Puzzle, next: NextStep, focus: Focus, level: H
 
   if (level === 1) {
     const [card] = cards
-    const lead = card ? `${card.room ? 'Lees deze kaart' : `Lees de kaart van ${card.owner}`}: "${card.text}" ` : `Kijk eens naar ${label}. `
-    return { level, ...base, text: sentences(`${lead}Met alle kaarten samen kan ${label} nog maar op ${squares} staan.`) }
+    const lead = card ? `${card.room ? 'Read this card' : `Read ${possessive(card.owner)} card`}: "${card.text}" ` : `Take a look at ${label}. `
+    return { level, ...base, text: sentences(`${lead}With all the cards together, ${label} can only stand on ${squares}.`) }
   }
   if (level === 2) {
     const text = placement
-      ? `Kijk naar ${at}. Daar moet ${label} staan.`
-      : `${Label} kan alleen op ${at} staan. ${cells.length === 1 ? 'Dat vakje is' : 'Die vakjes zijn'} gemarkeerd op het bord.`
+      ? `Look at ${at}. ${Label} must stand there.`
+      : `${Label} can only stand on ${at}. ${cells.length === 1 ? 'That square is' : 'Those squares are'} marked on the board.`
     return { level, ...base, cells, text: sentences(text) }
   }
 
   // Level 3: the reasoning, then what to do.
   const explanation = sentences(reasoning(next, focus, cards, label, at))
-  const instruction = sentences(placement ? `Zet ${label} op ${at}.` : `Zet een notitie voor ${label} op ${at}.`)
+  const instruction = sentences(placement ? `Place ${label} on ${at}.` : `Note squares for ${label} on ${at}.`)
   const hint: Hint3 = {
     level,
     ...base,
@@ -144,7 +144,7 @@ export function focusHint(puzzle: Puzzle, next: NextStep, focus: Focus, level: H
     text: `${explanation} ${instruction}`,
     explanation,
     instruction,
-    technique: placement ? techniqueOf(next.step.technique) : { id: 'candidates', title: 'Mogelijke vakjes' },
+    technique: placement ? techniqueOf(next.step.technique) : { id: 'candidates', title: 'Possible squares' },
   }
   if (placement) hint.placement = placement
   return hint
@@ -160,8 +160,8 @@ export function stepHint(puzzle: Puzzle, { step, placement, eliminations }: Next
   const cells = placement ? [placement.cell] : dedupe(crossed.length > 0 ? crossed.map((e) => e.cell) : step.cells)
   const personIds = placement ? [placement.personId] : [...new Set(step.people)]
   const roomIds = roomsOf(cells)
-  const who = joinNl(personIds.map(labelOf))
-  const rooms = roomIds.length > 0 && roomIds.length <= MAX_NAMED_ROOMS ? joinNl(roomIds.map(roomOf)) : ''
+  const who = joinList(personIds.map(labelOf))
+  const rooms = roomIds.length > 0 && roomIds.length <= MAX_NAMED_ROOMS ? joinList(roomIds.map(roomOf)) : ''
   const card = stepCard(puzzle, step)
 
   const base = { personIds, roomIds }
@@ -169,38 +169,38 @@ export function stepHint(puzzle: Puzzle, { step, placement, eliminations }: Next
     // The person, and the area: a person who is placed stands in it, otherwise it is where squares fall away.
     const named = personIds.length <= MAX_NAMED_PEOPLE
     const look = (lead: string): string => {
-      if (placement) return `${lead} naar ${who}${rooms ? ` in ${rooms}` : ''}.`
-      if (named) return `${lead} naar ${who}${rooms ? `, en let op ${rooms}` : ''}.`
-      return rooms ? `Let op ${rooms}.` : `${lead} goed naar het bord.`
+      if (placement) return `${lead} at ${who}${rooms ? ` in ${rooms}` : ''}.`
+      if (named) return `${lead} at ${who}${rooms ? `, and pay attention to ${rooms}` : ''}.`
+      return rooms ? `Pay attention to ${rooms}.` : 'Take a good look at the board.'
     }
     const text = card
-      ? `${card.room ? 'Lees deze kaart' : `Lees de kaart van ${card.owner}`}: "${card.text}" ${look('Kijk dan')}`
-      : look('Kijk eens')
+      ? `${card.room ? 'Read this card' : `Read ${possessive(card.owner)} card`}: "${card.text}" ${look('Then take a look')}`
+      : look('Take a look')
     return { level, ...base, text: sentences(text) }
   }
   const at = cellsText(cells)
   const text2 = placement
-    ? sentences(`Kijk naar ${at}. Daar moet ${who} staan.`)
+    ? sentences(`Look at ${at}. ${upperFirst(who)} must stand there.`)
     : cells.length > MAX_NAMED_CELLS
-      ? 'Kijk naar de gemarkeerde vakjes op het bord.'
-      : `Kijk naar ${at}. ${cells.length === 1 ? 'Dat vakje is' : 'Die vakjes zijn'} gemarkeerd op het bord.`
+      ? 'Look at the marked squares on the board.'
+      : `Look at ${at}. ${cells.length === 1 ? 'That square is' : 'Those squares are'} marked on the board.`
   if (level === 2) return { level, ...base, cells, text: text2 }
 
   // Level 3: why, in plain sentences, then what to do.
   const crossedWho = [...new Set(crossed.map((e) => e.personId))].map(labelOf)
-  const crossedNames = crossedWho.length <= MAX_NAMED_PEOPLE ? ` voor ${joinNl(crossedWho)}` : ''
-  const crossedCells = cells.length <= MAX_NAMED_CELLS ? at : 'de gemarkeerde vakjes'
+  const crossedNames = crossedWho.length <= MAX_NAMED_PEOPLE ? ` for ${joinList(crossedWho)}` : ''
+  const crossedCells = cells.length <= MAX_NAMED_CELLS ? at : 'the marked squares'
   const explanation = sentences(
     card && !card.room && crossedWho.length > 0
-      ? `${card.parts ?? `De kaart van ${card.owner} zegt: "${card.text}"`} Daardoor vallen er vakjes af${crossedNames}.`
+      ? `${card.parts ?? `${possessive(card.owner)} card says: "${card.text}"`} That rules out squares${crossedNames}.`
       : step.explanation,
   )
   const instruction = sentences(
     placement
-      ? `Zet ${who} op ${at}.`
+      ? `Place ${who} on ${at}.`
       : crossedWho.length > MAX_NAMED_PEOPLE
-        ? `Zet een kruisje op ${crossedCells}, voor iedereen die daar nog kan staan.`
-        : `Zet een kruisje${crossedNames} op ${crossedCells}.`,
+        ? `Put a cross on ${crossedCells}, for everyone who could still stand there.`
+        : `Put a cross${crossedNames} on ${crossedCells}.`,
   )
   const hint: Hint3 = {
     level,

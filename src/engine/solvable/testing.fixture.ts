@@ -60,7 +60,7 @@ export const genderLadder: Puzzle = {
   ...tutorialPuzzle,
   people: [
     { id: 'V', kind: 'victim', label: 'V' },
-    { id: 'A', kind: 'suspect', label: 'A', gender: 'vrouw' },
+    { id: 'A', kind: 'suspect', label: 'A', gender: 'woman' },
     { id: 'B', kind: 'suspect', label: 'B', gender: 'man' },
     { id: 'C', kind: 'suspect', label: 'C', gender: 'man' },
   ],
@@ -101,8 +101,8 @@ export const soloPuzzle: Puzzle = {
     width: 3,
     height: 3,
     rooms: [
-      { id: 'left', name: 'Links' },
-      { id: 'right', name: 'Rechts' },
+      { id: 'left', name: 'West Wing' },
+      { id: 'right', name: 'East Wing' },
     ],
     cellRooms: [
       ['left', 'left', 'right'],

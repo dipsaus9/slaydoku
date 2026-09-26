@@ -17,7 +17,7 @@ How to add content to Slaydoku without the original author. Every command in the
 | Path | What lives there |
 |---|---|
 | `src/engine/model/` | Scene, puzzle and rule types; `checkScene`, `checkPuzzle`, `validatePlacement`, `deriveMurderer`; the object catalog |
-| `src/engine/clues/` | Clue vocabulary (`types.ts`, `relational/types.ts`), truth evaluation, the one Dutch translation file `nl.ts` |
+| `src/engine/clues/` | Clue vocabulary (`types.ts`, `relational/types.ts`), truth evaluation, the one file that words clue cards, `en.ts` |
 | `src/engine/solver/` | Exhaustive solver (uniqueness), `verifyPuzzle`, the human-style solver that rates difficulty |
 | `src/engine/generator/` | Puzzle generator; `tiers/` adds the six difficulty tiers |
 | `src/engine/scenegen/` | Random scene generator used by the packs |
@@ -53,8 +53,8 @@ All of `bun run lint`, `typecheck`, `test` and `audit:personal` must be green be
 ## Ground rules
 
 - Only our own art and our own puzzles. No official Murdoku images, puzzles, logos or code in the repo.
-- All player-facing text is Dutch and neutral (no gendered pronouns, no murder wording: the victim is "het cadeau").
-  Clue sentences live in `src/engine/clues/nl.ts` and nowhere else.
+- All player-facing text is English and neutral (no gendered pronouns; "woman" and "man" are nouns; the victim is "the victim").
+  Clue sentences live in `src/engine/clues/en.ts` and nowhere else.
 - Coordinates in code are 0-based `{ row, col }` with row 0 at the top. Everything a human reads or types
-  (`--victim 6,2`, "r6c2", "3e rij") is 1-based.
+  (`--victim 6,2`, "r6c2", "row 3") is 1-based.
 - Never change the `id` of a shipped level: it is the save slot, the progress key and part of the URL.

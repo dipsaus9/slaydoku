@@ -1,6 +1,6 @@
 import type { BoardView } from '../board.ts'
 import type { Deduction, Elimination, Technique } from '../types.ts'
-import { lineNames, peopleNames, sentences } from '../nl.ts'
+import { lineNames, peopleNames, sentences } from '../en.ts'
 
 /**
  * Overloaded rows and columns (official technique "overload"): when N people
@@ -11,7 +11,7 @@ import { lineNames, peopleNames, sentences } from '../nl.ts'
 export function overloadTechnique(maxGroup = 2, id = 'overload', level = 3): Technique {
   return {
     id,
-    title: 'Overbezette rijen en kolommen',
+    title: 'Overloaded rows and columns',
     level,
     find(board) {
       for (let size = 1; size <= maxGroup; size++) {
@@ -51,8 +51,8 @@ function findGroup(board: BoardView, rows: boolean, size: number): Deduction | n
     const who = peopleNames(board, group)
     const explanation =
       size === 1
-        ? `${who} kan alleen nog in ${where} staan. Die ${rows ? 'rij' : 'kolom'} is dus voor ${who}: niemand anders kan daar staan.`
-        : `${who} kunnen alleen nog in ${where} staan. Wie in welke ${rows ? 'rij' : 'kolom'} staat weten we nog niet, maar die ${rows ? 'rijen' : 'kolommen'} zijn samen voor hen: niemand anders kan daar staan.`
+        ? `${who} can only stand in ${where} now. That ${rows ? 'row' : 'column'} belongs to ${who}, so nobody else can stand there.`
+        : `${who} can only stand in ${where} now. We do not know who takes which ${rows ? 'row' : 'column'}, but those ${rows ? 'rows' : 'columns'} belong to them together, so nobody else can stand there.`
     return {
       eliminate,
       explanation: sentences(explanation),
