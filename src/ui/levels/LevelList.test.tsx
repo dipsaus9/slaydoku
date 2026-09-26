@@ -9,6 +9,10 @@ describe('<LevelList/>', () => {
     expect(html).toMatch(/<button[^>]*class="[^"]*levels__help[^"]*"[^>]*>How it works<\/button>/)
   })
 
+  it('links to the About page from the footer', () => {
+    expect(html).toMatch(/<footer[^>]*class="levels__footer"[^>]*><a[^>]*href="\/about"[^>]*>About Slaydoku<\/a><\/footer>/)
+  })
+
   it('does not show the card until the link is used', () => {
     expect(html).not.toContain('role="dialog"')
   })

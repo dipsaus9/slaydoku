@@ -100,6 +100,11 @@ export function LevelList({ entries, notice, onDismissNotice, onOpen, footer }: 
       </ol>
 
       {footer}
+      <footer className="levels__footer">
+        <Link href="/about" className="levels__about">
+          {t.about}
+        </Link>
+      </footer>
       {helpOpen ? <HelpPanel onClose={() => setHelpOpen(false)} /> : null}
     </main>
   )

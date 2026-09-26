@@ -1,6 +1,7 @@
 import type { Level } from '../levels/registry.ts'
 import type { Progress } from '../levels/progress.ts'
 import { resolveRoute, parseRoute } from '../levels/route.ts'
+import { isAboutPath } from '../about/route.ts'
 
 /** The site name: the whole title on the level list, and the suffix everywhere else. */
 export const SITE_TITLE = 'Slaydoku'
@@ -9,6 +10,8 @@ export const SITE_TITLE = 'Slaydoku'
 export const TITLE_EN = {
   /** `<level> solved – Slaydoku` on the solved screen. */
   solved: (levelTitle: string) => `${levelTitle} solved`,
+  /** `About – Slaydoku` on the About page. */
+  about: 'About',
 } as const
 
 /** What the title of a screen is read from. */
@@ -26,6 +29,7 @@ const withSite = (screen: string): string => `${screen} – ${SITE_TITLE}`
  * does any path the app does not know (`/lab`, junk).
  */
 export function screenTitle(path: string, context: TitleContext): string {
+  if (isAboutPath(path)) return withSite(TITLE_EN.about)
   const { route } = resolveRoute(parseRoute(path), context.levels, context.progress)
   if (route.kind === 'list') return SITE_TITLE
   const level = context.levels.find((candidate) => candidate.id === route.levelId)

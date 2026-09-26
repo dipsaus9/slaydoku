@@ -1,10 +1,15 @@
-// Share check for a deployed URL (Bun only, `import.meta.main`): `bun tools/check-share.ts <url> [--skip-headers]`.
-// Verifies the head tags, the og:image (status 200, image/png, under 1 MB, declared size), the noindex
-// header, robots.txt (preview bots allowed, everyone else disallowed), the titles, and the home-screen app setup
+// Share check for a deployed URL (Bun only, `import.meta.main`): `bun tools/check-share.ts <url> [--skip-headers] [--indexable|--noindex]`.
+// Verifies the head tags, the og:image (status 200, image/png, under 1 MB, declared size), the indexing setup, the titles,
+// and the home-screen app setup
 // (iOS meta tags, manifest link that resolves to JSON with the required fields, icons that exist at their declared size),
 // and that a deep link (/level/demo, clean URLs) returns the same HTML shell with the same head tags as the root,
 // and that the offline service worker /sw.js is served as JavaScript (not the HTML shell) with a no-cache header (CAD-10.6).
 // Exits 1 when any check fails, 2 on bad usage.
+//
+// Two indexing modes (the switch of src/brand/site.json, see docs/launch.md), default = the mode of that file (noindex today):
+//   noindex    X-Robots-Tag and robots meta say noindex,nofollow; robots.txt disallows everybody but the preview bots; no sitemap.xml.
+//   indexable  no noindex anywhere; robots.txt allows crawling and names the sitemap; sitemap.xml lists the pages of the site.
+// --indexable / --noindex  force a mode (for a check of the other mode than the file says).
 //
 // --skip-headers  leave out the X-Robots-Tag and the /sw.js Cache-Control check. `vite preview` does not apply vercel.json headers,
 //                 so a local run needs it; a run against a real deployment must not use it.
@@ -12,27 +17,20 @@
 // Local run: build with VERCEL_PROJECT_PRODUCTION_URL=http://localhost:4173 (so og:image points at the
 // preview server), start `bun run preview`, then check http://localhost:4173.
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parseIndexable, PREVIEW_BOTS, SITEMAP_PATHS } from '../src/brand/indexing.ts'
+
+export { PREVIEW_BOTS }
+
 export const EXPECTED_TITLE = 'Slaydoku'
 export const MAX_IMAGE_BYTES = 1024 * 1024
 
-/** A clean-URL deep link the host must answer with the HTML shell (History API routing, CAD-10.11). */
-export const DEEP_LINK = '/level/demo'
+/** Clean-URL deep links the host must answer with the HTML shell (History API routing): a level and the about page. */
+export const DEEP_LINKS = ['/level/demo', '/about'] as const
 
 /** The service worker of the offline support (CAD-10.6): must be a real file at the root, so it can control every clean URL. */
 export const SERVICE_WORKER_PATH = '/sw.js'
-
-/** Link preview crawlers that must stay allowed in robots.txt, or shared links lose their card. */
-export const PREVIEW_BOTS = [
-  'facebookexternalhit',
-  'Facebot',
-  'Twitterbot',
-  'Slackbot',
-  'Slack-ImgProxy',
-  'LinkedInBot',
-  'Discordbot',
-  'WhatsApp',
-  'TelegramBot',
-] as const
 
 export interface RobotsGroup {
   allow: string[]
@@ -74,6 +72,8 @@ export interface CheckOptions {
   /** Skip the X-Robots-Tag header check (local preview does not apply vercel.json). */
   skipHeaders?: boolean
   expectedTitle?: string
+  /** The mode to check for: true = the site may be indexed. Default false (noindex), the mode of a site that is not public yet. */
+  indexable?: boolean
 }
 
 type Meta = Map<string, string>
@@ -144,6 +144,14 @@ function noindexProblem(what: string, value: string | null | undefined): Check {
   const missing = ['noindex', 'nofollow'].filter((d) => !have.includes(d))
   return missing.length === 0 ? pass(what, `${value}`) : fail(what, `missing ${missing.join(', ')} (got ${value ?? 'nothing'})`)
 }
+
+function indexProblem(what: string, value: string | null | undefined): Check {
+  const found = directives(value).filter((d) => d === 'noindex' || d === 'nofollow' || d === 'none')
+  return found.length === 0 ? pass(what, value ?? 'none') : fail(what, `blocks indexing with ${found.join(', ')} (got ${value})`)
+}
+
+const robotsCheck = (indexable: boolean) => (what: string, value: string | null | undefined): Check =>
+  indexable ? indexProblem(what, value) : noindexProblem(what, value)
 
 /** Fields a web app manifest must carry so the site installs as a standalone app; string values are compared exactly. */
 export const MANIFEST_STRINGS = { display: 'standalone', lang: 'en', name: 'Slaydoku' } as const
@@ -262,23 +270,23 @@ function headSignature(html: string, meta: Meta): Record<string, string> {
 }
 
 /** A deep link returns the same HTML shell as the root (the SPA rewrite), with the same head tags and noindex header. */
-async function checkDeepLink(url: string, html: string, meta: Meta, skipHeaders: boolean): Promise<Check[]> {
-  const deep = new URL(DEEP_LINK, url).href
+async function checkDeepLink(path: string, url: string, html: string, meta: Meta, skipHeaders: boolean, indexable: boolean): Promise<Check[]> {
+  const deep = new URL(path, url).href
   const got = await get(deep)
-  if ('error' in got) return [fail(`deep link ${DEEP_LINK} reachable`, `${deep}: ${got.error}`)]
+  if ('error' in got) return [fail(`deep link ${path} reachable`, `${deep}: ${got.error}`)]
   const type = got.res.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase()
   const deepHtml = new TextDecoder().decode(got.bytes)
   const checks: Check[] = [
-    check(`deep link ${DEEP_LINK} status 200`, got.res.status === 200, `${deep} -> ${got.res.status}`),
-    check(`deep link ${DEEP_LINK} is the HTML shell`, type === 'text/html' && /<html[\s>]/i.test(deepHtml), `content-type ${type ?? 'missing'}`),
+    check(`deep link ${path} status 200`, got.res.status === 200, `${deep} -> ${got.res.status}`),
+    check(`deep link ${path} is the HTML shell`, type === 'text/html' && /<html[\s>]/i.test(deepHtml), `content-type ${type ?? 'missing'}`),
   ]
-  if (!skipHeaders) checks.push(noindexProblem(`deep link ${DEEP_LINK} X-Robots-Tag header`, got.res.headers.get('x-robots-tag')))
+  if (!skipHeaders) checks.push(robotsCheck(indexable)(`deep link ${path} X-Robots-Tag header`, got.res.headers.get('x-robots-tag')))
   const want = headSignature(html, meta)
   const have = headSignature(deepHtml, parseMeta(deepHtml))
   const different = Object.keys(want).filter((key) => want[key] !== have[key])
   checks.push(
     check(
-      `deep link ${DEEP_LINK} has the same head tags`,
+      `deep link ${path} has the same head tags`,
       different.length === 0,
       different.length === 0 ? 'same as the root' : different.map((key) => `${key}: ${have[key] || 'missing'} vs ${want[key] || 'missing'}`).join('; '),
     ),
@@ -309,9 +317,51 @@ async function checkServiceWorker(url: string, skipHeaders: boolean): Promise<Ch
   return checks
 }
 
+/** robots.txt and sitemap.xml for the mode: noindex keeps everybody out but the preview bots and has no sitemap; indexable allows crawling and lists the pages. */
+async function checkCrawlerFiles(url: string, ogUrl: string, indexable: boolean): Promise<Check[]> {
+  const checks: Check[] = []
+  const robots = await get(new URL('/robots.txt', url).href)
+  if ('error' in robots) checks.push(fail('robots.txt', robots.error))
+  else {
+    const text = new TextDecoder().decode(robots.bytes)
+    const groups = robots.res.status === 200 ? parseRobots(text) : new Map<string, RobotsGroup>()
+    const detail = `${robots.res.status} ${JSON.stringify(text.slice(0, 40))}`
+    if (indexable) {
+      const all = groups.get('*')
+      checks.push(check('robots.txt allows crawling', robots.res.status === 200 && all !== undefined && !all.disallow.some((rule) => rule !== ''), detail))
+      const origin = new URL(ogUrl).origin
+      checks.push(check('robots.txt names the sitemap', text.split(/\r?\n/).some((line) => line.trim().toLowerCase() === `sitemap: ${origin}/sitemap.xml`), detail))
+    } else {
+      checks.push(check('robots.txt disallows all other crawlers', groups.get('*')?.disallow.includes('/') === true, detail))
+      const blocked = PREVIEW_BOTS.filter((bot) => {
+        const group = groups.get(bot.toLowerCase())
+        return !group?.allow.includes('/') || group.disallow.includes('/')
+      })
+      checks.push(check('robots.txt allows the preview bots', blocked.length === 0, blocked.length === 0 ? PREVIEW_BOTS.join(', ') : `no Allow: / group for ${blocked.join(', ')}`))
+    }
+  }
+
+  const sitemap = await get(new URL('/sitemap.xml', url).href)
+  if ('error' in sitemap) return [...checks, fail('sitemap.xml', sitemap.error)]
+  const type = sitemap.res.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() ?? ''
+  const body = new TextDecoder().decode(sitemap.bytes)
+  const isSitemap = sitemap.res.status === 200 && /<urlset[\s>]/.test(body)
+  if (!indexable) return [...checks, check('no sitemap.xml is published', !isSitemap, isSitemap ? 'a sitemap is served while the site is noindex' : 'none')]
+  const origin = new URL(ogUrl).origin
+  const missing = SITEMAP_PATHS.filter((path) => !body.includes(`<loc>${origin}${path}</loc>`))
+  return [
+    ...checks,
+    check('sitemap.xml status 200', sitemap.res.status === 200, `${sitemap.res.url} -> ${sitemap.res.status}`),
+    check('sitemap.xml is XML', /xml/.test(type) && isSitemap, `content-type ${type || 'missing'}`),
+    check('sitemap.xml lists the pages', missing.length === 0, missing.length === 0 ? SITEMAP_PATHS.map((p) => `${origin}${p}`).join(', ') : `missing ${missing.join(', ')}`),
+  ]
+}
+
 /** Runs every check against a deployed origin or page URL and returns the results (never throws on a bad deploy). */
 export async function checkShare(url: string, options: CheckOptions = {}): Promise<Check[]> {
   const expectedTitle = options.expectedTitle ?? EXPECTED_TITLE
+  const indexable = options.indexable === true
+  const robotsProblem = robotsCheck(indexable)
   const page = await get(url)
   if ('error' in page) return [fail('page reachable', `${url}: ${page.error}`)]
   const { res } = page
@@ -319,10 +369,10 @@ export async function checkShare(url: string, options: CheckOptions = {}): Promi
   const meta = parseMeta(html)
   const checks: Check[] = [check('page status 200', res.status === 200, `${url} -> ${res.status}`)]
 
-  if (!options.skipHeaders) checks.push(noindexProblem('X-Robots-Tag header', res.headers.get('x-robots-tag')))
+  if (!options.skipHeaders) checks.push(robotsProblem('X-Robots-Tag header', res.headers.get('x-robots-tag')))
 
   for (const key of REQUIRED_TAGS) checks.push(check(`tag ${key}`, (meta.get(key) ?? '') !== '', meta.get(key) ?? 'missing'))
-  if (meta.has('robots')) checks.push(noindexProblem('robots meta', meta.get('robots')))
+  if (meta.has('robots')) checks.push(robotsProblem('robots meta', meta.get('robots')))
   for (const key of ['og:url', 'og:image', 'twitter:image']) {
     const value = meta.get(key)
     if (value) checks.push(check(`${key} is absolute`, /^https?:\/\//.test(value), value))
@@ -346,28 +396,11 @@ export async function checkShare(url: string, options: CheckOptions = {}): Promi
   checks.push(check('twitter:image matches og:image', meta.get('twitter:image') === image, `${meta.get('twitter:image') ?? 'missing'} vs ${image ?? 'missing'}`))
 
   checks.push(...(await checkManifest(url, html, meta)))
-  checks.push(...(await checkDeepLink(url, html, meta, options.skipHeaders === true)))
+  for (const path of DEEP_LINKS) checks.push(...(await checkDeepLink(path, url, html, meta, options.skipHeaders === true, indexable)))
 
   checks.push(...(await checkServiceWorker(url, options.skipHeaders === true)))
 
-  const robots = await get(new URL('/robots.txt', url).href)
-  if ('error' in robots) checks.push(fail('robots.txt', robots.error))
-  else {
-    const text = new TextDecoder().decode(robots.bytes)
-    const groups = robots.res.status === 200 ? parseRobots(text) : new Map<string, RobotsGroup>()
-    checks.push(
-      check(
-        'robots.txt disallows all other crawlers',
-        groups.get('*')?.disallow.includes('/') === true,
-        `${robots.res.status} ${JSON.stringify(text.slice(0, 40))}`,
-      ),
-    )
-    const blocked = PREVIEW_BOTS.filter((bot) => {
-      const group = groups.get(bot.toLowerCase())
-      return !group?.allow.includes('/') || group.disallow.includes('/')
-    })
-    checks.push(check('robots.txt allows the preview bots', blocked.length === 0, blocked.length === 0 ? PREVIEW_BOTS.join(', ') : `no Allow: / group for ${blocked.join(', ')}`))
-  }
+  checks.push(...(await checkCrawlerFiles(url, meta.get('og:url') ?? url, indexable)))
   return checks
 }
 
@@ -380,11 +413,14 @@ export function formatChecks(url: string, checks: Check[]): string {
 async function main(argv: string[]): Promise<number> {
   const skipHeaders = argv.includes('--skip-headers')
   const [url] = argv.filter((a) => !a.startsWith('--'))
-  if (!url || !/^https?:\/\//.test(url)) {
-    console.error('usage: bun tools/check-share.ts <http(s) url> [--skip-headers]')
+  if (!url || !/^https?:\/\//.test(url) || (argv.includes('--indexable') && argv.includes('--noindex'))) {
+    console.error('usage: bun tools/check-share.ts <http(s) url> [--skip-headers] [--indexable|--noindex]')
     return 2
   }
-  const checks = await checkShare(url, { skipHeaders })
+  const fromFile = parseIndexable(readFileSync(join(import.meta.dirname, '../src/brand/site.json'), 'utf8'))
+  const indexable = argv.includes('--indexable') ? true : argv.includes('--noindex') ? false : fromFile
+  const checks = await checkShare(url, { skipHeaders, indexable })
+  console.log(`mode: ${indexable ? 'indexable' : 'noindex'}${argv.includes('--indexable') || argv.includes('--noindex') ? ' (forced)' : ' (from src/brand/site.json)'}`)
   console.log(formatChecks(url, checks))
   return checks.every((c) => c.ok) ? 0 : 1
 }

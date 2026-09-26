@@ -66,6 +66,20 @@
   font-size: 1rem;
 }
 
+.levels__footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.levels__about {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  color: inherit;
+  opacity: 0.75;
+}
+
 .levels__empty {
   font-size: 1.1rem;
 }

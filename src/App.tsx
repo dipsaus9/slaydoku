@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import './content/levels.ts'
+import { AboutScreen, isAboutPath } from './ui/about/index.ts'
 import { LevelFlow } from './ui/levels/index.ts'
 import { usePath } from './ui/router/index.ts'
 
@@ -10,10 +11,15 @@ import { usePath } from './ui/router/index.ts'
  */
 const LabRoute = import.meta.env.DEV ? lazy(() => import('./ui/lab/index.ts').then((m) => ({ default: m.LabRoot }))) : null
 
+/** The game: `/about` is the About page, every other path belongs to the level flow. */
+function Game() {
+  return isAboutPath(usePath()) ? <AboutScreen /> : <LevelFlow />
+}
+
 /** Dev only: `/lab...` shows the lab, everything else the game. */
 function DevApp({ Lab }: { Lab: NonNullable<typeof LabRoute> }) {
   const path = usePath()
-  if (!/^\/lab(\/|$)/.test(path)) return <LevelFlow />
+  if (!/^\/lab(\/|$)/.test(path)) return <Game />
   return (
     <Suspense fallback={null}>
       <Lab />
@@ -22,7 +28,7 @@ function DevApp({ Lab }: { Lab: NonNullable<typeof LabRoute> }) {
 }
 
 function App() {
-  return LabRoute ? <DevApp Lab={LabRoute} /> : <LevelFlow />
+  return LabRoute ? <DevApp Lab={LabRoute} /> : <Game />
 }
 
 export default App
