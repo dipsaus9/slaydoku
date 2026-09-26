@@ -100,6 +100,11 @@ describe('bun run schedule:next', () => {
     expect(out.trim().split('\n')).toEqual(['needed=true', 'days_left=29', 'start=2027-02-09', 'days=90', 'end=2027-05-09'])
     expect(run('schedule-next.ts', ['--today', '2026-09-27', '--github']).out).toContain('needed=false')
   })
+  it('reports a top-up as due with --force even when the schedule is comfortable', () => {
+    const forced = run('schedule-next.ts', ['--today', '2026-09-27', '--force', '--github', '--days', '5'])
+    expect(forced.out.trim().split('\n')).toEqual(['needed=true', 'days_left=120', 'start=2027-02-09', 'days=5', 'end=2027-02-13'])
+    expect(run('schedule-next.ts', ['--today', '2026-09-27', '--force']).out).toContain('a top-up is forced')
+  })
   it('starts on the launch date when nothing is scheduled, and exits 2 on bad arguments', () => {
     const none = run('schedule-next.ts', ['--dir', join(scratch, 'nothing-here'), '--today', '2026-09-27', '--github'])
     expect(none.code).toBe(0)

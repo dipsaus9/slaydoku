@@ -147,11 +147,11 @@ Pull requests opened with the workflow's own token do not start other workflows:
 
 ```sh
 gh workflow run schedule-top-up.yml --ref main -f days=90 -f dry_run=false
-gh workflow run schedule-top-up.yml --ref main -f dry_run=true     # dry run
+gh workflow run schedule-top-up.yml --ref main -f dry_run=true -f force=true -f days=3     # rehearsal: 3 days, nothing committed
 ```
 
-Inputs: `days` (default 90, 1 to 366) and `dry_run`. A **dry run** does everything up to the generation and stops: it prints the plan, generates the days in the runner's working copy,
-shows the diff stat and the report in the job summary, and does not commit, push or open a pull request. A top-up runs only when one is due, also by hand. The workflow always uses
+Inputs: `days` (default 90, 1 to 366), `force` (generate even when 60 or more days are left, to try the workflow out; `schedule:next --force`) and `dry_run`. A **dry run** does everything up to the generation and stops: it prints the plan, generates the days in the runner's working copy,
+shows the diff stat and the report in the job summary, and does not commit, push or open a pull request. Without `force` a top-up runs only when one is due, also by hand. The workflow always uses
 main's schedule, whichever branch you pick to run the workflow file from.
 
 To rehearse the same on your own machine without touching the repository, work on a copy of the schedule folder and give `--today` to the plan:

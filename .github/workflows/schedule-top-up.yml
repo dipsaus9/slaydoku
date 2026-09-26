@@ -11,6 +11,10 @@ on:
       days:
         description: Days to generate when a top-up is due, from the day after the last scheduled day
         default: '90'
+      force:
+        description: Generate even when 60 or more days are left (to try the workflow out)
+        type: boolean
+        default: false
       dry_run:
         description: Generate and report, but do not commit, push or open a pull request
         type: boolean
@@ -28,6 +32,7 @@ permissions:
 env:
   # The values of the inputs; the cron run has none, so it gets the defaults. Only ever used through the environment, never spliced into a script.
   DAYS: ${{ inputs.days || '90' }}
+  FORCE: ${{ inputs.force == true && '--force' || '' }}
   DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
   GH_TOKEN: ${{ github.token }}
 
@@ -47,8 +52,8 @@ jobs:
         id: plan
         run: |
           bun run schedule:check || echo "::warning title=Schedule is short::Fewer than 30 days are left after today."
-          bun run schedule:next --days "$DAYS" | tee -a "$GITHUB_STEP_SUMMARY"
-          bun run schedule:next --days "$DAYS" --github >> "$GITHUB_OUTPUT"
+          bun run schedule:next --days "$DAYS" $FORCE | tee -a "$GITHUB_STEP_SUMMARY"
+          bun run schedule:next --days "$DAYS" $FORCE --github >> "$GITHUB_OUTPUT"
 
       # A top-up that nobody merged yet must not be generated again (the same branch name would clash).
       - name: Look for an open top-up

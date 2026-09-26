@@ -37,6 +37,7 @@ describe('schedule-top-up.yml', () => {
     expect(workflow.on.schedule).toEqual([{ cron: '0 6 1 * *' }])
     const inputs = workflow.on.workflow_dispatch.inputs
     expect(inputs.days?.default).toBe('90')
+    expect(inputs.force).toMatchObject({ type: 'boolean', default: false })
     expect(inputs.dry_run).toMatchObject({ type: 'boolean', default: false })
   })
   it('declares the token permissions and a generous timeout', () => {
@@ -49,7 +50,7 @@ describe('schedule-top-up.yml', () => {
     expect(scripts.some((s) => s.includes('bun install --frozen-lockfile'))).toBe(true)
     const plan = step('plan').run as string
     expect(plan).toContain('bun run schedule:check')
-    expect(plan).toContain('bun run schedule:next --days "$DAYS" --github >> "$GITHUB_OUTPUT"')
+    expect(plan).toContain('bun run schedule:next --days "$DAYS" $FORCE --github >> "$GITHUB_OUTPUT"')
   })
   it('generates deterministically from the planned start and opens the pull request with gh', () => {
     expect(step('generate').if).toContain("steps.plan.outputs.needed == 'true'")
