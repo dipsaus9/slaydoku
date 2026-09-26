@@ -8,6 +8,7 @@ to extend it, what the time budgets are and what happens when a board is too slo
 bun run schedule --start 2026-10-12 --days 120   # what the first schedule was made with (about 1 minute on 12 jobs)
 bun run schedule --days 60                       # extend: starts the day after the last scheduled day
 bun run schedule:check                           # days left after today (UTC); exit 1 when fewer than 30
+bun run schedule:next                            # is a top-up due (fewer than 60 left)? where it starts, and the exact command
 bun run test:slow                                # includes the re-verification of every committed day from scratch
 ```
 
@@ -19,7 +20,8 @@ bun run test:slow                                # includes the re-verification 
 | `src/content/schedule/index.json` | Launch date, first and last date, day count and one line per month file (file name, first, last, count). |
 | `src/schedule/` | The pure part (the app may import it through `index.ts`): dates, launch date, the picker, the cast chain, the file format, `scheduleStatus`. |
 | `src/schedule/build.ts`, `gates.ts`, `check.ts` | The node-side part (renders the card grid to markup, runs the solvers): build one day, gate one day, check a whole schedule. Imported by path, never by the app. |
-| `tools/schedule.ts`, `tools/schedule-check.ts` | The two entry points. |
+| `tools/schedule.ts`, `tools/schedule-check.ts`, `tools/schedule-next.ts` | The entry points: generate, count the days left, plan the next top-up. |
+| `.github/workflows/schedule-top-up.yml` | The monthly top-up (see "Keeping the schedule filled"). |
 | `reports/schedule/` (git-ignored) | The report of the last run: `report.md` and `report.json`, one row per day with the seeds that were rejected and the gate that rejected each. |
 
 There is no separate solution file: the solution is part of the day, next to the puzzle, because the app needs it to check a board.
@@ -110,10 +112,67 @@ start to, raise `attemptBudgetMs` or improve the generator rather than accept mo
 The wall-clock budgets are the only place the schedule reads the clock. On a machine fast enough for the seeds to finish inside them (all of them did here) the output
 does not depend on the machine or on `--jobs`; the fallback rule is the one thing that could, so a fallback is always visible in the file and the report.
 
+## Keeping the schedule filled
+
+The schedule must never run dry: the app has no puzzle for a date beyond the last scheduled day. Two numbers rule it (`src/schedule/status.ts`): a top-up is **due below 60 days left**
+(`TOP_UP_BELOW`) and the schedule is **in trouble below 30** (`MIN_DAYS_LEFT`, `schedule:check` exits 1). Days left are the scheduled days after today (UTC). With a monthly run and a
+60-day trigger there are still at least 29 days between two runs in the worst case.
+
+**The routine.** Nothing to do by hand while the workflow runs. Once a month a pull request "Schedule: <first> to <last>" appears with 90 new days (only added lines in one or two month files
+and `index.json`). Read the diff, then merge it. Merge it well before the days run out: the app only knows what is on main.
+
+**What the workflow does** (`.github/workflows/schedule-top-up.yml`, on the 1st of every month at 06:00 UTC, and on demand):
+
+1. Checks out main, installs bun, runs `bun run schedule:check` (a warning when under 30) and `bun run schedule:next --days <N> --github`, which reads the schedule and decides.
+2. 60 days or more left: it stops there (green, nothing generated).
+3. Fewer than 60: it looks for an open top-up pull request (then it warns and generates nothing, so merge that one) or a stale `schedule/<date>` branch (then it fails and says to delete it).
+4. Otherwise it runs `bun run schedule --start <day after the last scheduled day> --days <N> --jobs 2`. Same input, same bytes, whatever `--jobs` is, so a rerun gives the same days. The first
+   lines of the report go to the job summary and the whole report is attached as the artifact `schedule-report`. Expect minutes, not seconds (12x12 hard and expert days are the slow ones); the job
+   has a 60-minute ceiling.
+5. It checks that only `src/content/schedule/` changed, commits on branch `schedule/<first-date>`, pushes and opens the pull request with `gh pr create --base main`.
+6. Last, it runs `bun run schedule:check` again on what it has: **the run is red with an error message when fewer than 30 days are left** after the top-up (also when a top-up was due but skipped because its
+   pull request is still open and main is under 30). A red run is the alarm: read the message in the run.
+
+Pull requests opened with the workflow's own token do not start other workflows: CI does not run on the top-up PR. Close and reopen it (a human action) to run CI, or run
+`bun run lint`, `typecheck`, `test --maxWorkers=1` and `audit:personal` on the branch. Vercel builds main only.
+
+**Settings the owner must enable** (the workflow declares `contents: write` and `pull-requests: write`, but a repository setting can still forbid PRs):
+
+- Settings > Actions > General > Workflow permissions: tick **Allow GitHub Actions to create and approve pull requests**. Without it the run fails at `gh pr create`
+  ("GitHub Actions is not permitted to create or approve pull requests"); the branch is already pushed then, so you can open the PR by hand from `schedule/<first-date>`.
+- Actions must be enabled for the repository. GitHub switches scheduled workflows off after 60 days without repository activity; merging the monthly top-up counts as activity, and the
+  workflow can be re-enabled on the Actions tab. Pushing the workflow file itself needs the `workflow` token scope (`gh auth refresh -h github.com -s workflow`).
+
+**Running it by hand.** Actions tab > Schedule top-up > Run workflow, or:
+
+```sh
+gh workflow run schedule-top-up.yml --ref main -f days=90 -f dry_run=false
+gh workflow run schedule-top-up.yml --ref main -f dry_run=true     # dry run
+```
+
+Inputs: `days` (default 90, 1 to 366) and `dry_run`. A **dry run** does everything up to the generation and stops: it prints the plan, generates the days in the runner's working copy,
+shows the diff stat and the report in the job summary, and does not commit, push or open a pull request. A top-up runs only when one is due, also by hand. The workflow always uses
+main's schedule, whichever branch you pick to run the workflow file from.
+
+To rehearse the same on your own machine without touching the repository, work on a copy of the schedule folder and give `--today` to the plan:
+
+```sh
+cp -R src/content/schedule /tmp/schedule-copy
+bun run schedule:next --dir /tmp/schedule-copy --today 2027-01-15 --days 3      # prints the start and the command
+bun run schedule --start 2027-02-09 --days 3 --jobs 2 --out /tmp/schedule-copy --report /tmp/schedule-report
+bun run schedule:check --dir /tmp/schedule-copy --today 2027-01-15
+```
+
+**When a day cannot be generated.** The generation step fails (exit 1), nothing is written, no branch is pushed and the run is red; `PROBLEM <date>: ...` in the log names the day and the gate
+(see "Gates and retries" and "Budgets and the fallback rule"). A 12x12 hard or expert day falls back to 9x9 by itself and is marked `fallbackFrom` in the PR, in the report and in the log:
+look at those in the diff. Any other day that runs dry is a generator problem: run `bun run schedule --start <that date> --days 1 --out <empty copy>` locally to reproduce, fix the generator
+or raise a budget in a normal PR (new days only, see "Extending the schedule safely"), and run the workflow again. While that is open, add days by hand with a shorter `--days` that stops
+before the problem day, so the schedule does not run dry. A red run with "Schedule is running dry" needs action within days: at 30 days left you have a month.
+
 ## Extending the schedule safely
 
 1. `bun run schedule:check` says how many days are left after today (UTC) and where to start: `days left after <today>` counts the scheduled days strictly after today
-   (before launch: all of them). It exits 1 under 30 days (`MIN_DAYS_LEFT`); SLAY-1.9 tops up on that signal.
+   (before launch: all of them). It exits 1 under 30 days (`MIN_DAYS_LEFT`). `bun run schedule:next` says whether a top-up is due and prints the command; the monthly workflow (see below) acts on it.
 2. `bun run schedule --days 60` starts on the day after the last scheduled day (or pass `--start`). `--start` may not leave a gap and may not be before the launch date;
    with an empty folder it must be the launch date.
 3. **A published day never changes.** Days already in the folder that come out different are refused (exit 1, nothing written) unless `--overwrite`. Regenerating the same
