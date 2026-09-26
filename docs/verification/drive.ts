@@ -12,6 +12,7 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { deriveMurderer, parsePuzzle } from '../../src/engine/model/index.ts'
 
 const HERE = import.meta.dir
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -129,7 +130,6 @@ function check(scenario: string, ok: boolean, detail = '') {
 interface PuzzleJson {
   people: { id: string; label: string; kind: string }[]
   solution: { personId: string; cell: { row: number; col: number } }[]
-  _header: { murderer: string }
 }
 const puzzleOf = async (id: string) => JSON.parse(await Bun.file(join(HERE, `../../src/content/${id}/puzzle.json`)).text()) as PuzzleJson
 
@@ -145,7 +145,7 @@ async function placeAll(puzzle: PuzzleJson, swap = false, limit = Infinity) {
   let placed = 0
   for (let i = 0; i < puzzle.people.length && placed < limit; i++) {
     const name = (await selectedName()).trim()
-    const pid = idByName.get(name) ?? (/cadeau/i.test(name) ? victimId : undefined)
+    const pid = idByName.get(name) ?? (/victim/i.test(name) ? victimId : undefined)
     if (!pid) return false
     const target = swapped.includes(pid) ? swapped.find((s) => s !== pid)! : pid
     const cell = cellOf.get(target)!
@@ -188,7 +188,7 @@ async function routing() {
   await evaluate("location.hash = '#/'")
   await sleep(600)
   check('old #/ typed on a running page is rewritten to /', (await path()) === '/' && (await count('[data-level]')) === LEVELS.length, await path())
-  await load('onzin/pad')
+  await load('nonsense/path')
   check('unknown path shows the list and is replaced by /', (await path()) === '/' && (await count('[data-level]')) === LEVELS.length, await path())
   await load('level/demo/solved')
   check('solved screen of an unsolved level refused to /', (await path()) === '/', await path())
@@ -199,7 +199,7 @@ async function routing() {
   check('ctrl+click is left to the browser (new tab): the router does not cancel it', link === false, String(link))
 }
 
-// The "Zo werkt het" card (CAD-10.8): first visit of level 1 shows it, dismissing starts play, a second visit does not, the level-list link and the Uitleg button reopen it, and the glossary stays behind Kernwoorden.
+// The "How it works" card (CAD-10.8): first visit of level 1 shows it, dismissing starts play, a second visit does not, the level-list link and the Help button reopen it, and the glossary stays behind Keywords.
 const modalBtn = (label: string) =>
   evaluate(`(() => { const e = [...document.querySelectorAll('.play-modal button')].find(b => b.innerText.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
 async function tapModalBtn(label: string) {
@@ -220,27 +220,27 @@ async function pressEscape() {
 async function firstVisit() {
   ctx.level = 'how-it-works'
   await load('')
-  check('list has an Uitleg link and no card before opening anything', (await count('.levels__help')) === 1 && (await count('.play-modal')) === 0)
+  check('list has an Help link and no card before opening anything', (await count('.levels__help')) === 1 && (await count('.play-modal')) === 0)
   await evaluate(`document.querySelector('[data-level=demo]').click()`)
   await sleep(1200)
   const first = await panelProbe()
-  check('first visit of level 1 shows the card: goal, 4 steps, glossary hidden', !!first && first.title === 'Zo werkt het' && first.goal >= 1 && first.goal <= 5 && first.steps >= 3 && first.steps <= 4 && first.glossary === 0, JSON.stringify(first))
+  check('first visit of level 1 shows the card: goal, 4 steps, glossary hidden', !!first && first.title === 'How it works' && first.goal >= 1 && first.goal <= 5 && first.steps >= 3 && first.steps <= 4 && first.glossary === 0, JSON.stringify(first))
   check('card fits the viewport, buttons reachable' + (first?.scrolls ? ' (panel scrolls inside)' : ''), !!first && fits(first) && first.actionsInside, JSON.stringify(first))
-  const kw = await modalBtn('Kernwoorden')
-  check('Kernwoorden button is a 44px target', !!kw && kw.h >= 44 && kw.w >= 44, JSON.stringify(kw))
+  const kw = await modalBtn('Keywords')
+  check('Keywords button is a 44px target', !!kw && kw.h >= 44 && kw.w >= 44, JSON.stringify(kw))
   await shot('06-first-visit')
-  await tapModalBtn('Kernwoorden')
+  await tapModalBtn('Keywords')
   const glossary = await panelProbe()
-  check('Kernwoorden reveals the glossary', !!glossary && glossary.glossary === 1 && glossary.goal === 0 && fits(glossary), JSON.stringify(glossary))
+  check('Keywords reveals the glossary', !!glossary && glossary.glossary === 1 && glossary.goal === 0 && fits(glossary), JSON.stringify(glossary))
   await shot('07-keywords')
-  await tapModalBtn('Terug naar de uitleg')
+  await tapModalBtn('Back to the guide')
   check('back returns to the goal and steps', (await panelProbe())?.glossary === 0 && ((await panelProbe())?.goal ?? 0) >= 1)
-  await tapModalBtn('Aan de slag')
+  await tapModalBtn('Start playing')
   check('dismissing the card starts level 1 (no dialog, board there)', (await count('.play-modal')) === 0 && (await count('.play-board')) === 1)
   const cell = await rectOf(cellSel(1, 1))
   await tap(cell!.x, cell!.y)
   check('play is not blocked afterwards: a tap writes a note', (await count('[data-note]')) === 1)
-  await tool('Terug')
+  await tool('Undo')
   check('help-seen is remembered in localStorage, versioned', /"version":\d+/.test(String(await evaluate(`localStorage.getItem('slaydoku:help-seen')`))), String(await evaluate(`localStorage.getItem('slaydoku:help-seen')`)))
   await evaluate(`document.querySelector('.level-play__back').click()`)
   await sleep(500)
@@ -249,25 +249,25 @@ async function firstVisit() {
   check('second visit does not show the card', (await count('.play-modal')) === 0 && (await count('.play-board')) === 1)
   await reload()
   check('reload does not show the card either', (await count('.play-modal')) === 0 && (await count('.play-board')) === 1)
-  await tool('Uitleg')
-  check('Uitleg button reopens the card, glossary hidden', (await panelProbe())?.title === 'Zo werkt het' && (await panelProbe())?.glossary === 0)
-  await tapModalBtn('Kernwoorden')
-  await tapModalBtn('Terug naar de uitleg')
+  await tool('Help')
+  check('Help button reopens the card, glossary hidden', (await panelProbe())?.title === 'How it works' && (await panelProbe())?.glossary === 0)
+  await tapModalBtn('Keywords')
+  await tapModalBtn('Back to the guide')
   await pressEscape()
   check('Escape closes the card (keyboard)', (await count('.play-modal')) === 0)
-  await tool('Uitleg')
+  await tool('Help')
   check('glossary is closed again on every open', (await panelProbe())?.glossary === 0)
-  await tapModalBtn('Kernwoorden')
+  await tapModalBtn('Keywords')
   await tap(3, 3)
   await sleep(300)
-  await tool('Uitleg')
-  check('a reopen after leaving on the glossary starts on the goal', (await panelProbe())?.title === 'Zo werkt het' && (await panelProbe())?.glossary === 0)
-  await tapModalBtn('Aan de slag')
+  await tool('Help')
+  check('a reopen after leaving on the glossary starts on the goal', (await panelProbe())?.title === 'How it works' && (await panelProbe())?.glossary === 0)
+  await tapModalBtn('Start playing')
   await evaluate(`document.querySelector('.level-play__back').click()`)
   await sleep(500)
   await tapSel('.levels__help')
   const link = await panelProbe()
-  check('the Uitleg link on the level list opens the card', !!link && link.title === 'Zo werkt het' && link.goal >= 1 && fits(link), JSON.stringify(link))
+  check('the Help link on the level list opens the card', !!link && link.title === 'How it works' && link.goal >= 1 && fits(link), JSON.stringify(link))
   await shot('08-list-help')
   await tap(3, 3)
   await sleep(300)
@@ -298,19 +298,19 @@ async function playLevel(levelId: string, n: number, w: number, h: number) {
   check('screenshot note', true)
 
   // Undo / redo.
-  await tool('Terug')
+  await tool('Undo')
   check('undo removes the note', (await count('[data-note]')) === 0)
-  await tool('Vooruit')
+  await tool('Redo')
   check('redo brings the note back', (await count('[data-note]')) === 1)
-  await tool('Terug')
+  await tool('Undo')
 
   // X mode.
   await tool('X')
   await tapSel(cellSel(first.row, first.col))
   check('X mode tap draws an X', (await count('[data-mark]')) >= 1, `marks=${await count('[data-mark]')}`)
-  await tool('Terug')
+  await tool('Undo')
   check('undo removes the X', (await count('[data-mark]')) === 0)
-  await tool('Notitie')
+  await tool('Note')
 
   // Long-press placement: first suspect, then the selection moves on.
   const before = await selectedName()
@@ -324,9 +324,9 @@ async function playLevel(levelId: string, n: number, w: number, h: number) {
   check('no stray note from the long-press', (await count('[data-note]')) === 0)
   const after = await selectedName()
   check('selection advances to the next suspect', after !== before, `${before} -> ${after}`)
-  await tool('Terug')
+  await tool('Undo')
   check('undo removes the placement', (await count('[data-person]')) === 0)
-  await tool('Vooruit')
+  await tool('Redo')
   check('redo restores the placement', (await count('[data-person]')) >= 1)
 
   // Hints 1..3.
@@ -381,13 +381,13 @@ async function playLevel(levelId: string, n: number, w: number, h: number) {
 
   // Help and options (first level only: same component on every level).
   if (n === 0) {
-    await tool('Uitleg')
+    await tool('Help')
     check('help opens', (await count('.play-modal')) === 1)
     await shot('04-help')
     await tap(3, 3)
     await sleep(300)
     check('tapping the dimmed backdrop closes the help', (await count('.play-modal')) === 0)
-    await tool('Opties')
+    await tool('Options')
     check('options open', (await count('.play-modal')) === 1)
     await shot('05-options')
     await tap(3, 3)
@@ -432,9 +432,9 @@ async function playLevel(levelId: string, n: number, w: number, h: number) {
   await sleep(250)
   await tapSel('.play-modal .play-btn--danger')
   check('confirm clears everything', (await count('[data-person]')) + (await count('[data-note]')) + (await count('[data-mark]')) === 0)
-  await tool('Terug')
+  await tool('Undo')
   check('undo brings the cleared board back', (await count('[data-person]')) + (await count('[data-note]')) > 0)
-  await tool('Terug')
+  await tool('Undo')
   await holdEraser()
   await sleep(250)
   await tapSel('.play-modal .play-btn--danger')
@@ -442,7 +442,7 @@ async function playLevel(levelId: string, n: number, w: number, h: number) {
   // Wrong solution: everybody placed with two swapped.
   const okWrong = await placeAll(puzzle, true)
   await sleep(400)
-  check('complete-but-wrong board shows "Klopt nog niet"', okWrong && (await count('[data-result=wrong]')) === 1, `wrong overlay: ${await count('[data-result=wrong]')}`)
+  check('complete-but-wrong board shows "Not right yet"', okWrong && (await count('[data-result=wrong]')) === 1, `wrong overlay: ${await count('[data-result=wrong]')}`)
   await shot('08-wrong')
   await tapSel('.play-result .play-btn--primary')
   // Reset the board, then solve properly.
@@ -454,9 +454,13 @@ async function playLevel(levelId: string, n: number, w: number, h: number) {
   const solvedOk = await placeAll(puzzle)
   await sleep(900)
   check('solving routes to the solved screen', solvedOk && (await path()) === `/level/${levelId}/solved`, await path())
-  const murderer = puzzle._header.murderer.replace(/^.*\((.*)\)$/, '$1')
+  // The murderer is the suspect alone with the victim in the stored solution; the screens show the name of the cast.
+  const parsed = parsePuzzle(JSON.stringify(puzzle))
+  if (!parsed.ok) throw new Error('puzzle does not parse')
+  const murdererId = deriveMurderer(parsed.value, parsed.value.solution)
+  const murderer = parsed.value.people.find((p) => p.id === murdererId)?.label ?? String(murdererId)
   const text = ((await evaluate(`document.querySelector('.solved')?.innerText`)) as string | null) ?? ''
-  check(`solved screen names ${murderer} alone with het cadeau`, text.includes(murderer) && /alleen met het cadeau/.test(text), JSON.stringify(text.replace(/\n/g, ' / ')))
+  check(`solved screen names ${murderer} alone with the victim`, text.includes(murderer) && /alone with the victim/.test(text), JSON.stringify(text.replace(/\n/g, ' / ')))
   await shot('09-solved')
   await reload()
   check('reload on the solved screen stays solved', (await path()) === `/level/${levelId}/solved`, await path())
@@ -471,8 +475,8 @@ async function playLevel(levelId: string, n: number, w: number, h: number) {
     const st = JSON.parse(await statuses()) as string[]
     check('next level is now open in the list', st[n + 1] !== 'locked', JSON.stringify(st))
   } else {
-    check('last level says all done', /Alle levels zijn opgelost/.test(text))
-    await evaluate(`[...document.querySelectorAll('.solved__actions button')].find(b => b.innerText.trim() === 'Alle levels').click()`)
+    check('last level says all done', /All levels are solved/.test(text))
+    await evaluate(`[...document.querySelectorAll('.solved__actions button')].find(b => b.innerText.trim() === 'All levels').click()`)
     await sleep(500)
     check('list shows the level solved', (await statuses()) === '["solved"]', await statuses())
     await shot('10-list-solved')

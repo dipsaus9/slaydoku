@@ -5,8 +5,8 @@
 //      engine function the game uses) is in the DOM of that person's polaroid, in puzzle order, and nothing else is;
 //      the gift card is there, and no card line is cut off by its box. Regression for the bug where only the first card
 //      of a person was shown (a person can hold several cards);
-//   2. legend: every object kind drawn on the board (the icon in the board's objects layer) has a row in the Legenda,
-//      the Legenda has no row for something that is not drawn, and the doors and windows drawn have their rows too;
+//   2. legend: every object kind drawn on the board (the icon in the board's objects layer) has a row in the Legend,
+//      the Legend has no row for something that is not drawn, and the doors and windows drawn have their rows too;
 //      the board draws every object of the scene.
 // The sample: per board size the first very-easy case, the last expert case and the case where one person holds the most
 // cards, plus every case whose scene has a kind of object the other samples do not show. The demo level is always in.
@@ -211,9 +211,9 @@ async function subjectCheck(subject: Subject) {
   // 2. every object drawn on the board has a legend row
   const board = await boardDrawn()
   check(`${label}: the board draws all ${puzzle.scene.objects.length} objects of the scene, each with an icon`, board.objects.length === puzzle.scene.objects.length && board.objects.every((o) => o !== null), `${board.objects.length} drawn`)
-  await tool('Legenda')
-  const opened = await until(`document.querySelector('.play-modal__title')?.textContent === 'Legenda'`, 3000)
-  check(`${label}: the Legenda opens from the toolbar`, opened)
+  await tool('Legend')
+  const opened = await until(`document.querySelector('.play-modal__title')?.textContent === 'Legend'`, 3000)
+  check(`${label}: the Legend opens from the toolbar`, opened)
   if (!opened) return
   const legend = await legendOnScreen()
   const drawn = new Set(board.objects.filter((o): o is string => o !== null))
@@ -221,7 +221,7 @@ async function subjectCheck(subject: Subject) {
   const missing = [...drawn].filter((k) => !listed.has(k))
   const extra = [...listed].filter((k) => !drawn.has(k))
   check(`${label}: every object kind drawn on the board has a legend row (${drawn.size} kinds)`, missing.length === 0, missing.length ? `no row for ${missing.join(', ')}` : [...drawn].join(' '))
-  check(`${label}: the Legenda lists no kind that is not drawn, and no kind twice`, extra.length === 0 && legend.objects.length === listed.size, extra.length ? `not drawn: ${extra.join(', ')}` : `${legend.objects.length} rows`)
+  check(`${label}: the Legend lists no kind that is not drawn, and no kind twice`, extra.length === 0 && legend.objects.length === listed.size, extra.length ? `not drawn: ${extra.join(', ')}` : `${legend.objects.length} rows`)
   check(`${label}: doors and windows drawn have exactly their legend rows`, JSON.stringify(board.edges) === JSON.stringify(legend.edges), `board ${board.edges.join('+') || 'none'}, legend ${legend.edges.join('+') || 'none'}`)
   if (subject.why === 'demo level') await shot(`${name}-legend`)
   await tapAt(3, 3)

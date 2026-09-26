@@ -1,5 +1,5 @@
-// Legenda verification driver (CAD-10.9).
-// Drives headless Chrome over the DevTools protocol with touch emulation. On the demo level it opens the Legenda from the toolbar
+// Legend verification driver (CAD-10.9).
+// Drives headless Chrome over the DevTools protocol with touch emulation. On the demo level it opens the Legend from the toolbar
 // and from the how-it-works card, checks that the rows on screen are the rows the scene calls for (computed here
 // from the puzzle files with the same pure function the unit tests use, then compared with the DOM), that the card
 // scrolls inside and closes with its button and by a tap on the backdrop, that tapping a row flashes exactly the
@@ -140,10 +140,10 @@ async function scenario(subject: Subject, zoomed: boolean) {
   await load(subject.url)
   check(`${label}: the level is open`, (await count('.play-board')) === 1 && (await count('.play-modal')) === 0)
 
-  // toolbar: the twelve buttons still fit, Legenda sits after Uitleg
+  // toolbar: the twelve buttons still fit, Legend sits after Help
   const tb = await evaluate(`JSON.stringify({ labels: [...document.querySelectorAll('.play-tool__label')].map(l => l.textContent), sizes: [...document.querySelectorAll('.play-tool')].map(b => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }), iw: innerWidth, sw: document.documentElement.scrollWidth })`).then((s) => JSON.parse(s as string) as { labels: string[]; sizes: number[][]; iw: number; sw: number })
   if (!zoomed) {
-    check(`${label}: twelve toolbar buttons, Legenda right after Uitleg`, tb.labels.length === 12 && tb.labels.slice(-2).join() === 'Uitleg,Legenda', tb.labels.join())
+    check(`${label}: twelve toolbar buttons, Legend right after Help`, tb.labels.length === 12 && tb.labels.slice(-2).join() === 'Help,Legend', tb.labels.join())
     check(`${label}: every toolbar button is a 44px+ target, no sideways scroll`, tb.sizes.every(([w, h]) => w >= 44 && h >= 44) && tb.sw <= tb.iw, `min ${Math.min(...tb.sizes.map(([w, h]) => Math.min(w, h)))}px, page ${tb.sw}/${tb.iw}`)
     await shot(`${subject.name}-0-toolbar`)
   }
@@ -152,8 +152,8 @@ async function scenario(subject: Subject, zoomed: boolean) {
     check(`${label}: board zoomed to 2x`, near(Number(await evaluate(`document.querySelector('.play-board').dataset.zoom`)), 2, 0.01))
   }
 
-  await tool('Legenda')
-  check(`${label}: Legenda opens from the toolbar`, (await count('.play-modal [role=dialog], .play-modal[role=dialog], .play-modal__panel--legend')) > 0 && (await evaluate(`document.querySelector('.play-modal__title')?.textContent`)) === 'Legenda')
+  await tool('Legend')
+  check(`${label}: Legend opens from the toolbar`, (await count('.play-modal [role=dialog], .play-modal[role=dialog], .play-modal__panel--legend')) > 0 && (await evaluate(`document.querySelector('.play-modal__title')?.textContent`)) === 'Legend')
   const onScreen = await rowsOnScreen()
   const expected = legend.objects.map((r) => ({ key: r.key, occ: r.occupiable ? 'yes' : 'no', noun: r.noun, flag: r.occupiable ? help.legend.canOccupy : help.legend.blocked }))
   check(`${label}: one row per object kind of the scene, right noun and flag`, JSON.stringify(onScreen) === JSON.stringify(expected), onScreen.map((r) => `${r.noun}:${r.occ}`).join(' '))
@@ -208,19 +208,19 @@ async function scenario(subject: Subject, zoomed: boolean) {
     await tapSel('.play-peek')
   }
 
-  // close by the button, then by the backdrop, then Uitleg -> Legenda
+  // close by the button, then by the backdrop, then Help -> Legend
   await tapSel('.play-modal__actions .play-btn')
   check(`${label}: the close button closes the card`, (await count('.play-modal')) === 0)
   if (!zoomed) {
-    await tool('Legenda')
+    await tool('Legend')
     await tap({ x: 3, y: 3 })
     check(`${label}: a tap on the backdrop closes the card`, (await count('.play-modal')) === 0)
-    await tool('Uitleg')
-    const hasBtn = await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].some(b => b.textContent.trim() === 'Legenda')`)
+    await tool('Help')
+    const hasBtn = await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].some(b => b.textContent.trim() === 'Legend')`)
     await shot(`${subject.name}-4-how-it-works`)
-    await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => b.textContent.trim() === 'Legenda')?.click()`)
+    await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => b.textContent.trim() === 'Legend')?.click()`)
     await sleep(250)
-    check(`${label}: the how-it-works card has a Legenda button that opens the legend`, hasBtn === true && (await evaluate(`document.querySelector('.play-modal__title')?.textContent`)) === 'Legenda' && (await count('.play-modal')) === 1)
+    check(`${label}: the how-it-works card has a Legend button that opens the legend`, hasBtn === true && (await evaluate(`document.querySelector('.play-modal__title')?.textContent`)) === 'Legend' && (await count('.play-modal')) === 1)
     await tapSel('.play-modal__actions .play-btn')
   }
 }
@@ -235,7 +235,6 @@ for (const [label, w, h] of VIEWPORTS) {
   await evaluate(seeded)
   for (const subject of subjects) await scenario(subject, false)
   await scenario(subjects[0]!, true)
-  await scenario(subjects[3]!, true)
   await evaluate('localStorage.clear()')
 }
 

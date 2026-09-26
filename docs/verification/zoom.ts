@@ -16,6 +16,8 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { parsePuzzle } from '../../src/engine/model/index.ts'
+import { isBlocked } from '../../src/game/board.ts'
 
 const HERE = import.meta.dir
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -23,6 +25,8 @@ const PORT = Number(process.env.CDP_PORT ?? 9352)
 const BASE = process.env.BASE ?? 'http://localhost:5197/'
 const SHOTS = process.env.OUT ?? join(HERE, 'screenshots-zoom')
 const LEVEL = 'demo'
+const demo = parsePuzzle(await Bun.file(join(HERE, `../../src/content/${LEVEL}/puzzle.json`)).text())
+if (!demo.ok) throw new Error('demo puzzle')
 const VIEWPORTS = (process.env.VIEWPORTS ?? '390x844,844x390,1024x768')
   .split(',')
   .map((label) => [label, ...label.split('x').map(Number)] as [string, number, number])
@@ -195,8 +199,8 @@ async function covers() {
 async function openLevel() {
   await evaluate(`document.querySelector('[data-level=${LEVEL}]').click()`)
   await sleep(1200)
-  // First visit of level 1 opens the "Zo werkt het" card (CAD-10.8): dismiss it to get to the board.
-  await evaluate(`[...document.querySelectorAll('.play-modal button')].find(b => b.innerText.trim() === 'Aan de slag')?.click()`)
+  // First visit of level 1 opens the "How it works" card (CAD-10.8): dismiss it to get to the board.
+  await evaluate(`[...document.querySelectorAll('.play-modal button')].find(b => b.innerText.trim() === 'Start playing')?.click()`)
   await sleep(300)
 }
 async function leaveLevel() {
@@ -250,8 +254,8 @@ async function run(w: number, h: number) {
     check(`tap at (${fx},${fy}) of the frame notes the drawn cell r${want.row + 1}c${want.col + 1}`, added.length === 1 && added[0] === `${want.row},${want.col}`, `added ${JSON.stringify(added)} (1x cell there: r${naiveCell.row + 1}c${naiveCell.col + 1})`)
   }
   check('the zoom mattered: at least 3 of the 5 taps land on another cell than at 1x', differs >= 3, `${differs} of 5`)
-  await tool('Terug') // notes are removed again one by one
-  for (let i = 0; i < 4; i++) await tool('Terug')
+  await tool('Undo') // notes are removed again one by one
+  for (let i = 0; i < 4; i++) await tool('Undo')
   check('undo removes those notes', (await count('[data-note]')) === 0)
 
   // drag-notes across cells on the zoomed board
@@ -263,10 +267,13 @@ async function run(w: number, h: number) {
   await sleep(200)
   const painted = (await dataOf()).map((n) => n.split(':')[0]!)
   const expectedCells = new Set<string>()
-  for (let col = Math.min(wantA.col, wantB.col); col <= Math.max(wantA.col, wantB.col); col++) expectedCells.add(`${wantA.row},${col}`)
+  // A blocked square (a table, a plant) takes no note while "no X on blocked squares" is on, so a drag over it skips it.
+  for (let col = Math.min(wantA.col, wantB.col); col <= Math.max(wantA.col, wantB.col); col++) {
+    if (!isBlocked(demo.value, { row: wantA.row, col })) expectedCells.add(`${wantA.row},${col}`)
+  }
   check('drag-notes on the zoomed board fills the cells from the start cell to the end cell', [...expectedCells].every((k) => painted.includes(k)) && painted.every((k) => k.startsWith(`${wantA.row},`)), `wanted ${[...expectedCells].join(' ')} got ${[...new Set(painted)].join(' ')}`)
   check('the drag did not pan the board', near(await zoomOf(), 2) && (await covers()))
-  for (let i = 0; i < 8 && (await count('[data-note]')) > 0; i++) await tool('Terug')
+  for (let i = 0; i < 8 && (await count('[data-note]')) > 0; i++) await tool('Undo')
   check('undo clears the stroke again', (await count('[data-note]')) === 0)
 
   // long-press placement on the zoomed board: pan the solution cell of the selected suspect into view first, if needed
@@ -364,7 +371,7 @@ async function run(w: number, h: number) {
   await touch('touchEnd', [])
   await sleep(300)
   check('a second finger stops a drag: no more notes painted after it landed', (await count('[data-note]')) === painting && painting >= 1, `notes at 2nd finger ${painting}, after ${await count('[data-note]')}`)
-  for (let i = 0; i < painting; i++) await tool('Terug')
+  for (let i = 0; i < painting; i++) await tool('Undo')
   check('the fingers left over after the pinch painted nothing extra (undoing the stroke clears every note)', (await count('[data-note]')) === 0, `notes left ${await count('[data-note]')}`)
   await tool('Zoom') // 2x again
 
@@ -387,10 +394,10 @@ async function run(w: number, h: number) {
   // ---- resets ---------------------------------------------------------------------------
   check('nothing about zoom in localStorage', !(await evaluate(`Object.keys(localStorage).some(k => /zoom/i.test(k)) || Object.values(localStorage).some(v => /zoom/i.test(v))`)))
   // restart
-  await tool('Opties')
-  await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Opnieuw beginnen/.test(b.innerText))?.click()`)
+  await tool('Options')
+  await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Start over/.test(b.innerText))?.click()`)
   await sleep(300)
-  await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Zeker weten/.test(b.innerText))?.click()`)
+  await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Sure[?]/.test(b.innerText))?.click()`)
   await sleep(400)
   const zAfterRestart = await zoomOf()
   check('restart resets the zoom to 1x', near(zAfterRestart, 1, 0.001) && (await zoomButton())?.pressed === 'false', `zoom ${zAfterRestart}, modals ${await count('.play-modal')}`)
