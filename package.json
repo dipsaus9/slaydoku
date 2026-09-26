@@ -18,6 +18,7 @@
     "validate:generation": "bun tools/validate.ts",
     "schedule": "bun tools/schedule.ts",
     "schedule:check": "bun tools/schedule-check.ts",
+    "schedule:next": "bun tools/schedule-next.ts",
     "audit:personal": "bun tools/audit-personal.ts",
     "indexing": "bun tools/indexing.ts",
     "check:share": "bun tools/check-share.ts"

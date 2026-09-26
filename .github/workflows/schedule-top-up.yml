@@ -1,0 +1,139 @@
+name: Schedule top-up
+
+# Keeps the daily schedule filled (docs/authoring/schedule.md, "Keeping the schedule filled"). Monthly, and on demand.
+# It needs the repository setting "Allow GitHub Actions to create and approve pull requests"
+# (Settings > Actions > General > Workflow permissions), which only the owner can enable.
+on:
+  schedule:
+    - cron: '0 6 1 * *' # the 1st of every month, 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      days:
+        description: Days to generate when a top-up is due, from the day after the last scheduled day
+        default: '90'
+      force:
+        description: Generate even when 60 or more days are left (to try the workflow out)
+        type: boolean
+        default: false
+      dry_run:
+        description: Generate and report, but do not commit, push or open a pull request
+        type: boolean
+        default: false
+
+# Two runs must not race for the same branch.
+concurrency:
+  group: schedule-top-up
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  # The values of the inputs; the cron run has none, so it gets the defaults. Only ever used through the environment, never spliced into a script.
+  DAYS: ${{ inputs.days || '90' }}
+  FORCE: ${{ inputs.force == true && '--force' || '' }}
+  DRY_RUN: ${{ inputs.dry_run == true && 'true' || 'false' }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  top-up:
+    runs-on: ubuntu-latest
+    # Generating 90 days takes minutes (12x12 hard and expert days are the slow ones); this is the ceiling, not the expectation.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Days left
+        id: plan
+        run: |
+          bun run schedule:check || echo "::warning title=Schedule is short::Fewer than 30 days are left after today."
+          bun run schedule:next --days "$DAYS" $FORCE | tee -a "$GITHUB_STEP_SUMMARY"
+          bun run schedule:next --days "$DAYS" $FORCE --github >> "$GITHUB_OUTPUT"
+
+      # A top-up that nobody merged yet must not be generated again (the same branch name would clash).
+      - name: Look for an open top-up
+        id: pending
+        if: steps.plan.outputs.needed == 'true'
+        env:
+          START: ${{ steps.plan.outputs.start }}
+        run: |
+          BRANCH="schedule/$START"
+          if [ "$(gh pr list --head "$BRANCH" --state open --json number --jq length)" != "0" ]; then
+            echo "::warning title=Top-up already open::A pull request from $BRANCH is already open. Merge it; nothing is generated now."
+            echo "open=true" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null; then
+            echo "::error title=Stale branch::$BRANCH exists on origin without an open pull request. Delete it and run this workflow again."
+            exit 1
+          else
+            echo "open=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate the next days
+        id: generate
+        if: steps.plan.outputs.needed == 'true' && steps.pending.outputs.open != 'true'
+        env:
+          START: ${{ steps.plan.outputs.start }}
+          COUNT: ${{ steps.plan.outputs.days }}
+        run: |
+          # The same command that `bun run schedule:next` prints. Deterministic: the bytes do not depend on --jobs.
+          bun run schedule --start "$START" --days "$COUNT" --jobs 2
+          echo "--- what changed"
+          git status --short
+          git diff --stat
+
+      - name: Open the pull request
+        if: steps.plan.outputs.needed == 'true' && steps.pending.outputs.open != 'true' && env.DRY_RUN != 'true'
+        env:
+          START: ${{ steps.plan.outputs.start }}
+          END: ${{ steps.plan.outputs.end }}
+          COUNT: ${{ steps.plan.outputs.days }}
+          DAYS_LEFT: ${{ steps.plan.outputs.days_left }}
+        run: |
+          BRANCH="schedule/$START"
+          # Only schedule files may change; anything else means the run went wrong.
+          if git status --porcelain | grep -vE '^.. src/content/schedule/' ; then
+            echo "::error title=Unexpected files::The generation changed files outside src/content/schedule/."
+            exit 1
+          fi
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "::error title=Nothing generated::The generation wrote no files."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add src/content/schedule
+          git commit -m "feat(schedule): add $COUNT days, $START to $END"
+          git push -u origin "$BRANCH"
+          {
+            echo "Adds $COUNT days ($START to $END) to the daily schedule. $DAYS_LEFT days were left after today."
+            echo
+            echo "Made by the Schedule top-up workflow with \`bun run schedule --start $START --days $COUNT --jobs 2\`."
+            echo "Only added days change: a published day never changes. Retries and fallbacks are in the report artifact of the run."
+            echo
+            echo "Review the added lines, then merge. CI does not start on a pull request opened with the workflow token: close and reopen it to run the checks."
+          } > "$RUNNER_TEMP/pr-body.md"
+          gh pr create --head "$BRANCH" --base main --title "Schedule: $START to $END" --body-file "$RUNNER_TEMP/pr-body.md"
+
+      - name: Report in the job summary
+        if: always() && steps.generate.conclusion != 'skipped'
+        run: head -n 5 reports/schedule/report.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.generate.conclusion != 'skipped'
+        with:
+          name: schedule-report
+          path: reports/schedule/
+
+      # The loud part: a red run when the schedule is still short after the top-up (or when a top-up was due but skipped, for example
+      # because its pull request is still open and main has fewer than 30 days).
+      - name: Fail when fewer than 30 days are left
+        run: |
+          if ! bun run schedule:check; then
+            echo "::error title=Schedule is running dry::Fewer than 30 days are left after this run. Merge the open schedule/* pull request, or run this workflow by hand with more days (docs/authoring/schedule.md)."
+            exit 1
+          fi
