@@ -1,10 +1,10 @@
 ---
 id: SLAY-2.6
 title: Share card and Open Graph image restyle
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-27 12:21'
-updated_date: '2026-09-27 13:38'
+updated_date: '2026-09-27 13:45'
 labels:
   - story
 dependencies:
@@ -31,8 +31,8 @@ Branch: SLAY-2.6/share-card-restyle
 - [x] #1 src/share/card.ts draws the 1200x630 and square PNG with the warm evidence-board palette; the display font is loaded for the headline text via the FontFace API before drawing, falling back to the existing system stack if it fails to load in time
 - [x] #2 src/brand/og-image.svg is redrawn with the same palette (static SVG, no font-loading concern)
 - [x] #3 src/ui/share/share.css consumes the shared tokens for the share sheet UI
-- [ ] #4 share.test.ts, share.test.tsx and tools/check-share.ts against a local preview build all pass unchanged
-- [ ] #5 No share text, emoji line or spoiler-safety rule changes
+- [x] #4 share.test.ts, share.test.tsx and tools/check-share.ts against a local preview build all pass unchanged
+- [x] #5 No share text, emoji line or spoiler-safety rule changes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -47,4 +47,14 @@ Branch: SLAY-2.6/share-card-restyle
 Canvas custom-font loading is the one technical risk in this story: guard it with a timeout and a system-font fallback so the PNG never blocks or renders blank. The share text/format (src/share/format.ts, emoji.ts) is untouched.
 
 public/og-image.png left untouched: the sandboxed headless-Chrome render (bun tools/brand.ts) produced a blank capture here, unlike the deterministic macOS-Chrome runs the tool's own doc comment assumes. Regenerate it on a machine with a working Chrome render once this lands (og-image.svg is the only source that changed, so only that one PNG needs a re-run).
+
+Verified: bun run lint/typecheck/test all green (full suite: 136 files, 2553 tests). Built + bun run preview + bun tools/check-share.ts http://localhost:4173 --skip-headers: 61/61 checks pass against the local preview build. share/format.ts and share/emoji.ts untouched; git diff origin/main --stat confirms only src/share/card.ts, src/share/index.ts, src/ui/share/useShare.ts, src/ui/share/share.css and src/brand/og-image.svg changed (plus the task file) — no test file touched.
+
+Review gate (dipsaus-ai:story-reviewer, round 1): PASS, all 5 criteria met, no scope violations. Two advisory (non-blocking) findings: (1) ACCENT/AMBER/RED in card.ts stay pinned to their pre-restyle hex rather than --color-accent — intentional, tied to the share-text emoji colours (emoji.ts, out of scope here); (2) the card's first paint uses the system font until the async loadDisplayFont() effect resolves, a UX nuance not a criterion miss. Proceeding to close-out.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+The share card (src/share/card.ts), the share sheet UI (src/ui/share/) and the static Open Graph preview (src/brand/og-image.svg) now draw with the SLAY-2.1 warm evidence-board tokens: card.ts's board/panel/hairline colours move to color-bg/color-paper/color-line, og-image.svg's board and tagline follow the same tokens (the mystery-motif blue/amber stays, matching the fixed app icon), and share.css's local --ink/--accent/--line/--paper/--good aliases now resolve onto the shared tokens, same convention as daily.css and play.css. card.ts also gained loadDisplayFont(): a FontFace-API load of the self-hosted Fraunces font, guarded by a 400ms timeout, that embeds a base64 @font-face for the headline when it succeeds and otherwise falls back to the untouched system stack — wired into useShare.ts so the preview and exported PNG redraw once the font is ready. share.test.ts, share.test.tsx and tools/check-share.ts (run against a local preview build, 61/61 checks) all pass unchanged; no share text, emoji or spoiler-safety code touched. Independent review: pass, no scope violations. Follow-up left for a human: public/og-image.png should be regenerated via 'bun tools/brand.ts' on a machine with a working Chrome render — the sandboxed headless render here produced a blank capture, so the committed PNG is untouched.
+<!-- SECTION:FINAL_SUMMARY:END -->
