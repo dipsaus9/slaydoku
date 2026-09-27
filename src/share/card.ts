@@ -1,0 +1,162 @@
+import type { DailyResult } from '../game/daily/results.ts'
+import { cardDescription, stripCells } from './emoji.ts'
+import type { StripCell } from './emoji.ts'
+import { capitalize, dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel } from './format.ts'
+import { siteLabel } from './site.ts'
+import type { ShareMeta } from './types.ts'
+
+/** Brand colours (src/brand/icon.svg, index.css). */
+const INK = '#2a2a36'
+const PAPER = '#f5f3ef'
+const WHITE = '#ffffff'
+const LINE = '#d3cec4'
+const ACCENT = '#2b7de9'
+const AMBER = '#e0a43a'
+const RED = '#d95b4b'
+const MUTED = '#5d5d6b'
+
+/** Colour of each strip square: the same three as the emoji. */
+const STRIP_FILL: Record<StripCell, string> = { placed: ACCENT, hint: AMBER, wrong: RED }
+const STRIP_WORDS: Record<StripCell, string> = { placed: 'placed', hint: 'hint', wrong: 'wrong check' }
+
+/** System fonts only: nothing is fetched, and the card looks about the same on every device. */
+const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+
+export const escapeXml = (text: string): string =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+
+const num = (n: number): string => String(Math.round(n * 100) / 100)
+
+interface TextOptions {
+  x: number
+  y: number
+  size: number
+  weight?: number
+  fill?: string
+  anchor?: 'start' | 'middle' | 'end'
+}
+
+function text(content: string, { x, y, size, weight = 400, fill = INK, anchor = 'start' }: TextOptions): string {
+  return `<text x="${num(x)}" y="${num(y)}" font-family="${FONT}" font-size="${num(size)}" font-weight="${weight}" fill="${fill}" text-anchor="${anchor}" style="font-variant-numeric:tabular-nums">${escapeXml(content)}</text>`
+}
+
+/** The app icon (src/brand/icon.svg, 64 units) as a group: the dark tile with the room grid and the magnifying glass. */
+function iconTile(x: number, y: number, size: number): string {
+  const rooms = ['#f1d9a6', '#f1d9a6', '#cdebd0', '#bfe3f2', '#bfe3f2', '#cdebd0', '#e2d7f1', '#e2d7f1', '#cdebd0']
+  const cells = rooms.map((fill, i) => `<rect x="${8 + (i % 3) * 12.5}" y="${8 + Math.floor(i / 3) * 12.5}" width="11" height="11" rx="1.6" fill="${fill}"/>`).join('')
+  return (
+    `<g transform="translate(${num(x)} ${num(y)}) scale(${num(size / 64)})"><rect width="64" height="64" rx="14" fill="${INK}"/>${cells}` +
+    `<line x1="47" y1="47" x2="57" y2="57" stroke="${AMBER}" stroke-width="7.5" stroke-linecap="round"/>` +
+    `<circle cx="36" cy="36" r="16" fill="#fbf8f0" stroke="${AMBER}" stroke-width="4.5"/><circle cx="36" cy="36" r="6.5" fill="${ACCENT}"/></g>`
+  )
+}
+
+/** The wordmark: the icon tile and the name. */
+function wordmark(x: number, y: number, tile: number, size: number): string {
+  return iconTile(x, y, tile) + text('Slaydoku', { x: x + tile + tile * 0.28, y: y + tile * 0.5 + size * 0.34, size, weight: 800 })
+}
+
+/** The difficulty pill, its width taken from the text (system fonts differ a little, so it has room to spare). */
+function pill(label: string, x: number, y: number, size: number, anchor: 'start' | 'middle' = 'start'): string {
+  const height = size * 2
+  const width = label.length * size * 0.6 + size * 1.8
+  const left = anchor === 'middle' ? x - width / 2 : x
+  return `<rect x="${num(left)}" y="${num(y)}" width="${num(width)}" height="${num(height)}" rx="${num(height / 2)}" fill="${ACCENT}"/>` + text(label, { x: left + width / 2, y: y + height / 2 + size * 0.35, size, weight: 700, fill: WHITE, anchor: 'middle' })
+}
+
+/** The strip of squares, one per person, its width fixed to `width` at most. Returns the markup and the height. */
+function strip(cells: readonly StripCell[], x: number, y: number, maxWidth: number, maxSquare: number, anchor: 'start' | 'middle'): string {
+  const gap = maxSquare * 0.2
+  const square = Math.min(maxSquare, (maxWidth - gap * (cells.length - 1)) / cells.length)
+  const total = cells.length * square + (cells.length - 1) * gap
+  const left = anchor === 'middle' ? x - total / 2 : x
+  return cells.map((cell, i) => `<rect x="${num(left + i * (square + gap))}" y="${num(y)}" width="${num(square)}" height="${num(square)}" rx="${num(square * 0.2)}" fill="${STRIP_FILL[cell]}"/>`).join('')
+}
+
+/** Legend of the strip, only for the kinds present: a swatch and a word each. */
+function legend(cells: readonly StripCell[], x: number, y: number, size: number, anchor: 'start' | 'middle'): string {
+  const kinds = (['placed', 'hint', 'wrong'] as const).filter((kind) => cells.includes(kind))
+  const swatch = size * 0.8
+  const widths = kinds.map((kind) => swatch + size * 0.4 + STRIP_WORDS[kind].length * size * 0.56)
+  const gap = size * 1.4
+  const total = widths.reduce((sum, w) => sum + w, 0) + gap * (kinds.length - 1)
+  let cursor = anchor === 'middle' ? x - total / 2 : x
+  return kinds
+    .map((kind, i) => {
+      const out = `<rect x="${num(cursor)}" y="${num(y - swatch * 0.85)}" width="${num(swatch)}" height="${num(swatch)}" rx="${num(swatch * 0.2)}" fill="${STRIP_FILL[kind]}"/>` + text(STRIP_WORDS[kind], { x: cursor + swatch + size * 0.4, y, size, fill: MUTED })
+      cursor += widths[i]! + gap
+      return out
+    })
+    .join('')
+}
+
+/** Big time: smaller from an hour on so it always fits its column. */
+const timeSize = (time: string, big: number): number => (time.length > 5 ? big * 0.78 : big)
+
+interface Parts {
+  number: string
+  date: string
+  tier: string
+  time: string
+  hints: string
+  site: string
+  cells: StripCell[]
+}
+
+function wide(p: Parts): string {
+  return (
+    `<rect width="1200" height="630" fill="${PAPER}"/><rect x="32" y="32" width="1136" height="566" rx="36" fill="${WHITE}" stroke="${LINE}" stroke-width="2"/>` +
+    wordmark(84, 72, 72, 46) +
+    text(p.number, { x: 84, y: 214, size: 38, weight: 700 }) +
+    text(p.date, { x: 84, y: 254, size: 26, fill: MUTED }) +
+    pill(p.tier, 84, 284, 24) +
+    text(p.time, { x: 80, y: 484, size: timeSize(p.time, 170), weight: 800 }) +
+    text(p.hints, { x: 84, y: 548, size: 36, weight: 600, fill: MUTED }) +
+    iconTile(786, 84, 280) +
+    strip(p.cells, 926, 432, 380, 44, 'middle') +
+    legend(p.cells, 926, 508, 19, 'middle') +
+    text(p.site, { x: 926, y: 560, size: 26, weight: 600, anchor: 'middle', fill: INK })
+  )
+}
+
+function square(p: Parts): string {
+  return (
+    `<rect width="1080" height="1080" fill="${PAPER}"/><rect x="36" y="36" width="1008" height="1008" rx="44" fill="${WHITE}" stroke="${LINE}" stroke-width="2"/>` +
+    iconTile(492, 88, 96) +
+    text('Slaydoku', { x: 540, y: 258, size: 62, weight: 800, anchor: 'middle' }) +
+    text(p.number, { x: 540, y: 340, size: 48, weight: 700, anchor: 'middle' }) +
+    text(p.date, { x: 540, y: 386, size: 30, fill: MUTED, anchor: 'middle' }) +
+    pill(p.tier, 540, 424, 28, 'middle') +
+    text(p.time, { x: 540, y: 690, size: timeSize(p.time, 250), weight: 800, anchor: 'middle' }) +
+    text(p.hints, { x: 540, y: 772, size: 46, weight: 600, fill: MUTED, anchor: 'middle' }) +
+    strip(p.cells, 540, 828, 720, 56, 'middle') +
+    legend(p.cells, 540, 934, 24, 'middle') +
+    text(p.site, { x: 540, y: 1000, size: 34, weight: 600, anchor: 'middle' })
+  )
+}
+
+/**
+ * The share card as an SVG document: wordmark, puzzle number, date, difficulty pill, the time big, the hints, a strip of one square per
+ * person (see `stripCells`) and the site. Two designs: a landscape one (1200x630 units) and a square one (1080x1080); `width` and
+ * `height` set the size of the picture, which scales the design. Text and coloured shapes only: no images, no web fonts, no scripts,
+ * nothing fetched. It carries the labels of the puzzle and never its solution, names or clues.
+ */
+export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }: { width: number; height: number }): string {
+  const isWide = width / height > 1.2
+  const parts: Parts = {
+    number: `Puzzle #${result.n}`,
+    date: dateLabel(result.date),
+    tier: `${tierLabel(meta.tier)} · ${sizeLabel(meta.size)}`,
+    time: formatDuration(result.elapsedMs),
+    hints: capitalize(hintsLabel(result.hints)),
+    site: siteLabel(meta.siteUrl),
+    cells: stripCells(result, meta.size),
+  }
+  const [vw, vh] = isWide ? [1200, 630] : [1080, 1080]
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${vw} ${vh}" role="img" aria-labelledby="card-title">` +
+    `<title id="card-title">${escapeXml(cardDescription(result, meta))}</title>` +
+    (isWide ? wide(parts) : square(parts)) +
+    '</svg>'
+  )
+}
