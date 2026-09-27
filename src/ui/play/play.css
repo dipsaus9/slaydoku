@@ -14,10 +14,12 @@
  */
 
 .play {
-  --ink: #2a2a36;
-  --accent: #2b7de9;
-  --line: #d3cec4;
-  --paper: #ffffff;
+  /* SLAY-2.3: the local names stay (every rule below still reads them), only the values move to
+     the shared SLAY-2.1 tokens — warm surface/border tones instead of the old flat gray/blue. */
+  --ink: var(--color-ink);
+  --accent: var(--color-accent);
+  --line: var(--color-line);
+  --paper: var(--color-paper);
   box-sizing: border-box;
   min-height: 100vh;
   min-height: 100dvh;
@@ -66,10 +68,15 @@
   justify-content: space-between;
   gap: 12px;
   min-height: 48px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: rgba(253, 248, 236, 0.7);
+  border: 1px solid var(--line);
 }
 
 .play-header__title {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 1.5rem;
   line-height: 1.2;
 }
@@ -81,6 +88,7 @@
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--paper);
+  font-family: var(--font-display);
   font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
@@ -207,7 +215,11 @@
   color: var(--ink);
   font: inherit;
   cursor: pointer;
-  transition: background-color 0.12s, border-color 0.12s, transform 0.08s;
+  transition:
+    background-color var(--duration-micro) var(--ease-out),
+    border-color var(--duration-micro) var(--ease-out),
+    transform var(--duration-micro) var(--ease-out),
+    opacity var(--duration-micro) var(--ease-out);
 }
 
 .play-tool__icon {
@@ -246,18 +258,19 @@
 /* Hover only where a real pointer exists: on a touch screen it would stick after a tap. */
 @media (hover: hover) and (pointer: fine) {
   .play-tool:hover:not(:disabled):not([aria-pressed='true']) {
-    background: #f1f6fe;
+    background: rgba(179, 65, 62, 0.08);
     border-color: var(--accent);
   }
 
   .play-tool[aria-pressed='true']:hover:not(:disabled) {
-    background: #2270d6;
+    background: var(--color-accent-dark);
   }
 }
 
 .play-tool:active:not(:disabled) {
   transform: scale(0.96);
-  background: #e4eefc;
+  opacity: 0.9;
+  background: rgba(179, 65, 62, 0.14);
   border-color: var(--accent);
 }
 
@@ -274,8 +287,8 @@
 }
 
 .play-tool[aria-pressed='true']:active:not(:disabled) {
-  background: #1f66c9;
-  border-color: #1f66c9;
+  background: var(--color-accent-dark);
+  border-color: var(--color-accent-dark);
 }
 
 .play-tool[aria-pressed='true']:focus-visible {
