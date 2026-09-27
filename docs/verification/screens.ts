@@ -1,4 +1,4 @@
-// Rendered-screen check (CAD-10.7): what is in the puzzle data is on the real page.
+// Rendered-screen check (SLAY-1.10): what is in the puzzle data is on the real page.
 // Drives headless Chrome over the DevTools protocol (touch emulation, production build) and, for a sample of the scheduled daily
 // puzzles (10 days spread over every board size and as many tiers as possible, each opened through the dev-only date override, see
 // daily.ts), opens the real play screen and checks

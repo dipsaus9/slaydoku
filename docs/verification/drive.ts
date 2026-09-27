@@ -1,4 +1,4 @@
-// Verification driver for the daily flow (SLAY-1.5, from CAD-4.19 and the clean-URL scenarios of CAD-10.11).
+// Verification driver for the daily flow (SLAY-1.5; About page checks added in SLAY-1.10).
 // Drives headless Chrome over the DevTools protocol with touch emulation. The app runs on the dev-only date override (2026-10-15 = puzzle
 // #4, see daily.ts): it checks the start screen in its states (new day, continue, solved, before the launch, after the last day, the
 // override refused on another host), the clean URLs (/, /play, /play/<n>, old /level/... paths, unknown paths, old #/ links), the
@@ -9,7 +9,7 @@
 // Usage (from the repo root):
 //   bun run build && bunx vite preview --port 5197 &
 //   bun docs/verification/drive.ts
-// Env: VIEWPORTS (e.g. 360x640,844x390; default the two iPad sizes; phone sizes drive the phone layouts of CAD-10.3), BASE (default local preview), CDP_PORT (Chrome debugging port, default 9351: set another when two runs share a machine), TAG (file prefix, e.g. prod-), CHROME, OUT (folder for screenshots/ and the scenario log; default docs/verification/,
+// Env: VIEWPORTS (e.g. 360x640,844x390; default the two iPad sizes; phone sizes drive the phone layouts), BASE (default local preview), CDP_PORT (Chrome debugging port, default 9351: set another when two runs share a machine), TAG (file prefix, e.g. prod-), CHROME, OUT (folder for screenshots/ and the scenario log; default docs/verification/,
 // set it to a folder outside the repo to leave the committed files alone).
 // Writes screenshots to $OUT/screenshots/ and the scenario log to $OUT/scenario-log.md. Exits non-zero when a scenario fails.
 import { spawn } from 'node:child_process'
@@ -293,12 +293,29 @@ async function routing() {
   await evaluate(`document.querySelector('.daily__about').click()`)
   await sleep(500)
   check('the About link opens /about and its back link returns to /', (await path()) === '/about' && (await count('.about')) === 1)
+  // The About page (SLAY-1.10): its five sections, the credit, the privacy line, the licence, and it fits the screen.
+  const aboutText = (await evaluate(`document.querySelector('.about').innerText`)) as string
+  check(
+    'About page: title, tagline and the sections How it works, Credit, Privacy, Open source and Contact',
+    ['About Slaydoku', 'A new murder mystery puzzle every day', 'How it works', 'Credit', 'Privacy', 'Open source', 'Contact'].every((t) => aboutText.includes(t)) &&
+      (await count('.about__section')) === 5,
+  )
+  check(
+    'About page: credits Murdoku by Manuel Garand, says no accounts and no tracking, names the MIT license',
+    aboutText.includes('Inspired by Murdoku by Manuel Garand.') && aboutText.includes('no accounts, no tracking') && aboutText.includes('MIT license'),
+  )
+  const aboutBox = (await evaluate(
+    `(() => { const b = document.querySelector('.about__back').getBoundingClientRect(); return { sw: document.documentElement.scrollWidth, iw: innerWidth, backH: b.height } })()`,
+  )) as { sw: number; iw: number; backH: number }
+  check('About page fits the viewport: no sideways scroll, the back link is a 44px target', aboutBox.sw <= aboutBox.iw && aboutBox.backH >= 44, JSON.stringify(aboutBox))
   await evaluate(`document.querySelector('.about__back').click()`)
   await sleep(500)
   check('back from About shows the start screen', (await path()) === '/' && (await count('.daily-card')) === 1)
+  await load('about')
+  check('deep link /about loads the About page', (await path()) === '/about' && (await count('.about')) === 1 && (await count('.daily-card')) === 0)
 }
 
-// The "How it works" card (CAD-10.8): the first Play shows it, dismissing starts play, a second visit does not, the start-screen link and the Help button reopen it, and the glossary stays behind Keywords.
+// The "How it works" card: the first Play shows it, dismissing starts play, a second visit does not, the start-screen link and the Help button reopen it, and the glossary stays behind Keywords.
 const modalBtn = (label: string) =>
   evaluate(`(() => { const e = [...document.querySelectorAll('.play-modal button')].find(b => b.innerText.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
 async function tapModalBtn(label: string) {
@@ -387,7 +404,7 @@ async function playDay(first: boolean, w: number, h: number) {
   check('Play opens the puzzle at /play', (await path()) === '/play' && (await count('.play-modal')) === 0, await path())
   const lay = await layoutProbe()
   check('layout: no horizontal overflow, board inside viewport', lay.sw <= lay.iw && !!lay.board && lay.board.l >= 0 && lay.board.r <= lay.iw, JSON.stringify(lay))
-  const minCell = vw <= 640 && vh > vw ? 34 : 30 // portrait phone: 34px (CAD-10.3)
+  const minCell = vw <= 640 && vh > vw ? 34 : 30 // portrait phone: 34px
   check(`layout: touch targets (cell >= ${minCell}px, toolbar >= 44px)`, lay.cell >= minCell && lay.minTool >= 44, `cell=${lay.cell}px minTool=${lay.minTool}px`)
   check('layout: page height vs viewport (info)', true, `scrollHeight=${lay.sh} innerHeight=${lay.ih}${lay.sh > lay.ih ? ' (page scrolls vertically)' : ' (fits)'}`)
   await shot('01-fresh')
