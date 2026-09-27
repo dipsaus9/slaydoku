@@ -3,6 +3,19 @@
  * depends on hover, the card scrolls inside itself (the modal panel has its own overflow) and never wider than the screen.
  */
 
+.stats-entry,
+.stats-panel {
+  /* Local aliases onto the SLAY-2.1 shared tokens (src/brand/tokens.css): every rule below keeps
+     reading var(--ink)/var(--accent)/var(--line)/var(--paper)/var(--danger), only the source
+     moved. --danger has no warm-palette equivalent of its own, so the destructive reset button
+     reads in the case-file accent-dark rather than a foreign red. */
+  --ink: var(--color-ink);
+  --accent: var(--color-accent);
+  --line: var(--color-line);
+  --paper: var(--color-paper);
+  --danger: var(--color-accent-dark);
+}
+
 .stats-entry {
   display: flex;
   align-items: center;
@@ -10,13 +23,14 @@
   flex-wrap: wrap;
   gap: 8px 14px;
   padding: 12px 12px 12px 18px;
-  border: 1px solid var(--line, #d3cec4);
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--paper, #ffffff);
+  background: var(--paper);
 }
 
 .stats-entry__summary {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 1.15rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -26,10 +40,10 @@
   min-width: 44px;
   min-height: 48px;
   padding: 0 20px;
-  border: 1px solid var(--line, #d3cec4);
+  border: 1px solid var(--line);
   border-radius: 24px;
-  background: var(--paper, #ffffff);
-  color: var(--ink, #2a2a36);
+  background: var(--paper);
+  color: var(--ink);
   font: inherit;
   font-size: 1.05rem;
   cursor: pointer;
@@ -38,20 +52,20 @@
 }
 
 .stats-btn:focus-visible {
-  outline: 3px solid var(--accent, #2b7de9);
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
 .stats-btn--primary {
-  border-color: var(--accent, #2b7de9);
-  background: var(--accent, #2b7de9);
-  color: #ffffff;
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--paper);
 }
 
 .stats-btn--danger {
-  border-color: #c0392b;
-  background: #c0392b;
-  color: #ffffff;
+  border-color: var(--danger);
+  background: var(--danger);
+  color: var(--paper);
 }
 
 .stats-btn--quiet {
@@ -64,7 +78,7 @@
 
 .stats-panel {
   width: min(560px, 100%);
-  color: var(--ink, #2a2a36);
+  color: var(--ink);
 }
 
 .stats {
@@ -86,7 +100,7 @@
   gap: 2px;
   min-width: 0;
   padding: 10px 12px;
-  border: 1px solid var(--line, #d3cec4);
+  border: 1px solid var(--line);
   border-radius: 14px;
 }
 
@@ -148,7 +162,7 @@
   display: block;
   height: 14px;
   border-radius: 7px;
-  background: #ece8df;
+  background: var(--color-bg);
   overflow: hidden;
 }
 
@@ -163,11 +177,11 @@
 }
 
 .stats-times__fill {
-  background: #9ec1f2;
+  background: var(--line);
 }
 
 .stats-times__best {
-  background: var(--accent, #2b7de9);
+  background: var(--accent);
 }
 
 .stats-times__values {
@@ -189,14 +203,14 @@
 .stats-message {
   margin: 0;
   padding: 10px 14px;
-  border: 1px solid #b9dcc6;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: #eef8f1;
+  background: var(--paper);
 }
 
 .stats-message[data-message='failed'] {
-  border-color: #e0b64d;
-  background: #fff6dc;
+  border-color: var(--accent);
+  background: var(--paper);
 }
 
 .stats-confirm__text {

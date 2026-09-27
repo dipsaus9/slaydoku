@@ -336,15 +336,15 @@
   font-size: 0.85rem;
 }
 
-.play-cards[data-gift-selected] .polaroid--gift {
+.play-cards[data-victim-selected] .polaroid--victim {
   transform: translateY(-4px) scale(1.03);
 }
 
-.play-cards[data-gift-selected] .polaroid--gift .polaroid__photo {
-  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(43, 125, 233, 0.35);
+.play-cards[data-victim-selected] .polaroid--victim .polaroid__photo {
+  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(179, 65, 62, 0.35);
 }
 
-.play-cards[data-gift-placed] .polaroid--gift .polaroid__pic > svg {
+.play-cards[data-victim-placed] .polaroid--victim .polaroid__pic > svg {
   filter: grayscale(0.7);
   opacity: 0.6;
 }
@@ -1176,7 +1176,7 @@ button.play-legend__row:focus-visible {
   }
 
   .play-cards .polaroid__name,
-  .play-cards .polaroid--gift .polaroid__name {
+  .play-cards .polaroid--victim .polaroid__name {
     font-size: 1.1rem;
   }
 

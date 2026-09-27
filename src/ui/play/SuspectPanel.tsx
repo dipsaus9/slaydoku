@@ -16,21 +16,21 @@ export interface SuspectPanelProps {
 /**
  * The polaroid cards: pick who you are working with. CardGrid makes the suspects tappable
  * and passes the cast's `lookFor`, so the extra suspects of big boards get their generated
- * portraits. The gift card is not tappable in CardGrid, yet the gift has to be placed too,
+ * portraits. The victim card is not tappable in CardGrid, yet the victim has to be placed too,
  * so a tap on it is picked up here on the wrapper (the card itself stays untouched).
  */
 export function SuspectPanel({ puzzle, cast, selectedId, placedIds, onSelect }: SuspectPanelProps) {
   const victim = puzzle.people.find((p) => p.kind === 'victim')
   const onClick = (event: MouseEvent<HTMLElement>) => {
     if (!victim) return
-    if ((event.target as Element).closest('.polaroid--gift')) onSelect(victim.id)
+    if ((event.target as Element).closest('.polaroid--victim')) onSelect(victim.id)
   }
   return (
     <section
       className="play-cards"
       aria-label={PLAY_EN.cards}
-      data-gift-selected={victim && victim.id === selectedId ? '' : undefined}
-      data-gift-placed={victim && placedIds.includes(victim.id) ? '' : undefined}
+      data-victim-selected={victim && victim.id === selectedId ? '' : undefined}
+      data-victim-placed={victim && placedIds.includes(victim.id) ? '' : undefined}
       onClick={onClick}
     >
       <CardGrid

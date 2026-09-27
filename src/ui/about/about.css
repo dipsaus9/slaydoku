@@ -1,9 +1,11 @@
 /* About page. Light mode only, like the rest of the app; every target is at least 44px. */
 
 .about {
-  --ink: #2a2a36;
-  --accent: #2b7de9;
-  --line: #d3cec4;
+  /* Local aliases onto the SLAY-2.1 shared tokens (src/brand/tokens.css): every rule below keeps
+     reading var(--ink)/var(--accent)/var(--line), only the source moved. */
+  --ink: var(--color-ink);
+  --accent: var(--color-accent);
+  --line: var(--color-line);
   box-sizing: border-box;
   min-height: 100vh;
   min-height: 100dvh;
@@ -43,6 +45,7 @@
 
 .about__title {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 2rem;
   line-height: 1.15;
 }
@@ -60,6 +63,7 @@
 
 .about__section h2 {
   margin: 0 0 8px;
+  font-family: var(--font-display);
   font-size: 1.2rem;
 }
 
