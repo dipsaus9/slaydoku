@@ -4,7 +4,7 @@ title: 'Share card: PNG image and emoji text'
 status: To Do
 assignee: []
 created_date: '2026-09-26 19:32'
-updated_date: '2026-09-26 19:33'
+updated_date: '2026-09-27 00:02'
 labels:
   - story
 dependencies:
@@ -14,7 +14,7 @@ references:
   - src/share/
   - src/ui/share/
   - src/ui/play/ResultOverlay.tsx
-  - src/ui/levels/SolvedScreen.tsx
+  - src/ui/daily/
 parent_task_id: SLAY-1
 type: feature
 ordinal: 8000
