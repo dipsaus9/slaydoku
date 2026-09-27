@@ -36,7 +36,7 @@ export interface DailyResult {
 /** The tier ids, easiest first (the order of `SOLVABLE_TIERS`; a test keeps them equal). Listed here so this file does not pull the solver into the app. */
 export const RESULT_TIERS: readonly TierId[] = ['very-easy', 'easy', 'easy-medium', 'medium', 'hard', 'expert']
 
-const isRecord =(value: unknown): value is Record<string, unknown> =>
+const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
 const count = (value: unknown): number =>

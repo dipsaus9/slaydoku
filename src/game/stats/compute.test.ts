@@ -103,7 +103,8 @@ describe('computeStats', () => {
   })
 
   it('a day solved the next morning counts for its own day', () => {
-    // Puzzle of 14 October, solved on 15 October: the result carries the puzzle date, so the run is 14 + 15 = 2 without a gap.
+    // Results carry the date of their puzzle, never the moment of solving: puzzle 14 solved on the morning of the 15th still sits on the
+    // 14th, so 13, 14 and 15 make one run however late a day was solved.
     const stats = computeStats([r('2026-10-13'), r('2026-10-14'), r('2026-10-15')], '2026-10-15')
     expect(stats.currentStreak).toBe(3)
   })
