@@ -390,8 +390,16 @@ describe('parsers', () => {
 describe('home-screen manifest file', () => {
   const INDEX = readFileSync(join(ROOT, 'index.html'), 'utf8')
   const CSS = readFileSync(join(ROOT, 'src/index.css'), 'utf8')
+  const TOKENS = readFileSync(join(ROOT, 'src/brand/tokens.css'), 'utf8')
   const manifest = JSON.parse(MANIFEST) as Record<string, unknown> & {
     icons: { src: string; sizes: string; type: string; purpose?: string }[]
+  }
+
+  /** Resolves `var(--token)` against src/brand/tokens.css's :root declarations (SLAY-2.1: body's background is a shared token, not a literal hex). */
+  function resolveToken(value: string | undefined): string | undefined {
+    const varName = /^var\((--[\w-]+)\)$/.exec(value ?? '')?.[1]
+    if (!varName) return value
+    return new RegExp(`${varName}:\\s*(#[0-9a-f]{6})`, 'i').exec(TOKENS)?.[1]
   }
 
   it('is linked from index.html with the iOS meta tags', () => {
@@ -407,7 +415,8 @@ describe('home-screen manifest file', () => {
   })
 
   it('uses the page colours: body background and the light theme-color', () => {
-    const body = /body\s*{[^}]*background:\s*(#[0-9a-f]{6})/i.exec(CSS)?.[1]
+    const bodyRaw = /body\s*{[^}]*background:\s*(#[0-9a-f]{6}|var\(--[\w-]+\))/i.exec(CSS)?.[1]
+    const body = resolveToken(bodyRaw)
     const themeLight = /name="theme-color" media="\(prefers-color-scheme: light\)" content="(#[0-9a-f]{6})"/i.exec(INDEX)?.[1]
     expect(body).toBeTruthy()
     expect(manifest.background_color).toBe(body)

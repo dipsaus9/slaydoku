@@ -1,0 +1,65 @@
+/*
+ * Shared design tokens: the warm evidence-board palette, the display/body/hand font stacks,
+ * a spacing scale and a motion scale. Imported once from src/index.css. No component reads these
+ * yet (SLAY-2.1 is pure infrastructure); the following SLAY-2.x stories replace each screen's
+ * local --ink/--accent/--line/--paper custom properties with these.
+ */
+
+:root {
+  /* ---- color: warm evidence-board (kraft/manila board, case-file red accent) -------------- */
+  --color-bg: #f7f2e6; /* manila board background */
+  --color-ink: #2a2a36; /* body text; already used as the local --ink in daily/play/about, unchanged */
+  --color-accent: #b3413e; /* case-file red: primary buttons, active state, the one warm accent */
+  --color-accent-dark: #8a332f; /* pressed/hover state and text-on-light uses of the accent */
+  --color-line: #cbb994; /* warm tan hairlines/borders, replacing the current cool gray line */
+  --color-paper: #fdf8ec; /* card/surface paper tone, lighter than the board, warmer than plain white */
+
+  /* ---- type -------------------------------------------------------------------------------- */
+  --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; /* headings only */
+  --font-body: system-ui, 'Segoe UI', Roboto, sans-serif; /* existing stack (src/index.css), unchanged */
+  --font-hand: 'Snell Roundhand', 'Bradley Hand', 'Segoe Script', 'Comic Sans MS', cursive; /* existing cursive stack (cards.css), unchanged */
+
+  /* ---- spacing scale ------------------------------------------------------------------------ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* ---- motion: durations/easings, collapsed under prefers-reduced-motion below -------------- */
+  --duration-micro: 120ms; /* button press/tap feedback */
+  --duration-small: 200ms; /* small entrance transitions (fade/slide) */
+  --duration-medium: 320ms; /* larger reveals */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Every duration collapses to near-zero: a transition still fires (so JS waiting on
+   transitionend still resolves) but reads as instant, and every animation this app defines
+   already turns itself off under this same query (see play.css's play-flash animation). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-micro: 0.01ms;
+    --duration-small: 0.01ms;
+    --duration-medium: 0.01ms;
+  }
+}
+
+/*
+ * Fraunces variable font (optical size 9–144, weight 300–900), Latin-only woff2 subset,
+ * self-hosted under public/fonts/ so no Google Fonts request/render-blocking dependency at
+ * runtime. Font: Fraunces by Un-Type/Google Fonts (https://fonts.google.com/specimen/Fraunces),
+ * licensed under the SIL Open Font License 1.1 (https://scripts.sil.org/OFL). font-display: swap
+ * shows the --font-display fallback stack immediately and swaps in Fraunces once it loads.
+ */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('/fonts/fraunces-variable-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
