@@ -1,6 +1,6 @@
 # The daily flow
 
-What a player sees, where it lives in the code and what it stores. Story SLAY-1.5; statistics (SLAY-1.6, below) and the share card (SLAY-1.7) build on the results described here.
+What a player sees, where it lives in the code and what it stores. Story SLAY-1.5; statistics (SLAY-1.6) and the share card (SLAY-1.7), both below, build on the results described here.
 
 ## Screens and URLs
 
@@ -41,7 +41,7 @@ readResult(storage, n, fp?): DailyResult | null
 readAllResults(storage): DailyResult[]      // oldest puzzle first
 ```
 
-`hints` is how many times a hint was opened (all sessions of the day), `wrongChecks` how many times a complete board was not right. A solved day cannot be replayed for a new time. `dayStatus(storage, day)` (`src/game/daily/status.ts`) says new, in progress or solved. The start screen has two reserved slots (`data-slot="share"`, `data-slot="stats"`; props `share` and `stats` of `StartScreen` and `DailyFlow`) for the share button (SLAY-1.7) and the statistics (filled by `StatsEntry`, see Statistics below).
+`hints` is how many times a hint was opened (all sessions of the day), `wrongChecks` how many times a complete board was not right. A solved day cannot be replayed for a new time. `dayStatus(storage, day)` (`src/game/daily/status.ts`) says new, in progress or solved. The start screen has two reserved slots (`data-slot="share"`, `data-slot="stats"`; props `share` and `stats` of `StartScreen` and `DailyFlow`) for the share card (filled by `SharePanel`, see Share card below) and the statistics (filled by `StatsEntry`, see Statistics below).
 
 ## Statistics (SLAY-1.6)
 
@@ -60,6 +60,32 @@ readAllResults(storage): DailyResult[]      // oldest puzzle first
 
 **Reset stats** asks for confirmation ("This deletes your solved puzzles, times and streaks from this device, and the saved boards of the puzzles you played. Those days show as new again. It cannot be undone."). It removes `slaydoku:daily-results`, the play records of the daily puzzles and the saved boards (`slaydoku:game:daily-<n>`) of every daily puzzle that was played or solved: without the boards, a solved board would bring its result straight back (see `dayStatus`). Nothing else is touched: options, the how-it-works flag, play records of other puzzles and the dev date override stay. A solved day therefore becomes playable again after a reset. All strings live in `src/ui/stats/strings.ts`.
 
+## Share card (SLAY-1.7)
+
+`src/share/` builds what is shared (pure, tested), `src/ui/share/` shows and sends it. English only, light theme, everything is made on the device: the card is an SVG drawn from text and shapes with system fonts, turned into a PNG on a canvas in the page. No network call, no dependency, so it works offline. Nothing leaves the device except through the player's own action (the system share sheet, the clipboard, a saved file).
+
+**Where.** After a solve the app goes back to `/`, so the card is the `share` slot of the start screen (`SharePanel`, filled by `DailyFlow` unless a `share` prop replaces it; the slot stays empty on a day that is not solved). The result overlay of the play screen has the same slot (`ResultOverlay`'s `share`, fed by `PlayScreen`'s `resultShare`); in the daily flow the overlay is left at once for the start screen, so the start screen is where the card is seen.
+
+**The panel.** A preview of the card, two shapes (Wide 1200x630, Square 1080x1080; the PNG is drawn at exactly that size), the text that will be shared, and:
+- **Share** when the browser has `navigator.share`: the PNG together with the text when `navigator.canShare({ files })` says yes, else the text alone. The PNG of the shape on screen is made in advance so the share starts inside the tap. Closing the share sheet is not an error. If sharing fails, the message says so and Copy text and Download image appear.
+- **Copy text** and **Download image** when there is no share sheet. Copy uses the clipboard API and falls back to a textarea with `execCommand('copy')`. Download saves `slaydoku-<n>.png` (`-square` for the square).
+- A polite status line: Shared., Copied to your clipboard., Image saved to your device., or what went wrong.
+
+**The text.**
+
+```
+Slaydoku #43 · Medium · 9x9
+⏱ 04:12 · 💡 2 hints
+🟦🟦🟦🟦🟦🟦🟦🟨🟨
+slaydoku.vercel.app
+```
+
+Time is `mm:ss` (`h:mm:ss` from an hour), hints read `no hints`, `1 hint`, `2 hints`. The **strip** has one square per suspect (6 to 12): blue for a person placed on your own, yellow for each hint opened, red for each time a full board was checked and was not right, in that order (blue first; more than the board holds are cut off, hints first). It says how the solve went and nothing about the puzzle: it depends only on the board size and the two counts, never on the solution, the names or the clues (the order in which people were placed is not stored, so a per-move strip is not possible). The card carries the same facts (wordmark, puzzle number, date, difficulty pill, big time, hints, the strip with a small legend, the site) in the brand colours.
+
+**No spoilers.** Both builders take a `DailyResult` and the tier and size of the day and never see the puzzle. `src/share/share.test.ts` scans the text and both cards of a spread of scheduled days for every suspect name, every rendered clue text, the fingerprint and every solution cell.
+
+**The site line** comes from one constant, `SITE_URL` (`src/share/site.ts`): the origin the build was made for (`VERCEL_PROJECT_PRODUCTION_URL`, then `VERCEL_URL`, else `http://localhost:5173`, the same `resolveSiteUrl` the social meta tags use), put in by `define` in `vite.config.ts`. The text and the card show its host. A build outside Vercel therefore says `localhost:5173`.
+
 ## Verifying
 
-`bun run verify:phone` (see `docs/verification/phone.ts`): the drivers run on the date override at 390x844 and 1024x768 among others: the statistics (`stats.ts`: two consecutive days solved through the UI, the streak, the card, a missed day, Reset), start screen states, rollover with a shifted clock, clean URLs, a full play-through and the result, zoom, legend, the card text of 10 scheduled days on the rendered screen, offline.
+`bun run verify:phone` (see `docs/verification/phone.ts`): the drivers run on the date override at 390x844 and 1024x768 among others: the statistics (`stats.ts`: two consecutive days solved through the UI, the streak, the card, a missed day, Reset), start screen states, rollover with a shifted clock, clean URLs, a full play-through and the result, zoom, legend, the card text of 10 scheduled days on the rendered screen, the share card (`share.ts`: a solved day, the text, both PNG sizes on a canvas, Share with files and with text only, a closed and a failing share sheet, Copy text with and without the clipboard API, Download image, the keyboard, offline), offline.

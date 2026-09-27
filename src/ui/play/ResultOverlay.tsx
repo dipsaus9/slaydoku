@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { CheckResult } from '../../game/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { Modal } from './Modal.tsx'
@@ -9,13 +10,15 @@ export interface ResultOverlayProps {
   result: CheckResult
   onRestart: () => void
   onDismiss: () => void
+  /** Shown in the solved dialog under the time, e.g. the share card of a daily puzzle. Never shown for a wrong board. */
+  share?: ReactNode
 }
 
 /**
  * Feedback once everybody is placed. Solved: who was alone with the gift, and the time.
  * Wrong: only how many are right, never who (so the player still has to think).
  */
-export function ResultOverlay({ puzzle, result, onRestart, onDismiss }: ResultOverlayProps) {
+export function ResultOverlay({ puzzle, result, onRestart, onDismiss, share }: ResultOverlayProps) {
   const t = PLAY_EN.result
   if (result.solved) {
     const name = puzzle.people.find((p) => p.id === result.murdererId)?.label ?? result.murdererId
@@ -23,6 +26,7 @@ export function ResultOverlay({ puzzle, result, onRestart, onDismiss }: ResultOv
       <Modal title={t.solvedTitle} onClose={onDismiss} dismissible={false} className="play-result play-result--solved">
         <p className="play-result__text" data-result="solved">{t.solved(name)}</p>
         <p className="play-result__time">{t.time(formatTime(result.elapsedMs))}</p>
+        {share}
         <div className="play-modal__actions">
           <button type="button" className="play-btn" onClick={onDismiss}>
             {t.viewBoard}

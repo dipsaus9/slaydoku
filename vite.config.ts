@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 import { build, defineConfig } from 'vite'
 import type { Plugin } from 'vite'
 import { parseIndexable } from './src/brand/indexing.ts'
-import { siteMetaPlugin } from './src/brand/site.ts'
+import { resolveSiteUrl, siteMetaPlugin } from './src/brand/site.ts'
 import type { PrecacheEntry } from './src/pwa/cache.ts'
 
 /** Files of the build output that stay out of the precache: the worker itself and files only crawlers or nothing in the app read. */
@@ -76,4 +76,6 @@ const INDEXABLE = parseIndexable(readFileSync(join(import.meta.dirname, 'src/bra
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), siteMetaPlugin(process.env, INDEXABLE), swPlugin()],
+  // The site URL of the share text and card (src/share/site.ts): the same one the social meta tags carry.
+  define: { __SITE_URL__: JSON.stringify(resolveSiteUrl(process.env)) },
 })
