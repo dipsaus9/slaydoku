@@ -1,3 +1,5 @@
+@import './brand/tokens.css';
+
 :root {
   /*
    * Every component here (white cards, #fafafa clue items, etc.) is styled
@@ -7,8 +9,8 @@
    * scheme is pinned to light rather than left to follow the OS.
    */
   color-scheme: light;
-  font: 16px/145% system-ui, 'Segoe UI', Roboto, sans-serif;
-  color: #1a1a1a;
+  font: 16px/145% var(--font-body);
+  color: var(--color-ink);
 }
 
 html {
@@ -18,7 +20,10 @@ html {
 
 body {
   margin: 0;
-  background: #f5f3ef;
+  /* The warm manila shift (SLAY-2.1): body background/ink now come from the shared tokens.
+     Every other visual choice here is untouched; the following SLAY-2.x stories restyle
+     each screen's own chrome with the same tokens. */
+  background: var(--color-bg);
   /* No double-tap zoom on any screen (pinch stays available). The play board sets its own touch-action. */
   touch-action: manipulation;
 }
