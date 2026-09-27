@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import type { PortraitLook } from '../../content/cast/index.ts'
 import type { Cell, Puzzle } from '../../engine/model/index.ts'
 import { createGameStore, defaultStorage, isPlaced, type GameStore, type StorageLike } from '../../game/index.ts'
@@ -43,6 +44,8 @@ export interface PlayScreenProps {
   castSeed?: string | number
   /** Opens the "How it works" card by itself when this browser has not seen it yet (level 1 of the level flow). */
   firstVisitHelp?: boolean
+  /** The share card for the solved dialog, made from the murderer and the time of the solve (the daily flow passes one). */
+  resultShare?: (solve: { murdererId: string; elapsedMs: number }) => ReactNode
 }
 
 type Dialog = 'help' | 'legend' | 'options' | 'clear' | null
@@ -66,7 +69,7 @@ function nextUnplaced(order: readonly string[], from: string, placed: (id: strin
  * through the game store (src/game), so it is undoable, saved per level and auto-checked.
  * Built for iPad Safari in landscape and portrait (see play.css).
  */
-export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false }: PlayScreenProps) {
+export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false, resultShare }: PlayScreenProps) {
   const puzzle = useMemo(() => withCastNames(given, castSeed), [given, castSeed])
   const store = useMemo<GameStore>(
     () => createGameStore({ levelId, puzzle, storage, now }),
@@ -300,7 +303,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, room
         </Modal>
       ) : null}
       {showResult && state.check ? (
-        <ResultOverlay puzzle={puzzle} result={state.check} onRestart={restart} onDismiss={() => setDismissed(state.check)} />
+        <ResultOverlay puzzle={puzzle} result={state.check} onRestart={restart} onDismiss={() => setDismissed(state.check)} share={state.check.solved ? resultShare?.(state.check) : undefined} />
       ) : null}
     </div>
   )

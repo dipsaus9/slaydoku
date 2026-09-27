@@ -24,7 +24,7 @@ export interface StartScreenProps {
   onPlay: () => void
   /** Set while the shown puzzle is one day behind the clock: the "New puzzle available" banner and the puzzle number behind it. */
   rollover?: { n: number; onShow: () => void } | null
-  /** Room for the share button of a solved day (SLAY-1.7). */
+  /** The share card of a solved day (filled by `DailyFlow`); shown only when the day is solved. */
   share?: ReactNode
   /** Room for the statistics of the player (SLAY-1.6). */
   stats?: ReactNode

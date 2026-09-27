@@ -1,0 +1,126 @@
+/* The share panel: the start screen (a card under the result) and the result overlay. Light mode, targets of 44px and more, no hover. */
+
+.share {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line, #d3cec4);
+  border-radius: 20px;
+  background: var(--paper, #ffffff);
+  color: var(--ink, #2a2a36);
+  text-align: left;
+}
+
+.share *,
+.share *::before,
+.share *::after {
+  box-sizing: border-box;
+}
+
+.share__title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.share__preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line, #d3cec4);
+  border-radius: 12px;
+  background: #f5f3ef;
+}
+
+.share__formats {
+  display: flex;
+  gap: 8px;
+}
+
+.share-btn {
+  min-width: 44px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--line, #d3cec4);
+  border-radius: 24px;
+  background: var(--paper, #ffffff);
+  color: inherit;
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.share-btn:focus-visible {
+  outline: 3px solid var(--accent, #2b7de9);
+  outline-offset: 2px;
+}
+
+.share-btn[aria-pressed='true'] {
+  border-color: var(--accent, #2b7de9);
+  box-shadow: inset 0 0 0 1px var(--accent, #2b7de9);
+  font-weight: 700;
+}
+
+/* Two classes: the start screen sets `color: inherit` on every button under .daily. */
+.share .share-btn--primary {
+  border-color: var(--accent, #2b7de9);
+  background: var(--accent, #2b7de9);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.share__format {
+  flex: 1 1 0;
+  padding: 0 12px;
+}
+
+.share__text {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5f3ef;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.share__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.share__actions .share-btn {
+  flex: 1 1 140px;
+}
+
+.share__status {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.share__status[data-kind='ok'] {
+  color: var(--good, #2f8f5b);
+}
+
+.share__status[data-kind='error'] {
+  color: #b3372a;
+}
+
+.share__note {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.play-result .share {
+  margin-top: 12px;
+  max-height: 50vh;
+  overflow: auto;
+}

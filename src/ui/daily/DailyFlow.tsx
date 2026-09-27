@@ -8,7 +8,9 @@ import { phaseOf, puzzleNumberOf } from '../../schedule/index.ts'
 import type { MonthFile, ScheduleDay, ScheduleIndex } from '../../schedule/index.ts'
 import { PlayScreen } from '../play/index.ts'
 import { navigate, usePath } from '../router/index.ts'
+import { SharePanel } from '../share/index.ts'
 import { StatsEntry } from '../stats/index.ts'
+import { shareMetaOf } from '../../share/index.ts'
 import { parseRoute, routePath } from './route.ts'
 import { StartScreen } from './StartScreen.tsx'
 import type { StartState } from './StartScreen.tsx'
@@ -26,7 +28,7 @@ export interface DailyFlowProps {
   index?: ScheduleIndex
   /** Loads one month file (`YYYY-MM`). Default: the lazily loaded chunk of that month. */
   loadMonth?: (month: string) => Promise<MonthFile>
-  /** Share button of a solved day (SLAY-1.7). */
+  /** Replaces the share card of a solved day (default: `SharePanel`, the card preview with Share, or Copy text and Download image). */
   share?: ReactNode
   /** Replaces the statistics entry of the start screen (default: `StatsEntry`, the streak line and the Stats button). */
   stats?: ReactNode
@@ -111,8 +113,9 @@ export function DailyFlow({ clock: givenClock, storage: givenStorage, index = SC
   else if (lookup.kind === 'after-schedule') state = { kind: 'after-schedule' }
   else if (lookup.kind === 'loading') state = { kind: 'loading' }
   else state = { kind: 'error', onRetry: retry }
+  const shareCard = share ?? (day && status?.kind === 'solved' ? <SharePanel result={status.result} meta={shareMetaOf(day)} /> : null)
   const statsEntry = stats ?? <StatsEntry storage={storage} today={today} version={version} onReset={() => setVersion((v) => v + 1)} />
-  return <StartScreen state={state} clock={clock} rollover={rollover} share={share} stats={statsEntry} onPlay={() => go(routePath({ kind: 'play', n: null }))} />
+  return <StartScreen state={state} clock={clock} rollover={rollover} share={shareCard} stats={statsEntry} onPlay={() => go(routePath({ kind: 'play', n: null }))} />
 }
 
 interface PlayRouteProps {
@@ -137,7 +140,7 @@ function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
   const watched = useMemo(() => observeSolve(storage, id, day.puzzle, (record) => onSolved(day, record)), [storage, id, day, onSolved])
   return (
     <div className="daily-play">
-      <PlayScreen puzzle={day.puzzle} levelId={id} title="" themeIcons={themeIcons} portraits={day.portraits} storage={watched} firstVisitHelp />
+      <PlayScreen puzzle={day.puzzle} levelId={id} title="" themeIcons={themeIcons} portraits={day.portraits} storage={watched} firstVisitHelp resultShare={(solve) => <SharePanel result={resultOf(storage, day, solve)} meta={shareMetaOf(day)} />} />
       <nav className="daily-play__nav">
         <button type="button" className="daily-play__back" aria-label={DAILY_EN.backLabel} onClick={onBack}>
           <span aria-hidden="true">{'‹'}</span> {DAILY_EN.back}
