@@ -4,6 +4,7 @@ title: 'Epic: Warm evidence-board styling pass for Slaydoku'
 status: To Do
 assignee: []
 created_date: '2026-09-27 12:19'
+updated_date: '2026-09-27 13:30'
 labels:
   - epic
 dependencies: []
@@ -19,7 +20,7 @@ Outcome: the site keeps its board's existing charm (illustrated floor plan, port
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 The warm evidence-board palette (manila background, case-file red accent, warm tan lines) and one shared display font are defined once and consumed by every screen: start, play chrome, cards, about, stats, share
-- [ ] #2 The victim card no longer shows a wrapped gift and the internal gift naming is renamed to victim wording
+- [x] #2 The victim card no longer shows a wrapped gift and the internal gift naming is renamed to victim wording
 - [ ] #3 Board illustrations, room icons, portrait avatars, game logic and every existing test/verify-driver keep passing unchanged
 - [ ] #4 bun run verify:phone (all six viewports) and the all-days rendered-screen sweep show 0 regressions
 <!-- AC:END -->
