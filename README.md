@@ -13,7 +13,7 @@ You need [Bun](https://bun.sh).
 
 ```sh
 bun install
-bun run dev            # dev server; the level list opens at the printed URL, the puzzle lab at /lab
+bun run dev            # dev server; the start screen (today's puzzle) opens at the printed URL, the puzzle lab at /lab
 bun run test           # unit tests (vitest)
 bun run lint           # oxlint
 bun run typecheck      # tsc -b --noEmit
@@ -43,7 +43,7 @@ puzzle file), `bun run pack` (the puzzle pack pipeline), `bun run validate:gener
 | `src/content/` | Demo scene and level, themes for random scenes, the pack pipeline, help text |
 | `src/game/` | Game state, hints, persistence, telemetry |
 | `src/render/` | Board, icons, suspect cards and portraits |
-| `src/ui/` | Screens: level list, play, help, about, lab (dev only), router |
+| `src/ui/` | Screens: start screen and puzzle of the day (`daily`), play, help, about, lab (dev only), router |
 | `src/brand/` | Logo, favicons and share image sources, the site tags and the indexing switch |
 | `src/pwa/` | Offline support and the update notice |
 | `tools/` | Command-line tools (`generate`, `verify`, `pack`, `brand`, `check-share`, `audit-personal`) |

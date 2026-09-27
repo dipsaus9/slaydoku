@@ -11,8 +11,13 @@ import type { PrecacheEntry } from './src/pwa/cache.ts'
 /** Files of the build output that stay out of the precache: the worker itself and files only crawlers or nothing in the app read. */
 const NOT_PRECACHED = /^(sw\.js|robots\.txt|sitemap\.xml|og-image\.png)$/
 
-/** Size budget of the whole precache (raw bytes): the app alone is well under 1 MiB today. The build fails above it; raise it on purpose. */
-const PRECACHE_BUDGET_BYTES = 3 * 1024 * 1024
+/**
+ * Size budget of the whole precache (raw bytes). The app alone is about 0.5 MiB; the rest is the schedule: one lazily loaded chunk per month
+ * (about 45 KB a week, 0.65 MiB for the first 120 days), and all of them are precached so any scheduled day works offline. Raised from 3 to 6 MiB
+ * in SLAY-1.5 for that growth (a 90 day top-up adds about 0.5 MiB, so 6 MiB lasts roughly two years of schedule). The build fails above it;
+ * raise it on purpose, or stop precaching months that are already past (they are never shown again: there is no archive).
+ */
+const PRECACHE_BUDGET_BYTES = 6 * 1024 * 1024
 
 function listFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {

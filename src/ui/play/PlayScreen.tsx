@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { PortraitLook } from '../../content/cast/index.ts'
 import type { Cell, Puzzle } from '../../engine/model/index.ts'
 import { createGameStore, defaultStorage, isPlaced, type GameStore, type StorageLike } from '../../game/index.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
@@ -32,6 +33,8 @@ export interface PlayScreenProps {
   roomStyles?: Partial<Record<string, FloorPattern>>
   /** Own theme art per object id, for random themed boards (see SceneObjectIcons). */
   themeIcons?: Readonly<Record<string, ThemeIconId>>
+  /** The looks of the suspects (one per suspect, in seat order), when the puzzle brings its own (a scheduled day does). Default: drawn from the cast seed. */
+  portraits?: readonly PortraitLook[]
   /** Where progress is saved. Default localStorage; `null` turns saving off. */
   storage?: StorageLike | null
   /** Clock override, for tests. */
@@ -63,7 +66,7 @@ function nextUnplaced(order: readonly string[], from: string, placed: (id: strin
  * through the game store (src/game), so it is undoable, saved per level and auto-checked.
  * Built for iPad Safari in landscape and portrait (see play.css).
  */
-export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, roomStyles, themeIcons, storage, now, castSeed, firstVisitHelp = false }: PlayScreenProps) {
+export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false }: PlayScreenProps) {
   const puzzle = useMemo(() => withCastNames(given, castSeed), [given, castSeed])
   const store = useMemo<GameStore>(
     () => createGameStore({ levelId, puzzle, storage, now }),
@@ -75,7 +78,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, room
   usePauseWhenHidden(store)
   const telemetry = useTelemetry(store, puzzle, levelId, storage, now)
 
-  const cast = useMemo(() => castFor(puzzle, castSeed), [puzzle, castSeed])
+  const cast = useMemo(() => castFor(puzzle, castSeed, portraits), [puzzle, castSeed, portraits])
   const tags = useMemo(() => noteTags(puzzle.people), [puzzle.people])
   const colors = useMemo(() => colorsFor(puzzle.people), [puzzle.people])
   const order = useMemo(

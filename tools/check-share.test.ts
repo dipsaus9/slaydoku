@@ -41,7 +41,7 @@ interface Site {
   manifest?: { status?: number; type?: string; body?: string }
   /** Replaces the served icon files by path. */
   icons?: Record<string, Buffer>
-  /** What `/level/demo` (a clean-URL deep link) answers. Default: the same HTML shell as every other path. */
+  /** What `/play` (a clean-URL deep link) answers. Default: the same HTML shell as every other path. */
   deepLink?: { status?: number; type?: string; html?: (origin: string) => string }
   /** What `/sw.js` answers. Default: JavaScript with `Cache-Control: no-cache`, like the real deployment. A missing file falls to the SPA shell (type text/html). */
   sw?: { status?: number; type?: string; cacheControl?: string | null }
@@ -94,7 +94,7 @@ async function serve(site: Site = {}): Promise<string> {
     } else if (req.url === '/icon-192.png' || req.url === '/icon-512.png') {
       const fallback = req.url === '/icon-192.png' ? ICON_192 : ICON_512
       res.writeHead(200, { 'content-type': 'image/png' }).end(site.icons?.[req.url] ?? fallback)
-    } else if (req.url === '/level/demo' && site.deepLink) {
+    } else if (req.url === '/play' && site.deepLink) {
       const { status = 200, type = 'text/html', html = head } = site.deepLink
       res.writeHead(status, { 'content-type': type, 'x-robots-tag': xRobots }).end(html(origin))
     } else if (req.url === '/sw.js') {
@@ -126,13 +126,13 @@ describe('checkShare', () => {
 
   it('fails when the noindex header is missing, and skips that check with skipHeaders', async () => {
     const url = await serve({ headers: { 'x-robots-tag': '' } })
-    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /level/demo X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
+    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /play X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
     expect(failures(await checkShare(url, { skipHeaders: true }))).toEqual([])
   })
 
   it('fails when a header carries only noindex', async () => {
     const url = await serve({ headers: { 'x-robots-tag': 'noindex' } })
-    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /level/demo X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
+    expect(failures(await checkShare(url))).toEqual(['X-Robots-Tag header', 'deep link /play X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
   })
 
   it('fails on a wrong <title>', async () => {
@@ -234,13 +234,13 @@ describe('checkShare', () => {
   })
 
   describe('deep link (clean URLs)', () => {
-    it('passes when /level/demo returns the HTML shell with the same head tags', async () => {
+    it('passes when /play returns the HTML shell with the same head tags', async () => {
       const checks = await checkShare(await serve())
       expect(checks.filter((c) => c.name.startsWith('deep link')).map((c) => c.name)).toEqual([
-        'deep link /level/demo status 200',
-        'deep link /level/demo is the HTML shell',
-        'deep link /level/demo X-Robots-Tag header',
-        'deep link /level/demo has the same head tags',
+        'deep link /play status 200',
+        'deep link /play is the HTML shell',
+        'deep link /play X-Robots-Tag header',
+        'deep link /play has the same head tags',
         'deep link /about status 200',
         'deep link /about is the HTML shell',
         'deep link /about X-Robots-Tag header',
@@ -249,19 +249,19 @@ describe('checkShare', () => {
       expect(failures(checks)).toEqual([])
     })
 
-    it('fails when the host has no rewrite and /level/demo is a 404', async () => {
+    it('fails when the host has no rewrite and /play is a 404', async () => {
       const url = await serve({ deepLink: { status: 404, type: 'text/plain', html: () => 'Not found' } })
       expect(failures(await checkShare(url))).toEqual([
-        'deep link /level/demo status 200',
-        'deep link /level/demo is the HTML shell',
-        'deep link /level/demo has the same head tags',
+        'deep link /play status 200',
+        'deep link /play is the HTML shell',
+        'deep link /play has the same head tags',
       ])
     })
 
     it('fails when the deep link has other head tags than the root', async () => {
-      const url = await serve({ deepLink: { html: (o) => head(o, { title: 'Attic' }).replace(`${o}/`, `${o}/level/demo`) } })
+      const url = await serve({ deepLink: { html: (o) => head(o, { title: 'Attic' }).replace(`${o}/`, `${o}/play`) } })
       const failed = (await checkShare(url)).filter((c) => !c.ok)
-      expect(failed.map((c) => c.name)).toEqual(['deep link /level/demo has the same head tags'])
+      expect(failed.map((c) => c.name)).toEqual(['deep link /play has the same head tags'])
       expect(failed[0]!.detail).toContain('og:url')
       expect(failed[0]!.detail).toContain('<title>')
     })
@@ -308,7 +308,7 @@ describe('checkShare', () => {
 
     it('fails a page that still says noindex: header, robots meta and deep links', async () => {
       const url = await serve({ mode: 'indexable', headers: { 'x-robots-tag': 'noindex,nofollow' }, html: (o) => head(o) })
-      expect(failures(await checkShare(url, { indexable: true }))).toEqual(['X-Robots-Tag header', 'robots meta', 'deep link /level/demo X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
+      expect(failures(await checkShare(url, { indexable: true }))).toEqual(['X-Robots-Tag header', 'robots meta', 'deep link /play X-Robots-Tag header', 'deep link /about X-Robots-Tag header'])
       expect(failures(await checkShare(url, { indexable: true, skipHeaders: true }))).toEqual(['robots meta'])
     })
 
@@ -460,7 +460,7 @@ describe('hosting config', () => {
 
     it('rewrites every app route to the HTML shell', () => {
       expect(rewrite.destination).toBe('/index.html')
-      for (const path of ['/', '/level/demo', '/level/demo/solved', '/about', '/extras', '/extras/6-easy-home-200', '/lab', '/nonsense']) {
+      for (const path of ['/', '/play', '/play/solved', '/about', '/extras', '/extras/6-easy-home-200', '/lab', '/nonsense']) {
         expect(rewritten(path), path).toBe(true)
       }
     })

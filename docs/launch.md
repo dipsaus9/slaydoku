@@ -39,7 +39,7 @@ bun tools/check-share.ts <url> --indexable   # force the indexable checks
 bun tools/check-share.ts <url> --noindex     # force the noindex checks
 ```
 
-The check reads the mode from `src/brand/site.json`, so run it from the commit that was deployed. In noindex mode it wants the noindex header and meta tag, a `robots.txt` that disallows everybody but the preview bots, and no sitemap. In indexable mode it wants no noindex anywhere, an open `robots.txt` that names the sitemap, and a `sitemap.xml` listing every page. Both modes check the share tags, the share image, the manifest and icons, the `/level/demo` and `/about` deep links and the offline worker. `vite preview` does not apply `vercel.json`, so use `--skip-headers` for a local run.
+The check reads the mode from `src/brand/site.json`, so run it from the commit that was deployed. In noindex mode it wants the noindex header and meta tag, a `robots.txt` that disallows everybody but the preview bots, and no sitemap. In indexable mode it wants no noindex anywhere, an open `robots.txt` that names the sitemap, and a `sitemap.xml` listing every page. Both modes check the share tags, the share image, the manifest and icons, the `/play` and `/about` deep links and the offline worker. `vite preview` does not apply `vercel.json`, so use `--skip-headers` for a local run.
 
 After the flip, also ask Google Search Console and Bing Webmaster Tools to fetch the site (not automated).
 

@@ -71,7 +71,7 @@ export interface HelpContent {
   }
   /** Closes the card. */
   close: string
-  /** Small link on the level list that reopens the card. */
+  /** Small link on the start screen that reopens the card. */
   link: string
 }
 

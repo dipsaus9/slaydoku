@@ -1,38 +1,32 @@
-import type { Level } from '../levels/registry.ts'
-import type { Progress } from '../levels/progress.ts'
-import { resolveRoute, parseRoute } from '../levels/route.ts'
 import { isAboutPath } from '../about/route.ts'
+import { parseRoute } from '../daily/route.ts'
 
-/** The site name: the whole title on the level list, and the suffix everywhere else. */
+/** The site name: the whole title on the start screen, and the suffix everywhere else. */
 export const SITE_TITLE = 'Slaydoku'
 
-/** English wording of the tab titles that are not a level name. */
+/** English wording of the tab titles that are not the site name. */
 export const TITLE_EN = {
-  /** `<level> solved – Slaydoku` on the solved screen. */
-  solved: (levelTitle: string) => `${levelTitle} solved`,
+  /** `Puzzle #43 – Slaydoku` while playing. */
+  puzzle: (n: number) => `Puzzle #${n}`,
   /** `About – Slaydoku` on the About page. */
   about: 'About',
 } as const
 
 /** What the title of a screen is read from. */
 export interface TitleContext {
-  /** Levels in play order. */
-  levels: readonly Level[]
-  progress: Progress
+  /** Number of the puzzle on the clock today, or null when nothing is scheduled today (before the launch, after the last day). */
+  puzzleNumber: number | null
 }
 
 const withSite = (screen: string): string => `${screen} – ${SITE_TITLE}`
 
 /**
- * The tab title of what the path shows. Mirrors the screens: a path the app refuses (locked or
- * unknown level, unsolved solved screen) shows the level list, so it gets the list's title; so
- * does any path the app does not know (`/lab`, junk).
+ * The tab title of what the path shows. Mirrors the screens: the puzzle route names today's puzzle, `/about` the About page; the
+ * start screen, an unknown path (`/lab`, the old `/level/...`) and a puzzle route with nothing scheduled get the site name.
  */
 export function screenTitle(path: string, context: TitleContext): string {
   if (isAboutPath(path)) return withSite(TITLE_EN.about)
-  const { route } = resolveRoute(parseRoute(path), context.levels, context.progress)
-  if (route.kind === 'list') return SITE_TITLE
-  const level = context.levels.find((candidate) => candidate.id === route.levelId)
-  if (!level) return SITE_TITLE
-  return withSite(route.kind === 'solved' ? TITLE_EN.solved(level.title) : level.title)
+  const route = parseRoute(path)
+  if (route.kind === 'play' && context.puzzleNumber !== null) return withSite(TITLE_EN.puzzle(route.n ?? context.puzzleNumber))
+  return SITE_TITLE
 }

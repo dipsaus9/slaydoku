@@ -1,5 +1,5 @@
 // Legend verification driver (CAD-10.9).
-// Drives headless Chrome over the DevTools protocol with touch emulation. On the demo level it opens the Legend from the toolbar
+// Drives headless Chrome over the DevTools protocol with touch emulation. On scheduled puzzles (one 6x6, one 9x9 and one 12x12 day, chosen through the date override, see daily.ts) it opens the Legend from the toolbar
 // and from the how-it-works card, checks that the rows on screen are the rows the scene calls for (computed here
 // from the puzzle files with the same pure function the unit tests use, then compared with the DOM), that the card
 // scrolls inside and closes with its button and by a tap on the backdrop, that tapping a row flashes exactly the
@@ -13,21 +13,18 @@
 // for screenshots; default a folder under the system temp dir, never inside the repo).
 // Exits non-zero when a check fails.
 import { spawn } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { parsePuzzle } from '../../src/engine/model/index.ts'
 import type { Puzzle } from '../../src/engine/model/index.ts'
-import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
 import { legendOf } from '../../src/ui/help/legend.ts'
 import { help } from '../../src/content/help/help.ts'
+import { DAYS, seedStorage } from './daily.ts'
 
-const HERE = import.meta.dir
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const PORT = Number(process.env.CDP_PORT ?? 9353)
 const BASE = process.env.BASE ?? 'http://localhost:5197/'
 const SHOTS = process.env.OUT ?? join(tmpdir(), 'slaydoku-legend-shots')
-const HOUSES = ['demo'] as const
 const VIEWPORTS = (process.env.VIEWPORTS ?? '390x844,844x390,768x1024,1024x768')
   .split(',')
   .map((label) => [label, ...label.split('x').map(Number)] as [string, number, number])
@@ -108,19 +105,14 @@ function check(scenario: string, ok: boolean, detail = '') {
   console.log(ok ? 'PASS' : 'FAIL', viewport, scenario, detail)
 }
 
-// --- the levels ------------------------------------------------------------------------------
-interface Subject { name: string; url: string; puzzle: Puzzle }
-const puzzleFile = (id: string) => {
-  const parsed = parsePuzzle(readFileSync(join(HERE, `../../src/content/${id}/puzzle.json`), 'utf8'))
-  if (!parsed.ok) throw new Error(id)
-  return parsed.value
-}
-const subjects: Subject[] = [
-  ...HOUSES.map((id) => ({ name: id, url: `level/${id}`, puzzle: puzzleFile(id) })),
-]
-// Every level solved and the how-it-works card already seen: written straight into localStorage.
-const progress = JSON.stringify({ version: 2, solved: Object.fromEntries(HOUSES.map((id) => [id, { murdererId: 'x', elapsedMs: 1000, fp: puzzleFingerprint(puzzleFile(id)) }])) })
-const seeded = `localStorage.setItem('slaydoku:progress', ${JSON.stringify(progress)}); localStorage.setItem('slaydoku:help-seen', '{"version":${help.version}}')`
+// --- the puzzles under test ------------------------------------------------------------
+interface Subject { name: string; date: string; puzzle: Puzzle }
+/** The first scheduled day of each of three sizes: a small, a middle and the biggest board. */
+const subjects: Subject[] = [6, 9, 12].map((size) => {
+  const day = DAYS.find((d) => d.size === size)
+  if (!day) throw new Error(`no ${size}x${size} day in the schedule`)
+  return { name: `day${day.n}-${size}x${size}`, date: day.date, puzzle: day.puzzle }
+})
 
 // --- probes ----------------------------------------------------------------------------------
 const near = (a: number, b: number, tol = 2) => Math.abs(a - b) <= tol
@@ -137,8 +129,9 @@ const cellsOf = (cells: readonly { row: number; col: number }[]) => cells.map((c
 async function scenario(subject: Subject, zoomed: boolean) {
   const label = `${subject.name}${zoomed ? ' (2x zoom)' : ''}`
   const legend = legendOf(subject.puzzle.scene)
-  await load(subject.url)
-  check(`${label}: the level is open`, (await count('.play-board')) === 1 && (await count('.play-modal')) === 0)
+  await evaluate(seedStorage(subject.date))
+  await load('play')
+  check(`${label}: the puzzle is open`, (await count('.play-board')) === 1 && (await count('.play-modal')) === 0)
 
   // toolbar: the twelve buttons still fit, Legend sits after Help
   const tb = await evaluate(`JSON.stringify({ labels: [...document.querySelectorAll('.play-tool__label')].map(l => l.textContent), sizes: [...document.querySelectorAll('.play-tool')].map(b => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }), iw: innerWidth, sw: document.documentElement.scrollWidth })`).then((s) => JSON.parse(s as string) as { labels: string[]; sizes: number[][]; iw: number; sw: number })
@@ -232,7 +225,6 @@ for (const [label, w, h] of VIEWPORTS) {
   await send('Runtime.enable')
   await send('Page.navigate', { url: BASE })
   await sleep(1500)
-  await evaluate(seeded)
   for (const subject of subjects) await scenario(subject, false)
   await scenario(subjects[0]!, true)
   await evaluate('localStorage.clear()')

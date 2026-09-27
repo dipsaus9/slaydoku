@@ -3,7 +3,7 @@ import { evaluate, renderClue } from '../engine/clues/index.ts'
 import type { CatalogClue } from '../engine/clues/index.ts'
 import { roomIdAt, sameCell } from '../engine/model/index.ts'
 import type { Cell, PlacedObject, Puzzle } from '../engine/model/index.ts'
-import { demoLevels } from './levels.ts'
+import { demoPuzzle } from './demo/puzzle.ts'
 import { generatedPuzzles } from './generated.testing.ts'
 
 /**
@@ -23,7 +23,7 @@ interface Subject {
   puzzle: Puzzle
 }
 const subjects: Subject[] = [
-  ...demoLevels.map((l) => ({ name: `level ${l.id}`, puzzle: l.puzzle })),
+  { name: 'level demo', puzzle: demoPuzzle },
   ...generatedPuzzles().map((e) => ({ name: `generated puzzle ${e.id}`, puzzle: e.puzzle })),
 ]
 
@@ -65,7 +65,7 @@ const holderCell = (puzzle: Puzzle, clue: { personId: string }): Cell =>
 
 describe('object clues mean the whole object', () => {
   it('covers the demo level and a generated sample of every theme', () => {
-    expect(demoLevels).toHaveLength(1)
+    expect(demoPuzzle.people.length).toBeGreaterThan(0)
     expect(generatedPuzzles().length).toBeGreaterThanOrEqual(30)
   })
 

@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { generateTier } from '../engine/generator/tiers/index.ts'
 import type { TierId } from '../engine/generator/tiers/index.ts'
 import { DEMO_VICTIM_CELLS, demoScene } from '../content/demo/scene.ts'
-import { demoLevels } from '../content/levels.ts'
+import { demoPuzzle } from '../content/demo/puzzle.ts'
 import { combinedGenderLadder, combinedLadder } from '../engine/solvable/testing.fixture.ts'
 import { auditClues, auditHints, walkHints } from './index.ts'
 
-/** The tier each registered level was made for (see the comment in src/content/levels.ts). */
+/** The demo puzzle was made for the easy tier (see src/content/demo/puzzle.ts). */
 const LEVEL_TIERS: Record<string, TierId> = { demo: 'easy' }
+const demoLevels = [{ id: 'demo', puzzle: demoPuzzle }]
 
 describe('the audit works for any puzzle', () => {
   for (const level of demoLevels) {

@@ -1,12 +1,15 @@
 // Phone and iPad verification, one entry point (CAD-10.7): `bun run verify:phone`.
 // Builds the production app, serves it with `vite preview` and runs every driver of this folder against it:
-//   drive.ts    the demo level (place, note, cross, hint, solve), the "How it works" card on first visit, the Help
-//               and Keywords buttons, clean URLs and the old #/ redirect, orientation change
+//   drive.ts    the daily flow on the dev-only date override (2026-10-15 = puzzle #4; daily.ts): the start screen in all its states
+//               (new, continue, solved, before the launch, after the last day) with the live countdown and local time, the midnight
+//               rollover notice with a shifted clock, clean URLs (/, /play, old /level/... and #/ links), the "How it works" card on the
+//               first Play, and a full play-through (place, note, cross, hint, wrong board, solve, result, no replay)
 //   zoom.ts     board zoom: button, two-finger pinch and pan, one-finger play on a zoomed board
 //   legend.ts   the Legend card and the flash of the squares on the board
 //   screens.ts  rendered-screen check: every card text of every person and every drawn object kind's legend row, on the
-//               real page, for the demo level (and pack cases when pack files are on disk)
-//   offline.ts  offline reload, playing offline, coming back online and the update notice after a new deploy
+//               real page, for a sample of 10 scheduled days across the board sizes
+//   offline.ts  offline reload (the month chunk of today's puzzle comes from the precache), playing offline, coming back online and the
+//               update notice after a new deploy
 // at 360x640, 390x844, 430x932 and 844x390 (phone) and 1024x768 and 768x1024 (iPad), all with mobile and touch emulation in
 // headless Chrome. Screenshots and logs go OUTSIDE the repo; the summary at the end lists every suite per viewport.
 //

@@ -1,8 +1,8 @@
-import type { Level } from '../levels/registry.ts'
+import type { LabLevel } from './levels.ts'
 import { LAB_EN } from './strings.ts'
 
 export interface LevelTableProps {
-  levels: readonly Level[]
+  levels: readonly LabLevel[]
   onOpen: (levelId: string) => void
 }
 

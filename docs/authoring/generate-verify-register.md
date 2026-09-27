@@ -1,18 +1,17 @@
-# Generate, verify and register a level
+# Generate, verify and play a puzzle
 
-From a finished scene ([new-scene.md](new-scene.md)) to a playable level in the level list.
+From a finished scene ([new-scene.md](new-scene.md)) to a puzzle you can play. The game itself plays the daily schedule ([schedule.md](schedule.md)), which builds and gates its own puzzles; this page is for trying a scene or a seed by hand.
 
 1. Screen seeds with the ladder generator and pick one.
 2. Dress the puzzle (cast names, "the victim").
 3. Verify it.
-4. Register it in `src/content/levels.ts`.
-5. Play it.
+4. Play it (dev server and the lab).
 
 ## Generators
 
 | Command | Use it for |
 |---|---|
-| `bun tools/ladder.ts --scene <scene> --tier <very-easy\|easy\|easy-medium\|medium> --seed N [--victim r,c] [--cast] [--out f.json]` | **Levels.** The ladder generator plans the order in which a person places the people and the cards each placement uses, so the tier means what a person can do (`docs/solvability/README.md`). It prints the board, the ladder and the clue lines. |
+| `bun tools/ladder.ts --scene <scene> --tier <very-easy\|easy\|easy-medium\|medium> --seed N [--victim r,c] [--cast] [--out f.json]` | **Puzzles.** The ladder generator plans the order in which a person places the people and the cards each placement uses, so the tier means what a person can do (`docs/solvability/README.md`). It prints the board, the ladder and the clue lines. |
 | `bun tools/screen-level.ts --scene <scene> --tier <tier> --victim r,c --from 1 --to 400 [...]` | **Screening.** Runs the ladder generator over a range of seeds and keeps the puzzles that pass the audits and the hint walk, printing their clue lines. |
 | `bun src/engine/generator/tiers/main.ts --scene <scene> --tier <hard\|expert> --seed N [--victim r,c] [--out f.json]` | The older tier generator (score bands, hint solver). Still what makes hard and expert. |
 | `bun run generate --scene <scene> --seed N [--victim r,c] [--out f.json]` | A quick puzzle from a scene with no tier. Handy while checking that a new scene works. |
@@ -60,7 +59,7 @@ To see how often a scene delivers a tier over a run of seeds (success rate and t
 
 ## 2. Write the file
 
-The generator labels suspects A..H and the victim V. A level file carries the cast names and the victim label `the victim`; `--cast` does the
+The generator labels suspects A..H and the victim V. A puzzle file carries the cast names and the victim label `the victim`; `--cast` does the
 relabelling (names and genders from `castFor`, alphabetical by first letter, so `--cast` output is the same on every run):
 
 ```sh
@@ -88,24 +87,17 @@ Result: OK
 stored solution. `Solutions: 2+` means a clue is missing, `0` means clues contradict each other. Exit codes: `0` valid and unique, `1` not, `2` usage or
 unreadable file. What each check proves: U1 to U5 in [rules.md](rules.md).
 
-## 4. Register the level
+## 4. Play it
 
-Edit `src/content/levels.ts`. Levels are registered in play order; level N+1 unlocks when level N is solved.
+There is no level list any more: the game shows the puzzle of the day (`/`, then `/play`), and every puzzle comes from the schedule. To play a puzzle
+you made by hand use the dev-only puzzle lab (`bun run dev`, then `/lab`; it can open a puzzle file and generate new ones), or run the whole schedule
+tool ([schedule.md](schedule.md)) so the scene shows up on a scheduled day.
 
-```ts
-import myLevelJson from './my-level/puzzle.json?raw'
-import { myRoomStyles } from './my-level/scene.ts'
-
-// ... inside the levels array, at the position where it should be played:
-  { id: 'my-level', title: 'My level', puzzle: load('my-level', myLevelJson), roomStyles: myRoomStyles },
-```
-
-- `id`: lowercase letters, digits, `-` and `_`. It is the save slot (`slaydoku:game:<id>`), the progress key and the URL (`/level/<id>`). Never change it
-  once shipped.
-- `title`: English, shown in the level list and above the puzzle.
-- `roomStyles`: the floor per room id from the scene file. A room not listed gets a style guessed from its name (kitchen: tiles, garden: grass, ...), else one
-  cycled from the pattern list.
-- `load` parses the file and throws with a readable list of problems at start-up, so a broken file never fails mid-game.
+To play a scheduled day in the game, run `bun run dev` and open the dev-only date override: `http://localhost:5173/?date=2026-10-15` shows the start
+screen of that UTC day (puzzle #4). The override also works on `localhost` in a production build (`bun run build && bunx vite preview`) and nowhere else;
+`?date=off` removes it. A date with a time (`?date=2026-10-15T23:59:50`) starts the clock at that moment, which is how the midnight notice is tried.
+Progress is stored in the browser's local storage (`slaydoku:game:daily-<n>` for the board, `slaydoku:daily-results` for solved days), so clearing site
+data resets it.
 
 Then:
 
@@ -115,20 +107,10 @@ bun run typecheck
 bun run test
 ```
 
-## 5. Play it
-
-```sh
-bun run dev
-```
-
-Open the printed URL (default `http://localhost:5173/`). The level list shows the levels in order; a new one is locked until the one before it is solved;
-a URL pointing at a locked level (`/level/my-level`) is refused and shows the list. To reach a late level, solve the earlier ones in the browser. Progress is
-stored in the browser's local storage, so clearing site data resets it.
-
 ## If no seed gives a good puzzle
 
 - Try another tier, or a different victim cell, before changing the scene. Look at the counts `tools/screen-level.ts` prints: a big drop between
   "generated" and "pass the audits" or between "audits" and "hint walk" says which gate the scene fails.
 - If the generator reports no puzzle at all (exit 1), the scene is too constrained: check `checkAdmissible` ([new-scene.md](new-scene.md)), and look for a
   room, row or column that leaves almost no free cells.
-- If a scene must change, change it and start again at step 1; a level's puzzle embeds its scene.
+- If a scene must change, change it and start again at step 1; a puzzle embeds its scene.

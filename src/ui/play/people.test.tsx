@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { generate, makePeople } from '../../engine/generator/index.ts'
 import { tutorialPuzzle } from '../../engine/model/tutorial.fixture.ts'
-import { colorsFor, formatTime, GIFT_TAG, noteTags, withCastNames } from './people.ts'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { cardLookOf } from '../../render/cards/index.ts'
+import { readSchedule } from '../../schedule/schedule.testing.ts'
+import { castFor as castFor2, colorsFor, formatTime, GIFT_TAG, noteTags, withCastNames } from './people.ts'
 import { DEMO_VICTIM_CELLS, demoScene } from '../../content/demo/scene.ts'
 import { castFor } from '../../content/cast/index.ts'
 
@@ -70,5 +73,29 @@ describe('formatTime', () => {
     expect(formatTime(65_400)).toBe('1:05')
     expect(formatTime(3_723_000)).toBe('1:02:03')
     expect(formatTime(-5)).toBe('0:00')
+  })
+})
+
+describe('castFor with the portraits of a scheduled day', () => {
+  const day = readSchedule().days[3]!
+  const puzzle = withCastNames(day.puzzle)
+
+  it('shows the baked looks, one per suspect in seat order', () => {
+    const baked = castFor2(puzzle, undefined, day.portraits)
+    const own = castFor2(puzzle)
+    expect(baked.entries.map((e) => e.name)).toEqual(puzzle.people.filter((p) => p.kind === 'suspect').map((p) => p.label))
+    for (const [i, entry] of baked.entries.entries()) {
+      const html = renderToStaticMarkup(<>{entry.look.portrait}</>)
+      expect(html, entry.name).toContain(day.portraits[i]!.skin)
+      expect(entry.look.photo).toBe(cardLookOf(day.portraits[i]!).photo)
+    }
+    expect(baked.lookFor(baked.names[0]!)).toBe(baked.entries[0]!.look)
+    // Not the same as the looks drawn from the default seed: the day's own faces are what the player sees.
+    expect(baked.entries.map((e) => e.look.photo)).not.toEqual(own.entries.map((e) => e.look.photo))
+  })
+
+  it('falls back to the drawn looks when the count does not match', () => {
+    const own = castFor2(puzzle)
+    expect(castFor2(puzzle, undefined, day.portraits.slice(1)).entries.map((e) => e.look.photo)).toEqual(own.entries.map((e) => e.look.photo))
   })
 })

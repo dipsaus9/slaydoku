@@ -23,12 +23,12 @@ How to add content to Slaydoku without the original author. Every command in the
 | `src/engine/solver/` | Exhaustive solver (uniqueness), `verifyPuzzle`, the human-style solver that rates difficulty |
 | `src/engine/generator/` | Puzzle generator; `tiers/` adds the six difficulty tiers |
 | `src/engine/scenegen/` | Random scene generator used by the packs |
-| `src/content/demo/` | The demo house scene and the demo puzzle generated on it |
-| `src/content/levels.ts` | Registers the levels in play order (one demo level for now) |
+| `src/content/demo/` | The demo house scene and the demo puzzle generated on it (a stock sample for the tools, the tests and the lab, not a level of the game) |
 | `src/content/themes/` | Scene themes (home, office, park, school, shop) for random scenes |
 | `src/content/cast/` | The name pool, `castFor` (unique initials, balanced genders, seeded), `castProblems`, the generic portrait designs |
 | `src/content/packs/` | The pack pipeline (build, gates, format, read, sweep); no pack data is committed |
-| `src/schedule/`, `src/content/schedule/` | The daily schedule: the pure picker per UTC date, the build and gates of a day, and the committed month files |
+| `src/schedule/`, `src/content/schedule/` | The daily schedule: the pure picker per UTC date, the build and gates of a day, `today.ts` (which day is on the clock), and the committed month files |
+| `src/game/daily/`, `src/ui/daily/` | The daily flow: the clock and its dev-only date override, the results of solved days, the lazy month loader, the start screen and the puzzle route |
 | `src/render/icons/` | Object icons (engine catalog) and `themes/` (theme-only icons) |
 | `tools/` | The `bun run` entry points: `generate`, `verify`, `pack`, `schedule`, `schedule:check`, `icon-sheet.ts` |
 
@@ -36,7 +36,7 @@ How to add content to Slaydoku without the original author. Every command in the
 
 ```sh
 bun install
-bun run dev            # dev server; open the printed URL, levels show up in the level list
+bun run dev            # dev server; open the printed URL (add ?date=2026-10-15 to play a scheduled day)
 bun run lint           # oxlint
 bun run typecheck      # tsc -b --noEmit
 bun run test           # vitest run, everything except the slow sweeps

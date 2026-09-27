@@ -6,7 +6,7 @@ import { UpdateNotice, updater } from './pwa/index.ts'
 import { getRouter } from './ui/router/index.ts'
 import { installScreenTitles } from './ui/title/index.ts'
 
-// A link shared before the clean URLs (`#/level/demo`) is rewritten once to its path (`/level/demo`).
+// A link shared before the clean URLs (`#/play`) is rewritten once to its path (`/play`).
 getRouter().migrateLegacyHash()
 installScreenTitles()
 

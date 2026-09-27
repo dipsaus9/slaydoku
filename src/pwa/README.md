@@ -15,11 +15,13 @@ The game has one strategy (everything is in the build, nothing is fetched from e
 
 ## What is cached: precache everything, no runtime caching
 
-Every file of the build goes into the cache at install: `index.html`, the hashed `/assets/*` (main JS, CSS, any lazily loaded chunks), the manifest, the icons and favicons. Not cached: `sw.js` itself, `robots.txt`, `sitemap.xml` and `og-image.png` (only crawlers read them). The About page (`/about`) is a clean URL like `/`: the cached `index.html` answers it, so it works offline.
+Every file of the build goes into the cache at install: `index.html`, the hashed `/assets/*` (main JS, CSS, any lazily loaded chunks, the schedule month chunks `/assets/<YYYY-MM>-<hash>.js` included), the manifest, the icons and favicons. Not cached: `sw.js` itself, `robots.txt`, `sitemap.xml` and `og-image.png` (only crawlers read them). The About page (`/about`) is a clean URL like `/`: the cached `index.html` answers it, so it works offline.
 
 Why precache all instead of caching a file the first time it is used: offline play should not depend on what was opened before. A runtime cache-first would leave everything that was never opened unplayable offline. It also keeps files that belong together (an index and the data files it lists) in one cache from one build.
 
-The build fails when the precache goes over 3 MiB raw (`PRECACHE_BUDGET_BYTES` in `vite.config.ts`); raise it on purpose when the content grows (for example when puzzle packs are added). The download happens once in the background after the first load, and again (for a new build) only when the site changes.
+The schedule (SLAY-1.5): the app loads only the month file that holds the day on screen (a dynamic import per month, chunked by Vite; the small `index.json` is in the main bundle), so a normal visit fetches one month chunk. The worker still precaches every month chunk of the build, so any scheduled day is playable offline after the first visit. `docs/verification/offline.ts` checks both: the page fetches one month chunk, the precache holds all of them.
+
+The build fails when the precache goes over 6 MiB raw (`PRECACHE_BUDGET_BYTES` in `vite.config.ts`; it was 3 MiB until the schedule came, about 1.2 MiB used at 120 days). Every month chunk is about 45 KB per week of schedule, so a 90 day top-up adds about 0.5 MiB; raise the budget on purpose when the schedule grows, or stop precaching months that are already past. The download happens once in the background after the first load, and again (for a new build) only when the site changes.
 
 ## Cache versioning
 
@@ -33,7 +35,7 @@ The build fails when the precache goes over 3 MiB raw (`PRECACHE_BUDGET_BYTES` i
 
 ## Request handling (`routeRequest`)
 
-- A page load of any clean URL (`/`, `/level/<id>`, `/level/<id>/solved`, any unknown path) is answered with the cached `index.html`, exactly like the catch-all rewrite in `vercel.json`. The app decides from the path what to show.
+- A page load of any clean URL (`/`, `/play`, `/play/<n>`, `/about`, any unknown path) is answered with the cached `index.html`, exactly like the catch-all rewrite in `vercel.json`. The app decides from the path what to show.
 - A file of the build is answered from the cache. A page load of a path with a file extension that is not in the build (`/robots.txt`) goes to the network, so a missing file is not disguised as the app.
 - Everything else (other origins, non-GET, `/sw.js`) is left to the browser.
 
@@ -55,5 +57,5 @@ While the site is not indexable (`src/brand/site.json`, see `docs/launch.md`), `
 
 - Unit tests: `cache.test.ts` (version, names, cleanup, routing), `updater.test.ts` (update flow with fake registrations), `pwa.test.tsx` (notice text, production-only registration).
 - `bun tools/check-share.ts <url>` also checks `/sw.js`: status 200, a JavaScript content type (not the SPA shell), a revalidating `Cache-Control`.
-- `bun docs/verification/offline.ts` (headless Chrome, needs Chrome): builds and serves the site, waits for the worker to control the page, goes offline with `Network.emulateNetworkConditions`, reloads on `/` and `/level/demo`, plays the demo level, then simulates a new deploy and checks the notice, the reload into the new build, the removal of the old cache and that `localStorage` is identical.
+- `bun docs/verification/offline.ts` (headless Chrome, needs Chrome): builds and serves the site, waits for the worker to control the page, goes offline with `Network.emulateNetworkConditions`, reloads on `/`, `/play` and `/about` (today's puzzle through the date override), plays the puzzle, then simulates a new deploy and checks the notice, the reload into the new build, the removal of the old cache and that `localStorage` is identical.
 - On a real iPad after a deploy: open the site, wait a few seconds, switch on flight mode, open the home-screen app. See `docs/verification`.

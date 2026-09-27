@@ -1,8 +1,8 @@
 /*
- * The one router of the app: History API paths (`/`, `/level/<id>`, `/level/<id>/solved`,
+ * The one router of the app: History API paths (`/`, `/play`, `/play/<n>`, `/about`,
  * and `/lab` in dev). `pushState` and `replaceState` fire no event, so every
  * navigation goes through here and tells the subscribers; `popstate` (back, forward) does the same.
- * The route parsers stay with their screens (levels, lab); they read the path from here.
+ * the route parsers stay with their screens (daily, lab); they read the path from here.
  */
 
 /** The part of `window` the router uses, so tests can hand it a fake. */
@@ -30,7 +30,7 @@ export interface Router {
 
 /**
  * The clean path an old hash URL stands for, or null when the hash is not an old route.
- * `#/level/demo` -> `/level/demo`, `#/` -> `/`. Anything not starting with `#/` is left alone.
+ * `#/play` -> `/play`, `#/` -> `/`. Anything not starting with `#/` is left alone.
  */
 export function legacyHashPath(hash: string): string | null {
   return hash.startsWith('#/') ? hash.slice(1) : null

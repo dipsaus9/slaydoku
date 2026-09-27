@@ -24,11 +24,12 @@ This file records what was removed, replaced or disabled on the way, and what th
   Portraits are generic designs picked by gender slot, not by name. The ladder tools (`ladderCast`, `castGenders`) and the pack cast builder use `castFor`; see `docs/authoring/cast.md`.
 - **One demo level.** `src/content/demo/scene.ts` is a made-up 9x9 house (four rooms). `src/content/demo/puzzle.json` is the ladder generator's output for
   tier easy, seed 2, victim on the sofa (`bun tools/ladder.ts --scene demo --tier easy --seed 2 --victim 9,7 --cast --out src/content/demo/puzzle.json`).
-  `src/content/levels.ts` registers it as level `demo`. `demo` is the built-in scene name of `tools/generate.ts`, `tools/ladder.ts`,
+  It is no longer a level of the game (SLAY-1.5 removed the level registry `src/content/levels.ts`; the game plays the daily schedule): `src/content/demo/puzzle.ts` exports it as `demoPuzzle` for the tools, the tests and the lab. `demo` is the built-in scene name of `tools/generate.ts`, `tools/ladder.ts`,
   `tools/screen-level.ts` and `src/engine/generator/tiers/main.ts`.
 - **Tests that read committed data** now build what they need on the spot: `src/content/generated.testing.ts` (a sample of generated puzzles per theme),
   `src/content/packs/sample.testing.ts` (a small pack), `hardPuzzle()` in `src/game/hints.fixture.ts`. Exact-text pins on personal puzzles became
   pattern checks; house-style checks now run on the tutorial, the demo level, a hard puzzle and the generated sample.
+- **Level list, unlock order, solved screen and level routes (SLAY-1.5).** Replaced by the daily flow (`src/ui/daily`, `src/game/daily`): the start screen at `/` shows today's puzzle, `/play` plays it, a solved day shows its result, and the old `/level/...` paths redirect to `/`. See `docs/authoring/schedule.md` and `docs/verification`.
 - **Home theme.** The attic room is now called "Vliering", and test room names were made neutral.
 - **Names and keys.** The prototype name became `slaydoku` everywhere: the package name, the localStorage keys (`slaydoku:progress`, `slaydoku:game:<id>`,
   `slaydoku:help-seen`, ...), the cache prefix, the page title, the manifest and the share image (regenerated with `bun tools/brand.ts`, no personal
@@ -75,7 +76,7 @@ Removed from `package.json` (the code behind them was measuring the removed cont
    the engine), `src/pwa/strings.ts`, the lab strings, `<html lang>`, `og:locale` and the manifest. `dutch.test.ts` keeps Dutch out of all of it.
 2. **Daily schedule.** One puzzle per UTC day: a schedule (puzzle per date, generated ahead and committed or served), the date-based level id, the
    "next puzzle in ..." state, and a plan for regenerating puzzles without breaking saved boards (`puzzleFingerprint` already guards that).
-3. **Daily flow and sharing.** Replace the level list, unlock order and solved screen with the daily flow; Wordle-like share text (result grid, time,
+3. **Daily flow (done, SLAY-1.5) and sharing.** The level list, unlock order and solved screen are replaced by the daily flow (start screen, `/play`, results per day, midnight notice); still to do: Wordle-like share text (result grid, time,
    hints used); streaks and statistics.
 4. **Extras replacement.** An archive or practice mode on top of the pack pipeline, if wanted. The removed browser had filters by size and tier, saved
    progress per puzzle and offline play of every pack file.

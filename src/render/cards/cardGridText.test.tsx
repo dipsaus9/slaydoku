@@ -4,12 +4,12 @@ import { renderClue } from '../../engine/clues/en.ts'
 import type { CatalogClue } from '../../engine/clues/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
-import { demoLevels } from '../../content/levels.ts'
+import { demoPuzzle } from '../../content/demo/puzzle.ts'
 import { CardGrid } from './CardGrid.tsx'
 
 const strip = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/\s+/g, ' ').trim()
 const named: [string, Puzzle][] = [
-  ['demo', demoLevels[0]!.puzzle],
+  ['demo', demoPuzzle],
   ...generatedPuzzles().map((g): [string, Puzzle] => [g.id, g.puzzle]),
 ]
 const names = named.map(([name]) => name)

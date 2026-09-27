@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createMemoryStorage } from '../levels/progress.ts'
+import { createMemoryStorage } from '../../game/memoryStorage.ts'
 import {
   clearJudgement,
   exportJudgements,

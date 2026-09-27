@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
-import { demoLevels } from '../../content/levels.ts'
+import { demoPuzzle } from '../../content/demo/puzzle.ts'
 import { markupText, missingCardText } from './cardText.ts'
 
 const named: [string, Puzzle][] = [
-  ['demo', demoLevels[0]!.puzzle],
+  ['demo', demoPuzzle],
   ...generatedPuzzles().map((g): [string, Puzzle] => [g.id, g.puzzle]),
 ]
 

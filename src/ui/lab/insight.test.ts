@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { demoLevels } from '../../content/levels.ts'
+import { labLevels as demoLevels } from './levels.ts'
 import { computeMetrics, scoreV2 } from '../../engine/difficulty/index.ts'
 import { withCastNames } from '../play/people.ts'
 import type { CatalogClue } from '../../engine/clues/index.ts'
