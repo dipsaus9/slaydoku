@@ -25,3 +25,4 @@ dist-ssr
 
 # Generation sweep reports (bun run validate:generation)
 /reports/
+.vercel

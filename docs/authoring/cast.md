@@ -12,7 +12,7 @@ Every puzzle has N people: N - 1 suspects and the victim ("the victim", no name,
 - no duplicates, no unusual or hard to read names, no names of real public figures;
 - no name that a hint or clue sentence could contain as a word part (for example a name that is a prefix of "marked").
 
-The personal-data audit (`bun run audit:personal`) scans the pool like any other file; never add a name from the owner's circle.
+Never add a name from the owner's circle.
 
 ## Picking a cast (`castFor`)
 

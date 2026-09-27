@@ -5,7 +5,7 @@ Slaydoku is private for now: the repository, and the site in noindex mode. This 
 Items marked **OWNER-ONLY** change the outside world (visibility, DNS, hosting accounts, repository settings) and are for the owner to run, not for a script or an assistant. Everything else can be run by anyone with the repository.
 
 ```sh
-# Once per shell, from the repository root. No account name is written in this page (the personal-data audit scans it too).
+# Once per shell, from the repository root.
 REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 echo "$REPO"
 ```
@@ -24,33 +24,19 @@ Tick in this order; 1 to 4 can be done while the repository is still private.
 
 - [ ] `LICENSE` is MIT, `Copyright (c) 2026 Slaydoku contributors` (`head -4 LICENSE`); `package.json` says `"license": "MIT"`. Decide that you are fine with everything in the tree being MIT.
 - [ ] Read `README.md` top to bottom as a stranger would. Known to fix before it goes public: the opening still says "**Status: work in progress, not public yet.** The daily flow and the schedule are not built yet. What runs today is one demo level ..." (the daily flow, stats, share card and a 120-day schedule exist now), and it links `MIGRATION.md`, a leftover of the clone from the private prototype: read it and delete or rewrite it (`git grep -n -i migration`).
-- [ ] The README does not mention the private prototype, its language, or any person. `bun run audit:personal` (step 4) enforces the names it knows about, but only you know what else is personal.
+- [ ] The README does not mention the private prototype, its language, or any person. There is no automated check for this any more; read it yourself.
 - [ ] Third-party material: there are no images, fonts or puzzle data of other products. The dependencies are React 19 and build tools (`package.json`), all MIT/Apache; the brand images are drawn in this repository (`src/brand/*.svg`).
 
 ### 3. About page: contact placeholder
 
 - [ ] The About page (`/about`) still says "Contact details will be added here." Replace it with a real way to reach you (a mailbox made for this, or the issue tracker URL once the repository is public). One place: `contact.placeholder` in `src/ui/about/strings.ts`; the test `src/ui/about/about.test.tsx` expects that string ("names the MIT license and holds a contact placeholder"), so change both in the same commit. Find it: `git grep -n "Contact details will be added"`.
-- [ ] Do not put an address in the tree that the personal-data audit does not know about: the audit fails on any e-mail address except `noreply` ones. If you want a contact address on the page, add it to `ALLOWED_EMAIL_MARKERS` in `tools/audit-personal.ts` deliberately (one explicit line), or use a link instead of an address.
+- [ ] There is no automated check for a stray e-mail address any more, so read the tree yourself before adding a contact address, or use a link instead of an address.
 - [ ] Read the rest of the About page once on the live site: how it works, the Murdoku credit, privacy (everything stays on the device, no accounts, no tracking), the license line.
 
-### 4. Personal-data audit and secrets scan (tree and history)
+### 4. Secrets scan (tree and history)
 
-- [ ] The personal-data audit is green for the working tree **and the whole git history**:
+There is no automated personal-data audit any more (removed 2026-09-27: the account name is public anyway once the repository is public, as part of `github.com/<account>/slaydoku`, and Cadeauko's own content never entered this repository's history — its first commit was only made after a manual check found nothing of it). Read the README, the About page and the cast pool yourself before going public (steps 2, 3 and the cast rule in docs/authoring/cast.md).
 
-  ```sh
-  bun run audit:personal
-  ```
-
-  It scans every file of the tree, then every commit message, every ref name and annotated tag message, every file name that ever existed and every file version reachable from any ref, with the same deny-list (base64 in `tools/audit-personal.ts`). The one allowance is the author and committer identity of the owner as commit metadata (name and address as a pair): it is read from `git config user.name` and `user.email` on your machine, or from `AUDIT_ALLOWED_IDENTITY="Name <address>"`, and never from the tree. Cost: about half a second for this repository (59 commits, 1016 file versions); it grows linearly with the history (every unique file version is read once, one `git cat-file --batch` pass), so a history ten times larger takes seconds, not minutes. A shallow clone is refused.
-
-  In CI (`.github/workflows/ci.yml`) the job checks out the full history (`fetch-depth: 0`) and reads the allowed identity from the repository **variable** `AUDIT_ALLOWED_IDENTITY`. Set it once (a variable, not a secret; the value is the same as your commit identity):
-
-  ```sh
-  gh variable set AUDIT_ALLOWED_IDENTITY --repo "$REPO" --body "$(git config user.name) <$(git config user.email)>"
-  ```
-
-  Until it is set, CI fails on the commits of the owner, and the message says so.
-- [ ] **Merge commit messages.** GitHub writes `Merge pull request #N from <account>/<branch>` into the message of every merge commit made with the Merge button, and that subject contains the owner's GitHub account name (deny-list rule `account`). Decision taken while the owner was away (2026-09-27; reverse it if you disagree): the account name is public anyway as part of `github.com/<account>/slaydoku`, so the audit allows exactly that one form: the owner segment of a first-line `Merge pull request #N from <owner>/<branch>`, for the `account` rule only (`withoutMergeOwner` in `tools/audit-personal.ts`, tested). The branch part, later lines, every other subject and every other rule stay strict. History is not rewritten. Still recommended, so the history gets no new such lines: merge with **Squash and merge** from now on (Settings, General, Pull Requests: untick "Allow merge commits"). If you would rather not have the account name in any commit message at all, remove the allowance and rewrite the history before going public (destructive, owner-only, invalidates every open branch and PR). Run `bun run audit:personal` after either.
 - [ ] Secrets scan of the tree and of every revision of the history, without any service (it also works on a private repository):
 
   ```sh
@@ -112,7 +98,7 @@ The Vercel project `slaydoku` exists (created with the CLI) but is **not connect
   gh run watch "$(gh run list --workflow schedule-top-up.yml --limit 1 --json databaseId -q '.[0].databaseId')" --exit-status
   ```
 
-- [ ] The repository variable `AUDIT_ALLOWED_IDENTITY` is set (step 4) and CI is green on main.
+- [ ] CI is green on main.
 
 ### 7. Branch protection (suggested)
 
@@ -126,8 +112,6 @@ Solo owner, so keep it light: no rule that needs a second reviewer. Branch prote
     -F enforce_admins=false -F required_pull_request_reviews=null -F restrictions=null \
     -F allow_force_pushes=false -F allow_deletions=false
   ```
-
-- [ ] While you are in Settings, General: untick "Allow merge commits" and keep "Allow squash merging" (see the merge commit finding in step 4).
 
 ### 8. The indexing switch
 
@@ -184,7 +168,6 @@ Only when steps 1 to 10 are done. This cannot be undone by a script: once public
   ```sh
   git fetch origin && git switch main && git merge --ff-only origin/main
   bun run lint && bun run typecheck && bun run test --maxWorkers=1 && bun run build
-  bun run audit:personal            # tree and history: 0 hits
   ```
 
 - [ ] **OWNER-ONLY.** Flip the visibility:

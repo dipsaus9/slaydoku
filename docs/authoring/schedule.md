@@ -134,7 +134,7 @@ and `index.json`). Read the diff, then merge it. Merge it well before the days r
    pull request is still open and main is under 30). A red run is the alarm: read the message in the run.
 
 Pull requests opened with the workflow's own token do not start other workflows: CI does not run on the top-up PR. Close and reopen it (a human action) to run CI, or run
-`bun run lint`, `typecheck`, `test --maxWorkers=1` and `audit:personal` on the branch. Vercel builds main only.
+`bun run lint`, `typecheck` and `test --maxWorkers=1` on the branch. Vercel builds main only.
 
 **Settings the owner must enable** (the workflow declares `contents: write` and `pull-requests: write`, but a repository setting can still forbid PRs):
 
@@ -179,7 +179,7 @@ before the problem day, so the schedule does not run dry. A red run with "Schedu
    range with the same code gives the same bytes, so the normal case is a diff with only added days. If a change to the generator or a gate makes old days come out different,
    do not overwrite the days people have already played: extend from the last day and let the change apply to new days only.
 4. Check the diff: new lines only, `index.json` count, last date and month lines changed. Read `reports/schedule/report.md` for retries and fallbacks.
-5. `bun run lint`, `typecheck`, `test --maxWorkers=1` and `audit:personal`; run `bun run test:slow` for the full re-verification.
+5. `bun run lint`, `typecheck` and `test --maxWorkers=1`; run `bun run test:slow` for the full re-verification.
 
 A fallback day's cast depends on the day before it. When extending, the day before is read from the folder; if you generate into another `--out` folder, extend from a
 folder that holds it, or that fallback day may get another cast than in the committed run.
