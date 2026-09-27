@@ -8,6 +8,25 @@ Story SLAY-1.10. Run 2026-09-27 on the production build of branch `SLAY-1.10/lau
 - No product defect found. Changes in this story: the new About checks in the drive suite, the history scan in the audit tool (with tests), and the CI workflow (full checkout, allowed-identity variable).
 - Not part of this run: the production check (see "Production check"); the history audit is discussed under "Other checks".
 
+## 2026-09-27 — SLAY-2.7: warm evidence-board styling pass, no regressions
+
+Story SLAY-2.7, on branch `SLAY-2.7/styling-verification` (origin/main 5939fa3, the tip after SLAY-2.1 through SLAY-2.6 — design tokens, and the start, play-chrome, cards, about/stats and share/OG restyles — had all landed).
+
+**Result: 2736 browser checks on six viewports, 0 failures, plus 1174 checks on all 120 scheduled days (the all-days rendered-screen sweep), 0 failures.** `bun run lint`, `typecheck`, `test --maxWorkers=1` (136 files, 2553 tests) and `build` are all green.
+
+Commands run (from the repo root, `OUT` outside the repo):
+
+```sh
+bun run verify:phone
+ALL=1 SUITES=screens VIEWPORTS=390x844 bun run verify:phone
+```
+
+One regression found and fixed, in this story's own files (`docs/verification/`, its declared References — not a restyle-story fix): the `share` suite's `probeBlob` pixel sampler (`docs/verification/share.ts`) still tested the share card's panel for literal white (`>250,>250,>250`). SLAY-2.6 intentionally moved that panel from white to the warm evidence-board cream (`card.ts`'s `PANEL`, `#fdf8ec`) — by design, not a defect — so every `share` check that samples the panel failed across all six viewports (12 failures: 2 checks x 6 viewports; the brand-blue/`ACCENT` pixels were untouched and still matched). Fixed by sampling for `PANEL`'s exact tone instead, the same tolerance style already used for the blue/`ACCENT` check (commit `40dd53c`). Re-run after the fix: 0 failures.
+
+No other regression: every other suite (drive, zoom, legend, screens, stats, offline) was green first try, on every viewport, both in this run and in the all-days sweep — the warm-token pass (SLAY-2.1–2.6) changed only colour, type and motion, never the DOM structure, board illustrations, room icons, portrait avatars, or drawn game logic these drivers probe.
+
+Screenshots and logs: outside the repo (regenerate with the commands above); not archived by this story.
+
 ## How it was run
 
 Commands, with `OUT` pointing outside the repo:
