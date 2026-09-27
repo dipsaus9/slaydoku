@@ -1176,7 +1176,7 @@ button.play-legend__row:focus-visible {
   }
 
   .play-cards .polaroid__name,
-  .play-cards .polaroid--gift .polaroid__name {
+  .play-cards .polaroid--victim .polaroid__name {
     font-size: 1.1rem;
   }
 
