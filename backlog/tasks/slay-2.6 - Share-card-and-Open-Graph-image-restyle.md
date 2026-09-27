@@ -1,9 +1,10 @@
 ---
 id: SLAY-2.6
 title: Share card and Open Graph image restyle
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-27 12:21'
+updated_date: '2026-09-27 13:35'
 labels:
   - story
 dependencies:
@@ -27,7 +28,7 @@ Branch: SLAY-2.6/share-card-restyle
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 src/share/card.ts draws the 1200x630 and square PNG with the warm evidence-board palette; the display font is loaded for the headline text via the FontFace API before drawing, falling back to the existing system stack if it fails to load in time
+- [x] #1 src/share/card.ts draws the 1200x630 and square PNG with the warm evidence-board palette; the display font is loaded for the headline text via the FontFace API before drawing, falling back to the existing system stack if it fails to load in time
 - [ ] #2 src/brand/og-image.svg is redrawn with the same palette (static SVG, no font-loading concern)
 - [ ] #3 src/ui/share/share.css consumes the shared tokens for the share sheet UI
 - [ ] #4 share.test.ts, share.test.tsx and tools/check-share.ts against a local preview build all pass unchanged
@@ -37,7 +38,7 @@ Branch: SLAY-2.6/share-card-restyle
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Update card.ts's draw calls to the new colors and load the display font via FontFace before drawing (system fallback on failure/timeout). 2. Redraw og-image.svg by hand with the same palette. 3. Apply tokens to share.css. 4. Run the share test files and tools/check-share.ts against a local build.
+1. card.ts: repoint PAPER/PANEL(was WHITE)/LINE to the SLAY-2.1 tokens (color-bg/color-paper/color-line); keep ACCENT/AMBER/RED/MUTED pinned to their current hex since they encode the emoji-matching strip + pill state (blue/amber/red = placed/hint/wrong), which AC5 forbids changing. Add loadDisplayFont(): fetches the self-hosted Fraunces woff2, verifies it with the FontFace API, races a timeout, and on success returns a font-family + an @font-face style (base64-embedded, since an SVG used as an <img>/canvas source never fetches its own external resources) to draw the wordmark headline with; on failure/timeout returns the existing system stack unchanged. cardSvg gains an optional 4th param carrying that choice, defaulting to the system stack so every existing call (incl. the tests) draws exactly as before. 2. Redraw og-image.svg by hand: same bg/panel/line hex swap; keep the mystery-tile blue/amber; tagline can move to the case-file red accent (no test pins its color). 3. share.css: alias --ink/--accent/--line/--paper/--good onto var(--color-*) on .share (matching daily.css/play.css's SLAY-2.2/2.3 pattern), drop the hardcoded hex fallbacks, .share__preview/.share__text move to var(--color-bg), .share__title picks up var(--font-display). 4. Wire useShare.ts: call loadDisplayFont() once in an effect, feed the result into the cardSvg memo. 5. Run lint/typecheck/test after each slice; no share text/emoji/format.ts/emoji.ts touched.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes

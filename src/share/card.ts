@@ -5,11 +5,16 @@ import { capitalize, dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel
 import { siteLabel } from './site.ts'
 import type { ShareMeta } from './types.ts'
 
-/** Brand colours (src/brand/icon.svg, index.css). */
+/**
+ * Brand colours. INK/PAPER/PANEL/LINE are the warm evidence-board surface tones (src/brand/tokens.css's
+ * --color-ink/--color-bg/--color-paper/--color-line, SLAY-2.1). ACCENT/AMBER/RED stay pinned to their original hex
+ * rather than following the tokens' case-file-red accent: they are the same three colours as the share emoji
+ * (🟦🟨🟥, see emoji.ts), so the card and the text must keep matching each other, not the rest of the site's chrome.
+ */
 const INK = '#2a2a36'
-const PAPER = '#f5f3ef'
-const WHITE = '#ffffff'
-const LINE = '#d3cec4'
+const PAPER = '#f7f2e6'
+const PANEL = '#fdf8ec'
+const LINE = '#cbb994'
 const ACCENT = '#2b7de9'
 const AMBER = '#e0a43a'
 const RED = '#d95b4b'
@@ -19,8 +24,59 @@ const MUTED = '#5d5d6b'
 const STRIP_FILL: Record<StripCell, string> = { placed: ACCENT, hint: AMBER, wrong: RED }
 const STRIP_WORDS: Record<StripCell, string> = { placed: 'placed', hint: 'hint', wrong: 'wrong check' }
 
-/** System fonts only: nothing is fetched, and the card looks about the same on every device. */
+/** System fonts only: nothing is fetched, and the card looks about the same on every device. The default headline font (see HeadlineFont below). */
 const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+
+/** The self-hosted display font (public/fonts/, same file as src/brand/tokens.css's --font-display). */
+const FONT_URL = '/fonts/fraunces-variable-latin.woff2'
+/** Font-family list to draw the headline with once the display font is loaded, matching --font-display exactly. */
+const FONT_DISPLAY = "'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif"
+/** How long to wait for the display font before drawing with the system stack instead (ms). */
+const FONT_TIMEOUT_MS = 400
+
+/** The plain system stack: what cardSvg draws the headline with by default, and what loadDisplayFont falls back to. */
+const SYSTEM_HEADLINE: HeadlineFont = { family: FONT }
+
+/** What to draw the card's headline (the "Slaydoku" wordmark) with. */
+export interface HeadlineFont {
+  /** Font-family list for the headline text. */
+  family: string
+  /**
+   * An `@font-face` rule to embed in the card's own `<defs>`, or undefined for the plain system stack. A data URI,
+   * not a URL: an SVG used as an `<img>`/canvas source never fetches its own external resources (no network
+   * request, no custom font), so the only way the display font can actually appear in the drawn PNG is inlined.
+   */
+  fontFace?: string
+}
+
+const toBase64 = (bytes: Uint8Array): string => {
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary)
+}
+
+/**
+ * Loads the display font (Fraunces) and returns what to draw the headline with. Fetches the font file, verifies it
+ * parses with the FontFace API, and races that against `timeoutMs` — a slow or blocked network must never hold up
+ * or blank the card. On success the bytes are embedded as a base64 `@font-face` (see HeadlineFont). On any failure
+ * or timeout this resolves the plain system stack, exactly what the card drew before this existed. Browser only:
+ * anywhere without `fetch`/`FontFace` (SSR, tests) resolves the fallback immediately, no work attempted.
+ */
+export async function loadDisplayFont(url: string = FONT_URL, timeoutMs: number = FONT_TIMEOUT_MS): Promise<HeadlineFont> {
+  if (typeof fetch === 'undefined' || typeof FontFace === 'undefined') return SYSTEM_HEADLINE
+  try {
+    const load = (async (): Promise<string> => {
+      const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer())
+      await new FontFace('Fraunces', bytes).load()
+      return toBase64(bytes)
+    })()
+    const timeout = new Promise<never>((_resolve, reject) => setTimeout(() => reject(new Error('display font load timed out')), timeoutMs))
+    const base64 = await Promise.race([load, timeout])
+    return { family: FONT_DISPLAY, fontFace: `<style>@font-face{font-family:'Fraunces';font-weight:300 900;font-style:normal;src:url(data:font/woff2;base64,${base64}) format('woff2');}</style>` }
+  } catch {
+    return SYSTEM_HEADLINE
+  }
+}
 
 export const escapeXml = (text: string): string =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
@@ -34,10 +90,11 @@ interface TextOptions {
   weight?: number
   fill?: string
   anchor?: 'start' | 'middle' | 'end'
+  font?: string
 }
 
-function text(content: string, { x, y, size, weight = 400, fill = INK, anchor = 'start' }: TextOptions): string {
-  return `<text x="${num(x)}" y="${num(y)}" font-family="${FONT}" font-size="${num(size)}" font-weight="${weight}" fill="${fill}" text-anchor="${anchor}" style="font-variant-numeric:tabular-nums">${escapeXml(content)}</text>`
+function text(content: string, { x, y, size, weight = 400, fill = INK, anchor = 'start', font = FONT }: TextOptions): string {
+  return `<text x="${num(x)}" y="${num(y)}" font-family="${font}" font-size="${num(size)}" font-weight="${weight}" fill="${fill}" text-anchor="${anchor}" style="font-variant-numeric:tabular-nums">${escapeXml(content)}</text>`
 }
 
 /** The app icon (src/brand/icon.svg, 64 units) as a group: the dark tile with the room grid and the magnifying glass. */
@@ -51,9 +108,9 @@ function iconTile(x: number, y: number, size: number): string {
   )
 }
 
-/** The wordmark: the icon tile and the name. */
-function wordmark(x: number, y: number, tile: number, size: number): string {
-  return iconTile(x, y, tile) + text('Slaydoku', { x: x + tile + tile * 0.28, y: y + tile * 0.5 + size * 0.34, size, weight: 800 })
+/** The wordmark: the icon tile and the name, the card's headline (see HeadlineFont). */
+function wordmark(x: number, y: number, tile: number, size: number, font: string): string {
+  return iconTile(x, y, tile) + text('Slaydoku', { x: x + tile + tile * 0.28, y: y + tile * 0.5 + size * 0.34, size, weight: 800, font })
 }
 
 /** The difficulty pill, its width taken from the text (system fonts differ a little, so it has room to spare). */
@@ -61,7 +118,7 @@ function pill(label: string, x: number, y: number, size: number, anchor: 'start'
   const height = size * 2
   const width = label.length * size * 0.6 + size * 1.8
   const left = anchor === 'middle' ? x - width / 2 : x
-  return `<rect x="${num(left)}" y="${num(y)}" width="${num(width)}" height="${num(height)}" rx="${num(height / 2)}" fill="${ACCENT}"/>` + text(label, { x: left + width / 2, y: y + height / 2 + size * 0.35, size, weight: 700, fill: WHITE, anchor: 'middle' })
+  return `<rect x="${num(left)}" y="${num(y)}" width="${num(width)}" height="${num(height)}" rx="${num(height / 2)}" fill="${ACCENT}"/>` + text(label, { x: left + width / 2, y: y + height / 2 + size * 0.35, size, weight: 700, fill: PANEL, anchor: 'middle' })
 }
 
 /** The strip of squares, one per person, its width fixed to `width` at most. Returns the markup and the height. */
@@ -103,10 +160,10 @@ interface Parts {
   cells: StripCell[]
 }
 
-function wide(p: Parts): string {
+function wide(p: Parts, headlineFont: string): string {
   return (
-    `<rect width="1200" height="630" fill="${PAPER}"/><rect x="32" y="32" width="1136" height="566" rx="36" fill="${WHITE}" stroke="${LINE}" stroke-width="2"/>` +
-    wordmark(84, 72, 72, 46) +
+    `<rect width="1200" height="630" fill="${PAPER}"/><rect x="32" y="32" width="1136" height="566" rx="36" fill="${PANEL}" stroke="${LINE}" stroke-width="2"/>` +
+    wordmark(84, 72, 72, 46, headlineFont) +
     text(p.number, { x: 84, y: 214, size: 38, weight: 700 }) +
     text(p.date, { x: 84, y: 254, size: 26, fill: MUTED }) +
     pill(p.tier, 84, 284, 24) +
@@ -119,11 +176,11 @@ function wide(p: Parts): string {
   )
 }
 
-function square(p: Parts): string {
+function square(p: Parts, headlineFont: string): string {
   return (
-    `<rect width="1080" height="1080" fill="${PAPER}"/><rect x="36" y="36" width="1008" height="1008" rx="44" fill="${WHITE}" stroke="${LINE}" stroke-width="2"/>` +
+    `<rect width="1080" height="1080" fill="${PAPER}"/><rect x="36" y="36" width="1008" height="1008" rx="44" fill="${PANEL}" stroke="${LINE}" stroke-width="2"/>` +
     iconTile(492, 88, 96) +
-    text('Slaydoku', { x: 540, y: 258, size: 62, weight: 800, anchor: 'middle' }) +
+    text('Slaydoku', { x: 540, y: 258, size: 62, weight: 800, anchor: 'middle', font: headlineFont }) +
     text(p.number, { x: 540, y: 340, size: 48, weight: 700, anchor: 'middle' }) +
     text(p.date, { x: 540, y: 386, size: 30, fill: MUTED, anchor: 'middle' }) +
     pill(p.tier, 540, 424, 28, 'middle') +
@@ -138,10 +195,11 @@ function square(p: Parts): string {
 /**
  * The share card as an SVG document: wordmark, puzzle number, date, difficulty pill, the time big, the hints, a strip of one square per
  * person (see `stripCells`) and the site. Two designs: a landscape one (1200x630 units) and a square one (1080x1080); `width` and
- * `height` set the size of the picture, which scales the design. Text and coloured shapes only: no images, no web fonts, no scripts,
- * nothing fetched. It carries the labels of the puzzle and never its solution, names or clues.
+ * `height` set the size of the picture, which scales the design. Shapes and text only: no images, no script, nothing fetched by the SVG
+ * itself — `headline` (default: the plain system stack) is the one already-resolved choice from `loadDisplayFont`, embedded inline when
+ * it carries a font. It carries the labels of the puzzle and never its solution, names or clues.
  */
-export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }: { width: number; height: number }): string {
+export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }: { width: number; height: number }, headline: HeadlineFont = SYSTEM_HEADLINE): string {
   const isWide = width / height > 1.2
   const parts: Parts = {
     number: `Puzzle #${result.n}`,
@@ -156,7 +214,8 @@ export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }:
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${vw} ${vh}" role="img" aria-labelledby="card-title">` +
     `<title id="card-title">${escapeXml(cardDescription(result, meta))}</title>` +
-    (isWide ? wide(parts) : square(parts)) +
+    (headline.fontFace ?? '') +
+    (isWide ? wide(parts, headline.family) : square(parts, headline.family)) +
     '</svg>'
   )
 }
