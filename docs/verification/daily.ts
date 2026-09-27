@@ -11,9 +11,9 @@ export const DAYS: readonly ScheduleDay[] = schedule.days
 export const INDEX = schedule.index
 
 /** A date with a puzzle that the drive, zoom and offline runs play (puzzle #4, hard 9x9). */
-export const PLAY_DATE = '2026-10-15'
-/** A date before the launch date: "Slaydoku starts on 12 October". */
-export const PRELAUNCH_DATE = '2026-10-01'
+export const PLAY_DATE = '2026-09-30'
+/** A date before the launch date: "Slaydoku starts on 27 September". */
+export const PRELAUNCH_DATE = '2026-09-16'
 /** The day after the last scheduled day: "New puzzles are coming soon". */
 export const AFTER_DATE = addDays(INDEX.last, 1)
 

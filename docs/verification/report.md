@@ -27,6 +27,19 @@ No other regression: every other suite (drive, zoom, legend, screens, stats, off
 
 Screenshots and logs: outside the repo (regenerate with the commands above); not archived by this story.
 
+## 2026-09-27 (later) — Launch date moved to today
+
+Owner decision, chore branch `chore/launch-date-today` (not a backlog story): the games could start right away rather than wait for the placeholder `2026-10-12`. `LAUNCH_DATE` in `src/schedule/launch.ts` is now `2026-09-27`; the 120-day schedule was regenerated from that date (`bun run schedule --start 2026-09-27 --days 120 --launch 2026-09-27`, `2026-09-27` to `2027-01-24`, 0 fallbacks) and every place that named a date (`docs/daily-flow.md`, `docs/launch.md`, `docs/authoring/schedule.md`, the verification drivers' date-override constants) was updated to match.
+
+Fixed along the way, all pre-existing test/driver assumptions that this move exposed rather than product defects:
+- `tools/schedule.test.ts`: read the real committed schedule and hardcoded the old launch/window dates throughout — updated to the new ones.
+- `src/schedule/pick.test.ts`: assumed the launch date is always a Monday (true of the old placeholder, not of every date the owner might pick); `weeks()` now buckets by the real UTC week (`weekStartOf`) instead of naive 7-day chunks from day 0, so a partial head or tail week is handled correctly for any launch weekday.
+- `src/schedule/schedule.test.ts`: the tamper test poked `days[3]`/`days[4]` of the first committed month file, which only has 4 days now that the schedule starts a few days before month-end; moved to `days[0]`/`days[1]`.
+- `src/ui/daily/daily.test.tsx`, `docs/verification/daily.ts`, `docs/verification/drive.ts`, `docs/verification/offline.ts`: the fixed dev-only date-override day (`PLAY_DATE`, "puzzle #4, hard 9x9") is now `2026-09-30` instead of `2026-10-15` — same puzzle number and difficulty, new calendar date and weekday text.
+- `docs/verification/drive.ts`'s "how it works" scenario tapped a fixed board coordinate (`cellSel(1, 1)`) to test note-writing; the new puzzle at `2026-09-30` happens to have a piece of furniture there, so the tap landed on decoration instead of the board cell. Replaced with a solution cell (index 1, never the victim's), the same reliable pattern already used by the other scenarios in this file.
+
+**Result after every fix: 2742 browser checks on six viewports, 0 failures, plus 1175 checks on the all-days sweep, 0 failures.** `bun run lint`, `typecheck`, `test --maxWorkers=1` (136 files, 2553 tests) and `build` are all green.
+
 ## How it was run
 
 Commands, with `OUT` pointing outside the repo:
@@ -133,7 +146,7 @@ For a real phone and an iPad, in iOS Safari and Android Chrome, and again from t
 **The clock**
 - [ ] `Ends in` counts down live, and `Ends at 00:00 UTC (HH:MM your time)` shows your real local time.
 - [ ] After solving: `Next puzzle in` and `New puzzle at 00:00 UTC (...)`.
-- [ ] Before the launch date: `Slaydoku starts on 12 October` and `Starts at 00:00 UTC (...)`.
+- [ ] Before the launch date: `Slaydoku starts on 27 September` and `Starts at 00:00 UTC (...)`. (Moot for now: the launch date is already today.)
 - [ ] Midnight with the app open in launch week: `New puzzle available` and `Show puzzle #N`; a puzzle in progress is not switched away.
 
 **Sharing**

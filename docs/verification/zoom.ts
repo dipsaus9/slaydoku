@@ -1,6 +1,6 @@
 // Board-zoom verification driver.
 // Drives headless Chrome over the DevTools protocol with touch emulation and checks the board zoom of the play
-// screen on the puzzle of 2026-10-15 (date override, see daily.ts; a 9x9 board): the toolbar button (1x/2x), two-finger pinch and pan (two real touch points via
+// screen on the puzzle of 2026-09-30 (date override, see daily.ts; a 9x9 board): the toolbar button (1x/2x), two-finger pinch and pan (two real touch points via
 // Input.dispatchTouchEvent), clamping, one-finger notes / long-press placement / drag-notes on a zoomed board landing
 // on the right square, a pinch cancelling a running one-finger gesture, hints coming into view, and the reset on
 // restart, on leaving the puzzle and on reload. The "right square" is computed independently of the app: from where the

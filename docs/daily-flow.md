@@ -6,7 +6,7 @@ What a player sees, where it lives in the code and what it stores. Story SLAY-1.
 
 | URL | Screen |
 |---|---|
-| `/` | Start screen: `Puzzle #N`, the UTC date, difficulty (Very easy, Easy, Easy-medium, Medium, Hard, Expert), grid size, **Play** (or **Continue** when a board is saved), and a live countdown to 00:00 UTC with the local time (`Ends at 00:00 UTC (02:00 your time)`). A solved day shows its result (time, hints, the murderer) instead of Play, and `Next puzzle in ...`. Before the launch date: `Slaydoku starts on 12 October` with a countdown. After the last scheduled day: `New puzzles are coming soon`. |
+| `/` | Start screen: `Puzzle #N`, the UTC date, difficulty (Very easy, Easy, Easy-medium, Medium, Hard, Expert), grid size, **Play** (or **Continue** when a board is saved), and a live countdown to 00:00 UTC with the local time (`Ends at 00:00 UTC (02:00 your time)`). A solved day shows its result (time, hints, the murderer) instead of Play, and `Next puzzle in ...`. Before the launch date: `Slaydoku starts on 27 September` with a countdown. After the last scheduled day: `New puzzles are coming soon`. |
 | `/play`, `/play/<n>` | The puzzle of the day on the existing play screen (hints, zoom, legend). `/play/<n>` only works for the day on screen (no archive). The How it works card opens by itself on the first Play. A solved day, an unscheduled day or another number goes back to `/`. |
 | `/about` | About page, linked from the start screen footer. |
 | anything else, old `/level/...` | Replaced by `/`. |
@@ -19,7 +19,7 @@ The app trusts the device clock in UTC: no clock check, no server time. `src/sch
 
 ## The date override (dev and tests only)
 
-`?date=2026-10-15` (noon UTC of that day) or `?date=2026-10-15T23:59:50` (that UTC moment, then the clock runs on) sets the clock. The value is copied into localStorage (`slaydoku:dev-date`) so reloads and clean-URL navigation keep it; `?date=off` removes it. It works only in `bun run dev` or when the page host is `localhost` (a production build served by `vite preview` counts); on any other host both the URL parameter and the key are ignored (`src/game/daily/clock.ts`, tested in `clock.test.ts`, and checked in `docs/verification/drive.ts` on the host `[::1]`). Scheduled dates: 2026-10-12 to 2027-02-08.
+`?date=2026-09-30` (noon UTC of that day) or `?date=2026-09-30T23:59:50` (that UTC moment, then the clock runs on) sets the clock. The value is copied into localStorage (`slaydoku:dev-date`) so reloads and clean-URL navigation keep it; `?date=off` removes it. It works only in `bun run dev` or when the page host is `localhost` (a production build served by `vite preview` counts); on any other host both the URL parameter and the key are ignored (`src/game/daily/clock.ts`, tested in `clock.test.ts`, and checked in `docs/verification/drive.ts` on the host `[::1]`). Scheduled dates: 2026-09-27 to 2027-01-24.
 
 ## What is stored (localStorage)
 
