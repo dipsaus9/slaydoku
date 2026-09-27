@@ -10,6 +10,9 @@
 // The ONE allowance: the author and committer fields of a commit (name and e-mail, as a pair) may be the owner's identity. It is
 // read from the repository's git config (user.name, user.email) at run time or from AUDIT_ALLOWED_IDENTITY ("Name <e-mail>"),
 // never written into the tree, and it applies to those metadata fields only: a message, a ref or a file that holds the same words is a hit.
+// The ONE other allowance: the owner segment of GitHub's own merge subject ("Merge pull request #N from <owner>/<branch>"), for the
+// `account` rule only. The account name is public in the repository URL, and a Merge-button merge writes it into the subject; the
+// rest of the subject (the branch) and every other rule stay strict. Squash-and-merge avoids the line altogether (docs/launch.md).
 // Prints `file:line: [rule] excerpt` per hit and exits 1 when there is any.
 // `bun tools/audit-personal.ts --encode <regex>` prints the base64 of a new deny-list pattern to paste into RULES.
 //
@@ -259,6 +262,17 @@ const FIELD = '\x00'
 const F = '%x00'
 const R = '%x01'
 
+const MERGE_SUBJECT = /^(Merge pull request #\d+ from )([^/\s]+)(\/)/
+
+/** A commit message with the account name of GitHub's generated merge subject taken out (first line only); see the header. */
+export function withoutMergeOwner(message: string, rules = denyRules()): string {
+  const account = rules.find((rule) => rule.id === 'account')
+  if (!account) return message
+  const [first = '', ...others] = message.split('\n')
+  const cleaned = first.replace(MERGE_SUBJECT, (all, head: string, owner: string, slash: string) => (account.pattern.test(owner) ? `${head}OWNER${slash}` : all))
+  return [cleaned, ...others].join('\n')
+}
+
 /** Audits everything reachable from any ref of the repository at `root`. Throws when git fails or the clone is shallow. */
 export function auditHistory(root: string, allowed: Identity | null = allowedIdentity(root)): HistoryReport {
   const run = (args: string[], input?: Buffer): Buffer => {
@@ -280,7 +294,7 @@ export function auditHistory(root: string, allowed: Identity | null = allowedIde
     const message = rest.join(FIELD)
     hits.push(...scanIdentity(`commit ${short(sha)} author`, { name: an, email: ae }, allowed, rules))
     hits.push(...scanIdentity(`commit ${short(sha)} committer`, { name: cn, email: ce }, allowed, rules))
-    hits.push(...scanText(`commit ${short(sha)} message`, message, rules))
+    hits.push(...scanText(`commit ${short(sha)} message`, withoutMergeOwner(message, rules), rules))
   }
 
   // Refs: names, and the message and tagger of annotated tags.

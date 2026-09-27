@@ -237,6 +237,30 @@ describe('history', () => {
   }
   const rulesOf = (hits: { rule: string }[]): string[] => hits.map((hit) => hit.rule)
 
+  describe("GitHub's merge subject", () => {
+    const ACCOUNT = sampleFor(RULES.find(([id]) => id === 'account')![1])
+
+    it('may hold the account name in the owner segment, and nowhere else', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, `Merge pull request #7 from ${ACCOUNT}/feature-x`)
+      expect(auditHistory(root, null).hits).toEqual([])
+    })
+
+    it('still fails on the account name in the branch, in a later line or in an ordinary subject', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, `Merge pull request #7 from someone/${ACCOUNT}-branch`)
+      commit(root, { 'b.txt': 'ok\n' }, `Merge pull request #8 from ${ACCOUNT}/feature-x\n\nthanks ${ACCOUNT}`)
+      commit(root, { 'c.txt': 'ok\n' }, `feat: from ${ACCOUNT}`)
+      expect(rulesOf(auditHistory(root, null).hits)).toEqual(['account', 'account', 'account'])
+    })
+
+    it('does not excuse another rule in the owner segment', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, `Merge pull request #7 from ${TERM}/feature-x`)
+      expect(auditHistory(root, null).hits.length).toBeGreaterThan(0)
+    })
+  })
+
   it('passes a clean history and counts commits and file versions', () => {
     const root = repo()
     commit(root, { 'src/a.ts': 'export const a = 1\n' }, 'feat: a')
