@@ -72,7 +72,7 @@ Each of the six viewports (360x640, 390x844, 430x932, 844x390, 1024x768, 768x102
 | Item | Where it is checked |
 |---|---|
 | Today's puzzle on the date override | drive |
-| Countdown and local time (`Ends at 00:00 UTC (HH:MM your time)`) | drive |
+| Countdown and local time (`Ends at 00:00 UTC (HH:MM Amsterdam time)`) | drive |
 | First-visit "How it works" card | drive |
 | Play: note, undo/redo, X, place, hints 1 to 3, reload, rotation, clear-all, wrong board | drive |
 | Solve, result, no replay of a solved day | drive |
@@ -144,7 +144,7 @@ For a real phone and an iPad, in iOS Safari and Android Chrome, and again from t
 - [ ] Solving returns to the start screen with Solved, time, hints and the murderer.
 
 **The clock**
-- [ ] `Ends in` counts down live, and `Ends at 00:00 UTC (HH:MM your time)` shows your real local time.
+- [ ] `Ends in` counts down live, and `Ends at 00:00 UTC (HH:MM Amsterdam time)` shows the same Amsterdam time for every player, not each visitor's own device time (owner decision, 2026-09-27).
 - [ ] After solving: `Next puzzle in` and `New puzzle at 00:00 UTC (...)`.
 - [ ] Before the launch date: `Slaydoku starts on 27 September` and `Starts at 00:00 UTC (...)`. (Moot for now: the launch date is already today.)
 - [ ] Midnight with the app open in launch week: `New puzzle available` and `Show puzzle #N`; a puzzle in progress is not switched away.

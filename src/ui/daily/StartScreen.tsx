@@ -9,6 +9,12 @@ import { Link } from '../router/index.ts'
 import { Countdown } from './Countdown.tsx'
 import { DAILY_EN } from './strings.ts'
 
+/**
+ * Everybody sees the same clock: Amsterdam time, not each visitor's own device timezone (owner decision, 2026-09-27). "Ends at 00:00 UTC
+ * (02:00 Amsterdam time)" reads the same for every player, wherever they are.
+ */
+const LOCAL_CLOCK = { timeZone: 'Europe/Amsterdam', label: 'Amsterdam time' } as const
+
 /** What the start screen shows. */
 export type StartState =
   | { kind: 'loading' }
@@ -76,7 +82,7 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
           target={dayEnd}
           kind={solved ? 'next' : 'ends'}
           label={solved ? t.nextIn : t.endsIn}
-          until={(solved ? t.nextAt : t.endsAt)(utcWithLocal(dayEnd))}
+          until={(solved ? t.nextAt : t.endsAt)(utcWithLocal(dayEnd, LOCAL_CLOCK))}
         />
       )}
     </section>
@@ -90,7 +96,7 @@ function BeforeLaunch({ first, clock }: { first: string; clock: () => number }) 
     <section className="daily-card" data-state="before-launch" aria-labelledby="daily-before">
       <h2 id="daily-before" className="daily-card__number">{t.title(formatDayMonth(first))}</h2>
       <p className="daily-card__date">{t.text}</p>
-      <Countdown clock={clock} target={target} kind="starts" label={t.startsIn} until={t.startsAt(utcWithLocal(target, { withDate: true }))} />
+      <Countdown clock={clock} target={target} kind="starts" label={t.startsIn} until={t.startsAt(utcWithLocal(target, { ...LOCAL_CLOCK, withDate: true }))} />
     </section>
   )
 }

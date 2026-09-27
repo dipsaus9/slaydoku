@@ -205,8 +205,8 @@ async function startScreen() {
   const timer = (await evaluate(`(() => { const t = document.querySelector('[data-countdown=ends] time'); return { role: t.getAttribute('role'), label: t.getAttribute('aria-label'), live: t.getAttribute('aria-live') } })()`)) as { role: string; label: string; live: string }
   check('start screen: the countdown is a timer with a spoken label, not announced every second', timer.role === 'timer' && /^11 hours.* left$/.test(timer.label) && timer.live === 'off', JSON.stringify(timer))
   const untilText = await textOf('[data-until]')
-  const localWant = (await evaluate(`new Date(Date.UTC(2026, 9, 16, 0, 0)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })`)) as string
-  check('start screen: "Ends at 00:00 UTC (HH:MM your time)" with the local time of that instant', untilText === (localWant === '00:00' ? 'Ends at 00:00 UTC' : `Ends at 00:00 UTC (${localWant} your time)`), `${untilText} (device says ${localWant})`)
+  const localWant = (await evaluate(`new Date(Date.UTC(2026, 9, 16, 0, 0)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })`)) as string
+  check('start screen: "Ends at 00:00 UTC (HH:MM Amsterdam time)", the same for every visitor', untilText === (localWant === '00:00' ? 'Ends at 00:00 UTC' : `Ends at 00:00 UTC (${localWant} Amsterdam time)`), `${untilText} (Amsterdam says ${localWant})`)
   const lay = await layoutProbe()
   check('start screen fits the viewport, no sideways scroll', lay.sw <= lay.iw, `scrollWidth=${lay.sw} innerWidth=${lay.iw}`)
   check('start screen keeps the About link and the Help link', (await evaluate(`document.querySelector('.daily__about')?.getAttribute('href')`)) === '/about' && (await count('.daily__help')) === 1)
@@ -217,7 +217,7 @@ async function startScreen() {
   const before = await startText()
   const launchLeft = await countdownSeconds('starts')
   check('before the launch: "Slaydoku starts on 27 September" and a countdown to launch, no Play', /Slaydoku starts on 27 September/.test(before) && (await count('[data-action]')) === 0 && launchLeft !== null && launchLeft > 10 * 86400 && launchLeft < 11 * 86400, `${JSON.stringify(before.replace(/\n+/g, ' / '))} left=${launchLeft}`)
-  check('before the launch: the launch time with its local equivalent', /^Starts at 00:00 UTC(?: \(.*your time\))?$/.test(await textOf('[data-until]')), await textOf('[data-until]'))
+  check('before the launch: the launch time with the Amsterdam equivalent', /^Starts at 00:00 UTC(?: \(.*Amsterdam time\))?$/.test(await textOf('[data-until]')), await textOf('[data-until]'))
   await shot('00-start-before-launch')
   await load('play')
   check('before the launch: /play goes back to /', (await path()) === '/' && (await count('.play-board')) === 0, await path())

@@ -4,7 +4,7 @@ Slaydoku is a public, Wordle-style daily murder-grid puzzle (Murdoku-like), in E
 
 ## Decisions (change only after asking the owner)
 
-- Same puzzle for everyone per UTC day, names included: the names are baked into the pre-generated schedule file, never picked at runtime. UTC only, no clock check. The app shows puzzle number, UTC date and until when the puzzle runs (countdown to 00:00 UTC plus the local equivalent). No archive, accounts or leaderboard at launch; stats and streaks stay on the device.
+- Same puzzle for everyone per UTC day, names included: the names are baked into the pre-generated schedule file, never picked at runtime. UTC only, no clock check. The app shows puzzle number, UTC date and until when the puzzle runs (countdown to 00:00 UTC plus the Amsterdam-time equivalent, fixed for every visitor, not detected per device — owner decision, 2026-09-27). No archive, accounts or leaderboard at launch; stats and streaks stay on the device.
 - Grid: max 12x12, preference 6x6 and 9x9 (7x7 and 12x12 occasionally, never 16x16). Expert: exactly one per UTC week on a seeded random day; hard and expert only on 9x9 and 12x12. Other days: very-easy 15%, easy 30%, easy-medium 25%, medium 20%, hard 10%.
 - Cast: simple neutral English names with genders, first letters unique within one puzzle, variety per puzzle from a pool (several names per letter, both genders, genders balanced within 1). Avatars are not tied to names.
 - Sharing: PNG card (1200x630 and square) plus emoji text with puzzle number, difficulty, time and hints; no spoilers.

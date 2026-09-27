@@ -88,4 +88,8 @@ describe('the local equivalent of a UTC instant', () => {
   it('falls back to the UTC part alone for an unknown time zone', () => {
     expect(utcWithLocal(midnight, { timeZone: 'Not/AZone' })).toBe('00:00 UTC')
   })
+
+  it('replaces "your time" with a given label (the app fixes the clock to Amsterdam for every visitor)', () => {
+    expect(utcWithLocal(midnight, { timeZone: 'Europe/Amsterdam', label: 'Amsterdam time' })).toBe('00:00 UTC (02:00 Amsterdam time)')
+  })
 })

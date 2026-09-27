@@ -73,14 +73,16 @@ function dateIn(instantMs: number, timeZone?: string): string | null {
 
 /**
  * A UTC instant as text: `00:00 UTC (02:00 your time)`. When this device is on UTC (or the local time reads the same) only the UTC part is
- * given. With `withDate`, a local date that differs from the UTC date is named too: `00:00 UTC (11 October, 20:00 your time)`.
+ * given. With `withDate`, a local date that differs from the UTC date is named too: `00:00 UTC (11 October, 20:00 your time)`. `label`
+ * replaces "your time" (the app's own calls name a fixed zone, so they pass a matching label, e.g. "Amsterdam time").
  */
-export function utcWithLocal(instantMs: number, options: { timeZone?: string; withDate?: boolean } = {}): string {
+export function utcWithLocal(instantMs: number, options: { timeZone?: string; withDate?: boolean; label?: string } = {}): string {
   const utc = `${clockTimeIn(instantMs, 'UTC') ?? '00:00'} UTC`
   const local = clockTimeIn(instantMs, options.timeZone)
   if (local === null) return utc
   const sameDay = dateIn(instantMs, options.timeZone) === dateIn(instantMs, 'UTC')
   if (local === clockTimeIn(instantMs, 'UTC') && sameDay) return utc
   const day = options.withDate && !sameDay ? dateIn(instantMs, options.timeZone) : null
-  return `${utc} (${day ? `${formatDayMonth(day)}, ` : ''}${local} your time)`
+  const label = options.label ?? 'your time'
+  return `${utc} (${day ? `${formatDayMonth(day)}, ` : ''}${local} ${label})`
 }
