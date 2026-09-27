@@ -5,7 +5,7 @@ Story SLAY-1.10. Run 2026-09-27 on the production build of branch `SLAY-1.10/lau
 ## Result
 
 - **2736 browser checks on six viewports, 0 failures**, plus **1174 checks on all 120 scheduled days, 0 failures**.
-- No product defect found. The only code change in this story is the new About checks in the drive suite.
+- No product defect found. Changes in this story: the new About checks in the drive suite, the history scan in the audit tool (with tests), and the CI workflow (full checkout, allowed-identity variable).
 - Not part of this run: the production check (see "Production check"); the history audit is discussed under "Other checks".
 
 ## How it was run
