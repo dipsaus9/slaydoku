@@ -154,6 +154,10 @@ try {
   await goto('/')
   check('offline reload on /: the start screen opens with today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === `Puzzle #${DAY.n}` && (await count('[data-action]')) === 1, await text('[data-puzzle-number]'))
   check('offline / has a live countdown', (await until(`/^\\d\\d:\\d\\d:\\d\\d$/.test(document.querySelector('[data-countdown] time')?.textContent ?? '')`)) === true)
+  await evaluate("document.querySelector('[data-stats-open]')?.click()")
+  check('offline: the streak line shows and the Stats button opens the card (no network needed)', (await text('[data-stats-summary]')) === 'Streak 0 · Best 0' && (await until("document.querySelector('.stats-panel [data-stat=played]') !== null")) === true)
+  await evaluate("document.querySelector('.stats-panel [data-action=close]')?.click()")
+  await sleep(500)
   await shot('offline-01-start')
 
   await goto('/play')
