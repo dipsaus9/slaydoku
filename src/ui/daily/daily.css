@@ -5,12 +5,16 @@
 
 .daily,
 .daily-play {
-  --ink: #2a2a36;
-  --accent: #2b7de9;
-  --accent-dark: #1f63bd;
-  --line: #d3cec4;
-  --paper: #ffffff;
-  --good: #2f8f5b;
+  /* Local aliases onto the SLAY-2.1 shared tokens (src/brand/tokens.css): every rule below keeps
+     reading var(--ink)/var(--accent)/var(--line)/var(--paper)/var(--good), only the source moved.
+     --good has no warm-palette equivalent of its own, so the solved state reads in the case-file
+     accent rather than a foreign green. */
+  --ink: var(--color-ink);
+  --accent: var(--color-accent);
+  --accent-dark: var(--color-accent-dark);
+  --line: var(--color-line);
+  --paper: var(--color-paper);
+  --good: var(--color-accent-dark);
   color: var(--ink);
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
@@ -50,6 +54,7 @@
 
 .daily__title {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 2.2rem;
   line-height: 1.15;
 }
@@ -109,11 +114,11 @@
 .daily-btn--primary {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--paper);
 }
 
 .daily button.daily-btn--primary {
-  color: #fff;
+  color: var(--paper);
 }
 
 .daily-btn--quiet {
@@ -124,6 +129,15 @@
 
 /* ---- the day's card ----------------------------------------------------------------- */
 
+/* Restrained fade/slide-in on mount; the duration token itself collapses to near-zero under
+   prefers-reduced-motion (src/brand/tokens.css), so no separate override is needed here. */
+@keyframes daily-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 .daily-card {
   display: grid;
   gap: 8px;
@@ -131,10 +145,12 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   background: var(--paper);
+  animation: daily-entrance var(--duration-small) var(--ease-out) both;
 }
 
 .daily-card__number {
   margin: 0;
+  font-family: var(--font-display);
   font-size: 1.9rem;
   line-height: 1.15;
 }
@@ -188,8 +204,9 @@
   margin-top: 6px;
   padding: 14px 16px;
   border-radius: 14px;
-  background: #eef8f1;
-  border: 1px solid #b9dcc6;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  animation: daily-entrance var(--duration-small) var(--ease-out) both;
 }
 
 .daily-result__title {
@@ -225,6 +242,7 @@
 }
 
 .daily-countdown__time {
+  font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -247,9 +265,9 @@
   gap: 8px 12px;
   margin-bottom: 14px;
   padding: 10px 10px 10px 16px;
-  border: 1px solid #e0b64d;
+  border: 1px solid var(--accent);
   border-radius: 16px;
-  background: #fff6dc;
+  background: var(--paper);
 }
 
 .daily-banner__text {
@@ -297,17 +315,18 @@
   min-width: 44px;
   min-height: 44px;
   padding: 0 16px;
-  border: 1px solid #d3cec4;
+  border: 1px solid var(--line);
   border-radius: 22px;
-  background: #fff;
+  background: var(--paper);
   font-size: 1.1rem;
   cursor: pointer;
 }
 
 .daily-play__title {
+  font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 600;
-  color: #2a2a36;
+  color: var(--ink);
 }
 
 /* ---- phones ------------------------------------------------------------------------- */
