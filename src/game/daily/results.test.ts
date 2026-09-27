@@ -102,3 +102,15 @@ describe('daily results', () => {
     expect(readAllResults(storage)).toEqual([])
   })
 })
+
+describe('tier of a result', () => {
+  it('is kept when known, and dropped when unknown or missing (results from before statistics)', () => {
+    const storage = createMemoryStorage()
+    recordResult(storage, result(1, { tier: 'hard' }))
+    recordResult(storage, result(2, { tier: 'nonsense' as never }))
+    recordResult(storage, result(3))
+    expect(readResult(storage, 1)?.tier).toBe('hard')
+    expect(readResult(storage, 2)).not.toHaveProperty('tier')
+    expect(readResult(storage, 3)).not.toHaveProperty('tier')
+  })
+})

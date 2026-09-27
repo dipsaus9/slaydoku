@@ -83,6 +83,7 @@ describe('playCounts and resultOf', () => {
       n: day.n,
       date: day.date,
       fp: day.fp,
+      tier: day.tier,
       elapsedMs: 61_000,
       murdererId: 'p1',
       hints: 3,
