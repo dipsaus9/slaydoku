@@ -10,6 +10,9 @@
 //               real page, for a sample of 10 scheduled days across the board sizes
 //   stats.ts    statistics: two consecutive days solved through the UI on the date override, Streak 2 · Best 2, the Stats card (numbers,
 //               times per difficulty, keyboard, closing), a streak alive the day after and gone after a missed day, Reset with confirmation
+//   share.ts    the share card (SLAY-1.7): a scheduled day solved through the UI, the card and the emoji text on the start screen, Share with
+//               files (PNG 1200x630 and 1080x1080 checked on a canvas, brand pixels present), with text only, a closed and a failing share
+//               sheet, Copy text (clipboard API and textarea fallback) and Download image without a share sheet, the keyboard, offline
 //   offline.ts  offline reload (the month chunk of today's puzzle comes from the precache), playing offline, coming back online and the
 //               update notice after a new deploy
 // at 360x640, 390x844, 430x932 and 844x390 (phone) and 1024x768 and 768x1024 (iPad), all with mobile and touch emulation in
@@ -17,7 +20,7 @@
 //
 // Usage (from the repo root): bun run verify:phone
 // Env: OUT (folder for screenshots, logs and summary; default <tmp>/slaydoku-phone-verification), VIEWPORTS (default the six
-// above), SUITES (comma list of drive,zoom,legend,screens,stats,offline; default all), POOL (how many driver runs go at the same time,
+// above), SUITES (comma list of drive,zoom,legend,screens,stats,share,offline; default all), POOL (how many driver runs go at the same time,
 // default 5, each with its own Chrome; 1 runs everything one after the other), SKIP_BUILD=1 (reuse dist/), CHROME (path to Chrome).
 // Exits non-zero when a check fails or a driver crashes.
 import { spawn } from 'node:child_process'
@@ -30,7 +33,7 @@ const ROOT = join(HERE, '../..')
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const OUT = process.env.OUT ?? join(tmpdir(), 'slaydoku-phone-verification')
 const VIEWPORTS = (process.env.VIEWPORTS ?? '360x640,390x844,430x932,844x390,1024x768,768x1024').split(',')
-const ALL_SUITES = ['drive', 'zoom', 'legend', 'screens', 'stats', 'offline'] as const
+const ALL_SUITES = ['drive', 'zoom', 'legend', 'screens', 'stats', 'share', 'offline'] as const
 type Suite = (typeof ALL_SUITES)[number]
 const SUITES = (process.env.SUITES ?? ALL_SUITES.join(',')).split(',') as Suite[]
 const POOL = Number(process.env.POOL ?? 5)
@@ -114,7 +117,7 @@ async function job(suite: Suite, viewport: string): Promise<void> {
 let offlineTurn: Promise<unknown> = Promise.resolve()
 const queue: (() => Promise<void>)[] = []
 // Longest first, so the pool ends together.
-for (const suite of ['drive', 'legend', 'screens', 'stats', 'zoom'] as const)
+for (const suite of ['drive', 'legend', 'screens', 'stats', 'share', 'zoom'] as const)
   if (SUITES.includes(suite)) for (const v of VIEWPORTS) queue.push(() => job(suite, v))
 if (SUITES.includes('offline'))
   for (const v of VIEWPORTS)
@@ -141,7 +144,7 @@ function rowsOf(file: string): { pass: number; fail: number } {
   }
   return count
 }
-const logOf: Record<string, string> = { drive: 'scenario-log.md', zoom: 'zoom-log.md', legend: 'legend-log.md', screens: 'screens-log.md', stats: 'stats-log.md' }
+const logOf: Record<string, string> = { drive: 'scenario-log.md', zoom: 'zoom-log.md', legend: 'legend-log.md', screens: 'screens-log.md', stats: 'stats-log.md', share: 'share-log.md' }
 const fileOf = (r: Result) => join(r.dir, logOf[r.suite] ?? '')
 /** Checks and failures of one job; offline has no markdown log, so its result line counts. */
 const countOf = (r: Result) => (r.suite === 'offline' ? { pass: r.checks - r.failures, fail: r.failures } : rowsOf(fileOf(r)))
