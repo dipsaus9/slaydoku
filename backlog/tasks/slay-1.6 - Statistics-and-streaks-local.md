@@ -4,6 +4,7 @@ title: Statistics and streaks (local)
 status: To Do
 assignee: []
 created_date: '2026-09-26 19:32'
+updated_date: '2026-09-27 00:02'
 labels:
   - story
 dependencies:
@@ -11,7 +12,7 @@ dependencies:
 references:
   - src/game/stats/
   - src/ui/stats/
-  - src/ui/levels/
+  - src/ui/daily/
 parent_task_id: SLAY-1
 type: feature
 ordinal: 7000
