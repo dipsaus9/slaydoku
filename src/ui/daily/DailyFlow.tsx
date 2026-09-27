@@ -8,6 +8,7 @@ import { phaseOf, puzzleNumberOf } from '../../schedule/index.ts'
 import type { MonthFile, ScheduleDay, ScheduleIndex } from '../../schedule/index.ts'
 import { PlayScreen } from '../play/index.ts'
 import { navigate, usePath } from '../router/index.ts'
+import { StatsEntry } from '../stats/index.ts'
 import { parseRoute, routePath } from './route.ts'
 import { StartScreen } from './StartScreen.tsx'
 import type { StartState } from './StartScreen.tsx'
@@ -27,7 +28,7 @@ export interface DailyFlowProps {
   loadMonth?: (month: string) => Promise<MonthFile>
   /** Share button of a solved day (SLAY-1.7). */
   share?: ReactNode
-  /** Statistics of the player (SLAY-1.6). */
+  /** Replaces the statistics entry of the start screen (default: `StatsEntry`, the streak line and the Stats button). */
   stats?: ReactNode
 }
 
@@ -110,7 +111,8 @@ export function DailyFlow({ clock: givenClock, storage: givenStorage, index = SC
   else if (lookup.kind === 'after-schedule') state = { kind: 'after-schedule' }
   else if (lookup.kind === 'loading') state = { kind: 'loading' }
   else state = { kind: 'error', onRetry: retry }
-  return <StartScreen state={state} clock={clock} rollover={rollover} share={share} stats={stats} onPlay={() => go(routePath({ kind: 'play', n: null }))} />
+  const statsEntry = stats ?? <StatsEntry storage={storage} today={today} version={version} onReset={() => setVersion((v) => v + 1)} />
+  return <StartScreen state={state} clock={clock} rollover={rollover} share={share} stats={statsEntry} onPlay={() => go(routePath({ kind: 'play', n: null }))} />
 }
 
 interface PlayRouteProps {

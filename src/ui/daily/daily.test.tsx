@@ -52,7 +52,7 @@ describe('<StartScreen/>', () => {
     expect(text).toContain('Next puzzle in')
   })
 
-  it('has the reserved slots, empty until stories 1.6 and 1.7 fill them', () => {
+  it('has the stats and share slots, empty when nothing is passed in', () => {
     const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
     expect(html).toContain('data-slot="stats"')
     expect(html).toContain('data-slot="share"')

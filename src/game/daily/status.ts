@@ -11,7 +11,7 @@ import type { SolveRecord } from './observe.ts'
 export type DayStatus = { kind: 'new' } | { kind: 'inProgress' } | { kind: 'solved'; result: DailyResult }
 
 /** The part of a schedule day the player state needs. */
-export type DayRef = Pick<ScheduleDay, 'n' | 'date' | 'fp' | 'puzzle'>
+export type DayRef = Pick<ScheduleDay, 'n' | 'date' | 'fp' | 'tier' | 'puzzle'>
 
 /**
  * Hints opened and wrong checks of one puzzle over all play sessions of it (a reload or a restart starts a new session), from the local
@@ -30,7 +30,7 @@ export function playCounts(storage: StorageLike | null, puzzleId: string): { hin
 
 /** The result of a day from how it was solved, with the hint and check counts of its play sessions. */
 export function resultOf(storage: StorageLike | null, day: DayRef, solve: SolveRecord): DailyResult {
-  return { n: day.n, date: day.date, fp: day.fp, elapsedMs: solve.elapsedMs, murdererId: solve.murdererId, ...playCounts(storage, dailyId(day.n)) }
+  return { n: day.n, date: day.date, fp: day.fp, tier: day.tier, elapsedMs: solve.elapsedMs, murdererId: solve.murdererId, ...playCounts(storage, dailyId(day.n)) }
 }
 
 /**

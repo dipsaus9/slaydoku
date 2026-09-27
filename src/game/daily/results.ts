@@ -1,3 +1,4 @@
+import type { TierId } from '../../engine/generator/tiers/index.ts'
 import type { StorageLike } from '../persistence.ts'
 
 /**
@@ -18,6 +19,8 @@ export interface DailyResult {
   n: number
   /** UTC date of the puzzle, `YYYY-MM-DD`. */
   date: string
+  /** Difficulty tier of the puzzle. Absent on results stored before statistics existed (SLAY-1.6): they count everywhere except in the times per tier. */
+  tier?: TierId
   /** Fingerprint of the puzzle that was solved; a result of another puzzle with the same number is not used. */
   fp: string
   /** Time it took, ms (the game clock: it stops while the tab is in the background). */
@@ -29,6 +32,9 @@ export interface DailyResult {
   /** The suspect who was alone with the victim (person id of the puzzle). */
   murdererId: string
 }
+
+/** The tier ids, easiest first (the order of `SOLVABLE_TIERS`; a test keeps them equal). Listed here so this file does not pull the solver into the app. */
+export const RESULT_TIERS: readonly TierId[] = ['very-easy', 'easy', 'easy-medium', 'medium', 'hard', 'expert']
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -44,7 +50,17 @@ function parseResult(value: unknown): DailyResult | null {
   if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
   if (typeof fp !== 'string' || fp === '' || typeof murdererId !== 'string') return null
   if (typeof elapsedMs !== 'number' || !Number.isFinite(elapsedMs)) return null
-  return { n, date, fp, elapsedMs: Math.max(0, elapsedMs), hints: count(value.hints), wrongChecks: count(value.wrongChecks), murdererId }
+  const tier = RESULT_TIERS.find((id) => id === value.tier)
+  return {
+    n,
+    date,
+    fp,
+    ...(tier ? { tier } : {}),
+    elapsedMs: Math.max(0, elapsedMs),
+    hints: count(value.hints),
+    wrongChecks: count(value.wrongChecks),
+    murdererId,
+  }
 }
 
 /** Every stored result by puzzle number. Anything unusable reads as empty. */

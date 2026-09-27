@@ -1,6 +1,6 @@
 # The daily flow
 
-What a player sees, where it lives in the code and what it stores. Story SLAY-1.5; statistics (SLAY-1.6) and the share card (SLAY-1.7) build on the results described here.
+What a player sees, where it lives in the code and what it stores. Story SLAY-1.5; statistics (SLAY-1.6, below) and the share card (SLAY-1.7) build on the results described here.
 
 ## Screens and URLs
 
@@ -35,14 +35,31 @@ Every read and write is in try/catch: a missing, full or blocked store reads as 
 ### The results API (`src/game/daily/results.ts`)
 
 ```ts
-interface DailyResult { n: number; date: string; fp: string; elapsedMs: number; hints: number; wrongChecks: number; murdererId: string }
+interface DailyResult { n: number; date: string; tier?: TierId; fp: string; elapsedMs: number; hints: number; wrongChecks: number; murdererId: string }
 recordResult(storage, result): boolean      // the first result of a day stays; false when it already exists or the write failed
 readResult(storage, n, fp?): DailyResult | null
 readAllResults(storage): DailyResult[]      // oldest puzzle first
 ```
 
-`hints` is how many times a hint was opened (all sessions of the day), `wrongChecks` how many times a complete board was not right. A solved day cannot be replayed for a new time. `dayStatus(storage, day)` (`src/game/daily/status.ts`) says new, in progress or solved. The start screen has two reserved slots (`data-slot="share"`, `data-slot="stats"`; props `share` and `stats` of `StartScreen` and `DailyFlow`) for the share button and the statistics.
+`hints` is how many times a hint was opened (all sessions of the day), `wrongChecks` how many times a complete board was not right. A solved day cannot be replayed for a new time. `dayStatus(storage, day)` (`src/game/daily/status.ts`) says new, in progress or solved. The start screen has two reserved slots (`data-slot="share"`, `data-slot="stats"`; props `share` and `stats` of `StartScreen` and `DailyFlow`) for the share button (SLAY-1.7) and the statistics (filled by `StatsEntry`, see Statistics below).
+
+## Statistics (SLAY-1.6)
+
+`src/game/stats/` computes the numbers, `src/ui/stats/` shows them. Everything stays on the device: the numbers are read from the results and play records above, nothing is fetched or sent.
+
+**Where.** The start screen's `stats` slot shows `Streak 5 · Best 12` and a **Stats** button (`StatsEntry`, filled by `DailyFlow` unless a `stats` prop replaces it). The slot is there on every state of the start screen, so it is also there after a solve (a solved day goes straight back to `/`). The button opens the Stats card, a modal: Escape, its Close button or a tap on the backdrop close it and the focus goes back to the Stats button; Tab stays inside it; the card scrolls inside itself.
+
+**What it shows.** Played (started), solved, solve rate, current streak, best streak, hints used (total) and hints per solved puzzle, and a bar list of best and median time per difficulty (tiers with a solved puzzle only, easiest first; the bar is the median, the darker mark the best time).
+
+**Rules** (`compute.ts`, pure, tested):
+- *Played* is every solved day plus every day with a play record (`slaydoku:telemetry`, `puzzleId` `daily-<n>`, written from the first move) that was not solved. It is never lower than solved. Play records are capped at 500 sessions on the device, so very old unsolved days may drop out of *played*; solved days never do.
+- *Streak.* A result belongs to the UTC date of its own puzzle, not to the moment it was solved, so a day solved the next morning counts for its own day (a solved day cannot be replayed anyway). The current streak is the run of consecutive solved dates ending at the latest solved date, and it is alive only while that date is today or yesterday UTC; a missed day resets it. The best streak is the longest run ever (month, year and leap-day boundaries are plain calendar days: `src/schedule/dates.ts`).
+- *Times.* Best is the fastest, median the middle time (the mean of the two middle ones, rounded to a ms, for an even count). The tier of a result is stored with it (`DailyResult.tier`, new in SLAY-1.6); results stored before that have no tier and count everywhere except in the times per difficulty.
+- *Hints per puzzle* is total hints over solved puzzles. Results that are unusable (no real date, a bad number or time) are ignored; when two results share a number, the first one is used.
+- Statistics depend only on stored results, never on the schedule, so extending the schedule changes nothing.
+
+**Reset stats** asks for confirmation ("This deletes your solved puzzles, times and streaks from this device, and the saved boards of the puzzles you played. Those days show as new again. It cannot be undone."). It removes `slaydoku:daily-results`, the play records of the daily puzzles and the saved boards (`slaydoku:game:daily-<n>`) of every daily puzzle that was played or solved: without the boards, a solved board would bring its result straight back (see `dayStatus`). Nothing else is touched: options, the how-it-works flag, play records of other puzzles and the dev date override stay. A solved day therefore becomes playable again after a reset. All strings live in `src/ui/stats/strings.ts`.
 
 ## Verifying
 
-`bun run verify:phone` (see `docs/verification/phone.ts`): the drivers run on the date override at 390x844 and 1024x768 among others: start screen states, rollover with a shifted clock, clean URLs, a full play-through and the result, zoom, legend, the card text of 10 scheduled days on the rendered screen, offline.
+`bun run verify:phone` (see `docs/verification/phone.ts`): the drivers run on the date override at 390x844 and 1024x768 among others: the statistics (`stats.ts`: two consecutive days solved through the UI, the streak, the card, a missed day, Reset), start screen states, rollover with a shifted clock, clean URLs, a full play-through and the result, zoom, legend, the card text of 10 scheduled days on the rendered screen, offline.

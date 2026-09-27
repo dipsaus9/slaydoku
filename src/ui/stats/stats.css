@@ -1,0 +1,219 @@
+/*
+ * The statistics entry on the start screen and the card it opens. Light theme, phone and iPad: every target is at least 44px, nothing
+ * depends on hover, the card scrolls inside itself (the modal panel has its own overflow) and never wider than the screen.
+ */
+
+.stats-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 12px 12px 12px 18px;
+  border: 1px solid var(--line, #d3cec4);
+  border-radius: 16px;
+  background: var(--paper, #ffffff);
+}
+
+.stats-entry__summary {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-btn {
+  min-width: 44px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--line, #d3cec4);
+  border-radius: 24px;
+  background: var(--paper, #ffffff);
+  color: var(--ink, #2a2a36);
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stats-btn:focus-visible {
+  outline: 3px solid var(--accent, #2b7de9);
+  outline-offset: 2px;
+}
+
+.stats-btn--primary {
+  border-color: var(--accent, #2b7de9);
+  background: var(--accent, #2b7de9);
+  color: #ffffff;
+}
+
+.stats-btn--danger {
+  border-color: #c0392b;
+  background: #c0392b;
+  color: #ffffff;
+}
+
+.stats-btn--quiet {
+  border-color: transparent;
+  background: transparent;
+  text-decoration: underline;
+}
+
+/* ---- the card ---------------------------------------------------------------------- */
+
+.stats-panel {
+  width: min(560px, 100%);
+  color: var(--ink, #2a2a36);
+}
+
+.stats {
+  display: grid;
+  gap: 14px;
+}
+
+.stats-numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.stats-numbers__item {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line, #d3cec4);
+  border-radius: 14px;
+}
+
+.stats-numbers__item dt {
+  font-size: 0.95rem;
+  opacity: 0.75;
+}
+
+.stats-numbers__item dd {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.stats-note {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+
+.stats-section {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.stats-times__empty {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.stats-times__list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats-times__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+}
+
+.stats-times__label {
+  font-weight: 600;
+}
+
+.stats-times__count {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.stats-times__bar {
+  position: relative;
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: #ece8df;
+  overflow: hidden;
+}
+
+.stats-times__fill,
+.stats-times__best {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  min-width: 6px;
+  border-radius: 7px;
+}
+
+.stats-times__fill {
+  background: #9ec1f2;
+}
+
+.stats-times__best {
+  background: var(--accent, #2b7de9);
+}
+
+.stats-times__values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 16px;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.stats-message {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid #b9dcc6;
+  border-radius: 12px;
+  background: #eef8f1;
+}
+
+.stats-message[data-message='failed'] {
+  border-color: #e0b64d;
+  background: #fff6dc;
+}
+
+.stats-confirm__text {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .stats-actions .stats-btn {
+    flex: 1 1 auto;
+    padding: 0 12px;
+  }
+  .stats-entry {
+    padding-left: 14px;
+  }
+  .stats-entry__open {
+    flex: 1 1 100%;
+  }
+}
