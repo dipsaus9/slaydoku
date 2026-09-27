@@ -3,7 +3,7 @@
 // checks it in every way a browser can differ:
 //   - the preview, the emoji text (exact, from src/share), the two shapes, targets of 44px, nothing sideways;
 //   - Share with a share sheet that takes files: the PNG that arrives is 1200x630 (wide) and 1080x1080 (square), really drawn (pixels of
-//     the brand blue), named slaydoku-<n>[-square].png, and comes with the text;
+//     the brand blue and the card's warm cream panel), named slaydoku-<n>[-square].png, and comes with the text;
 //   - Share with a share sheet that takes text only; closing the sheet (no error); a sheet that fails (message and the fallback buttons);
 //   - no share sheet: Copy text (clipboard API, and the textarea fallback without one) and Download image (both PNG sizes);
 //   - the keyboard (Tab to Share, Enter), a result with hints and wrong checks, nothing requested from another origin, and offline.
@@ -194,9 +194,13 @@ async function solveDay(day: ScheduleDay): Promise<boolean> {
 }
 
 // --- what the page recorded ------------------------------------------------------------------
-/** Width, height, size and how many pixels are the brand blue, of a PNG blob the page recorded (`window.__log.<what>[i]`). */
+/**
+ * Width, height, size, and how many pixels are the brand blue (ACCENT, #2b7de9) or the card's warm cream panel
+ * (PANEL, #fdf8ec, src/share/card.ts — SLAY-2.6 moved the panel off pure white onto this evidence-board tone), of a
+ * PNG blob the page recorded (`window.__log.<what>[i]`).
+ */
 const probeBlob = (expr: string) =>
-  evaluate(`(async () => { const blob = ${expr}; if (!blob) return null; const bmp = await createImageBitmap(blob); const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; const x = c.getContext('2d'); x.drawImage(bmp, 0, 0); const d = x.getImageData(0, 0, c.width, c.height).data; let blue = 0; let white = 0; for (let i = 0; i < d.length; i += 4) { if (Math.abs(d[i] - 43) < 6 && Math.abs(d[i + 1] - 125) < 6 && Math.abs(d[i + 2] - 233) < 6) blue++; if (d[i] > 250 && d[i + 1] > 250 && d[i + 2] > 250) white++ } return { w: bmp.width, h: bmp.height, type: blob.type, bytes: blob.size, blue, white } })()`) as Promise<{ w: number; h: number; type: string; bytes: number; blue: number; white: number } | null>
+  evaluate(`(async () => { const blob = ${expr}; if (!blob) return null; const bmp = await createImageBitmap(blob); const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; const x = c.getContext('2d'); x.drawImage(bmp, 0, 0); const d = x.getImageData(0, 0, c.width, c.height).data; let blue = 0; let white = 0; for (let i = 0; i < d.length; i += 4) { if (Math.abs(d[i] - 43) < 6 && Math.abs(d[i + 1] - 125) < 6 && Math.abs(d[i + 2] - 233) < 6) blue++; if (Math.abs(d[i] - 253) < 8 && Math.abs(d[i + 1] - 248) < 8 && Math.abs(d[i + 2] - 236) < 8) white++ } return { w: bmp.width, h: bmp.height, type: blob.type, bytes: blob.size, blue, white } })()`) as Promise<{ w: number; h: number; type: string; bytes: number; blue: number; white: number } | null>
 const blobBase64 = (expr: string) =>
   evaluate(`(async () => { const blob = ${expr}; const buf = new Uint8Array(await blob.arrayBuffer()); let s = ''; for (const b of buf) s += String.fromCharCode(b); return btoa(s) })()`) as Promise<string>
 const logOf = (key: string) => evaluate(`window.__log.${key}.length`) as Promise<number>
@@ -247,7 +251,7 @@ async function scenario(w: number, h: number) {
   const wide = await sharedInfo(0)
   check('Share (wide): the share sheet gets the PNG and the text', !!wide && wide.files.length === 1 && wide.files[0]!.name === `slaydoku-${DAY.n}.png` && wide.files[0]!.type === 'image/png' && textMatches(wide.text, expected) && wide.title === `Slaydoku #${DAY.n}`, JSON.stringify(wide))
   const widePng = await probeBlob('window.__log.shared[0].files[0]')
-  check('the wide PNG is 1200x630 and really drawn (brand blue and white pixels)', !!widePng && widePng.w === 1200 && widePng.h === 630 && widePng.type === 'image/png' && widePng.blue > 2000 && widePng.white > 100000, JSON.stringify(widePng))
+  check('the wide PNG is 1200x630 and really drawn (brand blue and cream-panel pixels)', !!widePng && widePng.w === 1200 && widePng.h === 630 && widePng.type === 'image/png' && widePng.blue > 2000 && widePng.white > 100000, JSON.stringify(widePng))
   check('feedback: "Shared." in the status line', (await status()) === 'Shared.', await status())
   await shot('02-shared-files')
   if (widePng) await Bun.write(join(CARDS, `${viewport}-wide.png`), Buffer.from(await blobBase64('window.__log.shared[0].files[0]'), 'base64'))
