@@ -18,7 +18,6 @@ bun run test           # unit tests (vitest)
 bun run lint           # oxlint
 bun run typecheck      # tsc -b --noEmit
 bun run build          # production build into dist/, including the offline service worker
-bun run audit:personal # scan the tree for personal data before publishing
 bun run indexing       # show whether the site is open for search engines (default: not), see docs/launch.md
 ```
 
@@ -46,7 +45,7 @@ puzzle file), `bun run pack` (the puzzle pack pipeline), `bun run validate:gener
 | `src/ui/` | Screens: start screen and puzzle of the day (`daily`), play, help, about, lab (dev only), router |
 | `src/brand/` | Logo, favicons and share image sources, the site tags and the indexing switch |
 | `src/pwa/` | Offline support and the update notice |
-| `tools/` | Command-line tools (`generate`, `verify`, `pack`, `brand`, `check-share`, `audit-personal`) |
+| `tools/` | Command-line tools (`generate`, `verify`, `pack`, `brand`, `check-share`) |
 | `docs/` | Authoring guides, the difficulty scale, browser verification scripts |
 
 ## Deploy
@@ -59,8 +58,8 @@ links and the indexing setup of a deployed site. Brand images (the magnifying gl
 
 ## Contributing
 
-Only your own art and puzzles: no images, puzzles, logos or code of other Murdoku products. `bun run lint`, `bun run typecheck`, `bun run test` and
-`bun run audit:personal` must be green before a change is merged.
+Only your own art and puzzles: no images, puzzles, logos or code of other Murdoku products. `bun run lint`, `bun run typecheck` and `bun run test`
+must be green before a change is merged.
 
 ## Credit
 

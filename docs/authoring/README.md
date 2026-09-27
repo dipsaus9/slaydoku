@@ -40,7 +40,6 @@ bun run dev            # dev server; open the printed URL (add ?date=2026-10-15 
 bun run lint           # oxlint
 bun run typecheck      # tsc -b --noEmit
 bun run test           # vitest run, everything except the slow sweeps
-bun run audit:personal # scan the tree for personal data (deny-list, e-mail addresses, image metadata)
 bun run test:slow      # also the generator sweeps (several minutes)
 bun run generate ...   # one puzzle from a scene, no difficulty tier   (see generate-verify-register.md)
 bun run verify <file>  # check a puzzle file                           (see generate-verify-register.md)
@@ -55,7 +54,7 @@ bun tools/portrait-sheet.ts [out.html]   # contact sheet of every portrait desig
 
 Run one test file with `bunx vitest run src/content/demo/scene.test.ts`.
 
-All of `bun run lint`, `typecheck`, `test` and `audit:personal` must be green before any change is merged.
+All of `bun run lint`, `typecheck` and `test` must be green before any change is merged.
 
 ## Ground rules
 

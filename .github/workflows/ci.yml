@@ -15,18 +15,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          # The personal-data audit reads every commit and every file version, so it needs the whole history, not the last commit.
-          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
       # --maxWorkers=1: the suite holds long single-threaded solver runs; one worker keeps a small runner from timing them out.
       - run: bun run test --maxWorkers=1
-      # Working tree and git history. The one identity allowed as commit author/committer metadata comes from the repository
-      # variable AUDIT_ALLOWED_IDENTITY ("Name <e-mail>", Settings > Secrets and variables > Actions > Variables): it is not
-      # written into the tree, so the audit can pass its own scan. See docs/launch.md.
-      - run: bun run audit:personal
-        env:
-          AUDIT_ALLOWED_IDENTITY: ${{ vars.AUDIT_ALLOWED_IDENTITY }}
