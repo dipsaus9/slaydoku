@@ -1,4 +1,4 @@
-// Offline / service worker verification driver (CAD-10.6).
+// Offline / service worker verification driver.
 // Builds the production site into $OUT/site, serves it with `vite preview`, and drives headless Chrome over the DevTools
 // protocol through the whole offline story:
 //   1. first visit: the worker installs, precaches the build and takes control of the page (no second load needed);

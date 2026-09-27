@@ -1,10 +1,10 @@
 ---
 id: SLAY-1.10
 title: Launch verification and go-public checklist
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-26 19:32'
-updated_date: '2026-09-26 23:05'
+updated_date: '2026-09-27 01:33'
 labels:
   - story
 dependencies:
@@ -18,6 +18,7 @@ references:
   - docs/launch.md
   - tools/audit-personal.ts
   - tools/audit-personal.test.ts
+  - .github/workflows/ci.yml
 parent_task_id: SLAY-1
 type: feature
 ordinal: 11000
@@ -33,9 +34,9 @@ Branch: SLAY-1.10/launch-verification
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 docs/verification/report.md is rewritten for the daily flow with counts per viewport and 0 failures, screenshots stored outside the repo; the owner checklist ends the report
-- [ ] #2 tools/audit-personal.ts also scans git history: any file content or commit message hit fails, and only the owner's configured author identity is allowed as commit metadata (one explicit allowance); tests prove both
-- [ ] #3 A go-public checklist in docs/launch.md covers naming and domain checks, README and license review, a secrets scan (git history and tree), Vercel and GitHub settings, and the exact steps to flip the repo to public; bun run audit:personal is green
-- [ ] #4 bun run lint/typecheck/test (--maxWorkers=1) pass
-- [ ] #5 The go-public checklist includes the Vercel GitHub connection step (app access to the repo, connect Git, production branch main) and confirms a push to main deploys
+- [x] #1 docs/verification/report.md is rewritten for the daily flow with counts per viewport and 0 failures, screenshots stored outside the repo; the owner checklist ends the report
+- [x] #2 tools/audit-personal.ts also scans git history: any file content or commit message hit fails, and only the owner's configured author identity is allowed as commit metadata (one explicit allowance); tests prove both
+- [x] #3 A go-public checklist in docs/launch.md covers naming and domain checks, README and license review, a secrets scan (git history and tree), Vercel and GitHub settings, and the exact steps to flip the repo to public; bun run audit:personal is green
+- [x] #4 bun run lint/typecheck/test (--maxWorkers=1) pass
+- [x] #5 The go-public checklist includes the Vercel GitHub connection step (app access to the repo, connect Git, production branch main) and confirms a push to main deploys
 <!-- AC:END -->

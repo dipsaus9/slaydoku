@@ -1,9 +1,10 @@
 ---
 id: SLAY-1
 title: 'Epic: Slaydoku, a daily murder-grid puzzle (English, public)'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-26 19:32'
+updated_date: '2026-09-27 01:33'
 labels:
   - epic
 dependencies: []

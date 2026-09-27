@@ -1,4 +1,4 @@
-// Legend verification driver (CAD-10.9).
+// Legend verification driver.
 // Drives headless Chrome over the DevTools protocol with touch emulation. On scheduled puzzles (one 6x6, one 9x9 and one 12x12 day, chosen through the date override, see daily.ts) it opens the Legend from the toolbar
 // and from the how-it-works card, checks that the rows on screen are the rows the scene calls for (computed here
 // from the puzzle files with the same pure function the unit tests use, then compared with the DOM), that the card

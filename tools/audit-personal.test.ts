@@ -4,7 +4,22 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { RULES, auditTree, denyRules, formatHits, jpegMetadata, pngMetadata, printableStrings, scanBinary, scanText } from './audit-personal.ts'
+import {
+  RULES,
+  allowedIdentity,
+  auditHistory,
+  auditTree,
+  denyRules,
+  formatHits,
+  jpegMetadata,
+  parseIdentity,
+  pngMetadata,
+  printableStrings,
+  scanBinary,
+  scanIdentity,
+  scanText,
+  type Identity,
+} from './audit-personal.ts'
 
 /*
  * The deny-list is base64 in audit-personal.ts, so this file does not spell a term out either: every sample below is derived
@@ -172,5 +187,271 @@ describe('denyRules', () => {
     for (const { id, pattern } of denyRules()) {
       expect(pattern.flags, id).toBe('i')
     }
+  })
+})
+
+describe('history', () => {
+  /*
+   * Every repository here is a temporary fixture. Terms and identities are derived from the decoded deny-list at run time, so this
+   * file spells none out. The fixture ignores the user's global git config (hooks, signing, identity) and sets author and committer
+   * per commit through the environment.
+   */
+  const TERM = sampleFor(RULES[0]![1])
+  const OTHER_TERM = sampleFor(RULES[1]![1])
+  const address = (local: string, domain: string): string => [local, domain].join('@')
+  /** A neutral identity: no term, and a noreply address (the audit lets those through). */
+  const NEUTRAL: Identity = { name: 'Fixture Person', email: address('fixture', 'users.noreply.example.org') }
+  /** The "owner" of a fixture: a name that IS a deny-list term, and a real-looking address. */
+  const OWNER: Identity = { name: `${TERM} Fixture`, email: address('owner', 'example.org') }
+  const ISOLATED = { GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_SYSTEM: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' }
+
+  const git = (root: string, args: string[], env: Record<string, string> = {}): string => {
+    const done = spawnSync('git', args, { cwd: root, encoding: 'utf8', env: { ...process.env, ...ISOLATED, ...env } })
+    expect(done.status, `git ${args.join(' ')}: ${done.stderr}`).toBe(0)
+    return done.stdout
+  }
+  const identityEnv = (who: Identity, committer: Identity = who): Record<string, string> => ({
+    GIT_AUTHOR_NAME: who.name,
+    GIT_AUTHOR_EMAIL: who.email,
+    GIT_COMMITTER_NAME: committer.name,
+    GIT_COMMITTER_EMAIL: committer.email,
+  })
+  const repo = (): string => {
+    const root = mkdtempSync(join(tmpdir(), 'audit-history-'))
+    dirs.push(root)
+    git(root, ['init', '-q', '-b', 'main'])
+    return root
+  }
+  /** Writes (string or bytes) or deletes (null) files, then commits everything. Returns the short sha of the new commit. */
+  const commit = (root: string, files: Record<string, string | Uint8Array | null>, message: string, who: Identity = NEUTRAL, committer: Identity = who): string => {
+    for (const [name, content] of Object.entries(files)) {
+      if (content === null) rmSync(join(root, name), { force: true })
+      else {
+        mkdirSync(join(root, name, '..'), { recursive: true })
+        writeFileSync(join(root, name), content)
+      }
+    }
+    git(root, ['add', '-A'])
+    git(root, ['commit', '-q', '--allow-empty', '-m', message], identityEnv(who, committer))
+    return git(root, ['rev-parse', '--short=7', 'HEAD']).trim()
+  }
+  const rulesOf = (hits: { rule: string }[]): string[] => hits.map((hit) => hit.rule)
+
+  describe("GitHub's merge subject", () => {
+    const ACCOUNT = sampleFor(RULES.find(([id]) => id === 'account')![1])
+
+    it('may hold the account name in the owner segment, and nowhere else', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, `Merge pull request #7 from ${ACCOUNT}/feature-x`)
+      expect(auditHistory(root, null).hits).toEqual([])
+    })
+
+    it('still fails on the account name in the branch, in a later line or in an ordinary subject', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, `Merge pull request #7 from someone/${ACCOUNT}-branch`)
+      commit(root, { 'b.txt': 'ok\n' }, `Merge pull request #8 from ${ACCOUNT}/feature-x\n\nthanks ${ACCOUNT}`)
+      commit(root, { 'c.txt': 'ok\n' }, `feat: from ${ACCOUNT}`)
+      expect(rulesOf(auditHistory(root, null).hits)).toEqual(['account', 'account', 'account'])
+    })
+
+    it('does not excuse another rule in the owner segment', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, `Merge pull request #7 from ${TERM}/feature-x`)
+      expect(auditHistory(root, null).hits.length).toBeGreaterThan(0)
+    })
+  })
+
+  it('passes a clean history and counts commits and file versions', () => {
+    const root = repo()
+    commit(root, { 'src/a.ts': 'export const a = 1\n' }, 'feat: a')
+    commit(root, { 'src/a.ts': 'export const a = 2\n', 'README.md': '# Hi\n' }, 'feat: change a')
+    const report = auditHistory(root, null)
+    expect(report).toMatchObject({ commits: 2, blobs: 3, hits: [] })
+  })
+
+  it('fails on a term in a file of the history, with the commit and the file in the report', () => {
+    const root = repo()
+    commit(root, { 'src/a.ts': 'ok\n' }, 'feat: a')
+    const sha = commit(root, { 'docs/notes.md': `# Notes\n\nfor ${TERM}\n` }, 'docs: notes')
+    const { hits } = auditHistory(root, null)
+    expect(formatHits(hits)).toEqual([expect.stringMatching(new RegExp(`^${sha}:docs/notes\\.md:3: \\[${RULES[0]![0]}\\]`))])
+  })
+
+  it('fails on a term in a file version that a later commit deleted (the tree is clean, the history is not)', () => {
+    const root = repo()
+    commit(root, { 'src/a.ts': 'ok\n', 'secret.txt': `key ${TERM}\n` }, 'feat: a')
+    commit(root, { 'secret.txt': null }, 'chore: remove it')
+    expect(auditTree(root).hits).toEqual([])
+    const { hits } = auditHistory(root, null)
+    expect(formatHits(hits)).toEqual([expect.stringMatching(/:secret\.txt:1: \[/)])
+  })
+
+  it('fails on an older version of a file that was overwritten, and on a term in a deleted file name', () => {
+    const root = repo()
+    commit(root, { 'a.txt': `first ${TERM}\n`, [`${OTHER_TERM}.txt`]: 'clean text\n' }, 'feat: a')
+    commit(root, { 'a.txt': 'clean now\n', [`${OTHER_TERM}.txt`]: null }, 'fix: clean')
+    expect(auditTree(root).hits).toEqual([])
+    const rules = rulesOf(auditHistory(root, null).hits)
+    expect(rules).toContain(RULES[0]![0])
+    expect(rules.some((rule) => rule.endsWith('(file name)'))).toBe(true)
+  })
+
+  it('fails on a binary file with image metadata that a later commit deleted', () => {
+    const root = repo()
+    commit(root, { 'pic.png': png({ type: 'tEXt', data: 'Author\0someone' }) }, 'feat: image')
+    commit(root, { 'pic.png': null }, 'chore: remove the image')
+    expect(rulesOf(auditHistory(root, null).hits)).toContain('image-metadata')
+  })
+
+  it('fails on a term in a commit message, in the subject and in the body', () => {
+    const root = repo()
+    commit(root, { 'a.txt': 'ok\n' }, `feat: a for ${TERM}`)
+    commit(root, { 'b.txt': 'ok\n' }, `feat: b\n\nthe body mentions ${OTHER_TERM}`)
+    const { hits } = auditHistory(root, null)
+    expect(hits.map((hit) => hit.file)).toEqual([expect.stringMatching(/^commit [0-9a-f]{7} message$/), expect.stringMatching(/^commit [0-9a-f]{7} message$/)])
+    expect(rulesOf(hits).sort()).toEqual([RULES[0]![0], RULES[1]![0]].sort())
+  })
+
+  it('finds a hit on a branch that is not merged, and in an annotated tag message and a ref name', () => {
+    const root = repo()
+    commit(root, { 'a.txt': 'ok\n' }, 'feat: a')
+    git(root, ['switch', '-q', '-c', `topic-${TERM}`])
+    commit(root, { 'b.txt': `side ${OTHER_TERM}\n` }, 'feat: side')
+    git(root, ['switch', '-q', 'main'])
+    git(root, ['tag', '-a', 'v1', '-m', `release for ${TERM}`], identityEnv(NEUTRAL))
+    const files = auditHistory(root, null).hits.map((hit) => hit.file)
+    expect(files).toContain(`ref refs/heads/topic-${TERM}`)
+    expect(files).toContain('ref refs/tags/v1 message')
+    expect(files.some((file) => /^[0-9a-f]{7}:b\.txt$/.test(file))).toBe(true)
+  })
+
+  it('ignores commits that no ref reaches any more', () => {
+    const root = repo()
+    commit(root, { 'a.txt': 'ok\n' }, 'feat: a')
+    git(root, ['switch', '-q', '-c', 'gone'])
+    commit(root, { 'b.txt': `side ${TERM}\n` }, `feat: side ${TERM}`)
+    git(root, ['switch', '-q', 'main'])
+    git(root, ['branch', '-q', '-D', 'gone'])
+    expect(auditHistory(root, null)).toMatchObject({ commits: 1, hits: [] })
+  })
+
+  describe('the allowed identity', () => {
+    it('passes as author and committer of a commit, the one explicit allowance', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, 'feat: a', OWNER)
+      commit(root, { 'b.txt': 'ok\n' }, 'feat: b', OWNER, NEUTRAL)
+      expect(auditHistory(root, OWNER).hits).toEqual([])
+      // ... and without the allowance the very same history fails, name and address both.
+      expect(rulesOf(auditHistory(root, null).hits)).toEqual(expect.arrayContaining([RULES[0]![0], 'email']))
+    })
+
+    it('does not pass another identity that contains a deny-list term', () => {
+      const root = repo()
+      const other: Identity = { name: `${OTHER_TERM} Someone`, email: address('someone', 'example.org') }
+      commit(root, { 'a.txt': 'ok\n' }, 'feat: a', other)
+      const { hits } = auditHistory(root, OWNER)
+      expect(rulesOf(hits)).toEqual(expect.arrayContaining([RULES[1]![0], 'email']))
+      expect(hits.every((hit) => /^commit [0-9a-f]{7} (author|committer)$/.test(hit.file))).toBe(true)
+    })
+
+    it('is the exact pair: the owner name with another address, or the address with another name, fails', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, 'feat: a', { name: OWNER.name, email: address('else', 'example.org') })
+      commit(root, { 'b.txt': 'ok\n' }, 'feat: b', { name: `${TERM} Else`, email: OWNER.email })
+      const { hits } = auditHistory(root, OWNER)
+      expect(hits.length).toBeGreaterThanOrEqual(2)
+      // Author and committer are both that identity, so each of the two commits reports both fields.
+      expect(new Set(hits.map((hit) => hit.file)).size).toBe(4)
+    })
+
+    it('does not cover a committer that differs from it', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, 'feat: a', OWNER, { name: `${OTHER_TERM} Bot`, email: address('bot', 'example.org') })
+      const { hits } = auditHistory(root, OWNER)
+      expect(hits.length).toBeGreaterThan(0)
+      expect(hits.every((hit) => /committer$/.test(hit.file))).toBe(true)
+    })
+
+    it('compares the address case-insensitively', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, 'feat: a', { name: OWNER.name, email: OWNER.email.toUpperCase() })
+      expect(auditHistory(root, OWNER).hits).toEqual([])
+    })
+
+    it('is metadata only: the same words in a message, a file or a trailer still fail', () => {
+      const root = repo()
+      commit(root, { 'a.txt': `written by ${OWNER.name}\n` }, `feat: a by ${OWNER.name}\n\nCo-authored-by: ${OWNER.name} <${OWNER.email}>`, OWNER)
+      const { hits } = auditHistory(root, OWNER)
+      expect(hits.map((hit) => hit.file.replace(/[0-9a-f]{7}/, 'sha')).sort()).toEqual(['commit sha message', 'commit sha message', 'commit sha message', 'sha:a.txt'])
+      expect(rulesOf(hits)).toContain('email')
+    })
+
+    it('scanIdentity is the single place of the allowance', () => {
+      expect(scanIdentity('x', OWNER, OWNER)).toEqual([])
+      expect(scanIdentity('x', OWNER, null).length).toBeGreaterThan(0)
+      expect(scanIdentity('x', OWNER, { name: OWNER.name, email: address('else', 'example.org') }).length).toBeGreaterThan(0)
+      expect(scanIdentity('x', NEUTRAL, null)).toEqual([])
+    })
+
+    it('is read from AUDIT_ALLOWED_IDENTITY, else from the git config of the repository', () => {
+      expect(parseIdentity(`${OWNER.name} <${OWNER.email}>`)).toEqual(OWNER)
+      expect(parseIdentity('no address here')).toBeNull()
+      expect(parseIdentity(undefined)).toBeNull()
+      const root = repo()
+      expect(allowedIdentity(root, { AUDIT_ALLOWED_IDENTITY: `${OWNER.name} <${OWNER.email}>` })).toEqual(OWNER)
+      git(root, ['config', 'user.name', NEUTRAL.name])
+      git(root, ['config', 'user.email', NEUTRAL.email])
+      expect(allowedIdentity(root, {})).toEqual(NEUTRAL)
+      // The variable wins over the config, and a variable that does not parse allows nobody.
+      expect(allowedIdentity(root, { AUDIT_ALLOWED_IDENTITY: `${OWNER.name} <${OWNER.email}>` })).toEqual(OWNER)
+      expect(allowedIdentity(root, { AUDIT_ALLOWED_IDENTITY: 'garbage' })).toBeNull()
+    })
+  })
+
+  it('refuses a shallow clone, which would leave the history unchecked', () => {
+    const root = repo()
+    commit(root, { 'a.txt': 'ok\n' }, 'feat: a')
+    commit(root, { 'b.txt': 'ok\n' }, 'feat: b')
+    const clone = mkdtempSync(join(tmpdir(), 'audit-history-clone-'))
+    dirs.push(clone)
+    git(clone, ['clone', '-q', '--depth=1', `file://${root}`, 'shallow'])
+    expect(() => auditHistory(join(clone, 'shallow'), null)).toThrow(/shallow/)
+  })
+
+  describe('from the command line', () => {
+    const script = resolve(import.meta.dirname, 'audit-personal.ts')
+    const run = (root: string, args: string[] = [], identity?: Identity) =>
+      spawnSync('bun', [script, root, ...args], {
+        encoding: 'utf8',
+        env: { ...process.env, ...ISOLATED, AUDIT_ALLOWED_IDENTITY: identity ? `${identity.name} <${identity.email}>` : '' },
+      })
+
+    it('passes a clean tree and history, and says how much history it read', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, 'feat: a')
+      const done = run(root)
+      expect(done.status).toBe(0)
+      expect(done.stdout).toMatch(/history: 1 commits, 1 file versions, 1 refs/)
+    }, 30_000)
+
+    it('fails on a hit that only the history holds, and names it', () => {
+      const root = repo()
+      commit(root, { 'a.txt': `x ${TERM}\n` }, 'feat: a')
+      commit(root, { 'a.txt': 'clean\n' }, 'fix: clean')
+      const done = run(root)
+      expect(done.status).toBe(1)
+      expect(done.stderr).toMatch(/:a\.txt:1: \[/)
+      expect(run(root, ['--tree-only']).status).toBe(0)
+      expect(run(root, ['--history-only']).status).toBe(1)
+    }, 30_000)
+
+    it('lets the owner identity through as metadata and fails on it everywhere else', () => {
+      const root = repo()
+      commit(root, { 'a.txt': 'ok\n' }, 'feat: a', OWNER)
+      expect(run(root, [], OWNER).status).toBe(0)
+      expect(run(root).status).toBe(1)
+      commit(root, { 'b.txt': 'ok\n' }, `feat: b for ${OWNER.name}`, OWNER)
+      expect(run(root, [], OWNER).status).toBe(1)
+    }, 30_000)
   })
 })

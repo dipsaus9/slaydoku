@@ -1,4 +1,4 @@
-// Board-zoom verification driver (CAD-10.4).
+// Board-zoom verification driver.
 // Drives headless Chrome over the DevTools protocol with touch emulation and checks the board zoom of the play
 // screen on the puzzle of 2026-10-15 (date override, see daily.ts; a 9x9 board): the toolbar button (1x/2x), two-finger pinch and pan (two real touch points via
 // Input.dispatchTouchEvent), clamping, one-finger notes / long-press placement / drag-notes on a zoomed board landing
@@ -197,7 +197,7 @@ async function covers() {
 async function openLevel() {
   await evaluate(`document.querySelector('[data-action]').click()`)
   await sleep(1200)
-  // The first Play opens the "How it works" card (CAD-10.8): dismiss it to get to the board.
+  // The first Play opens the "How it works" card: dismiss it to get to the board.
   await evaluate(`[...document.querySelectorAll('.play-modal button')].find(b => b.innerText.trim() === 'Start playing')?.click()`)
   await sleep(300)
 }
