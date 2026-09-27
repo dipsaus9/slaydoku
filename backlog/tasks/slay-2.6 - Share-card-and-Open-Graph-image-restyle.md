@@ -4,7 +4,7 @@ title: Share card and Open Graph image restyle
 status: In Progress
 assignee: []
 created_date: '2026-09-27 12:21'
-updated_date: '2026-09-27 13:37'
+updated_date: '2026-09-27 13:38'
 labels:
   - story
 dependencies:
@@ -30,7 +30,7 @@ Branch: SLAY-2.6/share-card-restyle
 <!-- AC:BEGIN -->
 - [x] #1 src/share/card.ts draws the 1200x630 and square PNG with the warm evidence-board palette; the display font is loaded for the headline text via the FontFace API before drawing, falling back to the existing system stack if it fails to load in time
 - [x] #2 src/brand/og-image.svg is redrawn with the same palette (static SVG, no font-loading concern)
-- [ ] #3 src/ui/share/share.css consumes the shared tokens for the share sheet UI
+- [x] #3 src/ui/share/share.css consumes the shared tokens for the share sheet UI
 - [ ] #4 share.test.ts, share.test.tsx and tools/check-share.ts against a local preview build all pass unchanged
 - [ ] #5 No share text, emoji line or spoiler-safety rule changes
 <!-- AC:END -->
