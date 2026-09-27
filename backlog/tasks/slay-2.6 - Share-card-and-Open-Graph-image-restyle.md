@@ -4,7 +4,7 @@ title: Share card and Open Graph image restyle
 status: In Progress
 assignee: []
 created_date: '2026-09-27 12:21'
-updated_date: '2026-09-27 13:35'
+updated_date: '2026-09-27 13:37'
 labels:
   - story
 dependencies:
@@ -29,7 +29,7 @@ Branch: SLAY-2.6/share-card-restyle
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 src/share/card.ts draws the 1200x630 and square PNG with the warm evidence-board palette; the display font is loaded for the headline text via the FontFace API before drawing, falling back to the existing system stack if it fails to load in time
-- [ ] #2 src/brand/og-image.svg is redrawn with the same palette (static SVG, no font-loading concern)
+- [x] #2 src/brand/og-image.svg is redrawn with the same palette (static SVG, no font-loading concern)
 - [ ] #3 src/ui/share/share.css consumes the shared tokens for the share sheet UI
 - [ ] #4 share.test.ts, share.test.tsx and tools/check-share.ts against a local preview build all pass unchanged
 - [ ] #5 No share text, emoji line or spoiler-safety rule changes
@@ -45,4 +45,6 @@ Branch: SLAY-2.6/share-card-restyle
 
 <!-- SECTION:NOTES:BEGIN -->
 Canvas custom-font loading is the one technical risk in this story: guard it with a timeout and a system-font fallback so the PNG never blocks or renders blank. The share text/format (src/share/format.ts, emoji.ts) is untouched.
+
+public/og-image.png left untouched: the sandboxed headless-Chrome render (bun tools/brand.ts) produced a blank capture here, unlike the deterministic macOS-Chrome runs the tool's own doc comment assumes. Regenerate it on a machine with a working Chrome render once this lands (og-image.svg is the only source that changed, so only that one PNG needs a re-run).
 <!-- SECTION:NOTES:END -->

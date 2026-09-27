@@ -1,5 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <rect width="1200" height="630" fill="#f5f3ef"/>
+  <!-- Warm evidence-board board colour (src/brand/tokens.css's --color-bg, SLAY-2.1). The mystery motif (grid, magnifying
+       glass, board circles) keeps the app icon's own blue/amber (src/brand/icon.svg): only the tagline moves to the
+       case-file red accent. Static: no font loading, nothing fetched. -->
+  <rect width="1200" height="630" fill="#f7f2e6"/>
   <!-- puzzle board -->
   <rect x="686" y="81" width="468" height="468" rx="18" fill="#2a2a36"/>
   <g>
@@ -55,6 +58,6 @@
   </g>
   <!-- text -->
   <text x="70" y="372" font-family="'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" font-size="128" font-weight="700" fill="#2a2a36">Slaydoku</text>
-  <text x="74" y="442" font-family="'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" font-size="42" fill="#2b7de9">A new murder mystery</text>
-  <text x="74" y="498" font-family="'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" font-size="42" fill="#2b7de9">puzzle every day</text>
+  <text x="74" y="442" font-family="'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" font-size="42" fill="#b3413e">A new murder mystery</text>
+  <text x="74" y="498" font-family="'Trebuchet MS', 'Segoe UI', system-ui, sans-serif" font-size="42" fill="#b3413e">puzzle every day</text>
 </svg>
