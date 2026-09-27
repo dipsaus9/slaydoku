@@ -184,7 +184,7 @@ interface PuzzleJson { people: { id: string; label: string; kind: string }[]; so
 const puzzle = DAY.puzzle as unknown as PuzzleJson
 
 const selectedName = () =>
-  evaluate(`(document.querySelector('.play-cards[data-gift-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
+  evaluate(`(document.querySelector('.play-cards[data-victim-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
 
 /** The pane must always cover the frame: pan is clamped to the board edges. */
 async function covers() {

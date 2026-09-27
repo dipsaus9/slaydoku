@@ -49,7 +49,7 @@ describe('CardGrid with several cards per person', () => {
     })
   }
 
-  it('renders one line per suspect card, plus the gift card', () => {
+  it('renders one line per suspect card, plus the victim card', () => {
     const puzzle = load('demo')
     const html = renderToStaticMarkup(<CardGrid people={puzzle.people} clues={puzzle.clues} scene={puzzle.scene} />)
     const lines = (html.match(/polaroid__line/g) ?? []).length

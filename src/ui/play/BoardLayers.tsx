@@ -3,7 +3,7 @@ import type { Cell, Person, Puzzle } from '../../engine/model/index.ts'
 import { cellKey } from '../../engine/model/index.ts'
 import type { Board } from '../../game/index.ts'
 import type { Hint } from '../../game/index.ts'
-import { GiftIcon } from '../../render/cards/index.ts'
+import { VictimIcon } from '../../render/cards/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import type { SceneGeometry } from '../../render/scene/index.ts'
 import { hintCells } from './hintCells.ts'
@@ -37,7 +37,7 @@ export function XMarkGlyph({ x, y, size, color, markKey }: { x: number; y: numbe
   )
 }
 
-/** One candidate note: the person's letter (or the gift glyph) centred on (x, y), with a white halo. */
+/** One candidate note: the person's letter (or the victim glyph) centred on (x, y), with a white halo. */
 export function NoteGlyph({ x, y, fontSize, bold, color, tag, opacity = 1, noteKey }: { x: number; y: number; fontSize: number; bold: boolean; color: string; tag: string; opacity?: number; noteKey?: string }) {
   return (
     <text
@@ -125,7 +125,7 @@ export function PortraitClip({ id }: { id: string }) {
   )
 }
 
-/** One placed person as the board draws it: a white disc with a ring, and the portrait (or the gift, or a letter) in it. (x, y) is the square's top-left corner. */
+/** One placed person as the board draws it: a white disc with a ring, and the portrait (or the victim, or a letter) in it. (x, y) is the square's top-left corner. */
 export function PersonDisc({ x, y, size, person, cast, clipId, tag, color, selected = false }: { x: number; y: number; size: number; person: Person; cast: BuiltCast; clipId: string; tag: string; color: string; selected?: boolean }) {
   const d = size * 0.86
   return (
@@ -145,7 +145,7 @@ export function PersonDisc({ x, y, size, person, cast, clipId, tag, color, selec
   )
 }
 
-/** Placed people: a round portrait (or the gift, or a big letter when no portrait is known). */
+/** Placed people: a round portrait (or the victim, or a big letter when no portrait is known). */
 export function PeopleLayer({ geometry, puzzle, board, selectedId, tags, colors, cast }: PeopleLayerProps) {
   const clipId = `play-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   const size = geometry.cellSize
@@ -171,7 +171,7 @@ function Portrait({ person, cast, clipId, tag, color }: { person: Person; cast: 
     return (
       <g clipPath={`url(#${clipId})`}>
         <rect width={100} height={100} fill="#f6d6dc" />
-        <GiftIcon />
+        <VictimIcon />
       </g>
     )
   }

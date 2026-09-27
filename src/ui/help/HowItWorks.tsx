@@ -1,6 +1,6 @@
 import { help } from '../../content/help/help.ts'
 import type { HelpIcon } from '../../content/help/help.ts'
-import { CAST, GiftIcon } from '../../render/cards/index.ts'
+import { CAST, VictimIcon } from '../../render/cards/index.ts'
 import { ToolIcon } from '../play/toolIcons.tsx'
 
 const HostAvatar = CAST[0]!.Avatar
@@ -9,7 +9,7 @@ const HostAvatar = CAST[0]!.Avatar
 function StepArt({ icon }: { icon: HelpIcon }) {
   return (
     <span className="play-help__stepicon" data-art={icon} aria-hidden="true">
-      {icon === 'hint' ? <GiftIcon className="play-help__art" /> : <HostAvatar decorative className="play-help__art" />}
+      {icon === 'hint' ? <VictimIcon className="play-help__art" /> : <HostAvatar decorative className="play-help__art" />}
       {icon === 'note' ? <span className="play-help__badge"><ToolIcon name="note" /></span> : null}
       {icon === 'hint' ? <span className="play-help__badge"><ToolIcon name="hint" /></span> : null}
     </span>

@@ -20,7 +20,7 @@ export interface CardGridProps {
 
 /**
  * All cards of a puzzle in a responsive grid: one polaroid per suspect, in
- * `people` order, then the gift card. Columns fill the width (about 150px
+ * `people` order, then the victim card. Columns fill the width (about 150px
  * each), so an iPad shows four to six across and a phone two.
  */
 export function CardGrid({ people, clues, scene, selectedId, placedIds = [], onSelect, lookFor, className }: CardGridProps) {
