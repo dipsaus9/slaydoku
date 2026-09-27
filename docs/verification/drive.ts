@@ -562,8 +562,8 @@ async function playDay(first: boolean, w: number, h: number) {
   const murderer = DAY.puzzle.people.find((p) => p.id === murdererId)?.label ?? String(murdererId)
   const text = await startText()
   check(`the result names ${murderer} alone with the victim, with time and hints`, text.includes(murderer) && /alone with the victim/.test(text) && /Time: \d+:\d\d/.test(text) && /1 hint/.test(text), JSON.stringify(text.replace(/\n/g, ' / ')))
-  check('a solved day has no Play button, and shows the countdown to the next puzzle', (await count('[data-action]')) === 0 && (await count('[data-countdown=next]')) === 1 && /^New puzzle at 00:00 UTC/.test(await textOf('[data-until]')), await textOf('[data-until]'))
-  check('the share slot exists (empty until SLAY-1.7) and the statistics slot holds the streak line and the Stats button', (await count('[data-slot=share]')) === 1 && (await textOf('[data-slot=share]')) === '' && (await count('[data-slot=stats] [data-stats-summary]')) === 1 && (await count('[data-slot=stats] [data-stats-open]')) === 1)
+  check('a solved day has no Play button, and shows the countdown to the next puzzle', (await count('.daily-card [data-action]')) === 0 && (await count('[data-countdown=next]')) === 1 && /^New puzzle at 00:00 UTC/.test(await textOf('[data-until]')), await textOf('[data-until]'))
+  check('the share slot holds the share card (preview and text, checked in depth by share.ts) and the statistics slot holds the streak line and the Stats button', (await count('[data-slot=share] [data-share] [data-share-preview]')) === 1 && /^Slaydoku #\d+ · /.test(await textOf('[data-slot=share] [data-share-text]')) && (await count('[data-slot=stats] [data-stats-summary]')) === 1 && (await count('[data-slot=stats] [data-stats-open]')) === 1)
   await shot('09-solved')
   const stored = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))) as { version: number; results: Record<string, { n: number; date: string; fp: string; elapsedMs: number; hints: number; wrongChecks: number; murdererId: string }> }
   const result = stored.results[String(DAY.n)]
