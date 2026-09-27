@@ -8,15 +8,21 @@ import {
 import type { DayPlan } from './types.ts'
 
 /*
- * Runs start on the launch date, a Monday, so 365 days are 52 whole weeks and a day, 730 days are 104 whole weeks and two days.
- * The tolerances are about two standard deviations of a seeded draw over that many days; the numbers are fixed by the seeds, so a
- * failure here means the picker changed, not that a run was unlucky.
+ * The launch date is not necessarily a Monday (it moves with the product), so a run's first and last UTC week (Monday to Sunday) can be
+ * partial. `weeks()` buckets by the real week start (`weekStartOf`), not by naive 7-day chunks from day 0, so a partial head or tail week
+ * is its own short bucket rather than silently merging into its neighbour. The tolerances are about two standard deviations of a seeded
+ * draw over that many days; the numbers are fixed by the seeds, so a failure here means the picker changed, not that a run was unlucky.
  */
 const weeks = (plans: DayPlan[]): DayPlan[][] => {
-  const out: DayPlan[][] = []
-  for (let i = 0; i + 7 <= plans.length; i += 7) out.push(plans.slice(i, i + 7))
-  return out
+  const byStart = new Map<number, DayPlan[]>()
+  for (const p of plans) {
+    const start = weekStartOf(dayNumberOf(p.date))
+    byStart.set(start, [...(byStart.get(start) ?? []), p])
+  }
+  return [...byStart.entries()].sort(([a], [b]) => a - b).map(([, week]) => week)
 }
+/** Full Monday-to-Sunday weeks only: a partial head/tail week's weekday positions do not line up with array index 0 = Monday. */
+const fullWeeks = (plans: DayPlan[]): DayPlan[][] => weeks(plans).filter((week) => week.length === 7)
 const share = (plans: readonly DayPlan[], pick: (p: DayPlan) => string | number, value: string | number): number =>
   (100 * plans.filter((p) => pick(p) === value).length) / plans.length
 
@@ -32,14 +38,14 @@ describe('picker rules over long runs', () => {
         expect(plans[0]!.date).toBe(LAUNCH_DATE)
       })
       it('has exactly one expert in every UTC week (Monday to Sunday)', () => {
-        for (const week of weeks(plans)) expect(week.filter((p) => p.tier === 'expert').length, week[0]!.date).toBe(1)
-        // The days after the last whole week hold at most one.
-        expect(plans.slice(weeks(plans).length * 7).filter((p) => p.tier === 'expert').length).toBeLessThanOrEqual(1)
+        for (const week of fullWeeks(plans)) expect(week.filter((p) => p.tier === 'expert').length, week[0]!.date).toBe(1)
+        // A partial head or tail week (the run does not start/end on a Monday/Sunday) holds at most one.
+        for (const week of weeks(plans).filter((w) => w.length < 7)) expect(week.filter((p) => p.tier === 'expert').length, week[0]!.date).toBeLessThanOrEqual(1)
       })
       it('puts the expert on a seeded weekday that varies from week to week', () => {
-        const weekdays = new Set(weeks(plans).map((week) => week.findIndex((p) => p.tier === 'expert')))
+        const weekdays = new Set(fullWeeks(plans).map((week) => week.findIndex((p) => p.tier === 'expert')))
         expect(weekdays.size).toBe(7)
-        for (const week of weeks(plans)) expect(week.findIndex((p) => p.tier === 'expert')).toBe(expertWeekday(weekStartOf(dayNumberOf(week[0]!.date))))
+        for (const week of fullWeeks(plans)) expect(week.findIndex((p) => p.tier === 'expert')).toBe(expertWeekday(weekStartOf(dayNumberOf(week[0]!.date))))
       })
       it('never plans a 16x16 or a size outside 6, 7, 9 and 12', () => {
         for (const p of plans) expect(SIZE_WEIGHTS.map(([s]) => s), p.date).toContain(p.size)

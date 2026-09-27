@@ -1,6 +1,6 @@
 // Phone and iPad verification, one entry point (SLAY-1.10): `bun run verify:phone`.
 // Builds the production app, serves it with `vite preview` and runs every driver of this folder against it:
-//   drive.ts    the daily flow on the dev-only date override (2026-10-15 = puzzle #4; daily.ts): the About page, the start screen in all its states
+//   drive.ts    the daily flow on the dev-only date override (2026-09-30 = puzzle #4; daily.ts): the About page, the start screen in all its states
 //               (new, continue, solved, before the launch, after the last day) with the live countdown and local time, the midnight
 //               rollover notice with a shifted clock, clean URLs (/, /play, old /level/... and #/ links), the "How it works" card on the
 //               first Play, and a full play-through (place, note, cross, hint, wrong board, solve, result, no replay)

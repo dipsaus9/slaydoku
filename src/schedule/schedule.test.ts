@@ -107,8 +107,8 @@ describe('committed schedule: what is in it', () => {
   })
   it('reports a problem when the schedule is tampered with', () => {
     const broken = files.map((f) => ({ ...f, days: f.days.map((d) => ({ ...d })) }))
-    broken[0]!.days[3]!.fp = 'x'
-    broken[0]!.days[4]!.tier = broken[0]!.days[4]!.tier === 'easy' ? 'medium' : 'easy'
+    broken[0]!.days[0]!.fp = 'x'
+    broken[0]!.days[1]!.tier = broken[0]!.days[1]!.tier === 'easy' ? 'medium' : 'easy'
     const problems = scheduleProblems(index, broken)
     expect(problems.some((p) => p.includes('fp does not match'))).toBe(true)
     expect(problems.some((p) => p.includes('the picker plans'))).toBe(true)

@@ -5,7 +5,7 @@ puzzle for every date ahead of time, gates it, and writes committed files under 
 to extend it, what the time budgets are and what happens when a board is too slow to make.
 
 ```sh
-bun run schedule --start 2026-10-12 --days 120   # what the first schedule was made with (about 1 minute on 12 jobs)
+bun run schedule --start 2026-09-27 --days 120   # what the current schedule was made with (about 1 minute on 4 jobs)
 bun run schedule --days 60                       # extend: starts the day after the last scheduled day
 bun run schedule:check                           # days left after today (UTC); exit 1 when fewer than 30
 bun run schedule:next                            # is a top-up due (fewer than 60 left)? where it starts, and the exact command
@@ -44,7 +44,7 @@ the same days always give the same bytes and a change shows up in a diff as chan
 
 ## The launch date
 
-`src/schedule/launch.ts` holds `LAUNCH_DATE` (`2026-10-12`). It is a placeholder the owner changes in that one place. Only the puzzle number
+`src/schedule/launch.ts` holds `LAUNCH_DATE` (`2026-09-27`, set by the owner; changed from the earlier placeholder `2026-10-12` on 2026-09-27). Only the puzzle number
 depends on it: the puzzle of a date is a pure function of the date. To move the launch date, change the constant and regenerate
 (`bun run schedule --start <launch> --days N --out <empty folder>`, then replace the folder), or pass `--launch` for a one-off run. The
 tool refuses to extend a folder that was made for another launch date. `index.json` records the launch date; a test checks it equals the constant.

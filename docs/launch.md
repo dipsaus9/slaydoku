@@ -143,9 +143,9 @@ git push -u origin chore/indexing-on   # open a PR, merge it; main deploys
 
 ### 10. Launch date
 
-`LAUNCH_DATE` in `src/schedule/launch.ts` is `2026-10-12`. Puzzle number 1 is played on that UTC date, number n on the (n-1)th day after. Checked on 2026-09-27: it equals the first scheduled day (`src/content/schedule/index.json`: `launch` and `first` both `2026-10-12`, 120 days, last day `2027-02-08`), so puzzle #1 is on launch day, #120 on 2027-02-08. Before 2026-10-12 the app shows "Slaydoku starts on 12 October" with a countdown, and after the last scheduled day "New puzzles are coming soon". The monthly top-up is not due yet (120 days left; due below 60, floor 30): it will generate 90 days on 2027-01-01, when 38 remain.
+`LAUNCH_DATE` in `src/schedule/launch.ts` is `2026-09-27` (moved earlier from the placeholder `2026-10-12` on 2026-09-27, at the owner's request — the games could start right away rather than wait). Puzzle number 1 is played on that UTC date, number n on the (n-1)th day after. Checked on 2026-09-27: it equals the first scheduled day (`src/content/schedule/index.json`: `launch` and `first` both `2026-09-27`, 120 days, last day `2027-01-24`), so puzzle #1 is on launch day, #120 on 2027-01-24. The launch date is already today, so there is no "Slaydoku starts on ..." pre-launch state to show any more; after the last scheduled day the app shows "New puzzles are coming soon". The monthly top-up is not due yet (119 days left; due below 60, floor 30): it will next generate more days on 2026-12-01, when 54 remain.
 
-- [ ] Keep it as it is when you make the repository public and open the site before 2026-10-12: the start screen counts down to launch day, players see the same thing.
+- [ ] The launch date has already passed (moved to today, see above): making the repository public no longer has a countdown to coordinate around, so this step only concerns visibility, not timing.
 - [ ] If launch moves, change the constant **and** regenerate the schedule for the new date (the puzzle of a date does not depend on the launch date, only its number does, so the days stay the same; the first days before a later launch are dropped, days before an earlier launch are made). In one commit:
 
   ```sh
@@ -156,7 +156,7 @@ git push -u origin chore/indexing-on   # open a PR, merge it; main deploys
   bun run schedule:check && bun run test --maxWorkers=1     # index.json launch must equal the constant (a test checks it)
   ```
 
-  Then look at the places that name a date: `docs/daily-flow.md` (scheduled dates), the date override of the verification drivers (`docs/verification/daily.ts`: puzzle #4 is 2026-10-15 while launch is 2026-10-12), and run `bun run verify:phone` again.
+  Then look at the places that name a date: `docs/daily-flow.md` (scheduled dates), the date override of the verification drivers (`docs/verification/daily.ts`: puzzle #4 is 2026-09-30 while launch is 2026-09-27), and run `bun run verify:phone` again.
 - [ ] A launch date is a UTC date: at 00:00 UTC (02:00 in the Netherlands in summer time, 01:00 in winter) puzzle #1 opens for everybody.
 
 ### 11. Make the repository public (OWNER-ONLY)

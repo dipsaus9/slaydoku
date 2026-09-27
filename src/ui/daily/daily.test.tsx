@@ -6,18 +6,18 @@ import type { StartState } from './StartScreen.tsx'
 import { DAILY_EN } from './strings.ts'
 
 const { days } = readSchedule()
-const day = days[3]! // 2026-10-15
+const day = days[3]! // 2026-09-30
 const at = (iso: string) => () => Date.parse(iso)
 const strip = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/\s+/g, ' ').trim()
 const render = (state: StartState, over: Partial<Parameters<typeof StartScreen>[0]> = {}) =>
-  renderToStaticMarkup(<StartScreen state={state} clock={at('2026-10-15T22:00:00Z')} onPlay={() => {}} {...over} />)
+  renderToStaticMarkup(<StartScreen state={state} clock={at('2026-09-30T22:00:00Z')} onPlay={() => {}} {...over} />)
 
 describe('<StartScreen/>', () => {
   it('shows the number, the date, the difficulty, the size and a Play button for a new day', () => {
     const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
     const text = strip(html)
     expect(text).toContain(`Puzzle #${day.n}`)
-    expect(text).toContain('Thursday 15 October 2026')
+    expect(text).toContain('Wednesday 30 September 2026')
     expect(text).toContain(DAILY_EN.tier[day.tier])
     expect(text).toContain(`${day.size} × ${day.size} grid`)
     expect(html).toContain('data-action="play"')

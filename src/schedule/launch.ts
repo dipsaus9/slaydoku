@@ -6,4 +6,4 @@
  * or earlier keeps every puzzle; run the tool again with `--launch` (or edit this constant and regenerate) so the numbers in the
  * committed files follow. See docs/authoring/schedule.md.
  */
-export const LAUNCH_DATE = '2026-10-12'
+export const LAUNCH_DATE = '2026-09-27'
