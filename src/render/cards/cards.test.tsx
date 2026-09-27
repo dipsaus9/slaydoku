@@ -104,7 +104,7 @@ describe('CardGrid', () => {
     <CardGrid people={people} clues={clues} scene={scene} selectedId="Alice" placedIds={['Henry']} />,
   )
 
-  it('renders a card per suspect plus the gift', () => {
+  it('renders a card per suspect plus the victim', () => {
     expect(html.match(/class="polaroid /g)).toHaveLength(9)
     expect(html).toContain('The victim')
   })
@@ -120,7 +120,7 @@ describe('CardGrid', () => {
     expect(html.match(/data-placed="true"/g)).toHaveLength(1)
   })
 
-  it('leaves out the gift card when the puzzle has no victim', () => {
+  it('leaves out the victim card when the puzzle has no victim', () => {
     const none = renderToStaticMarkup(<CardGrid people={[alice]} clues={[]} scene={scene} />)
     expect(none).not.toContain('Het cadeau')
   })

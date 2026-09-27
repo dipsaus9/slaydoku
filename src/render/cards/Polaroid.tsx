@@ -13,8 +13,8 @@ export interface PolaroidProps {
   bubbleColor: string
   /** The clue text. Wraps; the card grows to fit it. A person with several cards gets one line per card. */
   text: string | readonly string[]
-  /** Extra line above the text, e.g. the gift's title on the victim card. */
-  variant?: 'suspect' | 'gift'
+  /** Extra line above the text, e.g. the victim's title on the victim card. */
+  variant?: 'suspect' | 'victim'
   selected?: boolean
   placed?: boolean
   /** Makes the card a button. */

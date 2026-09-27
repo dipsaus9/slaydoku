@@ -138,7 +138,7 @@ interface PuzzleJson {
   solution: { personId: string; cell: { row: number; col: number } }[]
 }
 const selectedName = () =>
-  evaluate(`(document.querySelector('.play-cards[data-gift-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
+  evaluate(`(document.querySelector('.play-cards[data-victim-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
 
 /** Long-press each person (as the card selection advances) onto its solution cell. */
 async function placeAll(puzzle: PuzzleJson) {

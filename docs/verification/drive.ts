@@ -146,7 +146,7 @@ interface PuzzleJson {
 const puzzle = DAY.puzzle as unknown as PuzzleJson
 
 const selectedName = () =>
-  evaluate(`(document.querySelector('.play-cards[data-gift-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
+  evaluate(`(document.querySelector('.play-cards[data-victim-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
 
 /** Long-press each person (as the card selection advances) onto its solution cell. */
 async function placeAll(puzzle: PuzzleJson, swap = false, limit = Infinity) {
@@ -465,7 +465,7 @@ async function playDay(first: boolean, w: number, h: number) {
   // Card panel scrolls by touch: reach the gift card (last), tap it, then scroll back and pick suspect 2 again.
   const portrait = vh > vw
   const inView = () =>
-    evaluate(`(() => { const e = document.querySelector('.polaroid--gift .polaroid__photo'); if (!e) return false; const r = e.getBoundingClientRect(); const side = e.closest('.play-side'); const c = side && getComputedStyle(side).overflowY !== 'visible' ? side.getBoundingClientRect() : { left: 0, right: innerWidth, top: 0, bottom: innerHeight }; const x = r.left + r.width / 2, y = r.top + r.height / 2; return r.width > 0 && x >= Math.max(0, c.left) && x <= Math.min(innerWidth, c.right) && y >= Math.max(0, c.top) && y <= Math.min(innerHeight, c.bottom) })()`) as Promise<boolean>
+    evaluate(`(() => { const e = document.querySelector('.polaroid--victim .polaroid__photo'); if (!e) return false; const r = e.getBoundingClientRect(); const side = e.closest('.play-side'); const c = side && getComputedStyle(side).overflowY !== 'visible' ? side.getBoundingClientRect() : { left: 0, right: innerWidth, top: 0, bottom: innerHeight }; const x = r.left + r.width / 2, y = r.top + r.height / 2; return r.width > 0 && x >= Math.max(0, c.left) && x <= Math.min(innerWidth, c.right) && y >= Math.max(0, c.top) && y <= Math.min(innerHeight, c.bottom) })()`) as Promise<boolean>
   async function swipe(reverse: boolean) {
     const p = (await rectOf('.play-cards'))!
     const reach = Math.min(250, vw * 0.35)
@@ -486,11 +486,11 @@ async function playDay(first: boolean, w: number, h: number) {
   for (let i = 0; i < 10 && !(await inView()); i++) await swipe(false)
   const giftVisible = await inView()
   if (giftVisible) {
-    const g = (await rectOf('.polaroid--gift .polaroid__photo'))!
+    const g = (await rectOf('.polaroid--victim .polaroid__photo'))!
     await tap(g.x, g.y)
     await sleep(250)
   }
-  check('card panel scrolls by touch and the gift card can be selected', giftVisible && (await count('.play-cards[data-gift-selected]')) === 1, `gift in view=${giftVisible}`)
+  check('card panel scrolls by touch and the gift card can be selected', giftVisible && (await count('.play-cards[data-victim-selected]')) === 1, `gift in view=${giftVisible}`)
   await shot('03b-gift-card')
   for (let i = 0; i < 10; i++) await swipe(true)
   const firstCard = await rectOf('.play-cards li:nth-child(2) .polaroid')

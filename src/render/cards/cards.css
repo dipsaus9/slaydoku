@@ -15,7 +15,9 @@
 }
 
 .polaroid {
-  --accent: #2b7de9;
+  /* SLAY-2.4: the local name stays (every rule below still reads it), only the value moves to
+     the shared SLAY-2.1 token. */
+  --accent: var(--color-accent);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -25,7 +27,7 @@
   border: 0;
   background: none;
   font: inherit;
-  color: #2a2a36;
+  color: var(--color-ink);
   text-align: center;
   cursor: default;
   -webkit-tap-highlight-color: transparent;
@@ -45,7 +47,7 @@ button.polaroid {
   /* white polaroid frame: thin on three sides, thick at the bottom for the name */
   padding: 8px 8px 34px;
   border-radius: 3px;
-  background: #ffffff;
+  background: var(--color-paper);
   box-shadow: 0 2px 0 rgba(42, 42, 54, 0.12), 0 6px 14px rgba(42, 42, 54, 0.22);
 }
 
@@ -99,7 +101,7 @@ button.polaroid {
   text-wrap: pretty;
 }
 
-.polaroid--gift .polaroid__name {
+.polaroid--victim .polaroid__name {
   font-size: 1.35rem;
 }
 
@@ -134,7 +136,8 @@ button.polaroid {
 }
 
 .polaroid[data-selected] .polaroid__photo {
-  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(43, 125, 233, 0.35);
+  /* rgba mirrors --color-accent (#b3413e); box-shadow can't reference a var directly with opacity. */
+  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(179, 65, 62, 0.35);
 }
 
 .polaroid[data-selected] .polaroid__clue {
