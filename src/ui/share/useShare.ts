@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CARD_SIZES, cardDescription, cardSvg, emojiText } from '../../share/index.ts'
-import type { CardFormat, ShareMeta } from '../../share/index.ts'
+import { CARD_SIZES, cardDescription, cardSvg, emojiText, loadDisplayFont } from '../../share/index.ts'
+import type { CardFormat, HeadlineFont, ShareMeta } from '../../share/index.ts'
 import type { DailyResult } from '../../game/daily/results.ts'
 import { canWebShare, copyText, downloadBlob, shareCard } from './actions.ts'
 import type { ShareNavigator } from './actions.ts'
@@ -21,14 +21,27 @@ export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigat
   const [status, setStatus] = useState<ShareStatus>({ kind: 'idle' })
   const [failedShare, setFailedShare] = useState(false)
   const [png, setPng] = useState<{ svg: string; file: File } | null>(null)
+  const [headline, setHeadline] = useState<HeadlineFont>()
   const size = CARD_SIZES[format]
   const filename = `slaydoku-${result.n}${format === 'square' ? '-square' : ''}.png`
   const text = useMemo(() => emojiText(result, meta), [result, meta])
-  const svg = useMemo(() => cardSvg(result, meta, size), [result, meta, size])
+  const svg = useMemo(() => cardSvg(result, meta, size, headline), [result, meta, size, headline])
   const previewSrc = useMemo(() => svgDataUrl(svg), [svg])
   const description = useMemo(() => cardDescription(result, meta), [result, meta])
   const supported = canWebShare(nav)
   const current = png?.svg === svg ? png.file : null
+
+  // The display font, loaded once (FontFace API, timed out to the system stack on a slow or blocked network); once
+  // it resolves the card redraws with it, both the preview above and the PNG made below.
+  useEffect(() => {
+    let alive = true
+    loadDisplayFont()
+      .then((font) => alive && setHeadline(font))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [])
 
   // The PNG of the shape on screen, made as soon as it is shown.
   useEffect(() => {
