@@ -1,9 +1,10 @@
 ---
 id: SLAY-5
 title: 'Epic: Toolbar v2 (icon-only, 6 controls) and real Dutch room/victim text'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 17:16'
+updated_date: '2026-09-28 18:17'
 labels:
   - epic
 dependencies: []
@@ -18,8 +19,14 @@ Outcome: the play-screen toolbar drops to 6 icon-only controls used every sessio
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The toolbar shows exactly 6 icon-only controls in play (Note, X, Erase, Undo, Hint, Zoom); Place and the More menu are gone; Redo is reached by a long-press on Undo; Options/Help/Legend are reachable from one small header icon on every viewport
-- [ ] #2 Room and theme names have real Dutch text (board labels and clue sentences alike), and every clue that names the victim by reference (not only the one dedicated victim-card sentence) says 'het slachtoffer' in Dutch
-- [ ] #3 The victim card's name no longer wraps awkwardly in Dutch
-- [ ] #4 No puzzle content, clue logic, or English text changes; the full verify:phone suite (English and the Dutch locale driver) stays green
+- [x] #1 The toolbar shows exactly 6 icon-only controls in play (Note, X, Erase, Undo, Hint, Zoom); Place and the More menu are gone; Redo is reached by a long-press on Undo; Options/Help/Legend are reachable from one small header icon on every viewport
+- [x] #2 Room and theme names have real Dutch text (board labels and clue sentences alike), and every clue that names the victim by reference (not only the one dedicated victim-card sentence) says 'het slachtoffer' in Dutch
+- [x] #3 The victim card's name no longer wraps awkwardly in Dutch
+- [x] #4 No puzzle content, clue logic, or English text changes; the full verify:phone suite (English and the Dutch locale driver) stays green
 <!-- AC:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Both stories delivered and merged. SLAY-5.1: the play-screen toolbar is 6 icon-only controls (Note, X, Erase, Undo, Hint, Zoom), Place and the More menu gone, Redo reached by a long-press on Undo, Options/Help/Legend moved to one header settings icon on every viewport. SLAY-5.2: room and theme names carry real Dutch text (a name-keyed lookup, roomNameNlOf, shared by the clue text and the board's room labels, so they never disagree, and Scene.rooms itself stays untouched to keep the committed schedule data byte-identical); any clue naming the victim by reference now says 'het slachtoffer' instead of leaking the stored English label; the victim card's Dutch name fits without wrapping awkwardly. Verified together on the merged tree: full verify:phone suite (all 7 suites, all 6 viewports) — 2826 checks, 0 failures; the SLAY-3.6 Dutch locale driver (extended with a board-room-label assertion) — 22 checks, 0 failures.
+<!-- SECTION:FINAL_SUMMARY:END -->
