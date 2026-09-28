@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { OBJECT_TYPES } from '../model/index.ts'
 import { checkClue } from './check.ts'
 import { OBJECT_WORDS, VICTIM_TEXT, capitalizeLabel, countWord, objectNouns, objectOn, renderClue, roomName, upperFirst, withArticle } from './en.ts'
+import { OBJECT_WORDS_NL, objectOnNl } from './nl.ts'
 import { renderClue as renderClueLocale } from './render.ts'
 import { people, scene } from './testing.fixture.ts'
 import { STRUCTURAL_CLUE_TYPES } from './types.ts'
@@ -102,36 +103,36 @@ const samples: [StructuralClue, string][] = [
 ]
 
 /**
- * The Dutch counterpart of `samples`, same clues in the same order (SLAY-3.2): the object and room
- * nouns stay the English words `samples` uses too (see `nl.ts`'s header), only the grammar around
- * them is Dutch.
+ * The Dutch counterpart of `samples`, same clues in the same order (SLAY-3.2): the object nouns
+ * are real Dutch (SLAY-6.2, see `nl.ts`'s header), room nouns stay the English words `samples`
+ * uses too, only the grammar around them is Dutch.
  */
 const samplesNl: [StructuralClue, string][] = [
-  [{ personId: 'A', type: 'onObject', args: { objectType: 'car' } }, 'A zat in een car.'],
-  [{ personId: 'A', type: 'onObject', args: { objectType: 'chair' } }, 'A zat op een chair.'],
-  [{ personId: 'A', type: 'onObject', args: { objectType: 'rug' } }, 'A stond op een rug.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'car' } }, 'A zat in een auto.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'chair' } }, 'A zat op een stoel.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'rug' } }, 'A stond op een kleed.'],
   [{ personId: 'A', type: 'onObject', args: { objectType: 'bed' } }, 'A lag op een bed.'],
-  [{ personId: 'A', type: 'onObject', args: { objectType: 'easel' } }, 'A stond op een easel.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'easel' } }, 'A stond op een schildersezel.'],
   [
     { personId: 'A', type: 'squareWithObject', args: { objectType: 'framedPainting' } },
-    "Er lag een framed painting op A's vakje.",
+    "Er lag een ingelijst schilderij op A's vakje.",
   ],
   [
     { personId: 'B', type: 'besideObject', args: { objectType: 'bookshelf' } },
-    'B stond naast een bookshelf.',
+    'B stond naast een boekenkast.',
   ],
-  [{ personId: 'A', type: 'besideObject', args: { objectType: 'table' } }, 'A stond naast een table.'],
+  [{ personId: 'A', type: 'besideObject', args: { objectType: 'table' } }, 'A stond naast een tafel.'],
   [
     { personId: 'B', type: 'besideObject', args: { objectType: 'bookshelf', exactlyOne: true } },
-    'B stond naast precies één bookshelf.',
+    'B stond naast precies één boekenkast.',
   ],
   [
     { personId: 'C', type: 'onlyOnObject', args: { objectType: 'chair' } },
-    'C was de enige persoon op een chair.',
+    'C was de enige persoon op een stoel.',
   ],
   [
     { personId: 'C', type: 'onlyOnObject', args: { objectType: 'car' } },
-    'C was de enige persoon in een car.',
+    'C was de enige persoon in een auto.',
   ],
   [{ personId: 'A', type: 'inRoom', args: { roomId: 'kitchen' } }, 'A was in de Keuken.'],
   [
@@ -183,7 +184,7 @@ const samplesNl: [StructuralClue, string][] = [
       type: 'both',
       args: { a: { type: 'besideObject', args: { objectType: 'table' } }, b: { type: 'roomHasGender', args: { gender: 'woman' } } },
     },
-    'A stond naast een table en er was minstens één vrouw in dezelfde kamer.',
+    'A stond naast een tafel en er was minstens één vrouw in dezelfde kamer.',
   ],
   [
     {
@@ -304,6 +305,32 @@ describe('clue text: Dutch (locale nl)', () => {
 
   it('never uses a Dutch gendered pronoun (hij/zij/hem/haar)', () => {
     for (const [clue] of samplesNl) expect(sayNl(clue)).not.toMatch(/\b(hij|zij|hem|haar)\b/i)
+  })
+
+  it('renders every object type for onObject and besideObject, in Dutch', () => {
+    for (const objectType of OBJECT_TYPES) {
+      expect(sayNl({ personId: 'A', type: 'onObject', args: { objectType } })).toMatch(/^A (stond|zat|lag) (op|in) een /)
+      expect(sayNl({ personId: 'A', type: 'besideObject', args: { objectType } })).toMatch(/^A stond naast een /)
+    }
+  })
+
+  it('gives every object type a real Dutch noun (SLAY-6.2), not the unchanged English word', () => {
+    expect(Object.keys(OBJECT_WORDS_NL).sort()).toEqual([...OBJECT_TYPES].sort())
+    // A handful of these happen to spell the same in both languages ("bed", "plant", "tv"); every other
+    // type must actually have changed from the English noun it used to just repeat (SLAY-3.2's own choice).
+    const coincidentallyTheSame = new Set(['bed', 'plant', 'tv'])
+    for (const type of OBJECT_TYPES) {
+      const nl = OBJECT_WORDS_NL[type]
+      expect(nl.noun.length, type).toBeGreaterThan(0)
+      expect(['de', 'het'], type).toContain(nl.gender)
+      if (!coincidentallyTheSame.has(type)) expect(nl.noun.toLowerCase(), type).not.toBe(OBJECT_WORDS[type].noun.toLowerCase())
+    }
+    // Pinned samples across genders and prepositions, so a future edit cannot silently drift the words.
+    expect(objectOnNl('chair')).toBe('op een stoel')
+    expect(objectOnNl('car')).toBe('in een auto')
+    expect(objectOnNl('desk')).toBe('op een bureau')
+    expect(objectOnNl('bookshelf')).toBe('op een boekenkast')
+    expect(objectOnNl('shower')).toBe('in een douche')
   })
 
   it('locale defaults to English: renderClue with no locale argument is unaffected', () => {

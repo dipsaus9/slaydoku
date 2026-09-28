@@ -1,15 +1,21 @@
 ---
 id: SLAY-6.2
 title: 'Dutch: object nouns fully translated in clues'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 18:57'
+updated_date: '2026-09-28 19:55'
 labels:
   - story
 dependencies: []
 references:
   - src/engine/clues/nl.ts
   - docs/verification/
+  - src/engine/solver/human/explanations.test.ts
+  - src/engine/solver/human/techniques.test.ts
+  - src/engine/clues/en.test.ts
+  - src/engine/clues/both.test.ts
+  - src/engine/clues/relational/en.test.ts
 parent_task_id: SLAY-6
 type: feature
 ordinal: 36000
@@ -25,20 +31,34 @@ Branch: SLAY-6.2/dutch-object-nouns
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 src/engine/clues/nl.ts's OBJECT_WORDS_NL carries a real Dutch noun for every ObjectType (currently the noun is deliberately the unchanged English word, per its own comment); the article ('de'/'het') and preposition/verb agree with the Dutch noun's gender, not assumed from English
-- [ ] #2 Every existing clue test that asserts Dutch object-noun wording is updated to the real translation (not the placeholder English-noun behaviour)
-- [ ] #3 The rendered-screen check and the Dutch locale driver confirm real Dutch object nouns on a sample of scheduled days across every theme (home/office/park/school/shop), not just one
-- [ ] #4 No English text, object type id, or clue logic changes; en.ts is untouched
+- [x] #1 src/engine/clues/nl.ts's OBJECT_WORDS_NL carries a real Dutch noun for every ObjectType (currently the noun is deliberately the unchanged English word, per its own comment); the article ('de'/'het') and preposition/verb agree with the Dutch noun's gender, not assumed from English
+- [x] #2 Every existing clue test that asserts Dutch object-noun wording is updated to the real translation (not the placeholder English-noun behaviour)
+- [x] #3 The rendered-screen check and the Dutch locale driver confirm real Dutch object nouns on a sample of scheduled days across every theme (home/office/park/school/shop), not just one
+- [x] #4 No English text, object type id, or clue logic changes; en.ts is untouched
 <!-- AC:END -->
 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-1. Translate every OBJECT_WORDS entry's noun to Dutch (chair->stoel, rug->kleed, bed->bed, sofa->bank, car->auto, bookshelf->boekenkast, table->tafel, TV->tv, plant->plant, etc. — cover the full list in en.ts, including compound nouns like 'washing machine'->wasmachine, 'dining table'->eettafel, 'kitchen counter'->aanrecht). 2. Set each noun's grammatical gender (de/het) correctly and update withArticleNl accordingly if it currently assumes one pattern. 3. Update the existing Dutch clue tests to the real translations. 4. Run the rendered-screen check and locale driver across all five themes.
+1. Translate every OBJECT_WORDS_NL entry to a real Dutch noun (src/engine/clues/nl.ts), with grammatical gender (de/het) recorded per noun; keep withArticleNl's indefinite 'een' unchanged (Dutch's indefinite article does not vary by gender). 2. Simplify anObjectNl/bareObjectNl to always use the type's one Dutch generic noun (drop the drawn-kind English specificNoun path entirely for Dutch — no Dutch translation of theme kind names exists yet, so Dutch never names the specific drawn kind the way English does; that stays a follow-up story). 3. Update every existing Dutch clue-text test literal (en.test.ts, relational/en.test.ts, both.test.ts) plus two solver-explanation pinned tests outside this story's own References that broke as a direct, correct consequence (explanations.test.ts, techniques.test.ts) to the real translations. 4. Add a direct OBJECT_WORDS_NL completeness/regression test in en.test.ts's Dutch describe block. 5. Extend docs/verification/locale.ts: an offline sweep confirming real Dutch object nouns on one scheduled day per theme (home/office/park/school/shop) via renderClue(...,'nl'), plus a second live rendered-screen day (theme 'home', distinct from the main walkthrough's 'shop') confirming the same on the actual DOM.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Root cause: OBJECT_WORDS_NL currently maps 1:1 onto the English OBJECT_WORDS noun by explicit design choice at SLAY-3.2 time (see its own doc comment) — this story reverses that choice at the owner's request. Cast names and room/theme names (already fixed in SLAY-5.2) are out of scope; this is object nouns only.
+
+Verified end to end: bun run build + vite preview + bun docs/verification/locale.ts (headless Chrome, foreground) — 29 checks, 0 failures. Confirms real Dutch object nouns render on screen for a second theme ('home', 2026-10-02, distinct from the main walkthrough's 'shop') and, via an offline sweep of renderClue(...,'nl') over one scheduled day per theme, for all five themes (home/office/park/school/shop) — no leftover English object noun in any. Full test suite: 138 files, 2879 tests, 0 failures (bun run lint/typecheck/test all green).
+
+Review round 1: block, scopeViolations on src/engine/solver/human/explanations.test.ts and techniques.test.ts — both are one-line pinned-Dutch-sentence fixes that are a direct, correct consequence of the in-scope OBJECT_WORDS_NL translation (a table->tafel, rug->kleed noun changed inside an already-pinned Dutch explanation string). Widened References to cover both paths (same established pattern this repo used before, e.g. CAD-10.7 widening References for package.json for an analogous incidental fix), per the reviewer's own recommendation. No code/behavior change; re-review requested.
+
+Review round 2: block again, this time on src/engine/clues/en.test.ts, both.test.ts, relational/en.test.ts — the three files this codebase's own dutch.test.ts documents by name as nl.ts's pinning tests ('the three test files that pin nl.ts's Dutch sentences as literal expected strings'). These are exactly 'every existing clue test that asserts Dutch object-noun wording' AC#2 requires updating — the change is mandated by the story's own acceptance criteria, not incidental. Round 1's reviewer did not flag these three as violations; round 2's did (reviewer non-determinism on where the line falls for nl.ts's own test coverage). Widened References once more, now covering every one of the 7 changed files exactly, per the same established widen-rather-than-revert pattern. Re-review requested (round 3, the cap).
+
+Review round 3: pass. All four acceptance criteria confirmed met, no scope violations, no findings. Review gate cleared.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Translated every OBJECT_WORDS_NL entry in src/engine/clues/nl.ts to a real Dutch noun (with grammatical gender de/het recorded per noun), and simplified anObjectNl/bareObjectNl to always use that one generic Dutch noun rather than the drawn theme kind's English-only specific name — the previous SLAY-3.2 design that kept Dutch object nouns as the unchanged English word is reversed. Updated every existing Dutch clue-text test literal to the real translation, plus two pinned Dutch solver-explanation tests outside this story's own References that broke as a direct, correct consequence. Extended docs/verification/locale.ts with an offline sweep (one scheduled day per theme) and a second live rendered-screen day, both confirming real Dutch object nouns with no leftover English, across all five themes (home/office/park/school/shop) — verified live with headless Chrome (29 checks, 0 failures). Full suite: 138 files, 2879 tests green (lint/typecheck/test). en.ts, content/themes/ and every object type id are untouched; giving Dutch its own per-theme-kind nouns (so it can distinguish 'a garden chair' from 'a poof' the way English does) is left for a follow-up story.
+<!-- SECTION:FINAL_SUMMARY:END -->

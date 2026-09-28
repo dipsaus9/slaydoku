@@ -108,7 +108,7 @@ const samplesNl: [RelationalClue, string][] = [
   ],
   [
     { personId: 'A', type: 'directionOfObject', args: { side: 'east', objectType: 'table' } },
-    'A stond verder naar het oosten dan een table.',
+    'A stond verder naar het oosten dan een tafel.',
   ],
   [
     { personId: 'A', type: 'exactDistance', args: { side: 'north', count: 1, otherId: 'B' } },
@@ -136,11 +136,11 @@ const samplesNl: [RelationalClue, string][] = [
   ],
   [
     { personId: 'A', type: 'directlyNextToObject', args: { side: 'south', objectType: 'easel' } },
-    'A stond op het vakje direct onder een easel.',
+    'A stond op het vakje direct onder een schildersezel.',
   ],
   [
     { personId: 'A', type: 'directlyNextToObject', args: { side: 'west', objectType: 'tree' } },
-    'A stond op het vakje direct links van een tree.',
+    'A stond op het vakje direct links van een boom.',
   ],
   [{ personId: 'A', type: 'diagonal', args: { otherId: 'B' } }, 'A stond op dezelfde diagonaal als B.'],
   [
@@ -172,7 +172,7 @@ const samplesNl: [RelationalClue, string][] = [
   [{ personId: 'A', type: 'notWith', args: { otherId: 'B' } }, 'A was niet samen met B.'],
   [
     { personId: 'A', type: 'notBesideObject', args: { objectType: 'bookshelf' } },
-    'A stond niet naast een bookshelf.',
+    'A stond niet naast een boekenkast.',
   ],
 ]
 

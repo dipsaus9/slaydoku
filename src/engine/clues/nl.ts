@@ -2,7 +2,7 @@ import { roomNameNlOf } from '../../content/themes/index.ts'
 import type { ObjectType, Side } from '../model/index.ts'
 import { isRelationalClue } from './relational/types.ts'
 import type { CompassSide, DiagonalDirection, Qualifiers, RelationalClue } from './relational/types.ts'
-import { OBJECT_WORDS, VICTIM_TEXT, objectNouns, possessive, upperFirst } from './en.ts'
+import { OBJECT_WORDS, VICTIM_TEXT, possessive, upperFirst } from './en.ts'
 import type { RenderContext } from './en.ts'
 import { bothParts, isBothClue } from './types.ts'
 import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './types.ts'
@@ -12,18 +12,27 @@ import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './type
  * house style: short sentences, no gendered pronoun (gender is a noun, "man"/"vrouw"), squares
  * counted "rij 3, kolom 4" from the top and the left, the same as the board's axis labels.
  *
- * Object nouns are still the exact English words `en.ts` uses (`OBJECT_WORDS`, `objectNouns`): the
- * Legend and the noun audit (`objectNames.ts`) have no Dutch translation of the theme's objects
- * yet, so a Dutch sentence names the same object noun an English one would. Room nouns are real
- * Dutch (`roomNameNl` below, SLAY-5.2): a `Scene` carries no `themeId` (adding one would change the
- * committed, byte-identical schedule data), so the room's stored English `name` is looked up in
- * `roomNameNlOf` (content/themes/index.ts, built from every theme's `ThemeRoom.nameNl`); a name no
- * theme defines (a hand-made test fixture) falls back to the English `name` itself, exactly as
- * before this story. The victim, named by reference in a relational clue, is likewise real Dutch
- * (`nameOf` below): the stored label is English only because every real puzzle bakes it in that
- * way (`VICTIM_LABEL`, content/packs/ids.ts), so `nameOf` recognises that exact stored string and
- * swaps it for `VICTIM_TEXT_NL.noun` — a person whose label merely looks like it (a test fixture's
- * own choice) is left alone. See the story's implementation notes (SLAY-3.2, SLAY-5.2).
+ * Object nouns are real Dutch as of SLAY-6.2 (`OBJECT_WORDS_NL`, `nounNl` below): every mention of
+ * an `ObjectType` in a Dutch sentence names its one real Dutch noun ("stoel", "boekenkast", ...),
+ * regardless of which specific kind the board drew there. This is deliberately simpler than `en.ts`: English
+ * distinguishes the *specific* theme kind a room draws when more than one look-alike exists
+ * ("a garden chair or a poof", `objectNouns`) because every theme kind's own name is real English;
+ * no theme kind has a Dutch name yet (the Legend and the noun audit, `objectNames.ts`, are
+ * English-only), so a Dutch sentence naming that same specific kind would have to say it in
+ * English — the previous, pre-SLAY-6.2 behaviour this story reverses. Naming the type's own generic
+ * Dutch noun instead, always, keeps every Dutch clue and hint in real Dutch; giving Dutch its own
+ * per-kind theme nouns (so it can draw the same "which one" distinction English does) is a
+ * follow-up story's job, not this one's (see the story's implementation notes). Room nouns are
+ * real Dutch (`roomNameNl` below, SLAY-5.2): a `Scene` carries no `themeId` (adding one would
+ * change the committed, byte-identical schedule data), so the room's stored English `name` is
+ * looked up in `roomNameNlOf` (content/themes/index.ts, built from every theme's
+ * `ThemeRoom.nameNl`); a name no theme defines (a hand-made test fixture) falls back to the
+ * English `name` itself, exactly as before this story. The victim, named by reference in a
+ * relational clue, is likewise real Dutch (`nameOf` below): the stored label is English only
+ * because every real puzzle bakes it in that way (`VICTIM_LABEL`, content/packs/ids.ts), so
+ * `nameOf` recognises that exact stored string and swaps it for `VICTIM_TEXT_NL.noun` — a person
+ * whose label merely looks like it (a test fixture's own choice) is left alone. See the story's
+ * implementation notes (SLAY-3.2, SLAY-5.2, SLAY-6.2).
  */
 
 /** Dutch preposition for a stored English preposition ("on" / "in"). */
@@ -31,13 +40,54 @@ const PREP_NL: Record<'on' | 'in', string> = { on: 'op', in: 'in' }
 /** Dutch simple past for a stored English verb ("stood" / "sat" / "lay"). */
 const VERB_NL: Record<'stood' | 'sat' | 'lay', string> = { stood: 'stond', sat: 'zat', lay: 'lag' }
 
-/** The Dutch counterpart of `OBJECT_WORDS`: same noun (unchanged, see file header), translated preposition and verb. */
-export const OBJECT_WORDS_NL: Record<ObjectType, { noun: string; prep: string; verb: string }> = Object.fromEntries(
+/**
+ * The real Dutch noun for every `ObjectType`'s engine (generic) noun, with its grammatical gender
+ * ('de' or 'het', the definite-article class every Dutch noun has). Every Dutch sentence in this
+ * file only ever uses the *indefinite* article ("een {noun}", `withArticleNl`) — Dutch has one
+ * indefinite article for both genders, unlike English "a"/"an", so `gender` changes no wording
+ * here. It is recorded anyway (SLAY-6.2) so the noun data itself is correct and complete, ready
+ * for a future definite-article use without another translation pass.
+ */
+const OBJECT_NOUNS_NL: Record<ObjectType, { noun: string; gender: 'de' | 'het' }> = {
+  chair: { noun: 'stoel', gender: 'de' },
+  rug: { noun: 'kleed', gender: 'het' },
+  bed: { noun: 'bed', gender: 'het' },
+  sofa: { noun: 'bank', gender: 'de' },
+  car: { noun: 'auto', gender: 'de' },
+  oilSlick: { noun: 'olievlek', gender: 'de' },
+  framedPainting: { noun: 'ingelijst schilderij', gender: 'het' },
+  table: { noun: 'tafel', gender: 'de' },
+  tv: { noun: 'tv', gender: 'de' },
+  plant: { noun: 'plant', gender: 'de' },
+  bookshelf: { noun: 'boekenkast', gender: 'de' },
+  chest: { noun: 'kist', gender: 'de' },
+  tree: { noun: 'boom', gender: 'de' },
+  flowers: { noun: 'bloembed', gender: 'het' },
+  easel: { noun: 'schildersezel', gender: 'de' },
+  statue: { noun: 'standbeeld', gender: 'het' },
+  washingMachine: { noun: 'wasmachine', gender: 'de' },
+  dryer: { noun: 'droger', gender: 'de' },
+  cabinet: { noun: 'kast', gender: 'de' },
+  stairs: { noun: 'trap', gender: 'de' },
+  toilet: { noun: 'wc', gender: 'de' },
+  sink: { noun: 'gootsteen', gender: 'de' },
+  shower: { noun: 'douche', gender: 'de' },
+  desk: { noun: 'bureau', gender: 'het' },
+  wardrobe: { noun: 'kledingkast', gender: 'de' },
+  diningTable: { noun: 'eettafel', gender: 'de' },
+  kitchenCounter: { noun: 'aanrecht', gender: 'het' },
+  bicycle: { noun: 'fiets', gender: 'de' },
+  gardenTable: { noun: 'tuintafel', gender: 'de' },
+  bench: { noun: 'tuinbank', gender: 'de' },
+}
+
+/** The Dutch counterpart of `OBJECT_WORDS`: real Dutch noun and gender (`OBJECT_NOUNS_NL`), translated preposition and verb. */
+export const OBJECT_WORDS_NL: Record<ObjectType, { noun: string; gender: 'de' | 'het'; prep: string; verb: string }> = Object.fromEntries(
   (Object.entries(OBJECT_WORDS) as [ObjectType, (typeof OBJECT_WORDS)[ObjectType]][]).map(([type, w]) => [
     type,
-    { noun: w.noun, prep: PREP_NL[w.prep], verb: VERB_NL[w.verb] },
+    { noun: OBJECT_NOUNS_NL[type].noun, gender: OBJECT_NOUNS_NL[type].gender, prep: PREP_NL[w.prep], verb: VERB_NL[w.verb] },
   ]),
-) as Record<ObjectType, { noun: string; prep: string; verb: string }>
+) as Record<ObjectType, { noun: string; gender: 'de' | 'het'; prep: string; verb: string }>
 
 /** "een {noun}": Dutch has one indefinite article, never an a/an split like English. */
 const withArticleNl = (noun: string): string => `een ${noun}`
@@ -82,17 +132,19 @@ export const VICTIM_TEXT_NL = {
 const COUNT_WORDS_NL = ['nul', 'een', 'twee', 'drie', 'vier', 'vijf', 'zes', 'zeven', 'acht', 'negen', 'tien', 'elf', 'twaalf']
 export const countWordNl = (n: number): string => COUNT_WORDS_NL[n] ?? String(n)
 
-/** "garden chair of poof": the nouns a clue about `type` uses, joined the Dutch way. */
-function joinOrNl(words: string[]): string {
-  return words.length < 2 ? (words[0] ?? '') : `${words.slice(0, -1).join(', ')} of ${words[words.length - 1]}`
-}
+/**
+ * The Dutch noun of an `ObjectType`, always the real generic word (`OBJECT_WORDS_NL`) — see file
+ * header for why Dutch never names the specific theme kind the board drew, unlike `en.ts`'s
+ * `objectNouns`. `anObjectNl`/`bareObjectNl` still take `ctx` (unused) so every call site keeps the
+ * same shape as its `en.ts` counterpart.
+ */
+const nounNl = (type: ObjectType): string => OBJECT_WORDS_NL[type].noun
 
-/** "een garden chair", "een garden chair of een poof": every drawn kind of the type, each with its article. */
-const anObjectNl = (ctx: RenderContext, type: ObjectType): string =>
-  joinOrNl(objectNouns(ctx.scene.objects, type).map(withArticleNl))
+/** "een stoel": the object's Dutch noun with its article. */
+const anObjectNl = (_ctx: RenderContext, type: ObjectType): string => withArticleNl(nounNl(type))
 
-/** The nouns without an article, for "precies één garden chair of poof". */
-const bareObjectNl = (ctx: RenderContext, type: ObjectType): string => joinOrNl(objectNouns(ctx.scene.objects, type))
+/** The noun without an article, for "precies één stoel". */
+const bareObjectNl = (_ctx: RenderContext, type: ObjectType): string => nounNl(type)
 
 /**
  * A person's Dutch display name. Every stored label is used as-is, except the one exact string
