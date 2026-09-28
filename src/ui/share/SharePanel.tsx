@@ -1,7 +1,8 @@
 import type { CardFormat, ShareMeta } from '../../share/index.ts'
 import type { DailyResult } from '../../game/daily/results.ts'
+import { useLocale } from '../../locale/index.ts'
 import type { ShareNavigator } from './actions.ts'
-import { SHARE_EN } from './strings.ts'
+import { SHARE_STRINGS } from './strings.ts'
 import { useShare } from './useShare.ts'
 import './share.css'
 
@@ -20,7 +21,8 @@ const FORMATS: readonly CardFormat[] = ['wide', 'square']
  * text hold the puzzle number, difficulty, time and hints and never the solution, the names or the clues.
  */
 export function SharePanel({ result, meta, nav }: SharePanelProps) {
-  const t = SHARE_EN
+  const { locale } = useLocale()
+  const t = SHARE_STRINGS[locale]
   const share = useShare(result, meta, nav)
   return (
     <section className="share" data-share aria-labelledby="share-title">

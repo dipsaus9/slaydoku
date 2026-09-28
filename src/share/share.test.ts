@@ -6,8 +6,8 @@ import { RESULT_TIERS } from '../game/daily/results.ts'
 import { readSchedule } from '../schedule/schedule.testing.ts'
 import { DAILY_EN } from '../ui/daily/strings.ts'
 import { cardSvg } from './card.ts'
-import { emojiStrip, emojiText, stripCells } from './emoji.ts'
-import { TIER_LABELS, formatDuration, hintsLabel, sizeLabel } from './format.ts'
+import { cardDescription, emojiStrip, emojiText, stripCells } from './emoji.ts'
+import { TIER_LABELS, dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel } from './format.ts'
 import { SITE_URL, siteLabel } from './site.ts'
 import { CARD_SIZES, shareMetaOf } from './types.ts'
 
@@ -39,6 +39,16 @@ describe('labels and formats', () => {
     expect(hintsLabel(12)).toBe('12 hints')
     expect(hintsLabel(-3)).toBe('no hints')
     expect(sizeLabel(9)).toBe('9x9')
+  })
+
+  it('words the hints and the date in Dutch', () => {
+    expect(hintsLabel(0, 'nl')).toBe('geen hints')
+    expect(hintsLabel(1, 'nl')).toBe('1 hint')
+    expect(hintsLabel(2, 'nl')).toBe('2 hints')
+    expect(tierLabel('very-easy', 'nl')).toBe('Heel makkelijk')
+    expect(tierLabel('hard', 'nl')).toBe('Moeilijk')
+    expect(dateLabel('2026-10-15', 'nl')).toBe('donderdag 15 oktober 2026')
+    expect(dateLabel('2026-10-15')).toBe('Thursday 15 October 2026')
   })
 })
 
@@ -83,9 +93,23 @@ describe('emojiText', () => {
   it('takes the site from one place', () => {
     expect(emojiText(result(), { tier: 'medium', size: 9 }).split('\n').at(-1)).toBe(siteLabel(SITE_URL))
   })
+
+  it('is Dutch wording in Dutch, same four lines and the same no-spoilers shape', () => {
+    expect(emojiText(result(), meta, 'nl')).toBe('Slaydoku #43 · Gemiddeld · 9x9\n⏱ 04:12 · 💡 2 hints\n🟦🟦🟦🟦🟦🟦🟦🟨🟨\nslaydoku.vercel.app')
+    expect(emojiText(result({ hints: 0 }), meta, 'nl').split('\n')[1]).toBe('⏱ 04:12 · 💡 geen hints')
+  })
 })
 
-describe('no spoilers: nothing of the puzzle but its labels', () => {
+describe('cardDescription', () => {
+  it('describes the card in English and in Dutch, both with the puzzle number, date, difficulty, size, time and hints', () => {
+    const en = cardDescription(result(), meta)
+    const nl = cardDescription(result(), meta, 'nl')
+    expect(en).toBe('Slaydoku puzzle #43 of Monday 23 November 2026, Medium, 9x9. Solved in 04:12 with 2 hints.')
+    expect(nl).toBe('Slaydoku-puzzel #43 van maandag 23 november 2026, Gemiddeld, 9x9. Opgelost in 04:12 met 2 hints.')
+  })
+})
+
+describe.each(['en', 'nl'] as const)('no spoilers: nothing of the puzzle but its labels (%s)', (locale) => {
   const sample = days.filter((_day, i) => i % 9 === 0)
   it('samples a spread of days', () => expect(sample.length).toBeGreaterThan(8))
 
@@ -93,7 +117,7 @@ describe('no spoilers: nothing of the puzzle but its labels', () => {
     it(`#${day.n} ${day.date}: no name, clue or solution cell in the text or the cards`, () => {
       const r = result({ n: day.n, date: day.date, tier: day.tier, murdererId: day.puzzle.people.find((p) => p.kind === 'suspect')!.id, hints: 1, wrongChecks: 1 })
       const m = shareMetaOf(day, 'https://slaydoku.vercel.app')
-      const outputs = [emojiText(r, m), cardSvg(r, m, CARD_SIZES.wide), cardSvg(r, m, CARD_SIZES.square)]
+      const outputs = [emojiText(r, m, locale), cardSvg(r, m, CARD_SIZES.wide, undefined, locale), cardSvg(r, m, CARD_SIZES.square, undefined, locale)]
       const ctx = { scene: day.puzzle.scene, people: day.puzzle.people }
       const clues = (day.puzzle.clues as CatalogClue[]).map((clue) => renderClue(clue, ctx))
       expect(clues.length).toBeGreaterThan(0)
@@ -151,6 +175,12 @@ describe('cardSvg', () => {
     expect(svg).toContain('No hints')
     expect(svg).toContain('1:02:03')
     expect(svg.match(/<rect x="[\d.]+" y="432"/g)?.length).toBe(12)
+  })
+
+  it('draws Dutch labels and legend when asked for Dutch', () => {
+    const svg = cardSvg(result({ wrongChecks: 1 }), meta, CARD_SIZES.wide, undefined, 'nl')
+    wellFormed(svg)
+    for (const part of ['Slaydoku', 'Puzzle #43', 'maandag 23 november 2026', 'Gemiddeld · 9x9', '04:12', '2 hints', 'geplaatst', 'hint', 'foute controle']) expect(svg).toContain(part)
   })
 
   it('escapes what it prints', () => {

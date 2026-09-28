@@ -1,5 +1,5 @@
 import type { Hint } from '../../game/index.ts'
-import { PLAY_EN } from './strings.ts'
+import { usePlayStrings } from './strings.ts'
 
 export interface HintBarProps {
   /** The level shown; the hint is null when the solver has nothing to say. */
@@ -13,7 +13,7 @@ export interface HintBarProps {
 
 /** Progressive hint under the board: which card and who, then which squares, then why and what to do. */
 export function HintBar({ level, hint, onMore, onClose, onPlace }: HintBarProps) {
-  const t = PLAY_EN.hint
+  const t = usePlayStrings().hint
   const placement = hint?.level === 3 ? hint.placement : undefined
   return (
     <div className="play-hint" role="status" data-level={level}>

@@ -1,8 +1,9 @@
 import { useMemo, useRef, useState } from 'react'
 import type { StorageLike } from '../../game/index.ts'
+import { useLocale } from '../../locale/index.ts'
 import { readStats, resetStats } from '../../game/stats/index.ts'
 import { StatsPanel } from './StatsPanel.tsx'
-import { STATS_EN } from './strings.ts'
+import { STATS_STRINGS } from './strings.ts'
 import './stats.css'
 
 export interface StatsEntryProps {
@@ -20,6 +21,8 @@ export interface StatsEntryProps {
  * are read from this device when the screen shows and again after a reset; nothing is fetched or sent.
  */
 export function StatsEntry({ storage, today, version = 0, onReset }: StatsEntryProps) {
+  const { locale } = useLocale()
+  const t = STATS_STRINGS[locale]
   const [open, setOpen] = useState(false)
   const [resets, setResets] = useState(0)
   const opener = useRef<HTMLButtonElement>(null)
@@ -39,12 +42,12 @@ export function StatsEntry({ storage, today, version = 0, onReset }: StatsEntryP
   }
 
   return (
-    <section className="stats-entry" aria-label={STATS_EN.title}>
+    <section className="stats-entry" aria-label={t.title}>
       <p className="stats-entry__summary" data-stats-summary>
-        {STATS_EN.summary(stats.currentStreak, stats.bestStreak)}
+        {t.summary(stats.currentStreak, stats.bestStreak)}
       </p>
       <button ref={opener} type="button" className="stats-btn stats-entry__open" data-stats-open onClick={() => setOpen(true)}>
-        {STATS_EN.open}
+        {t.open}
       </button>
       {open ? <StatsPanel stats={stats} onClose={close} onReset={reset} /> : null}
     </section>

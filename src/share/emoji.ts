@@ -1,4 +1,5 @@
 import type { DailyResult } from '../game/daily/results.ts'
+import type { Locale } from '../locale/index.ts'
 import { dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel } from './format.ts'
 import { siteLabel } from './site.ts'
 import type { ShareMeta } from './types.ts'
@@ -25,23 +26,28 @@ export const emojiStrip = (result: Pick<DailyResult, 'hints' | 'wrongChecks'>, s
   stripCells(result, size).map((cell) => STRIP_EMOJI[cell]).join('')
 
 /**
- * The text of a share:
+ * The text of a share, in the given locale (default English):
  *
  *     Slaydoku #43 · Medium · 9x9
  *     ⏱ 04:12 · 💡 2 hints
  *     🟦🟦🟦🟦🟦🟦🟦🟨🟨
  *     slaydoku.vercel.app
+ *
+ * Same no-spoilers rule in every language: only the puzzle number, difficulty, size, time, hint count and the strip —
+ * never the solution, a name or a clue.
  */
-export function emojiText(result: DailyResult, meta: ShareMeta): string {
+export function emojiText(result: DailyResult, meta: ShareMeta, locale: Locale = 'en'): string {
   return [
-    `Slaydoku #${result.n} · ${tierLabel(meta.tier)} · ${sizeLabel(meta.size)}`,
-    `⏱ ${formatDuration(result.elapsedMs)} · \u{1F4A1} ${hintsLabel(result.hints)}`,
+    `Slaydoku #${result.n} · ${tierLabel(meta.tier, locale)} · ${sizeLabel(meta.size)}`,
+    `⏱ ${formatDuration(result.elapsedMs)} · \u{1F4A1} ${hintsLabel(result.hints, locale)}`,
     emojiStrip(result, meta.size),
     siteLabel(meta.siteUrl),
   ].join('\n')
 }
 
 /** One-line description for a screen reader and for the `alt` text of the card preview. */
-export function cardDescription(result: DailyResult, meta: ShareMeta): string {
-  return `Slaydoku puzzle #${result.n} of ${dateLabel(result.date)}, ${tierLabel(meta.tier)}, ${sizeLabel(meta.size)}. Solved in ${formatDuration(result.elapsedMs)} with ${hintsLabel(result.hints)}.`
+export function cardDescription(result: DailyResult, meta: ShareMeta, locale: Locale = 'en'): string {
+  return locale === 'nl'
+    ? `Slaydoku-puzzel #${result.n} van ${dateLabel(result.date, locale)}, ${tierLabel(meta.tier, locale)}, ${sizeLabel(meta.size)}. Opgelost in ${formatDuration(result.elapsedMs)} met ${hintsLabel(result.hints, locale)}.`
+    : `Slaydoku puzzle #${result.n} of ${dateLabel(result.date)}, ${tierLabel(meta.tier)}, ${sizeLabel(meta.size)}. Solved in ${formatDuration(result.elapsedMs)} with ${hintsLabel(result.hints)}.`
 }

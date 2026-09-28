@@ -1,9 +1,49 @@
 import type { TierId } from '../../engine/generator/tiers/index.ts'
+import type { Locale } from '../../locale/index.ts'
+
+interface StatsStrings {
+  open: string
+  summary: (current: number, best: number) => string
+  title: string
+  device: string
+  numbers: {
+    played: string
+    solved: string
+    solveRate: string
+    currentStreak: string
+    bestStreak: string
+    totalHints: string
+    averageHints: string
+  }
+  none: string
+  percent: (rate: number) => string
+  average: (value: number) => string
+  streakNote: string
+  times: {
+    title: string
+    empty: string
+    best: string
+    median: string
+    puzzles: (n: number) => string
+    row: (label: string, best: string, median: string) => string
+  }
+  tier: Record<TierId, string>
+  close: string
+  reset: {
+    button: string
+    title: string
+    text: string
+    confirm: string
+    cancel: string
+    done: string
+    failed: string
+  }
+}
 
 /** English wording of the statistics card and its entry on the start screen. */
-export const STATS_EN = {
+export const STATS_EN: StatsStrings = {
   open: 'Stats',
-  summary: (current: number, best: number) => `Streak ${current} · Best ${best}`,
+  summary: (current, best) => `Streak ${current} · Best ${best}`,
   title: 'Your statistics',
   device: 'Kept on this device only. Nothing is sent anywhere.',
   numbers: {
@@ -16,16 +56,16 @@ export const STATS_EN = {
     averageHints: 'Hints per puzzle',
   },
   none: '–',
-  percent: (rate: number) => `${Math.round(rate * 100)}%`,
-  average: (value: number) => (Math.round(value * 10) / 10).toString(),
+  percent: (rate) => `${Math.round(rate * 100)}%`,
+  average: (value) => (Math.round(value * 10) / 10).toString(),
   streakNote: 'A streak counts consecutive UTC days you solved. A missed day starts it again.',
   times: {
     title: 'Times by difficulty',
     empty: 'Solve a puzzle to see your times.',
     best: 'Best',
     median: 'Median',
-    puzzles: (n: number) => (n === 1 ? '1 puzzle' : `${n} puzzles`),
-    row: (label: string, best: string, median: string) => `${label}: best ${best}, median ${median}`,
+    puzzles: (n) => (n === 1 ? '1 puzzle' : `${n} puzzles`),
+    row: (label, best, median) => `${label}: best ${best}, median ${median}`,
   },
   tier: {
     'very-easy': 'Very easy',
@@ -34,7 +74,7 @@ export const STATS_EN = {
     medium: 'Medium',
     hard: 'Hard',
     expert: 'Expert',
-  } satisfies Record<TierId, string>,
+  },
   close: 'Close',
   reset: {
     button: 'Reset stats',
@@ -45,4 +85,54 @@ export const STATS_EN = {
     done: 'Your stats were reset.',
     failed: 'Your stats could not be reset. The browser did not allow it.',
   },
-} as const
+}
+
+/** Dutch wording of the statistics card and its entry on the start screen. */
+export const STATS_NL: StatsStrings = {
+  open: 'Statistieken',
+  summary: (current, best) => `Reeks ${current} · Beste ${best}`,
+  title: 'Jouw statistieken',
+  device: 'Blijft alleen op dit apparaat. Er wordt niets verstuurd.',
+  numbers: {
+    played: 'Gespeeld',
+    solved: 'Opgelost',
+    solveRate: 'Oplospercentage',
+    currentStreak: 'Huidige reeks',
+    bestStreak: 'Beste reeks',
+    totalHints: 'Hints gebruikt',
+    averageHints: 'Hints per puzzel',
+  },
+  none: '–',
+  percent: (rate) => `${Math.round(rate * 100)}%`,
+  average: (value) => (Math.round(value * 10) / 10).toString(),
+  streakNote: 'Een reeks telt opeenvolgende UTC-dagen die je hebt opgelost. Een gemiste dag begint hem opnieuw.',
+  times: {
+    title: 'Tijden per moeilijkheidsgraad',
+    empty: 'Los een puzzel op om je tijden te zien.',
+    best: 'Beste',
+    median: 'Mediaan',
+    puzzles: (n) => (n === 1 ? '1 puzzel' : `${n} puzzels`),
+    row: (label, best, median) => `${label}: beste ${best}, mediaan ${median}`,
+  },
+  tier: {
+    'very-easy': 'Heel makkelijk',
+    easy: 'Makkelijk',
+    'easy-medium': 'Makkelijk-gemiddeld',
+    medium: 'Gemiddeld',
+    hard: 'Moeilijk',
+    expert: 'Expert',
+  },
+  close: 'Sluiten',
+  reset: {
+    button: 'Statistieken wissen',
+    title: 'Statistieken wissen?',
+    text: 'Dit verwijdert je opgeloste puzzels, tijden en reeksen van dit apparaat, en de opgeslagen borden van de puzzels die je speelde. Die dagen worden weer als nieuw getoond. Dit kan niet ongedaan worden gemaakt.',
+    confirm: 'Verwijder mijn statistieken',
+    cancel: 'Bewaar mijn statistieken',
+    done: 'Je statistieken zijn gewist.',
+    failed: 'Je statistieken konden niet worden gewist. De browser stond dit niet toe.',
+  },
+}
+
+/** The statistics card's wording per locale. Read through `useLocale()`, never English alone. */
+export const STATS_STRINGS: Record<Locale, StatsStrings> = { en: STATS_EN, nl: STATS_NL }

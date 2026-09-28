@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import { LocaleProvider } from '../locale/index.ts'
 import { UpdateNotice } from './UpdateNotice.tsx'
 import { startOfflineSupport } from './register.ts'
-import { UPDATE_EN } from './strings.ts'
+import { UPDATE_STRINGS } from './strings.ts'
 import type { ContainerLike, Updater } from './updater.ts'
 
 const updaterWith = (waiting: boolean): Updater => ({
@@ -13,17 +14,24 @@ const updaterWith = (waiting: boolean): Updater => ({
   getSnapshot: () => waiting,
 })
 
-describe('UpdateNotice', () => {
-  it('says so in English, with a reload button, when a new version waits', () => {
-    const html = renderToStaticMarkup(<UpdateNotice updater={updaterWith(true)} />)
-    expect(html).toContain('New version available')
-    expect(html).toContain('Reload')
+describe.each(['en', 'nl'] as const)('UpdateNotice (%s)', (locale) => {
+  const t = UPDATE_STRINGS[locale]
+  const render = (waiting: boolean) =>
+    renderToStaticMarkup(
+      <LocaleProvider storage={null} browserLanguage={locale === 'nl' ? 'nl-NL' : 'en-US'}>
+        <UpdateNotice updater={updaterWith(waiting)} />
+      </LocaleProvider>,
+    )
+
+  it('says so in the chosen language, with a reload button, when a new version waits', () => {
+    const html = render(true)
+    expect(html).toContain(t.available)
+    expect(html).toContain(t.reload)
     expect(html).toContain('role="status"')
-    expect(UPDATE_EN).toEqual({ available: 'New version available', reload: 'Reload' })
   })
 
   it('renders nothing otherwise', () => {
-    expect(renderToStaticMarkup(<UpdateNotice updater={updaterWith(false)} />)).toBe('')
+    expect(render(false)).toBe('')
   })
 })
 
