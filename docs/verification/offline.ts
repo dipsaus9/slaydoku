@@ -3,7 +3,7 @@
 // protocol through the whole offline story:
 //   1. first visit: the worker installs, precaches the build and takes control of the page (no second load needed);
 //   2. Network.emulateNetworkConditions offline (and a fetch that must fail, so the offline mode is real), then reload on
-//      /, /play and /about: the start screen opens, today's puzzle (date override 2026-09-30; its month file is a lazily loaded
+//      /, /play and /about: the start screen opens, today's puzzle (date override 2026-11-21; its month file is a lazily loaded
 //      chunk, and every month chunk of the schedule is in the precache) plays and the About page shows (from the precache);
 //   3. a new deploy (the start screen subtitle gets " (v2)" for one build, restored afterwards): back online, the next visit
 //      keeps showing the cached build, the notice "New version available" + "Reload" appears, the reload
@@ -147,7 +147,7 @@ try {
   check('the subtitle is the v1 one', (await text('.level-subtitle, [class*=subtitle]')).includes(SUBTITLE) || (await evaluate(`document.body.textContent.includes(${JSON.stringify(SUBTITLE)})`)) === true)
 
   // Saves the update must not touch: the result of an earlier day, the how-it-works card marked as seen (or it covers the puzzle), and a marker.
-  const earlier = dayOn('2026-09-29')
+  const earlier = dayOn('2026-11-20')
   const results = { version: 1, results: { [earlier.n]: { n: earlier.n, date: earlier.date, fp: earlier.fp, elapsedMs: 60000, hints: 0, wrongChecks: 0, murdererId: 'x' } } }
   await evaluate(`localStorage.setItem(${JSON.stringify(RESULTS_KEY)}, ${JSON.stringify(JSON.stringify(results))}); localStorage.setItem('slaydoku:help-seen', '{"version":${help.version}}'); localStorage.setItem('slaydoku:offline-test-marker', 'keep me')`)
   check('the date override sits in localStorage for the later page loads', (await evaluate(`localStorage.getItem(${JSON.stringify(DATE_KEY)})`)) === PLAY_DATE)
