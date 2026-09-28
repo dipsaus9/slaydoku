@@ -17,6 +17,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { help } from '../../src/content/help/help.ts'
+import { LOCALE_KEY } from '../../src/locale/storage.ts'
 import { DATE_KEY, INDEX, PLAY_DATE, RESULTS_KEY, dayOn } from './daily.ts'
 
 const HERE = import.meta.dir
@@ -121,6 +122,11 @@ await send('Runtime.enable')
 await send('Network.enable')
 await send('Emulation.setDeviceMetricsOverride', { width: VW, height: VH, deviceScaleFactor: 1, mobile: true })
 await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 })
+// Locale pinned to 'en' on every document load, before the app's own script runs (SLAY-3.6, the same fix
+// drive.ts/zoom.ts/legend.ts/screens.ts/stats.ts/share.ts carry from SLAY-3.2/SLAY-4.2): without it, a browser
+// whose own language is Dutch would default the app to Dutch (SLAY-3.1's locale toggle falls back to the
+// browser's language) and break the English-text checks below, across every reload this file makes.
+await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorage.setItem(${JSON.stringify(LOCALE_KEY)}, 'en') } catch {}` })
 
 try {
   // ---- 1. first visit ------------------------------------------------------------------------

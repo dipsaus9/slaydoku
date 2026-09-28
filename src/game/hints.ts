@@ -4,6 +4,7 @@ import type { Cell, Person, Placement, Puzzle } from '../engine/model/index.ts'
 import { advancedRegistry, HARD_LEVEL } from '../engine/solver/advanced/registry.ts'
 import { solveHuman } from '../engine/solver/human/index.ts'
 import type { HumanStep } from '../engine/solver/human/index.ts'
+import type { Locale } from '../locale/types.ts'
 import { hasMark, hasNote, occupantAt } from './board.ts'
 import { focusHint, stepHint } from './hintText.ts'
 import { chainTo, knowledge, knownCards, rankCards } from './knowledge.ts'
@@ -81,7 +82,7 @@ export const MAX_CROSSED_SQUARES = 12
  *
  * Null when everybody is right already or the solver has nothing (a puzzle it cannot do without guessing).
  */
-export function nextStep(puzzle: Puzzle, state: GameState): NextStep | null {
+export function nextStep(puzzle: Puzzle, state: GameState, locale: Locale = 'en'): NextStep | null {
   const truth = new Map(puzzle.solution.map((p) => [p.personId, p.cell]))
   const known = puzzle.people.filter((p) => {
     const at = state.board.placements[p.id]
@@ -92,7 +93,7 @@ export function nextStep(puzzle: Puzzle, state: GameState): NextStep | null {
 
   const know = knowledge(puzzle, known, truth)
   if (know.placement) return { step: know.placement.step, placement: know.placement.step.placed, focus: know.placement.focus }
-  return noteStep(puzzle, state, known, know) ?? deduction(puzzle, state, known, truth, know)
+  return noteStep(puzzle, state, known, know) ?? deduction(puzzle, state, known, truth, know, locale)
 }
 
 /** The person with the fewest possible squares, when few enough and the player has not made the note yet. */
@@ -125,12 +126,14 @@ function deduction(
   known: readonly Person[],
   truth: ReadonlyMap<string, Cell>,
   know: Knowledge,
+  locale: Locale = 'en',
 ): NextStep | null {
   const real = puzzle.clues as CatalogClue[]
   const knownIds = new Set(known.map((p) => p.id))
   const result = solveHuman(puzzle.scene, puzzle.people, [...real, ...knownCards(known, truth)], {
     techniques: advancedRegistry.list(),
     bands: advancedRegistry.listBands(),
+    locale,
   })
   const stillPossible = (personId: string, cell: Cell) => know.possible.get(personId)?.some((c) => sameCell(c, cell)) ?? false
 
@@ -179,12 +182,12 @@ function capSquares(eliminations: Placement[]): Placement[] {
  * The hint of `level` for the current state, or null when there is none. Never carries more
  * than the requested level asks for.
  */
-export function getHint(puzzle: Puzzle, state: GameState, level: HintLevel): Hint | null {
-  const next = nextStep(puzzle, state)
+export function getHint(puzzle: Puzzle, state: GameState, level: HintLevel, locale: Locale = 'en'): Hint | null {
+  const next = nextStep(puzzle, state, locale)
   if (!next) return null
-  return hintFor(puzzle, next, level)
+  return hintFor(puzzle, next, level, locale)
 }
 
 /** The hint of `level` for `next`. A step without a person to look at is told as the solver's own reasoning. */
-export const hintFor = (puzzle: Puzzle, next: NextStep, level: HintLevel): Hint =>
-  next.focus ? focusHint(puzzle, next, next.focus, level) : stepHint(puzzle, next, level)
+export const hintFor = (puzzle: Puzzle, next: NextStep, level: HintLevel, locale: Locale = 'en'): Hint =>
+  next.focus ? focusHint(puzzle, next, next.focus, level, locale) : stepHint(puzzle, next, level, locale)

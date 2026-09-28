@@ -1,4 +1,5 @@
 import type { Puzzle } from '../engine/model/index.ts'
+import type { Locale } from '../locale/types.ts'
 import { getHint } from './hints.ts'
 import type { Hint, HintLevel } from './hints.ts'
 import { puzzleFingerprint } from './fingerprint.ts'
@@ -23,8 +24,8 @@ export interface GameStore {
   subscribe(listener: () => void): () => void
   /** Elapsed time on the clock right now. */
   elapsed(): number
-  /** The hint of a level for the current state, or null when there is none. */
-  hint(level: HintLevel): Hint | null
+  /** The hint of a level for the current state, in `locale` (default `'en'`), or null when there is none. */
+  hint(level: HintLevel, locale?: Locale): Hint | null
 }
 
 /**
@@ -60,6 +61,6 @@ export function createGameStore(config: GameStoreConfig): GameStore {
       return () => listeners.delete(listener)
     },
     elapsed: () => elapsedMs(state, now()),
-    hint: (level) => getHint(puzzle, state, level),
+    hint: (level, locale) => getHint(puzzle, state, level, locale),
   }
 }
