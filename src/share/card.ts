@@ -1,4 +1,5 @@
 import type { DailyResult } from '../game/daily/results.ts'
+import type { Locale } from '../locale/index.ts'
 import { cardDescription, stripCells } from './emoji.ts'
 import type { StripCell } from './emoji.ts'
 import { capitalize, dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel } from './format.ts'
@@ -23,6 +24,7 @@ const MUTED = '#5d5d6b'
 /** Colour of each strip square: the same three as the emoji. */
 const STRIP_FILL: Record<StripCell, string> = { placed: ACCENT, hint: AMBER, wrong: RED }
 const STRIP_WORDS: Record<StripCell, string> = { placed: 'placed', hint: 'hint', wrong: 'wrong check' }
+const STRIP_WORDS_NL: Record<StripCell, string> = { placed: 'geplaatst', hint: 'hint', wrong: 'foute controle' }
 
 /** System fonts only: nothing is fetched, and the card looks about the same on every device. The default headline font (see HeadlineFont below). */
 const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
@@ -131,16 +133,16 @@ function strip(cells: readonly StripCell[], x: number, y: number, maxWidth: numb
 }
 
 /** Legend of the strip, only for the kinds present: a swatch and a word each. */
-function legend(cells: readonly StripCell[], x: number, y: number, size: number, anchor: 'start' | 'middle'): string {
+function legend(cells: readonly StripCell[], x: number, y: number, size: number, anchor: 'start' | 'middle', words: Record<StripCell, string>): string {
   const kinds = (['placed', 'hint', 'wrong'] as const).filter((kind) => cells.includes(kind))
   const swatch = size * 0.8
-  const widths = kinds.map((kind) => swatch + size * 0.4 + STRIP_WORDS[kind].length * size * 0.56)
+  const widths = kinds.map((kind) => swatch + size * 0.4 + words[kind].length * size * 0.56)
   const gap = size * 1.4
   const total = widths.reduce((sum, w) => sum + w, 0) + gap * (kinds.length - 1)
   let cursor = anchor === 'middle' ? x - total / 2 : x
   return kinds
     .map((kind, i) => {
-      const out = `<rect x="${num(cursor)}" y="${num(y - swatch * 0.85)}" width="${num(swatch)}" height="${num(swatch)}" rx="${num(swatch * 0.2)}" fill="${STRIP_FILL[kind]}"/>` + text(STRIP_WORDS[kind], { x: cursor + swatch + size * 0.4, y, size, fill: MUTED })
+      const out = `<rect x="${num(cursor)}" y="${num(y - swatch * 0.85)}" width="${num(swatch)}" height="${num(swatch)}" rx="${num(swatch * 0.2)}" fill="${STRIP_FILL[kind]}"/>` + text(words[kind], { x: cursor + swatch + size * 0.4, y, size, fill: MUTED })
       cursor += widths[i]! + gap
       return out
     })
@@ -160,7 +162,7 @@ interface Parts {
   cells: StripCell[]
 }
 
-function wide(p: Parts, headlineFont: string): string {
+function wide(p: Parts, headlineFont: string, words: Record<StripCell, string>): string {
   return (
     `<rect width="1200" height="630" fill="${PAPER}"/><rect x="32" y="32" width="1136" height="566" rx="36" fill="${PANEL}" stroke="${LINE}" stroke-width="2"/>` +
     wordmark(84, 72, 72, 46, headlineFont) +
@@ -171,12 +173,12 @@ function wide(p: Parts, headlineFont: string): string {
     text(p.hints, { x: 84, y: 548, size: 36, weight: 600, fill: MUTED }) +
     iconTile(786, 84, 280) +
     strip(p.cells, 926, 432, 380, 44, 'middle') +
-    legend(p.cells, 926, 508, 19, 'middle') +
+    legend(p.cells, 926, 508, 19, 'middle', words) +
     text(p.site, { x: 926, y: 560, size: 26, weight: 600, anchor: 'middle', fill: INK })
   )
 }
 
-function square(p: Parts, headlineFont: string): string {
+function square(p: Parts, headlineFont: string, words: Record<StripCell, string>): string {
   return (
     `<rect width="1080" height="1080" fill="${PAPER}"/><rect x="36" y="36" width="1008" height="1008" rx="44" fill="${PANEL}" stroke="${LINE}" stroke-width="2"/>` +
     iconTile(492, 88, 96) +
@@ -187,7 +189,7 @@ function square(p: Parts, headlineFont: string): string {
     text(p.time, { x: 540, y: 690, size: timeSize(p.time, 250), weight: 800, anchor: 'middle' }) +
     text(p.hints, { x: 540, y: 772, size: 46, weight: 600, fill: MUTED, anchor: 'middle' }) +
     strip(p.cells, 540, 828, 720, 56, 'middle') +
-    legend(p.cells, 540, 934, 24, 'middle') +
+    legend(p.cells, 540, 934, 24, 'middle', words) +
     text(p.site, { x: 540, y: 1000, size: 34, weight: 600, anchor: 'middle' })
   )
 }
@@ -197,25 +199,27 @@ function square(p: Parts, headlineFont: string): string {
  * person (see `stripCells`) and the site. Two designs: a landscape one (1200x630 units) and a square one (1080x1080); `width` and
  * `height` set the size of the picture, which scales the design. Shapes and text only: no images, no script, nothing fetched by the SVG
  * itself — `headline` (default: the plain system stack) is the one already-resolved choice from `loadDisplayFont`, embedded inline when
- * it carries a font. It carries the labels of the puzzle and never its solution, names or clues.
+ * it carries a font. It carries the labels of the puzzle and never its solution, names or clues. `locale` (default English) picks the
+ * language of every label drawn on it, including the strip's legend.
  */
-export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }: { width: number; height: number }, headline: HeadlineFont = SYSTEM_HEADLINE): string {
+export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }: { width: number; height: number }, headline: HeadlineFont = SYSTEM_HEADLINE, locale: Locale = 'en'): string {
   const isWide = width / height > 1.2
   const parts: Parts = {
     number: `Puzzle #${result.n}`,
-    date: dateLabel(result.date),
-    tier: `${tierLabel(meta.tier)} · ${sizeLabel(meta.size)}`,
+    date: dateLabel(result.date, locale),
+    tier: `${tierLabel(meta.tier, locale)} · ${sizeLabel(meta.size)}`,
     time: formatDuration(result.elapsedMs),
-    hints: capitalize(hintsLabel(result.hints)),
+    hints: capitalize(hintsLabel(result.hints, locale)),
     site: siteLabel(meta.siteUrl),
     cells: stripCells(result, meta.size),
   }
+  const words = locale === 'nl' ? STRIP_WORDS_NL : STRIP_WORDS
   const [vw, vh] = isWide ? [1200, 630] : [1080, 1080]
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${vw} ${vh}" role="img" aria-labelledby="card-title">` +
-    `<title id="card-title">${escapeXml(cardDescription(result, meta))}</title>` +
+    `<title id="card-title">${escapeXml(cardDescription(result, meta, locale))}</title>` +
     (headline.fontFace ?? '') +
-    (isWide ? wide(parts, headline.family) : square(parts, headline.family)) +
+    (isWide ? wide(parts, headline.family, words) : square(parts, headline.family, words)) +
     '</svg>'
   )
 }
