@@ -3,10 +3,11 @@
 // share.ts, offline.ts — every one of them pins its own storage to locale 'en' so a Dutch browser
 // never leaks into their English-text assertions, SLAY-3.2/SLAY-4.2). This driver does the
 // opposite: it switches the language toggle itself and checks the app actually reads in Dutch —
-// start screen, a played day's clue cards (computed with the engine's own `renderClue(..., 'nl')`,
-// the same pure function the cards call, so a missed locale branch fails this check rather than
-// only "looking Dutch"), a hint, the toolbar's More sheet, Stats and a solved day's Share panel —
-// with no leftover English text and no mix of the two languages on screen. It does not repeat the
+// start screen, a played day's board room labels and clue cards (computed with the engine's own
+// `renderClue(..., 'nl')`/`roomNameNlOf`, the same pure functions the board and cards call, so a
+// missed locale branch fails this check rather than only "looking Dutch"), a hint, the toolbar's
+// More sheet, Stats and a solved day's Share panel — with no leftover English text and no mix of
+// the two languages on screen. It does not repeat the
 // 2700+ checks the English suite already makes in English; see docs/verification/report.md.
 //
 // Usage (from the repo root):
@@ -20,10 +21,12 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { roomNameNlOf } from '../../src/content/themes/index.ts'
 import { deriveMurderer } from '../../src/engine/model/index.ts'
 import type { CatalogClue, RenderContext } from '../../src/engine/clues/index.ts'
 import { renderClue } from '../../src/engine/clues/index.ts'
 import { getHint, initialState } from '../../src/game/index.ts'
+import { bareRoomName } from '../../src/render/scene/labels.ts'
 import { PLAY_DATE, RESULTS_KEY, dayOn, seedStorage } from './daily.ts'
 
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -182,6 +185,21 @@ check('the Dutch choice survives a reload', (await localeKeyValue()) === 'nl' &&
 // 2. Play a scheduled day: clue cards (checked against the engine's own Dutch render) and a hint.
 await tapSel('[data-action=play]')
 check('the puzzle opens', (await count('.play-board')) === 1)
+
+// Board room labels (SLAY-5.2): the same real Dutch noun the clue text uses, not a second
+// translation and not the stored English name leaking through.
+const roomLabels = (await evaluate(
+  `JSON.stringify([...document.querySelectorAll('[data-room-label]')].map((el) => el.textContent ?? ''))`,
+).then((s) => JSON.parse(s as string))) as string[]
+const expectedRoomLabels = DAY.puzzle.scene.rooms
+  .map((r) => (roomNameNlOf(r.name) ?? bareRoomName(r.name)).toUpperCase())
+  .sort()
+check(
+  `every board room label (${roomLabels.length}) reads the real Dutch noun, no leftover English room name`,
+  JSON.stringify([...roomLabels].sort()) === JSON.stringify(expectedRoomLabels),
+  `got ${roomLabels.join(', ')} | want ${expectedRoomLabels.join(', ')}`,
+)
+
 const cards = (await evaluate(
   `JSON.stringify([...document.querySelectorAll('.play-cards .polaroid:not(.polaroid--victim)')].map(el => ({ name: el.querySelector('.polaroid__name')?.textContent ?? '', lines: [...el.querySelectorAll('.polaroid__line')].map(s => s.textContent ?? '') })).sort((a, b) => a.name.localeCompare(b.name)))`,
 ).then((s) => JSON.parse(s as string))) as { name: string; lines: string[] }[]

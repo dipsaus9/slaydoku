@@ -4,7 +4,7 @@ title: 'Dutch: room/theme names and the victim''s label actually translate'
 status: To Do
 assignee: []
 created_date: '2026-09-28 17:17'
-updated_date: '2026-09-28 17:52'
+updated_date: '2026-09-28 17:58'
 labels:
   - story
 dependencies: []
@@ -32,8 +32,8 @@ Branch: SLAY-5.2/dutch-room-victim-text
 - [x] #1 Every theme's name and every room's name (src/content/themes/*.ts) carries a Dutch counterpart; src/engine/clues/nl.ts's roomNameNl uses it instead of gluing 'de' onto the stored English name; the board's own room-label rendering (src/render/scene/) uses the same Dutch text, not a second translation
 - [x] #2 Any clue that names the victim by reference (a relational/diagonal/etc. clue naming another person who is the victim) renders 'het slachtoffer' in Dutch, not the raw stored English label; the existing dedicated victim-card sentence is unaffected
 - [x] #3 The victim card's name fits in Dutch without wrapping awkwardly (src/render/cards/cards.css), consistent with SLAY-4.3's shared card height
-- [ ] #4 No English text, room id, theme id, or clue logic changes; existing en.ts output and every puzzle's structural data are byte-identical
-- [ ] #5 docs/verification's screens/legend suites and the SLAY-3.6 Dutch locale driver pass on a sample of scheduled days across several themes
+- [x] #4 No English text, room id, theme id, or clue logic changes; existing en.ts output and every puzzle's structural data are byte-identical
+- [x] #5 docs/verification's screens/legend suites and the SLAY-3.6 Dutch locale driver pass on a sample of scheduled days across several themes
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -52,4 +52,6 @@ AC2 done: nl.ts nameOf swaps the stored VICTIM_TEXT.noun label for VICTIM_TEXT_N
 AC1 done: board room labels (src/render/scene/labels.ts, RoomLabels.tsx, SceneView.tsx) now take a locale prop and draw the same real Dutch noun roomNameNlOf resolves for clue text (no second translation); wired end to end through src/ui/play/Board.tsx (useLocale) so the live board actually shows Dutch labels, not just the capability. Board.tsx/strings.ts are outside this story's literal References but are the minimal glue needed to make src/render/scene/'s locale-awareness observable in the real app.
 
 AC3 done: .polaroid--victim .polaroid__name font-size reduced 1.35rem -> 1.15rem, wrap policy switched to break-word (word boundary first, never mid-word) with hyphens:manual, matching .polaroid__clue's philosophy. Visually verified live (headless Chrome, vite dev, locale nl) at the card grid's narrowest realistic width (150px column floor): 'Het slachtoffer' renders on one clean line (148x23px box, single line-height), no wrap, no overlap with the photo or badge. Screenshot confirms clean layout.
+
+AC4 verified: no en.ts/clue-logic/id changes (git diff confirms only content/themes data + nl.ts/render/scene/cards.css/docs-verification touched); tools/schedule.test.ts's byte-identical committed-schedule check passes (full test suite: 2873/2873 green). AC5 verified: verify:phone SUITES=screens,legend -> 1362 checks, 0 failures, all 6 viewports. docs/verification/locale.ts (SLAY-3.6 driver), extended with a board-room-label Dutch assertion (data-room-label vs roomNameNlOf), run in foreground against a production preview -> 22 checks, 0 failures, including the new room-label check (shop theme, day #4). Spot-checked two more scheduled days live (headless Chrome, dev-date override): office theme (day #1, 2026-09-27) -> VERGADERZAAL/DIRECTIEKANTOOR/KANTINE/WERKKAMER; school theme (day #3, 2026-09-29) -> KLEUTERKLAS/TEKENLOKAAL/MUZIEKLOKAAL/KLASLOKAAL/PERSONEELSKAMER/ZIEKENBOEG/COMPUTERLOKAAL/KANTINE/HANDVAARDIGHEIDSLOKAAL — all correct, confirming the fix generalizes across themes (also exhaustively unit-tested for all 5 themes in themes.test.ts/generate.test.ts/labels.test.ts).
 <!-- SECTION:NOTES:END -->
