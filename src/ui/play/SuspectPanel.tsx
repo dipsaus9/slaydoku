@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { CardGrid } from '../../render/cards/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
-import { PLAY_EN } from './strings.ts'
+import { usePlayStrings } from './strings.ts'
 
 export interface SuspectPanelProps {
   puzzle: Puzzle
@@ -20,6 +20,7 @@ export interface SuspectPanelProps {
  * so a tap on it is picked up here on the wrapper (the card itself stays untouched).
  */
 export function SuspectPanel({ puzzle, cast, selectedId, placedIds, onSelect }: SuspectPanelProps) {
+  const t = usePlayStrings()
   const victim = puzzle.people.find((p) => p.kind === 'victim')
   const onClick = (event: MouseEvent<HTMLElement>) => {
     if (!victim) return
@@ -28,7 +29,7 @@ export function SuspectPanel({ puzzle, cast, selectedId, placedIds, onSelect }: 
   return (
     <section
       className="play-cards"
-      aria-label={PLAY_EN.cards}
+      aria-label={t.cards}
       data-victim-selected={victim && victim.id === selectedId ? '' : undefined}
       data-victim-placed={victim && placedIds.includes(victim.id) ? '' : undefined}
       onClick={onClick}

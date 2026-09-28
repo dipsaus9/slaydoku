@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { GameOptions } from '../../game/index.ts'
 import { Modal } from './Modal.tsx'
-import { PLAY_EN } from './strings.ts'
+import { usePlayStrings } from './strings.ts'
 
 export interface OptionsPanelProps {
   options: GameOptions
@@ -15,7 +15,7 @@ export interface OptionsPanelProps {
 
 /** The three toggles of the official app, the axis labels toggle, plus clear-all and restart. */
 export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, onClearAll, onRestart, onClose }: OptionsPanelProps) {
-  const t = PLAY_EN.options
+  const t = usePlayStrings().options
   const [confirmRestart, setConfirmRestart] = useState(false)
   const game = (key: keyof GameOptions, label: string, help: string) => ({
     key,

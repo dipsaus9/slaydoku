@@ -1,9 +1,12 @@
 import { readFileSync } from 'node:fs'
+import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { at, puzzle as tutorial } from '../../game/fixture.ts'
 import { createGameStore, DEFAULT_OPTIONS, isPlaced } from '../../game/index.ts'
 import type { Cell } from '../../engine/model/index.ts'
+import { LocaleProvider } from '../../locale/index.ts'
+import type { Locale } from '../../locale/index.ts'
 import { AXIS_LABELS_KEY } from './axisLabels.ts'
 import { help } from '../../content/help/help.ts'
 import type { StorageLike } from '../../game/index.ts'
@@ -17,12 +20,21 @@ import { OptionsPanel } from './OptionsPanel.tsx'
 import { gestureIntent, paintIntent, paintModeFor, type Intent, type Tool } from './intent.ts'
 import { PlayScreen } from './PlayScreen.tsx'
 import { ResultOverlay } from './ResultOverlay.tsx'
+import { PLAY_STRINGS } from './strings.ts'
 import { castFor, colorsFor, noteTags, withCastNames } from './people.ts'
 
 const named = withCastNames(tutorial)
 const idOf = (label: string) => named.people.find((p) => p.label === label)!.id
 // The cast of the tutorial puzzle: pool names (castFor), not fixed ones.
 const [Alice, Ben, Chloe] = named.people.filter((p) => p.kind === 'suspect').map((p) => p.label) as [string, string, string]
+
+/** The browser language `LocaleProvider` defaults from, per `Locale` (SLAY-3.4). */
+const BROWSER_LANGUAGE: Record<Locale, string> = { en: 'en-US', nl: 'nl-NL' }
+const withLocale = (locale: Locale, children: ReactNode) => (
+  <LocaleProvider storage={null} browserLanguage={BROWSER_LANGUAGE[locale]}>
+    {children}
+  </LocaleProvider>
+)
 
 describe('<PlayScreen/>', () => {
   const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
@@ -36,7 +48,7 @@ describe('<PlayScreen/>', () => {
     expect(html).toContain(`${Alice} stood next to a table.`)
   })
 
-  it('has the toolbar tools in English', () => {
+  it('has the toolbar tools in English (no LocaleProvider ancestor here: useLocale() falls back to English)', () => {
     for (const label of ['Note', 'Place', 'X', 'Erase', 'Undo', 'Redo', 'Hint', 'Auto-X', 'Options', 'Help', 'Legend', 'Zoom']) {
       expect(html).toContain(`>${label}<`)
     }
@@ -95,6 +107,19 @@ describe('<PlayScreen/>', () => {
     // no hover state on touch: :hover only inside a (hover: hover) query, so it never sticks after a tap
     const withoutHoverQueries = css.replace(/@media \(hover: hover\)[^{]*\{(?:[^{}]*\{[^}]*\})*[^{}]*\}/g, '')
     expect(withoutHoverQueries).not.toMatch(/:hover/)
+  })
+})
+
+describe.each(['en', 'nl'] as const)('<PlayScreen/> toolbar text (%s) (SLAY-3.4)', (locale) => {
+  const t = PLAY_STRINGS[locale].tools
+  const html = renderToStaticMarkup(withLocale(locale, <PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />))
+
+  it('shows the toolbar tools in the current locale, and switches them with the locale toggle (no reload: same render, same tree, different LocaleProvider value)', () => {
+    for (const label of Object.values(t)) {
+      if (label === t.label || label === t.mode) continue
+      expect(html).toContain(`>${label}<`)
+    }
+    expect(html).toContain('role="toolbar"')
   })
 })
 
@@ -194,20 +219,22 @@ describe('first visit help card (CAD-10.8)', () => {
   })
 })
 
-describe('<ResultOverlay/>', () => {
+describe.each(['en', 'nl'] as const)('<ResultOverlay/> (%s)', (locale) => {
+  const t = PLAY_STRINGS[locale].result
+
   it('solved: names who was alone with the victim, and the time', () => {
     const html = renderToStaticMarkup(
-      <ResultOverlay puzzle={named} result={{ solved: true, murdererId: idOf(Alice), elapsedMs: 83_000 }} onRestart={() => {}} onDismiss={() => {}} />,
+      withLocale(locale, <ResultOverlay puzzle={named} result={{ solved: true, murdererId: idOf(Alice), elapsedMs: 83_000 }} onRestart={() => {}} onDismiss={() => {}} />),
     )
-    expect(html).toContain(`You found the murderer! ${Alice} was alone with the victim.`)
-    expect(html).toContain('Time: 1:23')
+    expect(html).toContain(t.solved(Alice))
+    expect(html).toContain(t.time('1:23'))
   })
 
   it('wrong: counts, never who', () => {
     const html = renderToStaticMarkup(
-      <ResultOverlay puzzle={named} result={{ solved: false, correctCount: 2, total: 4 }} onRestart={() => {}} onDismiss={() => {}} />,
+      withLocale(locale, <ResultOverlay puzzle={named} result={{ solved: false, correctCount: 2, total: 4 }} onRestart={() => {}} onDismiss={() => {}} />),
     )
-    expect(html).toContain('Not quite: 2 of 4 correct, try again.')
+    expect(html).toContain(t.wrong(2, 4))
     for (const name of [Alice, Ben, Chloe]) expect(html).not.toContain(name)
   })
 })
@@ -302,11 +329,12 @@ describe('axis labels', () => {
     expect(html).not.toContain('data-axis=')
   })
 
-  it('has a switch for them in the options panel, reflecting the setting', () => {
+  it.each(['en', 'nl'] as const)('has a switch for them in the options panel, reflecting the setting (%s)', (locale) => {
+    const t = PLAY_STRINGS[locale].options
     const props = { options: DEFAULT_OPTIONS, onChange: () => {}, onAxisLabels: () => {}, onClearAll: () => {}, onRestart: () => {}, onClose: () => {} }
-    const on = renderToStaticMarkup(<OptionsPanel {...props} showAxisLabels />)
-    const off = renderToStaticMarkup(<OptionsPanel {...props} showAxisLabels={false} />)
-    expect(on).toContain('Row and column numbers')
+    const on = renderToStaticMarkup(withLocale(locale, <OptionsPanel {...props} showAxisLabels />))
+    const off = renderToStaticMarkup(withLocale(locale, <OptionsPanel {...props} showAxisLabels={false} />))
+    expect(on).toContain(t.axisLabels)
     expect((on.match(/aria-checked="true"/g) ?? []).length).toBe(4)
     expect((off.match(/aria-checked="true"/g) ?? []).length).toBe(3)
   })
