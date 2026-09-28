@@ -10,11 +10,21 @@ import { DUTCH_RE, DUTCH_WORDS, wordMatcher } from './dutch.ts'
  * searched, so identifiers and comments cannot trip it. A hit is a whole word from `DUTCH_WORDS`, case-insensitive, and
  * only words that are not English (and not names) are on that list, so "was" and "van" are not.
  *
- * Skipped on purpose: this test and `dutch.ts` (they ARE the list). Nothing else is skipped: the help card and legend
- * (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2.
+ * Skipped on purpose: this test and `dutch.ts` (they ARE the list). The help card and legend (src/content/help) and
+ * every interface screen under src/ui and src/pwa were English-only since SLAY-1.2; SLAY-3 reverses that on purpose
+ * for the strings the language toggle now covers, so each `strings.ts` that carries a real `en`/`nl` pair (read
+ * through `useLocale()`) is named below and skipped here — its Dutch wording is intended, not leftover. Nothing
+ * else is skipped: interface text outside those named files stays English-only and is still scanned.
  */
 const SCANNED = ['../engine/', '../game/', '../validation/', '../content/', '../ui/', '../pwa/', '../brand/', '../App.tsx', '../main.tsx']
-const SKIPPED = [/\/validation\/dutch(\.test)?\.ts$/]
+const SKIPPED = [
+  /\/validation\/dutch(\.test)?\.ts$/,
+  // Localized (SLAY-3.5): each has an 'en'/'nl' entry, selected through useLocale().
+  /\/ui\/about\/strings\.ts$/,
+  /\/ui\/stats\/strings\.ts$/,
+  /\/ui\/share\/strings\.ts$/,
+  /\/pwa\/strings\.ts$/,
+]
 
 const modules = import.meta.glob(
   [
@@ -64,9 +74,12 @@ describe('no Dutch text is left in the game code', () => {
     expect(files.some(([path]) => path.endsWith('/clues/en.ts'))).toBe(true)
     expect(files.some(([path]) => path.endsWith('/content/themes/home.ts'))).toBe(true)
     expect(files.some(([path]) => path.endsWith('/content/demo/puzzle.json'))).toBe(true)
-    // interface text (SLAY-1.2)
-    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/daily/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/pwa/strings.ts', '/ui/play/Toolbar.tsx']) {
+    // interface text (SLAY-1.2); the localized strings.ts files (SLAY-3.5) are skipped on purpose, see SKIPPED above
+    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/daily/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/ui/play/Toolbar.tsx']) {
       expect(files.some(([path]) => path.endsWith(end)), end).toBe(true)
+    }
+    for (const end of ['/ui/about/strings.ts', '/ui/stats/strings.ts', '/ui/share/strings.ts', '/pwa/strings.ts']) {
+      expect(files.some(([path]) => path.endsWith(end)), end).toBe(false)
     }
   })
 

@@ -1,5 +1,18 @@
+import type { Locale } from '../../locale/index.ts'
+
+interface AboutStrings {
+  title: string
+  tagline: string
+  back: string
+  how: { title: string; lines: string[] }
+  credit: { title: string; inspired: string; original: string }
+  privacy: { title: string; text: string }
+  openSource: { title: string; text: string }
+  contact: { title: string; placeholder: string }
+}
+
 /** Everything the About page says, in English. The one file to edit to change its wording. */
-export const ABOUT_EN = {
+const EN: AboutStrings = {
   title: 'About Slaydoku',
   tagline: 'A new murder mystery puzzle every day',
   back: 'Back to the puzzles',
@@ -29,4 +42,40 @@ export const ABOUT_EN = {
     title: 'Contact',
     placeholder: 'Contact details will be added here.',
   },
-} as const
+}
+
+/** Dutch wording of the About page. 'Slaydoku' is a brand name and stays unchanged. */
+const NL: AboutStrings = {
+  title: 'Over Slaydoku',
+  tagline: 'Elke dag een nieuwe moordmysteriepuzzel',
+  back: 'Terug naar de puzzels',
+  how: {
+    title: 'Hoe het werkt',
+    lines: [
+      'Lees de aanwijzingkaarten: elke verdachte zegt waar hij of zij stond.',
+      'Plaats elke verdachte op de plattegrond, één per rij en kolom.',
+      'Vastgelopen? Maak aantekeningen, of vraag in kleine stapjes om een hint.',
+      'De moordenaar is de ene verdachte die alleen met het slachtoffer in een kamer was.',
+    ],
+  },
+  credit: {
+    title: 'Met dank aan',
+    inspired: 'Geïnspireerd door Murdoku van Manuel Garand.',
+    original: 'Slaydoku is een onafhankelijk project. Er wordt geen officieel materiaal gebruikt: elke puzzel, naam en tekening hier is origineel.',
+  },
+  privacy: {
+    title: 'Privacy',
+    text: 'Alles blijft op je apparaat: geen accounts, geen tracking.',
+  },
+  openSource: {
+    title: 'Open source',
+    text: 'Slaydoku is open source, uitgebracht onder de MIT-licentie.',
+  },
+  contact: {
+    title: 'Contact',
+    placeholder: 'Contactgegevens volgen hier nog.',
+  },
+}
+
+/** The About page's wording per locale. Read through `useLocale()`, never English alone. */
+export const ABOUT_STRINGS: Record<Locale, AboutStrings> = { en: EN, nl: NL }
