@@ -1,6 +1,7 @@
 import type { CatalogClue } from '../../engine/clues/index.ts'
-import { renderClue } from '../../engine/clues/en.ts'
+import { renderClue } from '../../engine/clues/index.ts'
 import type { Clue, Person, Scene } from '../../engine/model/index.ts'
+import type { Locale } from '../../locale/types.ts'
 import type { CardLook } from './procedural/index.ts'
 import { SuspectCard } from './SuspectCard.tsx'
 import { VictimCard } from './VictimCard.tsx'
@@ -16,6 +17,8 @@ export interface CardGridProps {
   /** Portrait and colours for extra suspects, by label; see procedural/buildCast. */
   lookFor?: (label: string) => CardLook | undefined
   className?: string
+  /** The language every card's text renders in (SLAY-3.2). Default 'en'. */
+  locale?: Locale
 }
 
 /**
@@ -23,7 +26,7 @@ export interface CardGridProps {
  * `people` order, then the victim card. Columns fill the width (about 150px
  * each), so an iPad shows four to six across and a phone two.
  */
-export function CardGrid({ people, clues, scene, selectedId, placedIds = [], onSelect, lookFor, className }: CardGridProps) {
+export function CardGrid({ people, clues, scene, selectedId, placedIds = [], onSelect, lookFor, className, locale = 'en' }: CardGridProps) {
   const context = { scene, people }
   const hasVictim = people.some((p) => p.kind === 'victim')
   return (
@@ -32,7 +35,7 @@ export function CardGrid({ people, clues, scene, selectedId, placedIds = [], onS
         .filter((p) => p.kind === 'suspect')
         .map((person) => {
           // A person can hold several cards: show every one, in puzzle order.
-          const own = clues.filter((c) => c.personId === person.id).map((c) => renderClue(c as CatalogClue, context))
+          const own = clues.filter((c) => c.personId === person.id).map((c) => renderClue(c as CatalogClue, context, locale))
           return (
             <li key={person.id}>
               <SuspectCard
@@ -48,7 +51,7 @@ export function CardGrid({ people, clues, scene, selectedId, placedIds = [], onS
         })}
       {hasVictim ? (
         <li>
-          <VictimCard />
+          <VictimCard locale={locale} />
         </li>
       ) : null}
     </ul>

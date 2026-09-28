@@ -11,9 +11,12 @@ import { bothParts, isBothClue } from './types.ts'
 import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './types.ts'
 
 /**
- * The ONE text file for clue wording. Every sentence a clue card shows comes from here; the
- * relational clue kinds have their entries here too. `src/language.test.ts` scans the game code
- * for leftover text in another language.
+ * The English text of clue wording: every sentence an English clue card shows comes from here,
+ * the relational clue kinds included. `nl.ts` is the Dutch counterpart, function for function;
+ * `render.ts` is the locale-aware entry point a call site uses to pick between them (SLAY-3.2).
+ * This file stays importable on its own (as the existing tests and every locale-unaware caller —
+ * the solver's step text, the generator's ladder format, the puzzle-quality audits — still do):
+ * it renders English only, and knows nothing about `nl.ts`.
  *
  * Wording is neutral: a sentence names the person (their label) and never uses a gendered
  * pronoun. The gender clues say "woman" and "man" as nouns (the stored gender value is the word).
@@ -21,7 +24,8 @@ import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './type
  * from the left.
  *
  * Objects are named by what the board draws: the theme object noun ("a garden chair", "a
- * poof"), never a group noun that hides differently drawn kinds. See `objectNouns`.
+ * poof"), never a group noun that hides differently drawn kinds. See `objectNouns`. Both
+ * locales use the same noun — see `nl.ts`'s header for why.
  */
 
 interface ObjectWords {
