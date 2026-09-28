@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { DailyResult } from '../../game/daily/results.ts'
+import { LocaleProvider } from '../../locale/index.ts'
+import type { Locale } from '../../locale/index.ts'
 import { ResultOverlay } from '../play/ResultOverlay.tsx'
 import { StartScreen } from '../daily/StartScreen.tsx'
 import { readSchedule } from '../../schedule/schedule.testing.ts'
@@ -8,7 +10,7 @@ import { canWebShare, copyText, downloadBlob, shareCard } from './actions.ts'
 import type { CopyDocument, DownloadEnv, ShareNavigator } from './actions.ts'
 import { svgDataUrl } from './png.ts'
 import { SharePanel } from './SharePanel.tsx'
-import { SHARE_EN } from './strings.ts'
+import { SHARE_STRINGS } from './strings.ts'
 
 const strip = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/\s+/g, ' ').trim()
 const result: DailyResult = { n: 43, date: '2026-11-23', tier: 'medium', fp: 'fp', elapsedMs: 252_000, hints: 2, wrongChecks: 0, murdererId: 'p1' }
@@ -133,8 +135,14 @@ describe('downloadBlob', () => {
   })
 })
 
-describe('<SharePanel/>', () => {
-  const render = (nav: ShareNavigator) => renderToStaticMarkup(<SharePanel result={result} meta={meta} nav={nav} />)
+describe.each(['en', 'nl'] as const)('<SharePanel/> (%s)', (locale: Locale) => {
+  const t = SHARE_STRINGS[locale]
+  const render = (nav: ShareNavigator) =>
+    renderToStaticMarkup(
+      <LocaleProvider storage={null} browserLanguage={locale === 'nl' ? 'nl-NL' : 'en-US'}>
+        <SharePanel result={result} meta={meta} nav={nav} />
+      </LocaleProvider>,
+    )
 
   it('shows the card preview, the text and the shapes', () => {
     const html = render({ share: async () => {} })
@@ -142,13 +150,13 @@ describe('<SharePanel/>', () => {
     expect(html).toContain('data-share-preview')
     expect(html).toContain('src="data:image/svg+xml;charset=utf-8,')
     expect(html).toContain('width="1200" height="630"')
-    expect(html).toContain('alt="Preview of your result card. Slaydoku puzzle #43')
-    expect(text).toContain('Slaydoku #43 · Medium · 9x9')
+    expect(html).toContain(`alt="${t.preview('').trim()}`)
+    expect(text).toContain(`Slaydoku #43 · ${locale === 'nl' ? 'Gemiddeld' : 'Medium'} · 9x9`)
     expect(text).toContain('⏱ 04:12 · 💡 2 hints')
     expect(text).toContain('slaydoku.vercel.app')
     expect(html).toContain('data-format="wide" aria-pressed="true"')
     expect(html).toContain('data-format="square" aria-pressed="false"')
-    expect(text).toContain(SHARE_EN.note)
+    expect(text).toContain(t.note)
   })
 
   it('offers Share where the browser has a share sheet, and no fallback buttons yet', () => {
@@ -162,9 +170,9 @@ describe('<SharePanel/>', () => {
     const html = render({})
     expect(html).not.toContain('data-action="share"')
     expect(html).toContain('data-action="copy"')
-    expect(html).toContain('>Copy text<')
+    expect(html).toContain(`>${t.copy}<`)
     expect(html).toContain('data-action="download"')
-    expect(html).toContain('>Download image<')
+    expect(html).toContain(`>${t.download}<`)
   })
 
   it('has a polite status line and real buttons only (keyboard reachable)', () => {

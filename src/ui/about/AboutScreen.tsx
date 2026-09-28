@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
+import { useLocale } from '../../locale/index.ts'
 import { Link } from '../router/index.ts'
-import { ABOUT_EN } from './strings.ts'
+import { ABOUT_STRINGS } from './strings.ts'
 import './about.css'
 
 /** The About page (`/about`): how it works, the credit, privacy, the licence and a contact line. Static text, so it works offline like every screen. */
 export function AboutScreen() {
-  const t = ABOUT_EN
+  const { locale } = useLocale()
+  const t = ABOUT_STRINGS[locale]
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])

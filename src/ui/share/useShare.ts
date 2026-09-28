@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { CARD_SIZES, cardDescription, cardSvg, emojiText, loadDisplayFont } from '../../share/index.ts'
 import type { CardFormat, HeadlineFont, ShareMeta } from '../../share/index.ts'
 import type { DailyResult } from '../../game/daily/results.ts'
+import { useLocale } from '../../locale/index.ts'
 import { canWebShare, copyText, downloadBlob, shareCard } from './actions.ts'
 import type { ShareNavigator } from './actions.ts'
 import { svgDataUrl, svgToPng } from './png.ts'
-import { SHARE_EN } from './strings.ts'
+import { SHARE_STRINGS } from './strings.ts'
 
 export type ShareStatus = { kind: 'idle' } | { kind: 'ok' | 'error'; text: string }
 
@@ -17,6 +18,8 @@ const browserNavigator = (): ShareNavigator | undefined => (typeof navigator ===
  * sheet, the clipboard and a saved file, all started by the player.
  */
 export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigator | undefined = browserNavigator()) {
+  const { locale } = useLocale()
+  const t = SHARE_STRINGS[locale]
   const [format, setFormat] = useState<CardFormat>('wide')
   const [status, setStatus] = useState<ShareStatus>({ kind: 'idle' })
   const [failedShare, setFailedShare] = useState(false)
@@ -24,10 +27,10 @@ export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigat
   const [headline, setHeadline] = useState<HeadlineFont>()
   const size = CARD_SIZES[format]
   const filename = `slaydoku-${result.n}${format === 'square' ? '-square' : ''}.png`
-  const text = useMemo(() => emojiText(result, meta), [result, meta])
-  const svg = useMemo(() => cardSvg(result, meta, size, headline), [result, meta, size, headline])
+  const text = useMemo(() => emojiText(result, meta, locale), [result, meta, locale])
+  const svg = useMemo(() => cardSvg(result, meta, size, headline, locale), [result, meta, size, headline, locale])
   const previewSrc = useMemo(() => svgDataUrl(svg), [svg])
-  const description = useMemo(() => cardDescription(result, meta), [result, meta])
+  const description = useMemo(() => cardDescription(result, meta, locale), [result, meta, locale])
   const supported = canWebShare(nav)
   const current = png?.svg === svg ? png.file : null
 
@@ -60,23 +63,23 @@ export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigat
   const onShare = async () => {
     if (!nav) return
     const outcome = await shareCard(nav, { title, text, file: current })
-    if (outcome.status === 'shared') say({ kind: 'ok', text: SHARE_EN.status.shared })
+    if (outcome.status === 'shared') say({ kind: 'ok', text: t.status.shared })
     else if (outcome.status === 'failed') {
       setFailedShare(true)
-      say({ kind: 'error', text: SHARE_EN.status.shareFailed })
+      say({ kind: 'error', text: t.status.shareFailed })
     } else say({ kind: 'idle' })
   }
   const onCopy = async () => {
     const ok = await copyText(text, nav, typeof document === 'undefined' ? undefined : document)
-    say(ok ? { kind: 'ok', text: SHARE_EN.status.copied } : { kind: 'error', text: SHARE_EN.status.copyFailed })
+    say(ok ? { kind: 'ok', text: t.status.copied } : { kind: 'error', text: t.status.copyFailed })
   }
   const onDownload = async () => {
     try {
       const file = current ?? new File([await svgToPng(svg, size)], filename, { type: 'image/png' })
       const ok = downloadBlob(file, filename, { document, url: URL })
-      say(ok ? { kind: 'ok', text: SHARE_EN.status.downloaded } : { kind: 'error', text: SHARE_EN.status.downloadFailed })
+      say(ok ? { kind: 'ok', text: t.status.downloaded } : { kind: 'error', text: t.status.downloadFailed })
     } catch {
-      say({ kind: 'error', text: SHARE_EN.status.downloadFailed })
+      say({ kind: 'error', text: t.status.downloadFailed })
     }
   }
 

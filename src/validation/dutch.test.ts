@@ -11,10 +11,11 @@ import { DUTCH_RE, DUTCH_WORDS, wordMatcher } from './dutch.ts'
  * only words that are not English (and not names) are on that list, so "was" and "van" are not.
  *
  * Skipped on purpose: this test and `dutch.ts` (they ARE the list). Nothing else is skipped: the help card and legend
- * (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2 — except the one
- * deliberate exception below: the `DAILY_NL` / `PLAY_NL` translation objects of `ui/daily/strings.ts` and
- * `ui/play/strings.ts` (SLAY-3.4), which are blanked out before scanning so their Dutch is not flagged as a leak,
- * while the `_EN` objects right next to them stay fully guarded.
+ * (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2 — except the
+ * deliberate exceptions below: the `*_NL` translation objects of the `strings.ts` files the language toggle covers
+ * (`ui/daily/`, `ui/play/` since SLAY-3.4; `ui/about/`, `ui/stats/`, `ui/share/`, `pwa/` since SLAY-3.5), which are
+ * blanked out before scanning so their Dutch is not flagged as a leak, while the `_EN` objects right next to them
+ * stay fully guarded.
  */
 const SCANNED = ['../engine/', '../game/', '../validation/', '../content/', '../ui/', '../pwa/', '../brand/', '../App.tsx', '../main.tsx']
 const SKIPPED = [/\/validation\/dutch(\.test)?\.ts$/]
@@ -88,10 +89,14 @@ function blankConst(source: string, name: string): string {
   return source.slice(0, open) + ' '.repeat(end - open) + source.slice(end)
 }
 
-/** The one intentional exception (SLAY-3.4): the Dutch translation object each file carries. */
+/** The one intentional exception (SLAY-3.4, SLAY-3.5): the Dutch translation object each localized file carries. */
 const NL_EXCEPTIONS: Record<string, string> = {
   '/ui/daily/strings.ts': 'DAILY_NL',
   '/ui/play/strings.ts': 'PLAY_NL',
+  '/ui/about/strings.ts': 'ABOUT_NL',
+  '/ui/stats/strings.ts': 'STATS_NL',
+  '/ui/share/strings.ts': 'SHARE_NL',
+  '/pwa/strings.ts': 'UPDATE_NL',
 }
 
 describe('no Dutch text is left in the game code', () => {
@@ -100,8 +105,8 @@ describe('no Dutch text is left in the game code', () => {
     expect(files.some(([path]) => path.endsWith('/clues/en.ts'))).toBe(true)
     expect(files.some(([path]) => path.endsWith('/content/themes/home.ts'))).toBe(true)
     expect(files.some(([path]) => path.endsWith('/content/demo/puzzle.json'))).toBe(true)
-    // interface text (SLAY-1.2)
-    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/daily/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/pwa/strings.ts', '/ui/play/Toolbar.tsx']) {
+    // interface text (SLAY-1.2); the localized strings.ts files carry their NL exception (see NL_EXCEPTIONS below)
+    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/daily/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/ui/play/Toolbar.tsx', '/ui/about/strings.ts', '/ui/stats/strings.ts', '/ui/share/strings.ts', '/pwa/strings.ts']) {
       expect(files.some(([path]) => path.endsWith(end)), end).toBe(true)
     }
   })
