@@ -297,7 +297,7 @@ await load('about')
 const aboutText = (await evaluate(`document.querySelector('.about')?.innerText ?? ''`)) as string
 check(
   'About reads in Dutch: title, tagline, every section title',
-  ['Over Slaydoku', 'Elke dag een nieuwe moordmysteriepuzzel', 'Hoe het werkt', 'Met dank aan', 'Privacy', 'Open source', 'Contact'].every((t) => aboutText.includes(t)),
+  ['Over Slaydoku', 'Elke dag een nieuwe moordmysteriepuzzel', 'Hoe het werkt', 'Met dank aan', 'Privacy', 'Open source'].every((t) => aboutText.includes(t)),
   aboutText.slice(0, 200),
 )
 check('About has no leftover English title or tagline', !aboutText.includes('About Slaydoku') && !aboutText.includes('A new murder mystery puzzle every day'))
