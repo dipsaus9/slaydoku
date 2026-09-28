@@ -188,7 +188,10 @@ async function scenario(w: number, h: number) {
   await send('Emulation.setTimezoneOverride', { timezoneId: 'Europe/Amsterdam' })
   await send('Page.navigate', { url: BASE })
   await sleep(1800)
-  await evaluate(`localStorage.clear(); ${seedStorage(DAY1.date, true)}`)
+  // Locale pinned to 'en' (SLAY-3.6, the same fix drive.ts/zoom.ts/legend.ts/screens.ts already carry from
+  // SLAY-3.2/SLAY-4.2): without it, a browser whose own language is Dutch would default the app to Dutch
+  // (SLAY-3.1's locale toggle falls back to the browser's language) and break every English-text check here.
+  await evaluate(`localStorage.clear(); ${seedStorage(DAY1.date, true, 'en')}`)
   await load('')
 
   // Empty history.
