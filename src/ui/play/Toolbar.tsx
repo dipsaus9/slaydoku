@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
-import type { GameOptions } from '../../game/index.ts'
+import { useState, type ReactNode } from 'react'
 import type { Tool } from './intent.ts'
+import { Modal } from './Modal.tsx'
 import { usePlayStrings } from './strings.ts'
 import { ToolIcon } from './toolIcons.tsx'
 import { useGesture } from './useGesture.ts'
@@ -62,7 +62,6 @@ function EraserButton({ active, onSelect, onClearAll }: { active: boolean; onSel
 export interface ToolbarProps {
   tool: Tool
   onTool: (tool: Tool) => void
-  options: GameOptions
   canUndo: boolean
   canRedo: boolean
   hintOpen: boolean
@@ -72,7 +71,6 @@ export interface ToolbarProps {
   onUndo: () => void
   onRedo: () => void
   onHint: () => void
-  onToggleAutoX: () => void
   onOpenOptions: () => void
   onOpenHelp: () => void
   onOpenLegend: () => void
@@ -82,7 +80,13 @@ export interface ToolbarProps {
 export function Toolbar(props: ToolbarProps) {
   const strings = usePlayStrings()
   const t = strings.tools
-  const { tool, onTool, options } = props
+  const { tool, onTool } = props
+  const [moreOpen, setMoreOpen] = useState(false)
+  // Each item both dismisses the More sheet and runs the toolbar action it stands in for.
+  const openFromMore = (action: () => void) => () => {
+    setMoreOpen(false)
+    action()
+  }
   return (
     <div className="play-toolbar" role="toolbar" aria-label={t.label}>
       <div className="play-toolbar__group" role="group" aria-label={t.mode}>
@@ -95,7 +99,6 @@ export function Toolbar(props: ToolbarProps) {
         <ToolButton icon={<ToolIcon name="undo" />} label={t.undo} disabled={!props.canUndo} onClick={props.onUndo} />
         <ToolButton icon={<ToolIcon name="redo" />} label={t.redo} disabled={!props.canRedo} onClick={props.onRedo} />
         <ToolButton icon={<ToolIcon name="hint" />} label={t.hint} pressed={props.hintOpen} onClick={props.onHint} />
-        <ToolButton icon={<ToolIcon name="autoX" />} label={t.autoX} pressed={options.autoXOnPlace} title={strings.options.autoXHelp} onClick={props.onToggleAutoX} className="play-tool--toggle" />
       </div>
       <div className="play-toolbar__group">
         <ToolButton
@@ -111,10 +114,25 @@ export function Toolbar(props: ToolbarProps) {
           onClick={props.onZoom}
           className="play-tool--zoom"
         />
-        <ToolButton icon={<ToolIcon name="options" />} label={t.options} onClick={props.onOpenOptions} />
-        <ToolButton icon={<ToolIcon name="help" />} label={t.help} onClick={props.onOpenHelp} />
-        <ToolButton icon={<ToolIcon name="legend" />} label={t.legend} title={strings.toolTitle.legend} onClick={props.onOpenLegend} />
+        {/* Options, Help and Legend are once-per-session actions (unlike Zoom, used often during
+            play): they sit behind this one control instead of their own toolbar buttons. */}
+        <ToolButton
+          icon={<ToolIcon name="more" />}
+          label={t.more}
+          pressed={moreOpen}
+          onClick={() => setMoreOpen(true)}
+          className="play-tool--more"
+        />
       </div>
+      {moreOpen ? (
+        <Modal title={t.more} onClose={() => setMoreOpen(false)} className="play-modal__panel--more">
+          <div className="play-more">
+            <ToolButton icon={<ToolIcon name="options" />} label={t.options} onClick={openFromMore(props.onOpenOptions)} />
+            <ToolButton icon={<ToolIcon name="help" />} label={t.help} onClick={openFromMore(props.onOpenHelp)} />
+            <ToolButton icon={<ToolIcon name="legend" />} label={t.legend} title={strings.toolTitle.legend} onClick={openFromMore(props.onOpenLegend)} />
+          </div>
+        </Modal>
+      ) : null}
     </div>
   )
 }

@@ -49,7 +49,8 @@ describe('<PlayScreen/>', () => {
   })
 
   it('has the toolbar tools in English (no LocaleProvider ancestor here: useLocale() falls back to English)', () => {
-    for (const label of ['Note', 'Place', 'X', 'Erase', 'Undo', 'Redo', 'Hint', 'Auto-X', 'Options', 'Help', 'Legend', 'Zoom']) {
+    // Eight tools plus More on the main row (SLAY-4.2); Options, Help and Legend sit closed behind it.
+    for (const label of ['Note', 'Place', 'X', 'Erase', 'Undo', 'Redo', 'Hint', 'Zoom', 'More']) {
       expect(html).toContain(`>${label}<`)
     }
     expect(html).toContain('role="toolbar"')
@@ -63,10 +64,10 @@ describe('<PlayScreen/>', () => {
     expect(html).toContain('style="transform:none"')
   })
 
-  it('keeps the toolbar targets 44px in the 6-column phone grid, zoom button on the first row', async () => {
+  it('keeps the toolbar targets 44px in the 4-column phone grid, More centred alone on its row', async () => {
     const css = (await import('node:fs')).readFileSync(new URL('./play.css', import.meta.url), 'utf8')
-    expect((css.match(/repeat\(6, minmax\(0, 1fr\)\)/g) ?? []).length).toBe(2)
-    expect((css.match(/\.play-tool--zoom \{\s*order: 0/g) ?? []).length).toBe(2)
+    expect((css.match(/repeat\(4, minmax\(0, 1fr\)\)/g) ?? []).length).toBe(2)
+    expect((css.match(/\.play-tool--more \{\s*grid-column: 1 \/ -1/g) ?? []).length).toBe(2)
     expect(css).toMatch(/\.play-board\[data-zoomed\] \{[^}]*overflow: hidden/)
     // no will-change: the zoomed svg must be redrawn sharp, not stretched
     expect(css).not.toMatch(/will-change:\s*transform/)
@@ -115,8 +116,8 @@ describe.each(['en', 'nl'] as const)('<PlayScreen/> toolbar text (%s) (SLAY-3.4)
   const html = renderToStaticMarkup(withLocale(locale, <PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />))
 
   it('shows the toolbar tools in the current locale, and switches them with the locale toggle (no reload: same render, same tree, different LocaleProvider value)', () => {
-    for (const label of Object.values(t)) {
-      if (label === t.label || label === t.mode) continue
+    // Options, Help and Legend are closed behind More (SLAY-4.2): only the main row renders by default.
+    for (const label of [t.note, t.place, t.x, t.erase, t.undo, t.redo, t.hint, t.zoom, t.more]) {
       expect(html).toContain(`>${label}<`)
     }
     expect(html).toContain('role="toolbar"')
@@ -142,10 +143,11 @@ describe('<HelpPanel/>', () => {
 })
 
 describe('the Legend (CAD-10.9)', () => {
-  it('sits right after Help, as the last toolbar button', () => {
+  it('sits behind More, not on the main toolbar row (SLAY-4.2)', () => {
     const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
     const labels = [...html.matchAll(/<span class="play-tool__label">([^<]+)<\/span>/g)].map((m) => m[1])
-    expect(labels.slice(-2)).toEqual(['Help', 'Legend'])
+    expect(labels.slice(-2)).toEqual(['Zoom', 'More'])
+    expect(labels).not.toContain('Legend')
   })
 
   it('is reachable from the how-it-works card when opened on a level, not from the level list', () => {

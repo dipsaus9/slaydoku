@@ -19,6 +19,7 @@ export type ToolIconName =
   | 'options'
   | 'help'
   | 'legend'
+  | 'more'
 
 /** Shape data per icon, drawn on a 24 x 24 grid with a 2 unit stroke. */
 const SHAPES: Record<ToolIconName, ReactNode> = {
@@ -103,6 +104,8 @@ const SHAPES: Record<ToolIconName, ReactNode> = {
       <path d="M4.2 6h.01M4.2 12h.01M4.2 18h.01" strokeWidth="2.8" />
     </>
   ),
+  // three dots (SLAY-4.2): the More control, opening Options, Help and Legend
+  more: <path d="M5 12h.01M12 12h.01M19 12h.01" strokeWidth="3.2" />,
 }
 
 export function ToolIcon({ name }: { name: ToolIconName }) {

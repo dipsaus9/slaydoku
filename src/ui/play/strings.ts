@@ -15,11 +15,11 @@ export interface PlayStrings {
     undo: string
     redo: string
     hint: string
-    autoX: string
     options: string
     help: string
     legend: string
     zoom: string
+    more: string
   }
   toolTitle: {
     note: string
@@ -82,11 +82,11 @@ export const PLAY_EN: PlayStrings = {
     undo: 'Undo',
     redo: 'Redo',
     hint: 'Hint',
-    autoX: 'Auto-X',
     options: 'Options',
     help: 'Help',
     legend: 'Legend',
     zoom: 'Zoom',
+    more: 'More',
   },
   toolTitle: {
     note: 'Tap a square to make a note, hold to place. Drag to fill several squares.',
@@ -160,11 +160,11 @@ export const PLAY_NL: PlayStrings = {
     undo: 'Ongedaan',
     redo: 'Opnieuw',
     hint: 'Hint',
-    autoX: 'Auto-X',
     options: 'Opties',
     help: 'Help',
     legend: 'Legenda',
     zoom: 'Zoom',
+    more: 'Meer',
   },
   toolTitle: {
     note: 'Tik op een vakje voor een notitie, houd vast om te plaatsen. Sleep om meerdere vakjes te vullen.',

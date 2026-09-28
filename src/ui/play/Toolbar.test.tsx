@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_OPTIONS } from '../../game/index.ts'
 import { LocaleProvider } from '../../locale/index.ts'
 import type { Locale } from '../../locale/index.ts'
 import { PLAY_STRINGS } from './strings.ts'
@@ -12,7 +11,6 @@ const noop = () => {}
 const props: ToolbarProps = {
   tool: 'note',
   onTool: noop,
-  options: DEFAULT_OPTIONS,
   canUndo: true,
   canRedo: true,
   hintOpen: false,
@@ -21,12 +19,16 @@ const props: ToolbarProps = {
   onUndo: noop,
   onRedo: noop,
   onHint: noop,
-  onToggleAutoX: noop,
   onOpenOptions: noop,
   onOpenHelp: noop,
   onOpenLegend: noop,
   onClearAll: noop,
 }
+
+/** The eight tool controls plus More (SLAY-4.2): everything the closed toolbar shows. Options,
+ * Help and Legend sit behind More and are covered by docs/verification (they need a real click,
+ * which renderToStaticMarkup can't do). */
+const MAIN_ROW = ['note', 'place', 'x', 'erase', 'undo', 'redo', 'hint', 'zoom', 'more'] as const
 
 /** The browser language `LocaleProvider` defaults from, per `Locale` (SLAY-3.4). */
 const BROWSER_LANGUAGE: Record<Locale, string> = { en: 'en-US', nl: 'nl-NL' }
@@ -47,15 +49,16 @@ describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10) (%s)', (local
   const html = renderToolbar(locale)
   const all = buttons(html)
 
-  it('has all twelve buttons', () => {
-    expect(all).toHaveLength(12)
+  it('has the nine main-row buttons (eight tools plus More), Options/Help/Legend closed behind it', () => {
+    expect(all).toHaveLength(9)
+    for (const label of [t.tools.options, t.tools.help, t.tools.legend]) {
+      expect(html).not.toContain(`<span class="play-tool__label">${label}</span>`)
+    }
   })
 
-  it('gives every tool button an svg icon and a label in the current locale', () => {
-    const labels = Object.entries(t.tools)
-      .filter(([key]) => key !== 'label' && key !== 'mode')
-      .map(([, label]) => label)
-    expect(labels).toHaveLength(12)
+  it('gives every main-row button an svg icon and a label in the current locale', () => {
+    const labels = MAIN_ROW.map((key) => t.tools[key])
+    expect(labels).toHaveLength(9)
     for (const button of all) {
       expect(button).toMatch(/<span class="play-tool__icon" aria-hidden="true"><svg\b[^>]*class="play-tool__svg"/)
       expect(button).toMatch(/<span class="play-tool__label">[^<]+<\/span>/)
@@ -77,7 +80,14 @@ describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10) (%s)', (local
   it('uses a distinct icon per button', () => {
     const used = (html.match(/data-icon="(\w+)"/g) ?? []).map((m) => m.slice(11, -1))
     expect(new Set(used).size).toBe(used.length)
-    expect(used).toHaveLength(12)
+    expect(used).toHaveLength(9)
+  })
+
+  it('the More control is closed by default and reachable in one tap', () => {
+    const more = all.find((b) => b.includes('play-tool--more'))!
+    expect(more).toContain('data-icon="more"')
+    expect(more).toContain('aria-pressed="false"')
+    expect(more).toContain(`>${t.tools.more}<`)
   })
 
   it('keeps aria-pressed and the title text on the mode buttons', () => {
