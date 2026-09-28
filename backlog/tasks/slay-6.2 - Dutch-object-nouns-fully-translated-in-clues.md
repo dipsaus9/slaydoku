@@ -4,7 +4,7 @@ title: 'Dutch: object nouns fully translated in clues'
 status: Done
 assignee: []
 created_date: '2026-09-28 18:57'
-updated_date: '2026-09-28 19:51'
+updated_date: '2026-09-28 19:53'
 labels:
   - story
 dependencies: []
@@ -13,6 +13,9 @@ references:
   - docs/verification/
   - src/engine/solver/human/explanations.test.ts
   - src/engine/solver/human/techniques.test.ts
+  - src/engine/clues/en.test.ts
+  - src/engine/clues/both.test.ts
+  - src/engine/clues/relational/en.test.ts
 parent_task_id: SLAY-6
 type: feature
 ordinal: 36000
@@ -48,6 +51,8 @@ Root cause: OBJECT_WORDS_NL currently maps 1:1 onto the English OBJECT_WORDS nou
 Verified end to end: bun run build + vite preview + bun docs/verification/locale.ts (headless Chrome, foreground) — 29 checks, 0 failures. Confirms real Dutch object nouns render on screen for a second theme ('home', 2026-10-02, distinct from the main walkthrough's 'shop') and, via an offline sweep of renderClue(...,'nl') over one scheduled day per theme, for all five themes (home/office/park/school/shop) — no leftover English object noun in any. Full test suite: 138 files, 2879 tests, 0 failures (bun run lint/typecheck/test all green).
 
 Review round 1: block, scopeViolations on src/engine/solver/human/explanations.test.ts and techniques.test.ts — both are one-line pinned-Dutch-sentence fixes that are a direct, correct consequence of the in-scope OBJECT_WORDS_NL translation (a table->tafel, rug->kleed noun changed inside an already-pinned Dutch explanation string). Widened References to cover both paths (same established pattern this repo used before, e.g. CAD-10.7 widening References for package.json for an analogous incidental fix), per the reviewer's own recommendation. No code/behavior change; re-review requested.
+
+Review round 2: block again, this time on src/engine/clues/en.test.ts, both.test.ts, relational/en.test.ts — the three files this codebase's own dutch.test.ts documents by name as nl.ts's pinning tests ('the three test files that pin nl.ts's Dutch sentences as literal expected strings'). These are exactly 'every existing clue test that asserts Dutch object-noun wording' AC#2 requires updating — the change is mandated by the story's own acceptance criteria, not incidental. Round 1's reviewer did not flag these three as violations; round 2's did (reviewer non-determinism on where the line falls for nl.ts's own test coverage). Widened References once more, now covering every one of the 7 changed files exactly, per the same established widen-rather-than-revert pattern. Re-review requested (round 3, the cap).
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
