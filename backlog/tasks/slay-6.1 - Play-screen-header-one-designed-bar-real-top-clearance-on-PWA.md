@@ -1,10 +1,10 @@
 ---
 id: SLAY-6.1
 title: 'Play-screen header: one designed bar, real top clearance on PWA'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-28 18:57'
-updated_date: '2026-09-28 20:00'
+updated_date: '2026-09-28 20:06'
 labels:
   - story
 dependencies: []
@@ -55,4 +55,12 @@ Review round 2 (block): AC2, AC3, AC4 all confirmed met (spacing scale, 24px top
 Round 3 (post-scope-widening): References widened by orchestrator to include src/ui/daily/daily.css and src/ui/daily/DailyFlow.tsx, resolving the escalated AC1 scope gap. .daily-play__back (daily.css) now matches play-header's own chrome-less treatment (border:1px solid transparent, background:transparent at rest, :active/:focus-visible affordance) instead of staying a bordered pill -- same language as .play-header__more/.play-timer. DailyFlow.tsx markup/class names/aria-labels untouched (not needed). Re-verified: lint/typecheck green; vitest 138 files / 2877 tests all passed content-wise (one run showed an unrelated vitest-worker RPC timeout unhandled-error causing a non-zero exit with zero failing tests -- reproduced on two consecutive runs, unrelated to this CSS-only change). verify:phone (drive,zoom,legend, all 6 viewports): 1650 checks, 0 failures. Dutch locale driver (390x844): 22 checks, 0 failures. Submitting to review round 3 (fresh round given the scope widening, not a continuation of the prior blocked rounds).
 
 Round 3 review (block): reviewer measured live at 390x844 (env(safe-area-inset-top)=0) and found .daily-play__nav (back+title row) still anchored at the old max(8px, env(...)) floor while .play-header's title/timer/settings row moved to the new 24px --play-top-clearance floor -- ~23px vertical misalignment between the two halves of the header, breaking AC1 ('one deliberate bar') and AC3 (comfortable top clearance for the back control specifically). Fixed: .daily-play__nav now reads the same --play-top-clearance custom property, so both rows share the same top offset and 48px height. Re-verified: lint/typecheck green; verify:phone (drive,zoom,legend, all 6 viewports) 1650/1650; Dutch locale driver 22/22. Resubmitting.
+
+Round 4 review (pass): reviewer independently re-verified the nav-alignment fix live via CDP at 390x844 (env=0) -- .play-header top=24/bottom=86, .daily-play__nav top=24/bottom=72, both now sharing the same 24px top offset (env-independent, both derive from --play-top-clearance), fixing the round-3 defect. All 4 acceptance criteria confirmed met, no scope violations. One advisory (non-blocking): a residual ~7px vertical-center offset between .daily-play__back and .play-timer remains, because .daily-play__nav's hardcoded height:48px differs slightly from .play-header's actual rendered height (~62px with --space-2 padding); noted as a follow-up polish opportunity, not required for this story's acceptance criteria as written. Review gate passed -- proceeding to close out.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+The play-screen header now reads as one deliberate bar: title, timer, settings icon (play.css) and the daily/back control (daily.css's .daily-play__back, overlaid by DailyFlow.tsx) all share the same plain/chrome-less treatment -- transparent border/background at rest, :active/:focus-visible affordance -- with .play-header's own border/background as the single visual boundary. Header padding/gaps sit on the shared brand/tokens.css spacing scale. Top clearance is a single --play-top-clearance custom property (max(--space-5)=24px, env(safe-area-inset-top)), read by both .play's padding-top and .daily-play__nav's top offset so the header row and the back+title row stay vertically aligned and both clear a no-notch device's top edge by the same 24px floor .daily already used, and also reused by the short-landscape --play-board calc so the board-height budget never drifts out of sync. verify:phone (drive,zoom,legend, all 6 viewports): 1650 checks, 0 failures. Dutch locale driver (390x844): 22 checks, 0 failures. Delivered across 3 review rounds after the story's References were widened mid-delivery to include daily.css/DailyFlow.tsx (resolving an initial scope gap around the back control) and a follow-up round that caught and fixed a vertical-alignment regression between the header's two halves; independent reviewer verdict: pass, no scope violations. One advisory follow-up noted, not blocking: a residual ~7px vertical-center offset between .daily-play__back and .play-timer from .daily-play__nav's fixed 48px height vs .play-header's actual rendered height.
+<!-- SECTION:FINAL_SUMMARY:END -->
