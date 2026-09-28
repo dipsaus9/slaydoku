@@ -4,7 +4,7 @@ import type { Scene } from '../../engine/model/index.ts'
 import { THEME_ICON_IDS } from '../../render/icons/themes/types.ts'
 import { resolveThemeObjectIcon } from '../../render/icons/themes/resolve.ts'
 import { ENGINE_ICON, drawnKinds, kindNoun, specificNoun, themeObjectOf } from './drawn.ts'
-import { SCENE_THEMES, getTheme } from './index.ts'
+import { SCENE_THEMES, getTheme, roomNameNlOf } from './index.ts'
 import type { ThemeId } from './types.ts'
 
 const REQUIRED: ThemeId[] = ['home', 'office', 'park', 'school', 'shop']
@@ -14,6 +14,18 @@ describe('scene themes', () => {
     expect(SCENE_THEMES.map((t) => t.id).sort()).toEqual([...REQUIRED].sort())
     for (const id of REQUIRED) expect(getTheme(id).id).toBe(id)
     expect(() => getTheme('nope' as ThemeId)).toThrow()
+  })
+
+  it('gives a room name reused by more than one theme the same Dutch noun everywhere (SLAY-5.2: a scene has no themeId, so roomNameNlOf resolves by name alone)', () => {
+    const byName = new Map<string, Set<string>>()
+    for (const theme of SCENE_THEMES) {
+      for (const room of theme.rooms) byName.set(room.name, (byName.get(room.name) ?? new Set()).add(room.nameNl))
+    }
+    for (const [name, nls] of byName) expect([...nls], name).toHaveLength(1)
+    // Spot-check the lookup itself, including a name two themes share.
+    expect(roomNameNlOf('Kitchen')).toBe('Keuken')
+    expect(roomNameNlOf('Staff Room')).toBe('Personeelskamer')
+    expect(roomNameNlOf('not a real room')).toBeUndefined()
   })
 
   for (const theme of SCENE_THEMES) {
@@ -37,6 +49,20 @@ describe('scene themes', () => {
         expect(new Set(names.map((n) => n.toLowerCase())).size).toBe(names.length)
         for (const name of names) expect(name.trim()).toBe(name)
         for (const name of names) expect(name.length).toBeGreaterThan(2)
+      })
+
+      it('has a real Dutch name for the theme and for every room, unique and non-empty (SLAY-5.2)', () => {
+        expect(theme.nameNl.trim()).toBe(theme.nameNl)
+        expect(theme.nameNl.length).toBeGreaterThan(2)
+        const namesNl = theme.rooms.map((r) => r.nameNl)
+        expect(new Set(namesNl.map((n) => n.toLowerCase())).size).toBe(namesNl.length)
+        for (const room of theme.rooms) {
+          expect(room.nameNl.trim(), room.name).toBe(room.nameNl)
+          expect(room.nameNl.length, room.name).toBeGreaterThan(2)
+          // A room whose bare English and Dutch nouns already look the same ("Toilet") is fine; the
+          // check only catches a room that was left untranslated by copy-paste.
+          expect(room.nameNl === room.name && !/^(toilet|garage|restaurant|lounge|lobby)$/i.test(room.name), room.name).toBe(false)
+        }
       })
 
       it('has unique kinds and names', () => {

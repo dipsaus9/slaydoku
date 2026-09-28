@@ -4,6 +4,7 @@ title: 'Dutch: room/theme names and the victim''s label actually translate'
 status: To Do
 assignee: []
 created_date: '2026-09-28 17:17'
+updated_date: '2026-09-28 17:44'
 labels:
   - story
 dependencies: []
@@ -29,7 +30,7 @@ Branch: SLAY-5.2/dutch-room-victim-text
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Every theme's name and every room's name (src/content/themes/*.ts) carries a Dutch counterpart; src/engine/clues/nl.ts's roomNameNl uses it instead of gluing 'de' onto the stored English name; the board's own room-label rendering (src/render/scene/) uses the same Dutch text, not a second translation
-- [ ] #2 Any clue that names the victim by reference (a relational/diagonal/etc. clue naming another person who is the victim) renders 'het slachtoffer' in Dutch, not the raw stored English label; the existing dedicated victim-card sentence is unaffected
+- [x] #2 Any clue that names the victim by reference (a relational/diagonal/etc. clue naming another person who is the victim) renders 'het slachtoffer' in Dutch, not the raw stored English label; the existing dedicated victim-card sentence is unaffected
 - [ ] #3 The victim card's name fits in Dutch without wrapping awkwardly (src/render/cards/cards.css), consistent with SLAY-4.3's shared card height
 - [ ] #4 No English text, room id, theme id, or clue logic changes; existing en.ts output and every puzzle's structural data are byte-identical
 - [ ] #5 docs/verification's screens/legend suites and the SLAY-3.6 Dutch locale driver pass on a sample of scheduled days across several themes
@@ -45,4 +46,6 @@ Branch: SLAY-5.2/dutch-room-victim-text
 
 <!-- SECTION:NOTES:BEGIN -->
 Root cause confirmed in code before this story was written: roomNameNl currently does 'de' + the stored English scene.rooms[].name literally (see its own doc comment); VICTIM_LABEL (src/content/packs/ids.ts) is VICTIM_TEXT.noun, always English, and the generic person-label lookup in nl.ts returns it unchanged for the victim. Both are real bugs, not edge cases — every puzzle has room names and most puzzles have at least one relational clue naming the victim.
+
+AC2 done: nl.ts nameOf swaps the stored VICTIM_TEXT.noun label for VICTIM_TEXT_NL.noun when a relational clue names the victim by reference; dedicated victim-card sentence unaffected (does not call nameOf). AC1 (room/theme names) in progress: added nameNl to every ThemeRoom/SceneTheme; resolved via a name-keyed lookup (roomNameNlOf, content/themes/index.ts) rather than baking nameNl onto Scene.rooms, because Scene.rooms is part of the committed, byte-identical schedule JSON (tools/schedule.test.ts) and adding a field there breaks that byte-identical guarantee. Two English room names are reused across themes with different real-world connotations (Staff Room, Playground); unified their Dutch translation across themes so the name-only lookup is never ambiguous (enforced by a new themes.test.ts check).
 <!-- SECTION:NOTES:END -->

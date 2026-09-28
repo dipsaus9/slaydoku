@@ -61,7 +61,7 @@ describe('stepHint: Dutch', () => {
 
   it('the solver-step explanation passes through unchanged, with the placement sentence and instruction in Dutch', () => {
     const h1 = stepHint(victimised, { step, placement: step.placed }, 1, 'nl')
-    expect(h1.text).toBe('Kijk naar het slachtoffer in de Living Room.')
+    expect(h1.text).toBe('Kijk naar het slachtoffer in de Woonkamer.')
     const h2 = stepHint(victimised, { step, placement: step.placed }, 2, 'nl')
     expect(h2.text).toBe('Kijk naar rij 1, kolom 1. Het slachtoffer moet daar staan.')
     const h3 = stepHint(victimised, { step, placement: step.placed }, 3, 'nl')

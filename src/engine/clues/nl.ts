@@ -1,7 +1,8 @@
+import { roomNameNlOf } from '../../content/themes/index.ts'
 import type { ObjectType, Side } from '../model/index.ts'
 import { isRelationalClue } from './relational/types.ts'
 import type { CompassSide, DiagonalDirection, Qualifiers, RelationalClue } from './relational/types.ts'
-import { OBJECT_WORDS, objectNouns, possessive, upperFirst } from './en.ts'
+import { OBJECT_WORDS, VICTIM_TEXT, objectNouns, possessive, upperFirst } from './en.ts'
 import type { RenderContext } from './en.ts'
 import { bothParts, isBothClue } from './types.ts'
 import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './types.ts'
@@ -11,11 +12,18 @@ import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './type
  * house style: short sentences, no gendered pronoun (gender is a noun, "man"/"vrouw"), squares
  * counted "rij 3, kolom 4" from the top and the left, the same as the board's axis labels.
  *
- * Room and object nouns are the exact English words `en.ts` uses (`OBJECT_WORDS`, `objectNouns`,
- * a room's stored `name`): the board, the Legend and the noun audit (`objectNames.ts`) have no
- * Dutch translation of the theme content yet, so a Dutch sentence names the same noun an English
- * one would, and only the grammar around it — articles, prepositions, verbs, connectors, compass
- * and count words — changes. See the story's implementation notes (SLAY-3.2).
+ * Object nouns are still the exact English words `en.ts` uses (`OBJECT_WORDS`, `objectNouns`): the
+ * Legend and the noun audit (`objectNames.ts`) have no Dutch translation of the theme's objects
+ * yet, so a Dutch sentence names the same object noun an English one would. Room nouns are real
+ * Dutch (`roomNameNl` below, SLAY-5.2): a `Scene` carries no `themeId` (adding one would change the
+ * committed, byte-identical schedule data), so the room's stored English `name` is looked up in
+ * `roomNameNlOf` (content/themes/index.ts, built from every theme's `ThemeRoom.nameNl`); a name no
+ * theme defines (a hand-made test fixture) falls back to the English `name` itself, exactly as
+ * before this story. The victim, named by reference in a relational clue, is likewise real Dutch
+ * (`nameOf` below): the stored label is English only because every real puzzle bakes it in that
+ * way (`VICTIM_LABEL`, content/packs/ids.ts), so `nameOf` recognises that exact stored string and
+ * swaps it for `VICTIM_TEXT_NL.noun` — a person whose label merely looks like it (a test fixture's
+ * own choice) is left alone. See the story's implementation notes (SLAY-3.2, SLAY-5.2).
  */
 
 /** Dutch preposition for a stored English preposition ("on" / "in"). */
@@ -86,17 +94,29 @@ const anObjectNl = (ctx: RenderContext, type: ObjectType): string =>
 /** The nouns without an article, for "precies één garden chair of poof". */
 const bareObjectNl = (ctx: RenderContext, type: ObjectType): string => joinOrNl(objectNouns(ctx.scene.objects, type))
 
+/**
+ * A person's Dutch display name. Every stored label is used as-is, except the one exact string
+ * every real puzzle bakes in for the victim (`VICTIM_TEXT.noun`, always English): that one is
+ * swapped for `VICTIM_TEXT_NL.noun` ("het slachtoffer") so a clue that names the victim by
+ * reference never leaks English (SLAY-5.2). The dedicated victim-card sentence
+ * (`aloneWithMurderer`, below) does not call this function and is unaffected.
+ */
 function nameOf(ctx: RenderContext, personId: string): string {
-  return ctx.people.find((p) => p.id === personId)?.label ?? personId
+  const label = ctx.people.find((p) => p.id === personId)?.label ?? personId
+  return label === VICTIM_TEXT.noun ? VICTIM_TEXT_NL.noun : label
 }
 
 /**
- * "de Kitchen", "de Meeting Room": the room's stored name (English, unchanged) with the Dutch
- * definite article. A stored "the ..." keeps its bare name before the article is added, exactly
- * as `roomName` (en.ts) does for "the".
+ * "de Keuken", "de Vergaderzaal": the room's real Dutch noun (`roomNameNlOf`, SLAY-5.2) with the
+ * Dutch definite article. A room whose stored English name no theme defines (a hand-made test
+ * fixture) falls back to that English name (a stored "the ..." keeps its bare name before the
+ * article is added, exactly as `roomName`, en.ts, does for "the") so existing fixtures keep working.
  */
 export function roomNameNl(ctx: RenderContext, roomId: string): string {
-  const name = ctx.scene.rooms.find((r) => r.id === roomId)?.name ?? roomId
+  const room = ctx.scene.rooms.find((r) => r.id === roomId)
+  const nameNl = room ? roomNameNlOf(room.name) : undefined
+  if (nameNl !== undefined) return `de ${nameNl}`
+  const name = room?.name ?? roomId
   const bare = /^the\s/i.test(name) ? name.slice(4) : name
   return `de ${bare}`
 }

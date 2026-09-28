@@ -22,6 +22,21 @@ export function getTheme(id: ThemeId): SceneTheme {
   return theme
 }
 
+/**
+ * Every theme's room names to their real Dutch noun (SLAY-5.2). A generated `Scene` carries no
+ * `themeId` (it would change the committed, byte-identical schedule data to add one), so Dutch
+ * room text is resolved by the room's stored English `name` alone. That is safe because a name
+ * reused by more than one theme ("Staff Room", "Playground") is required to carry the same Dutch
+ * noun everywhere it is used (enforced by `themes.test.ts`) — one lookup by name is never
+ * ambiguous.
+ */
+const ROOM_NAMES_NL: ReadonlyMap<string, string> = new Map(SCENE_THEMES.flatMap((t) => t.rooms.map((r) => [r.name, r.nameNl] as const)))
+
+/** The real Dutch noun for a room's stored English `name`, if any theme defines one. */
+export function roomNameNlOf(name: string): string | undefined {
+  return ROOM_NAMES_NL.get(name)
+}
+
 export { HOME_THEME, OFFICE_THEME, PARK_THEME, SCHOOL_THEME, SHOP_THEME }
 export { lShape, rect, themeObject } from './define.ts'
 export type {
