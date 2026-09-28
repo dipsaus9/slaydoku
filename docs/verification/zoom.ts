@@ -118,14 +118,18 @@ interface Rect { x: number; y: number; w: number; h: number; l: number; t: numbe
 const rectJs = (sel: string, scroll: boolean) =>
   `(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; ${scroll ? "e.scrollIntoView({ block: 'nearest', inline: 'nearest' });" : ''} const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height, l: r.left, t: r.top, r: r.right, b: r.bottom } })()`
 const rectOf = (sel: string, scroll = true) => evaluate(rectJs(sel, scroll)) as Promise<Rect | null>
+// A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
+// has no visible text) or a header/sheet item that still shows a visible label (the header's
+// settings icon, and Options/Help/Legend behind it): whichever the element has.
 const toolRect = (label: string) =>
-  evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool')].find(b => b.querySelector('.play-tool__label')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
+  evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
 async function tool(label: string) {
   const r = await toolRect(label)
   if (!r) throw new Error('missing tool ' + label)
   await tap(r)
-  // 400ms, not 250: a tool can sit inside a dialog that just opened (Options/Help/Legend behind More, SLAY-4.2),
-  // and a click within the first 350ms of a dialog opening is ignored (ghost-click guard, modalGuard.ts).
+  // 400ms, not 250: a tool can sit inside a dialog that just opened (Options/Help/Legend behind
+  // the header's settings icon, SLAY-5.1), and a click within the first 350ms of a dialog opening
+  // is ignored (ghost-click guard, modalGuard.ts).
   await sleep(400)
 }
 const count = (sel: string) => evaluate(`document.querySelectorAll(${JSON.stringify(sel)}).length`) as Promise<number>
@@ -400,7 +404,7 @@ async function run(w: number, h: number) {
 
   // ---- resets ---------------------------------------------------------------------------
   check('nothing about zoom in localStorage', !(await evaluate(`Object.keys(localStorage).some(k => /zoom/i.test(k)) || Object.values(localStorage).some(v => /zoom/i.test(v))`)))
-  // restart (Options sits behind More, SLAY-4.2)
+  // restart (Options sits behind the header's settings icon, SLAY-5.1)
   await tool('More')
   await tool('Options')
   await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Start over/.test(b.innerText))?.click()`)

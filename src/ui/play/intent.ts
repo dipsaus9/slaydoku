@@ -3,8 +3,9 @@ import type { Cell } from '../../engine/model/index.ts'
 import { hasMark, hasNote, isPlaced } from '../../game/board.ts'
 import type { Board, GameAction } from '../../game/types.ts'
 
-/** What the finger does on the board: the toolbar's four modes. */
-export type Tool = 'note' | 'place' | 'x' | 'erase'
+/** What the finger does on the board: the toolbar's three modes (SLAY-5.1: place is gone, its
+ * one capability — a tap that places — was already reachable as the long press every mode has). */
+export type Tool = 'note' | 'x' | 'erase'
 
 export type Gesture = 'tap' | 'longPress'
 
@@ -13,9 +14,8 @@ export type Intent = { action: GameAction } | { message: 'pickSuspect' } | null
 
 /**
  * The official app: a tap on a cell writes a small-letter note, a long press places the suspect.
- * The toolbar can swap those two (place mode), turn taps into X marks, or into the eraser.
- * Long press always places, except in place mode (where it writes a note, so both stay
- * reachable) and with the eraser (nothing).
+ * The toolbar can turn taps into X marks, or into the eraser. Long press always places, except
+ * with the eraser (nothing).
  */
 export function gestureIntent(
   tool: Tool,
@@ -27,11 +27,11 @@ export function gestureIntent(
   if (tool === 'erase') return gesture === 'tap' ? { action: { type: 'eraseCell', cell } } : null
   if (!selectedId) return { message: 'pickSuspect' }
 
-  const writesNote = tool === 'note' ? gesture === 'tap' : tool === 'place' && gesture === 'longPress'
-  if (writesNote) return { action: { type: 'toggleNote', personId: selectedId, cell } }
+  if (tool === 'note' && gesture === 'tap') return { action: { type: 'toggleNote', personId: selectedId, cell } }
   if (tool === 'x' && gesture === 'tap') return { action: { type: 'toggleMark', personId: selectedId, cell } }
 
-  // Placing: pressing the suspect's own square again takes them off the board.
+  // Placing (every remaining case is a long press, in every mode): pressing the suspect's own
+  // square again takes them off the board.
   const own = board.placements[selectedId]
   if (own && sameCell(own, cell)) return { action: { type: 'remove', personId: selectedId } }
   return { action: { type: 'place', personId: selectedId, cell } }

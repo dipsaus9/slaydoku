@@ -1,6 +1,6 @@
 // Legend verification driver.
-// Drives headless Chrome over the DevTools protocol with touch emulation. On scheduled puzzles (one 6x6, one 9x9 and one 12x12 day, chosen through the date override, see daily.ts) it opens the Legend from the toolbar
-// and from the how-it-works card, checks that the rows on screen are the rows the scene calls for (computed here
+// Drives headless Chrome over the DevTools protocol with touch emulation. On scheduled puzzles (one 6x6, one 9x9 and one 12x12 day, chosen through the date override, see daily.ts) it opens the Legend from the
+// header's settings icon (SLAY-5.1) and from the how-it-works card, checks that the rows on screen are the rows the scene calls for (computed here
 // from the puzzle files with the same pure function the unit tests use, then compared with the DOM), that the card
 // scrolls inside and closes with its button and by a tap on the backdrop, that tapping a row flashes exactly the
 // squares of that object (the flash squares are compared with the on-screen rect of each board square, at 1x and at
@@ -86,12 +86,16 @@ async function tapSel(sel: string) {
   if (!r) throw new Error('missing ' + sel)
   await tap(r)
 }
+// A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
+// has no visible text) or a header/sheet item that still shows a visible label (the header's
+// settings icon, and Options/Help/Legend behind it): whichever the element has.
 async function tool(label: string) {
-  const sel = await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool')].find(b => b.querySelector('.play-tool__label')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; document.querySelectorAll('[data-drive]').forEach(x => x.removeAttribute('data-drive')); e.setAttribute('data-drive', '1'); return '[data-drive]' })()`)
+  const sel = await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; document.querySelectorAll('[data-drive]').forEach(x => x.removeAttribute('data-drive')); e.setAttribute('data-drive', '1'); return '[data-drive]' })()`)
   if (!sel) throw new Error('missing tool ' + label)
   await tapSel(sel as string)
-  // A tool can sit inside a dialog that just opened (Options/Help/Legend behind More, SLAY-4.2), and a click within
-  // the first 350ms of a dialog opening is ignored (ghost-click guard, modalGuard.ts).
+  // A tool can sit inside a dialog that just opened (Options/Help/Legend behind the header's
+  // settings icon, SLAY-5.1), and a click within the first 350ms of a dialog opening is ignored
+  // (ghost-click guard, modalGuard.ts).
   await sleep(400)
 }
 const shot = async (name: string) => {
@@ -138,10 +142,10 @@ async function scenario(subject: Subject, zoomed: boolean) {
   await load('play')
   check(`${label}: the puzzle is open`, (await count('.play-board')) === 1 && (await count('.play-modal')) === 0)
 
-  // toolbar: nine controls fit (eight tools plus More, SLAY-4.2), Legend sits behind More
-  const tb = await evaluate(`JSON.stringify({ labels: [...document.querySelectorAll('.play-tool__label')].map(l => l.textContent), sizes: [...document.querySelectorAll('.play-tool')].map(b => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }), iw: innerWidth, sw: document.documentElement.scrollWidth })`).then((s) => JSON.parse(s as string) as { labels: string[]; sizes: number[][]; iw: number; sw: number })
+  // toolbar (SLAY-5.1): exactly six icon-only controls, Legend sits behind the header's settings icon instead
+  const tb = await evaluate(`JSON.stringify({ labels: [...document.querySelectorAll('.play-toolbar .play-tool')].map(b => b.getAttribute('aria-label')), sizes: [...document.querySelectorAll('.play-toolbar .play-tool')].map(b => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }), iw: innerWidth, sw: document.documentElement.scrollWidth })`).then((s) => JSON.parse(s as string) as { labels: (string | null)[]; sizes: number[][]; iw: number; sw: number })
   if (!zoomed) {
-    check(`${label}: nine toolbar buttons, More last`, tb.labels.length === 9 && tb.labels[tb.labels.length - 1] === 'More', tb.labels.join())
+    check(`${label}: six toolbar buttons, Note, X, Erase, Undo, Hint, Zoom, none with a visible label`, JSON.stringify(tb.labels) === JSON.stringify(['Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom']), tb.labels.join())
     check(`${label}: every toolbar button is a 44px+ target, no sideways scroll`, tb.sizes.every(([w, h]) => w >= 44 && h >= 44) && tb.sw <= tb.iw, `min ${Math.min(...tb.sizes.map(([w, h]) => Math.min(w, h)))}px, page ${tb.sw}/${tb.iw}`)
     await shot(`${subject.name}-0-toolbar`)
   }
@@ -209,7 +213,7 @@ async function scenario(subject: Subject, zoomed: boolean) {
     await tapSel('.play-peek')
   }
 
-  // close by the button, then by the backdrop, then Help -> Legend (both behind More, SLAY-4.2)
+  // close by the button, then by the backdrop, then Help -> Legend (both behind the header's settings icon, SLAY-5.1)
   await tapSel('.play-modal__actions .play-btn')
   check(`${label}: the close button closes the card`, (await count('.play-modal')) === 0)
   if (!zoomed) {

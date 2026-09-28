@@ -22,6 +22,7 @@ import { ResultOverlay } from './ResultOverlay.tsx'
 import { usePlayStrings } from './strings.ts'
 import { SuspectPanel } from './SuspectPanel.tsx'
 import { Toolbar } from './Toolbar.tsx'
+import { ToolIcon } from './toolIcons.tsx'
 import { selectionAfterUndoRedo } from './undoRedoSelection.ts'
 import { toggleZoom, IDENTITY, type View } from './zoom.ts'
 import { useElapsed, useGameState, usePauseWhenHidden, useTelemetry } from './useGame.ts'
@@ -51,6 +52,20 @@ export interface PlayScreenProps {
 }
 
 type Dialog = 'help' | 'legend' | 'options' | 'clear' | null
+
+/**
+ * One item of the header's settings sheet (SLAY-5.1): icon plus a visible label, unlike the
+ * toolbar's icon-only controls — these are reached rarely enough (once per session) that the
+ * label earns its place, and the sheet is not touch-target-constrained the way the toolbar is.
+ */
+function MenuButton({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
+  return (
+    <button type="button" className="play-tool" onClick={onClick}>
+      <span className="play-tool__icon" aria-hidden="true">{icon}</span>
+      <span className="play-tool__label">{label}</span>
+    </button>
+  )
+}
 
 /** How long the Legend points at squares on the board before it comes back by itself. */
 export const FLASH_MS = 2000
@@ -109,6 +124,12 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
   // Where "seen" is remembered: the storage given, else localStorage; none at all means the card never opens by itself.
   const helpStorage = storage === undefined ? defaultStorage() : storage
   const [dialog, setDialog] = useState<Dialog>(() => (firstVisitHelp && shouldShowHelp(helpStorage) ? 'help' : null))
+  // The header's settings sheet (SLAY-5.1): Options, Help and Legend, one tap away from the small icon next to the timer.
+  const [moreOpen, setMoreOpen] = useState(false)
+  const openFromMore = (next: Dialog) => () => {
+    setMoreOpen(false)
+    setDialog(next)
+  }
   useEffect(() => {
     if (dialog === 'help') markHelpSeen(helpStorage)
   }, [dialog, helpStorage])
@@ -194,26 +215,48 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
     <div className="play" data-status={state.status} data-hint={hintLevel !== 0 ? '' : undefined}>
       <header className="play-header">
         <h1 className="play-header__title">{title}</h1>
-        {state.options.showTimer ? (
+        <div className="play-header__actions">
+          {state.options.showTimer ? (
+            <button
+              type="button"
+              className="play-timer"
+              aria-label={strings.timerHide}
+              onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: false })}
+            >
+              <span aria-hidden="true">{'⏱'}</span> {formatTime(elapsed)}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="play-timer play-timer--off"
+              aria-label={strings.timerShow}
+              onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: true })}
+            >
+              <span aria-hidden="true">{'⏱'}</span>
+            </button>
+          )}
+          {/* Options, Help and Legend (SLAY-5.1): once-per-session actions, out of the toolbar and
+              behind this one header icon instead, on every viewport. */}
           <button
             type="button"
-            className="play-timer"
-            aria-label={strings.timerHide}
-            onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: false })}
+            className="play-header__more"
+            aria-label={strings.tools.more}
+            aria-pressed={moreOpen}
+            onClick={() => setMoreOpen(true)}
           >
-            <span aria-hidden="true">{'⏱'}</span> {formatTime(elapsed)}
+            <ToolIcon name="more" />
           </button>
-        ) : (
-          <button
-            type="button"
-            className="play-timer play-timer--off"
-            aria-label={strings.timerShow}
-            onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: true })}
-          >
-            <span aria-hidden="true">{'⏱'}</span>
-          </button>
-        )}
+        </div>
       </header>
+      {moreOpen ? (
+        <Modal title={strings.tools.more} onClose={() => setMoreOpen(false)} className="play-modal__panel--more">
+          <div className="play-more">
+            <MenuButton icon={<ToolIcon name="options" />} label={strings.tools.options} onClick={openFromMore('options')} />
+            <MenuButton icon={<ToolIcon name="help" />} label={strings.tools.help} onClick={openFromMore('help')} />
+            <MenuButton icon={<ToolIcon name="legend" />} label={strings.tools.legend} onClick={openFromMore('legend')} />
+          </div>
+        </Modal>
+      ) : null}
 
       <div className="play-boardwrap">
         <Board
@@ -250,9 +293,6 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
           onUndo={() => afterUndoRedo('undo')}
           onRedo={() => afterUndoRedo('redo')}
           onHint={() => (hintLevel === 0 ? showHint(1) : setHintLevel(0))}
-          onOpenOptions={() => setDialog('options')}
-          onOpenHelp={() => setDialog('help')}
-          onOpenLegend={() => setDialog('legend')}
           onClearAll={() => setDialog('clear')}
         />
       </div>
