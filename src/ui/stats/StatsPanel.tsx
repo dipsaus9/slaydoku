@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { Stats } from '../../game/stats/index.ts'
+import { useLocale } from '../../locale/index.ts'
 import { formatTime } from '../play/index.ts'
 import { Modal } from '../play/Modal.tsx'
-import { STATS_EN } from './strings.ts'
+import { STATS_STRINGS } from './strings.ts'
 
-const t = STATS_EN
+type StatsText = (typeof STATS_STRINGS)['en']
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -26,7 +27,7 @@ function trapTab(event: KeyboardEvent<HTMLElement>): void {
   }
 }
 
-function Numbers({ stats }: { stats: Stats }) {
+function Numbers({ stats, t }: { stats: Stats; t: StatsText }) {
   const n = t.numbers
   const rows: [key: string, label: string, value: string][] = [
     ['played', n.played, String(stats.played)],
@@ -50,7 +51,7 @@ function Numbers({ stats }: { stats: Stats }) {
 }
 
 /** Best and median time per tier as a list of bars: the bar is the median, the mark inside it the best time. Every row also says it in words. */
-function Times({ stats }: { stats: Stats }) {
+function Times({ stats, t }: { stats: Stats; t: StatsText }) {
   const longest = Math.max(1, ...stats.tiers.map((row) => Math.max(row.median, row.best)))
   return (
     <section className="stats-times" aria-labelledby="stats-times-title">
@@ -96,6 +97,8 @@ export interface StatsPanelProps {
  * a tap on the backdrop close it); the card scrolls inside itself, the page behind it does not trap the finger.
  */
 export function StatsPanel({ stats, onClose, onReset }: StatsPanelProps) {
+  const { locale } = useLocale()
+  const t = STATS_STRINGS[locale]
   const [confirming, setConfirming] = useState(false)
   const [message, setMessage] = useState<'done' | 'failed' | null>(null)
   const wrapper = useRef<HTMLDivElement>(null)
@@ -133,9 +136,9 @@ export function StatsPanel({ stats, onClose, onReset }: StatsPanelProps) {
                 {message === 'done' ? t.reset.done : t.reset.failed}
               </p>
             ) : null}
-            <Numbers stats={stats} />
+            <Numbers stats={stats} t={t} />
             <p className="stats-note">{t.streakNote}</p>
-            <Times stats={stats} />
+            <Times stats={stats} t={t} />
             <p className="stats-note stats-note--device">{t.device}</p>
             <div className="stats-actions">
               <button type="button" className="stats-btn stats-btn--quiet" data-action="reset" onClick={() => setConfirming(true)}>
