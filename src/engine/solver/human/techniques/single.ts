@@ -1,6 +1,7 @@
 import type { BoardView } from '../board.ts'
 import type { HumanContext, Technique } from '../types.ts'
-import { cellName, onObject, personName, sentences } from '../en.ts'
+import * as en from '../en.ts'
+import * as nl from '../nl.ts'
 
 /**
  * Single candidate: somebody has one square left. The official solution
@@ -23,12 +24,16 @@ export const singleCandidate: Technique = {
     const person = pending.find((p) => !leansOnAny(board, context, p, pending)) ?? pending[0]
     if (person === undefined) return null
     const [cell] = board.candidates(person) as [number]
+    const w = context.locale === 'nl' ? nl : en
+    const cellText = `${w.cellName(board, cell)}${w.onObject(board, cell)}`
+    const explanation =
+      context.locale === 'nl'
+        ? nl.singleCandidateText(w.personName(board, person), cellText)
+        : `${w.personName(board, person)} can only stand on one square now: ${cellText}. That row and column are taken with it.`
     return {
       place: { person, cell },
       eliminate: [],
-      explanation: sentences(
-        `${personName(board, person)} can only stand on one square now: ${cellName(board, cell)}${onObject(board, cell)}. That row and column are taken with it.`,
-      ),
+      explanation: w.sentences(explanation),
       people: [person],
       cells: [cell],
     }

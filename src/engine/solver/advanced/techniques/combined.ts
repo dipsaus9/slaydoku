@@ -1,8 +1,10 @@
 import { countWord, renderClue } from '../../../clues/index.ts'
 import type { CatalogClue } from '../../../clues/index.ts'
 import type { BoardView } from '../../human/board.ts'
-import { cellList, peopleNames, personName, sentences } from '../../human/en.ts'
+import * as en from '../../human/en.ts'
+import * as nl from '../../human/nl.ts'
 import type { Elimination, Technique } from '../../human/types.ts'
+import * as advNl from '../nl.ts'
 import { linkModel } from '../links.ts'
 import type { Link } from '../links.ts'
 import { snapshot } from '../snapshot.ts'
@@ -55,15 +57,27 @@ export const combinedClues: Technique = {
         if (!distinctRepresentatives(board, options)) eliminate.push({ person: q, cell })
       }
       if (eliminate.length === 0) continue
+      const w = context.locale === 'nl' ? nl : en
       const tied = used.flatMap((g) => g.links)
-      const cards = tied.slice(0, 3).map((l) => `"${renderClue(context.clues[l.clue] as CatalogClue, { scene: board.scene, people: [...board.people] })}"`)
-      const neighbours = peopleNames(board, used.map((g) => g.neighbour))
-      const name = personName(board, q)
+      const cards = tied
+        .slice(0, 3)
+        .map((l) => `"${renderClue(context.clues[l.clue] as CatalogClue, { scene: board.scene, people: [...board.people] }, context.locale)}"`)
+      const neighbours = w.peopleNames(board, used.map((g) => g.neighbour))
+      const name = w.personName(board, q)
+      const extra =
+        tied.length > 3
+          ? context.locale === 'nl'
+            ? advNl.combinedExtraText(tied.length - 3)
+            : ` There ${tied.length - 3 === 1 ? 'is' : 'are'} ${countWord(tied.length - 3)} more like these.`
+          : ''
+      const cellListText = w.cellList(board, eliminate.map((e) => e.cell))
+      const explanation =
+        context.locale === 'nl'
+          ? advNl.combinedText(name, neighbours, cards.join(' '), extra, cellListText)
+          : `The cards of ${name} and ${neighbours} belong together: ${cards.join(' ')}${extra} If ${name} stands on ${cellListText}, there is no combination of squares left for ${neighbours} that fits all those cards without sharing a row or column. So ${name} does not stand there.`
       return {
         eliminate,
-        explanation: sentences(
-          `The cards of ${name} and ${neighbours} belong together: ${cards.join(' ')}${tied.length > 3 ? ` There ${tied.length - 3 === 1 ? 'is' : 'are'} ${countWord(tied.length - 3)} more like these.` : ''} If ${name} stands on ${cellList(board, eliminate.map((e) => e.cell))}, there is no combination of squares left for ${neighbours} that fits all those cards without sharing a row or column. So ${name} does not stand there.`,
-        ),
+        explanation: w.sentences(explanation),
         people: [q, ...used.map((g) => g.neighbour)],
         cells: [...new Set(eliminate.map((e) => e.cell))],
         clueIndex: tied[0]?.clue,

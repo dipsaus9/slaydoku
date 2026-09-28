@@ -1,7 +1,9 @@
 import type { BoardView } from '../../human/board.ts'
 import { countWord } from '../../../clues/index.ts'
-import { lineNames, peopleNames, sentences } from '../../human/en.ts'
-import type { Deduction, Elimination, Technique } from '../../human/types.ts'
+import * as en from '../../human/en.ts'
+import * as nl from '../../human/nl.ts'
+import type { Deduction, Elimination, HumanContext, Technique } from '../../human/types.ts'
+import * as advNl from '../nl.ts'
 import { snapshot, subsets } from '../snapshot.ts'
 import type { Snapshot } from '../snapshot.ts'
 
@@ -24,10 +26,10 @@ export function nakedLines(size: number, id: string, level: number, title: strin
     id,
     title,
     level,
-    find(board) {
+    find(board, context) {
       const snap = snapshot(board)
       for (const rows of [true, false]) {
-        const found = naked(snap, rows, size)
+        const found = naked(snap, context, rows, size)
         if (found) return found
       }
       return null
@@ -35,7 +37,7 @@ export function nakedLines(size: number, id: string, level: number, title: strin
   }
 }
 
-function naked(snap: Snapshot, rows: boolean, size: number): Deduction | null {
+function naked(snap: Snapshot, context: HumanContext, rows: boolean, size: number): Deduction | null {
   const { board } = snap
   const reach = new Map<number, Set<number>>()
   for (const p of snap.unplaced) {
@@ -53,12 +55,16 @@ function naked(snap: Snapshot, rows: boolean, size: number): Deduction | null {
       }
     }
     if (eliminate.length === 0) continue
-    const noun = rows ? 'rows' : 'columns'
+    const w = context.locale === 'nl' ? nl : en
+    const who = w.peopleNames(board, group)
+    const where = w.lineNames(rows, [...lines])
+    const explanation =
+      context.locale === 'nl'
+        ? advNl.nakedLinesText(who, where, rows, size)
+        : `${who} can only stand in ${where} now: ${countWord(size)} people for ${countWord(size)} ${rows ? 'rows' : 'columns'}. We do not know who stands where, but those ${rows ? 'rows' : 'columns'} belong to them together. Nobody else can stand there.`
     return {
       eliminate,
-      explanation: sentences(
-        `${peopleNames(board, group)} can only stand in ${lineNames(rows, [...lines])} now: ${countWord(size)} people for ${countWord(size)} ${noun}. We do not know who stands where, but those ${noun} belong to them together. Nobody else can stand there.`,
-      ),
+      explanation: w.sentences(explanation),
       people: group,
       cells: [...new Set(eliminate.map((e) => e.cell))],
     }
@@ -72,12 +78,12 @@ export function hiddenLines(min: number, max: number, id: string, level: number,
     id,
     title,
     level,
-    find(board) {
+    find(board, context) {
       const snap = snapshot(board)
       if (!snap.square) return null
       for (let size = min; size <= max; size++) {
         for (const rows of [true, false]) {
-          const found = hidden(snap, rows, size)
+          const found = hidden(snap, context, rows, size)
           if (found) return found
         }
       }
@@ -86,7 +92,7 @@ export function hiddenLines(min: number, max: number, id: string, level: number,
   }
 }
 
-function hidden(snap: Snapshot, rows: boolean, size: number): Deduction | null {
+function hidden(snap: Snapshot, context: HumanContext, rows: boolean, size: number): Deduction | null {
   const { board } = snap
   const free = rows ? snap.freeRows : snap.freeCols
   const people = rows ? snap.rowPeople : snap.colPeople
@@ -103,14 +109,17 @@ function hidden(snap: Snapshot, rows: boolean, size: number): Deduction | null {
       }
     }
     if (eliminate.length === 0) continue
-    const list = lineNames(rows, lines)
+    const w = context.locale === 'nl' ? nl : en
+    const list = w.lineNames(rows, lines)
     const group = [...who]
-    const noun = rows ? 'row' : 'column'
+    const groupWho = w.peopleNames(board, group)
     const explanation =
-      size === 1
-        ? `Only ${peopleNames(board, group)} can still stand in ${list}. Every ${noun} holds somebody, so ${peopleNames(board, group)} stands there and nowhere else.`
-        : `Only ${peopleNames(board, group)} can still stand in ${list}. Every ${noun} holds somebody, so they fill those ${countWord(size)} ${rows ? 'rows' : 'columns'} together and stand nowhere else.`
-    return { eliminate, explanation: sentences(explanation), people: group, cells: [...new Set(eliminate.map((e) => e.cell))] }
+      context.locale === 'nl'
+        ? advNl.hiddenLinesText(groupWho, list, rows, size)
+        : size === 1
+          ? `Only ${groupWho} can still stand in ${list}. Every ${rows ? 'row' : 'column'} holds somebody, so ${groupWho} stands there and nowhere else.`
+          : `Only ${groupWho} can still stand in ${list}. Every ${rows ? 'row' : 'column'} holds somebody, so they fill those ${countWord(size)} ${rows ? 'rows' : 'columns'} together and stand nowhere else.`
+    return { eliminate, explanation: w.sentences(explanation), people: group, cells: [...new Set(eliminate.map((e) => e.cell))] }
   }
   return null
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CatalogClue } from '../../clues/index.ts'
+import type { Locale } from '../../../locale/types.ts'
 import type { Person, Scene } from '../../model/index.ts'
 import { Board } from '../human/board.ts'
 import type { Deduction, HumanContext, Technique } from '../human/types.ts'
@@ -44,11 +45,12 @@ function limit(board: Board, person: number, keep: (row: number, col: number) =>
 const only = (board: Board, person: number, cells: [number, number][]) =>
   limit(board, person, (r, c) => cells.some(([rr, cc]) => rr === r && cc === c))
 
-const context = (board: Board, clues: CatalogClue[] = []): HumanContext => ({
+const context = (board: Board, clues: CatalogClue[] = [], locale: Locale = 'en'): HumanContext => ({
   scene: board.scene,
   people,
   clues,
   memo: new Map(),
+  locale,
 })
 
 const removed = (found: Deduction | null, person: number) =>
@@ -239,7 +241,7 @@ describe('room techniques', () => {
     const three: Person[] = [people[A] as Person, people[B] as Person, people[V] as Person]
     const board = new Board(wide, three)
     for (const p of [1, 2]) limit(board, p, (r, c) => wide.cellRooms[r]?.[c] !== 't')
-    const ctx: HumanContext = { scene: wide, people: three, clues: [], memo: new Map() }
+    const ctx: HumanContext = { scene: wide, people: three, clues: [], memo: new Map(), locale: 'en' }
     const found = roomCapacity.find(board, ctx)
     // A on r1c2 with B and V in the b room is a real solution (column 2 stays empty).
     expect(found?.eliminate.some((e) => e.person === 0 && e.cell === 1) ?? false).toBe(false)
@@ -382,7 +384,7 @@ describe('chain reasoning', () => {
     keep(0, [0, 1])
     keep(1, [5, 6])
     keep(2, [10, 11, 12])
-    const ctx: HumanContext = { scene: wide, people: three, clues: [], memo: new Map() }
+    const ctx: HumanContext = { scene: wide, people: three, clues: [], memo: new Map(), locale: 'en' }
     // Real solutions: A on r1c1 or r1c2, B on r2c2 or r2c1, V on r3c3 (columns 4 and 5 stay empty).
     // Only V's two squares in the first columns are refuted; nothing of A or B, and never V on r3c3.
     const found = chain.find(board, ctx)
@@ -405,5 +407,122 @@ describe('catalog shape', () => {
       expect([4, 5]).toContain(technique.level)
       expect(technique.id).toMatch(/^[a-z-]+$/)
     }
+  })
+})
+
+/**
+ * The same scenarios, in Dutch (locale 'nl', SLAY-3.3): one pin per advanced technique, through
+ * the Dutch wording module (`../nl.ts`).
+ */
+describe('the same techniques, in Dutch', () => {
+  const nlCtx = (board: Board, clues: CatalogClue[] = []) => context(board, clues, 'nl')
+
+  it('hidden lines: a single row and a pair', () => {
+    const board = new Board(TWO_ROOMS, people)
+    for (const p of [B, C, V]) limit(board, p, (r) => r !== 0)
+    const found = hiddenLines(1, 2, 'hidden-lines', 4, 'Verborgen').find(board, nlCtx(board))
+    expect(found?.explanation).toBe('Alleen A kan nog in rij 1 staan. Elke rij houdt iemand, dus A staat daar en nergens anders.')
+
+    const board2 = new Board(TWO_ROOMS, people)
+    for (const p of [C, V]) limit(board2, p, (r) => r >= 2)
+    const found2 = hiddenLines(2, 2, 'hidden-pair', 4, 'Verborgen').find(board2, nlCtx(board2))
+    expect(found2?.explanation).toBe('Alleen A en B kunnen nog in rijen 1 en 2 staan. Elke rij houdt iemand, dus zij vullen die twee rijen samen en staan nergens anders.')
+  })
+
+  it('naked triple', () => {
+    const board = new Board(TWO_ROOMS, people)
+    for (const p of [A, B, C]) limit(board, p, (_, c) => c <= 2)
+    const found = nakedLines(3, 'naked-triple', 4, 'Drietal').find(board, nlCtx(board))
+    expect(found?.explanation).toBe(
+      'A, B en C kunnen nu alleen nog in kolommen 1, 2 en 3 staan: drie mensen voor drie kolommen. We weten niet wie waar staat, maar die kolommen zijn samen van hen. Niemand anders kan daar staan.',
+    )
+  })
+
+  it('rectangle and the bigger fish pattern', () => {
+    const board = new Board(TWO_ROOMS, people)
+    for (let p = 0; p < 4; p++) limit(board, p, (r, c) => r > 1 || c === 0 || c === 2)
+    const found = fish(2, 2, 'rectangle', 4, 'Rechthoek').find(board, nlCtx(board))
+    expect(found?.explanation).toBe(
+      'In rijen 1 en 2 zijn alleen deze vakjes nog vrij: rij 1, kolom 1; rij 1, kolom 3; rij 2, kolom 1 en rij 2, kolom 3. Ze liggen allemaal in kolommen 1 en 3. Dus twee rijen hebben twee kolommen nodig: samen gebruiken ze kolommen 1 en 3 op. Buiten rijen 1 en 2 kan niemand in kolommen 1 en 3 staan, ook A niet.',
+    )
+  })
+
+  it('intersect-wide', () => {
+    const board = new Board(TWO_ROOMS, people)
+    limit(board, A, (r, c) => r === 0 || c === 0)
+    const found = intersectWide.find(board, nlCtx(board))
+    expect(found?.explanation).toBe(
+      'A kan nog op zeven vakjes staan, en elk daarvan deelt een rij of kolom met rij 1, kolom 1. Als iemand anders daar zou staan, had A niets meer over. Dus niemand anders kan daar staan.',
+    )
+  })
+
+  it('room techniques: hidden single, capacity, victim count and clue room count', () => {
+    const board = new Board(TWO_ROOMS, people)
+    for (const p of [C, V]) limit(board, p, (r) => r >= 2)
+    expect(roomHiddenSingle.find(board, nlCtx(board))?.explanation).toBe(
+      'Er moeten nog minstens twee mensen in de Room t staan, omdat twee rijen alleen vanuit de Room t gevuld kunnen worden. Alleen A en B kunnen daar nog komen, dus zij staan daar.',
+    )
+
+    const board2 = new Board(TWO_ROOMS, people)
+    for (const p of [A, B]) limit(board2, p, (r) => r <= 1)
+    expect(roomCapacity.find(board2, nlCtx(board2))?.explanation).toBe(
+      'Er kunnen hoogstens twee mensen in de Room t staan, omdat de Room t nog maar twee vrije rijen over heeft. A en B staan daar al zeker. Dus niemand anders kan daar staan.',
+    )
+
+    const l = scene(['tttt', 'tttt', 'ttbb', 'bbbb'])
+    const board3 = new Board(l, people)
+    limit(board3, V, (r, c) => r <= 2 && (r < 2 || c < 2))
+    expect(roomCapacity.find(board3, nlCtx(board3))?.explanation).toBe(
+      'Er kunnen hoogstens twee mensen in de Room t staan, omdat de Room t V en precies één verdachte bevat. Rijen 1 en 2 leveren er al twee. Dus andere rijen hebben geen ruimte meer in de Room t.',
+    )
+
+    const l2 = scene(['tttt', 'tttt', 'tttt', 'bbbb'])
+    const board4 = new Board(l2, people)
+    expect(victimCount.find(board4, nlCtx(board4))?.explanation).toBe(
+      'De Room t moet minstens drie mensen bevatten, omdat drie rijen alleen vanuit de Room t gevuld kunnen worden. V is bij precies één verdachte, en kan daar dus niet zijn.',
+    )
+
+    const board5 = new Board(l2, people)
+    limit(board5, V, (r) => r === 3)
+    expect(victimCount.find(board5, nlCtx(board5))?.explanation).toBe(
+      'De Room b kan hoogstens een persoon bevatten, omdat de Room b nog maar een vrije rij over heeft. V is bij een verdachte, en kan daar dus niet zijn.',
+    )
+
+    const board6 = new Board(l2, people)
+    const aloneClues: CatalogClue[] = [{ personId: 'A', type: 'alone', args: {} }]
+    expect(clueRoomCount.find(board6, nlCtx(board6, aloneClues))?.explanation).toBe(
+      'Een kaartje zegt dat A alleen in een kamer is, dus staan daar precies een persoon. De Room t moet minstens drie mensen bevatten, omdat drie rijen alleen vanuit de Room t gevuld kunnen worden. Dus A kan niet in de Room t staan.',
+    )
+
+    const board7 = new Board(l2, people)
+    const aloneWithClues: CatalogClue[] = [{ personId: 'A', type: 'aloneWith', args: { otherId: 'B' } }]
+    expect(clueRoomCount.find(board7, nlCtx(board7, aloneWithClues))?.explanation).toBe(
+      'Een kaartje zegt dat A en B samen alleen in een kamer zijn, dus staan daar precies twee mensen. De Room t moet minstens drie mensen bevatten, omdat drie rijen alleen vanuit de Room t gevuld kunnen worden. Dus A en B kunnen niet in de Room t staan.',
+    )
+  })
+
+  it('combined clues', () => {
+    const wide = scene(['tttt', 'tttt', 'bbbb', 'bbbb'])
+    const clues: CatalogClue[] = [
+      { personId: 'A', type: 'directionOf', args: { side: 'north', otherId: 'B' } },
+      { personId: 'A', type: 'diagonal', args: { otherId: 'B' } },
+    ]
+    const board = new Board(wide, people)
+    only(board, B, [[2, 0], [3, 3]])
+    only(board, A, [[0, 1], [1, 3]])
+    const found = combinedClues.find(board, nlCtx(board, clues))
+    expect(found?.explanation).toBe(
+      'De kaartjes van A en B horen bij elkaar: "A stond verder naar het noorden dan B." "A stond op dezelfde diagonaal als B." Als A op rij 1, kolom 2 en rij 2, kolom 4 staat, is er geen combinatie van vakjes meer over voor B die bij al die kaartjes past zonder een rij of kolom te delen. Dus A staat daar niet.',
+    )
+  })
+
+  it('chain reasoning', () => {
+    const board = new Board(TWO_ROOMS, people)
+    only(board, A, [[0, 0], [2, 2]])
+    only(board, B, [[0, 1], [1, 0]])
+    const found = chain.find(board, nlCtx(board))
+    expect(found?.explanation).toBe(
+      'Stel dat A op rij 1, kolom 1 staat. Dan heeft B geen vakje meer over. Dat kan niet, dus A staat daar niet. Stel dat C op rij 1, kolom 1 staat. Dan heeft B geen vakje meer over. Dat kan niet, dus C staat daar niet. Dezelfde redenering sluit veel andere vakjes uit.',
+    )
   })
 })

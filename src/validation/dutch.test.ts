@@ -28,6 +28,16 @@ const SKIPPED = [
   /\/clues\/en\.test\.ts$/,
   /\/clues\/relational\/en\.test\.ts$/,
   /\/clues\/both\.test\.ts$/,
+  // The Dutch solver/hint-wording modules and the tests that pin their Dutch sentences as literal
+  // expected strings (SLAY-3.3, same pattern as clues/nl.ts and its three pinning tests above).
+  /\/solver\/human\/nl\.ts$/,
+  /\/solver\/advanced\/nl\.ts$/,
+  /\/game\/hintText\.nl\.ts$/,
+  /\/solver\/human\/en\.test\.ts$/,
+  /\/solver\/human\/explanations\.test\.ts$/,
+  /\/solver\/human\/techniques\.test\.ts$/,
+  /\/solver\/advanced\/techniques\.test\.ts$/,
+  /\/game\/hintText\.test\.ts$/,
 ]
 
 const modules = import.meta.glob(
