@@ -52,11 +52,40 @@
   margin-bottom: 18px;
 }
 
+.daily__header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .daily__title {
   margin: 0;
   font-family: var(--font-display);
   font-size: 2.2rem;
   line-height: 1.15;
+}
+
+.daily__locale {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.daily__locale-option {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.daily__locale-option[aria-pressed='true'] {
+  opacity: 1;
+  border-color: var(--accent);
+  text-decoration: none;
 }
 
 .daily__subtitle {

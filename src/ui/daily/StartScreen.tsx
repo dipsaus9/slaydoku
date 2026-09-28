@@ -7,6 +7,7 @@ import type { ScheduleDay } from '../../schedule/index.ts'
 import { HelpPanel, formatTime, withCastNames } from '../play/index.ts'
 import { Link } from '../router/index.ts'
 import { Countdown } from './Countdown.tsx'
+import { LocaleToggle } from './LocaleToggle.tsx'
 import { DAILY_EN } from './strings.ts'
 
 /**
@@ -108,7 +109,10 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
   return (
     <main className="daily">
       <header className="daily__header">
-        <h1 className="daily__title">{t.title}</h1>
+        <div className="daily__header-row">
+          <h1 className="daily__title">{t.title}</h1>
+          <LocaleToggle />
+        </div>
         <p className="daily__subtitle">{t.subtitle}</p>
         <button type="button" className="daily-btn daily-btn--quiet daily__help" onClick={() => setHelpOpen(true)}>
           {help.link}

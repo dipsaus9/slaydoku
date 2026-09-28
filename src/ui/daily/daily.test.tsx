@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import { LocaleProvider } from '../../locale/index.ts'
 import { readSchedule } from '../../schedule/schedule.testing.ts'
 import { StartScreen } from './StartScreen.tsx'
 import type { StartState } from './StartScreen.tsx'
@@ -9,8 +10,13 @@ const { days } = readSchedule()
 const day = days[3]! // 2026-09-30
 const at = (iso: string) => () => Date.parse(iso)
 const strip = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/\s+/g, ' ').trim()
+// StartScreen renders the locale toggle, which reads useLocale(): every render needs a LocaleProvider ancestor, same as App.tsx.
 const render = (state: StartState, over: Partial<Parameters<typeof StartScreen>[0]> = {}) =>
-  renderToStaticMarkup(<StartScreen state={state} clock={at('2026-09-30T22:00:00Z')} onPlay={() => {}} {...over} />)
+  renderToStaticMarkup(
+    <LocaleProvider storage={null} browserLanguage="en-US">
+      <StartScreen state={state} clock={at('2026-09-30T22:00:00Z')} onPlay={() => {}} {...over} />
+    </LocaleProvider>,
+  )
 
 describe('<StartScreen/>', () => {
   it('shows the number, the date, the difficulty, the size and a Play button for a new day', () => {
@@ -101,5 +107,24 @@ describe('<StartScreen/>', () => {
     for (const state of [{ kind: 'loading' }, { kind: 'after-schedule' }] as const) {
       expect(render(state)).toContain('href="/about"')
     }
+  })
+
+  it('offers a language toggle with EN pressed for an English browser language, no player-facing text changed', () => {
+    const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
+    expect(html).toContain('data-locale-option="en"')
+    expect(html).toContain('data-locale-option="nl"')
+    expect(html).toMatch(/aria-pressed="true"[^>]*data-locale-option="en"/)
+    expect(html).toMatch(/aria-pressed="false"[^>]*data-locale-option="nl"/)
+    expect(strip(html)).toContain('Puzzle')
+  })
+
+  it('the language toggle defaults to NL pressed for a Dutch browser language', () => {
+    const html = renderToStaticMarkup(
+      <LocaleProvider storage={null} browserLanguage="nl-NL">
+        <StartScreen state={{ kind: 'day', day, status: { kind: 'new' }, ended: false }} clock={at('2026-09-30T22:00:00Z')} onPlay={() => {}} />
+      </LocaleProvider>,
+    )
+    expect(html).toMatch(/aria-pressed="true"[^>]*data-locale-option="nl"/)
+    expect(html).toMatch(/aria-pressed="false"[^>]*data-locale-option="en"/)
   })
 })
