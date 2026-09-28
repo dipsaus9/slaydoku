@@ -4,7 +4,7 @@ title: 'Play-screen header: one designed bar, real top clearance on PWA'
 status: In Progress
 assignee: []
 created_date: '2026-09-28 18:57'
-updated_date: '2026-09-28 19:32'
+updated_date: '2026-09-28 19:48'
 labels:
   - story
 dependencies: []
@@ -12,6 +12,8 @@ references:
   - src/ui/play/PlayScreen.tsx
   - src/ui/play/play.css
   - docs/verification/
+  - src/ui/daily/daily.css
+  - src/ui/daily/DailyFlow.tsx
 parent_task_id: SLAY-6
 type: feature
 ordinal: 35000
@@ -49,4 +51,6 @@ Implemented entirely within play.css (PlayScreen.tsx markup untouched -- class n
 Review round 1 (block): AC3 fixed (--play-top-clearance now var(--space-5)=24px exactly, matching .daily's floor; reverified verify:phone 1650/1650 + locale 22/22 after the change). AC1 flagged that .daily-play__back (src/ui/daily/daily.css, rendered by src/ui/daily/DailyFlow.tsx) stays a bordered pill while play-header's own controls (title/timer/settings) are now chrome-less -- confirmed this is a structural scope gap, not a fixable implementation gap: those two files are not References of SLAY-6.1 (References: PlayScreen.tsx, play.css, docs/verification/ only), and checked the parent epic SLAY-6 plus siblings SLAY-6.2/SLAY-6.3 -- SLAY-6.1 is the only story in the epic that touches the header at all, so this isn't deferred to a sibling story either. Reaching the back button requires either widening this story's own References (a backlog-plan amendment) or a follow-up story; I have not silently expanded scope to fix it. Re-submitting to review round 2 with this context.
 
 Review round 2 (block): AC2, AC3, AC4 all confirmed met (spacing scale, 24px top-clearance floor exactly matching .daily, verify:phone 1650/1650 + locale 22/22 unchanged in behaviour). AC1 still not met -- reviewer explicitly considered the scope-bounded framing (back control owned by src/ui/daily/daily.css + DailyFlow.tsx, neither a Reference of this story, no sibling SLAY-6.x story reaches them either) and confirmed: this reads as a genuine authoring gap in how SLAY-6.1's References were scoped relative to its own AC1 wording, not an implementation shortfall -- but the criterion as literally written still isn't demonstrated by the diff, so verdict stays block. ESCALATING per the review-gate protocol's scope/criteria-mismatch path rather than burning a mechanically identical round 3 (the diff can't change without touching out-of-Reference files): stopping here, not pushing, leaving the branch (SLAY-6.1/header-and-top-clearance) and worktree (.worktrees/SLAY-6.1) for a human decision. Two viable paths: (a) amend SLAY-6.1 (via backlog-plan) to widen References to include src/ui/daily/daily.css and src/ui/daily/DailyFlow.tsx so the back control can be restyled to match, then resume delivery on this same branch; or (b) accept the current scope as the story's ceiling, close SLAY-6.1 on AC2/3/4 with AC1 explicitly partial, and charter a small follow-up story for the back-control/daily.css piece. Everything else is green and ready: 2 commits on the branch, verify baseline (lint/typecheck/test) green, verify:phone + locale driver green.
+
+Round 3 (post-scope-widening): References widened by orchestrator to include src/ui/daily/daily.css and src/ui/daily/DailyFlow.tsx, resolving the escalated AC1 scope gap. .daily-play__back (daily.css) now matches play-header's own chrome-less treatment (border:1px solid transparent, background:transparent at rest, :active/:focus-visible affordance) instead of staying a bordered pill -- same language as .play-header__more/.play-timer. DailyFlow.tsx markup/class names/aria-labels untouched (not needed). Re-verified: lint/typecheck green; vitest 138 files / 2877 tests all passed content-wise (one run showed an unrelated vitest-worker RPC timeout unhandled-error causing a non-zero exit with zero failing tests -- reproduced on two consecutive runs, unrelated to this CSS-only change). verify:phone (drive,zoom,legend, all 6 viewports): 1650 checks, 0 failures. Dutch locale driver (390x844): 22 checks, 0 failures. Submitting to review round 3 (fresh round given the scope widening, not a continuation of the prior blocked rounds).
 <!-- SECTION:NOTES:END -->
