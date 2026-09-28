@@ -371,17 +371,21 @@ async function firstVisit() {
   check('second visit does not show the card', (await count('.play-modal')) === 0 && (await count('.play-board')) === 1)
   await reload()
   check('reload does not show the card either', (await count('.play-modal')) === 0 && (await count('.play-board')) === 1)
+  // Help sits behind More (SLAY-4.2).
+  await tool('More')
   await tool('Help')
   check('Help button reopens the card, glossary hidden', (await panelProbe())?.title === 'How it works' && (await panelProbe())?.glossary === 0)
   await tapModalBtn('Keywords')
   await tapModalBtn('Back to the guide')
   await pressEscape()
   check('Escape closes the card (keyboard)', (await count('.play-modal')) === 0)
+  await tool('More')
   await tool('Help')
   check('glossary is closed again on every open', (await panelProbe())?.glossary === 0)
   await tapModalBtn('Keywords')
   await tap(3, 3)
   await sleep(300)
+  await tool('More')
   await tool('Help')
   check('a reopen after leaving on the glossary starts on the goal', (await panelProbe())?.title === 'How it works' && (await panelProbe())?.glossary === 0)
   await tapModalBtn('Start playing')
@@ -502,14 +506,16 @@ async function playDay(first: boolean, w: number, h: number) {
     await sleep(250)
   }
 
-  // Help and options (first viewport run only: same component on every day).
+  // Help and options, both behind More (SLAY-4.2) (first viewport run only: same component on every day).
   if (first) {
+    await tool('More')
     await tool('Help')
     check('help opens', (await count('.play-modal')) === 1)
     await shot('04-help')
     await tap(3, 3)
     await sleep(300)
     check('tapping the dimmed backdrop closes the help', (await count('.play-modal')) === 0)
+    await tool('More')
     await tool('Options')
     check('options open', (await count('.play-modal')) === 1)
     await shot('05-options')

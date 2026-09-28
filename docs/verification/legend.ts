@@ -133,10 +133,10 @@ async function scenario(subject: Subject, zoomed: boolean) {
   await load('play')
   check(`${label}: the puzzle is open`, (await count('.play-board')) === 1 && (await count('.play-modal')) === 0)
 
-  // toolbar: the twelve buttons still fit, Legend sits after Help
+  // toolbar: nine controls fit (eight tools plus More, SLAY-4.2), Legend sits behind More
   const tb = await evaluate(`JSON.stringify({ labels: [...document.querySelectorAll('.play-tool__label')].map(l => l.textContent), sizes: [...document.querySelectorAll('.play-tool')].map(b => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }), iw: innerWidth, sw: document.documentElement.scrollWidth })`).then((s) => JSON.parse(s as string) as { labels: string[]; sizes: number[][]; iw: number; sw: number })
   if (!zoomed) {
-    check(`${label}: twelve toolbar buttons, Legend right after Help`, tb.labels.length === 12 && tb.labels.slice(-2).join() === 'Help,Legend', tb.labels.join())
+    check(`${label}: nine toolbar buttons, More last`, tb.labels.length === 9 && tb.labels[tb.labels.length - 1] === 'More', tb.labels.join())
     check(`${label}: every toolbar button is a 44px+ target, no sideways scroll`, tb.sizes.every(([w, h]) => w >= 44 && h >= 44) && tb.sw <= tb.iw, `min ${Math.min(...tb.sizes.map(([w, h]) => Math.min(w, h)))}px, page ${tb.sw}/${tb.iw}`)
     await shot(`${subject.name}-0-toolbar`)
   }
@@ -145,8 +145,11 @@ async function scenario(subject: Subject, zoomed: boolean) {
     check(`${label}: board zoomed to 2x`, near(Number(await evaluate(`document.querySelector('.play-board').dataset.zoom`)), 2, 0.01))
   }
 
+  await tool('More')
+  const moreLabels = await evaluate(`JSON.stringify([...document.querySelectorAll('.play-more .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string) as string[])
+  check(`${label}: More opens a sheet with Options, Help and Legend`, JSON.stringify(moreLabels) === JSON.stringify(['Options', 'Help', 'Legend']), moreLabels.join())
   await tool('Legend')
-  check(`${label}: Legend opens from the toolbar`, (await count('.play-modal [role=dialog], .play-modal[role=dialog], .play-modal__panel--legend')) > 0 && (await evaluate(`document.querySelector('.play-modal__title')?.textContent`)) === 'Legend')
+  check(`${label}: Legend opens from More`, (await count('.play-modal [role=dialog], .play-modal[role=dialog], .play-modal__panel--legend')) > 0 && (await evaluate(`document.querySelector('.play-modal__title')?.textContent`)) === 'Legend')
   const onScreen = await rowsOnScreen()
   const expected = legend.objects.map((r) => ({ key: r.key, occ: r.occupiable ? 'yes' : 'no', noun: r.noun, flag: r.occupiable ? help.legend.canOccupy : help.legend.blocked }))
   check(`${label}: one row per object kind of the scene, right noun and flag`, JSON.stringify(onScreen) === JSON.stringify(expected), onScreen.map((r) => `${r.noun}:${r.occ}`).join(' '))
@@ -201,13 +204,15 @@ async function scenario(subject: Subject, zoomed: boolean) {
     await tapSel('.play-peek')
   }
 
-  // close by the button, then by the backdrop, then Help -> Legend
+  // close by the button, then by the backdrop, then Help -> Legend (both behind More, SLAY-4.2)
   await tapSel('.play-modal__actions .play-btn')
   check(`${label}: the close button closes the card`, (await count('.play-modal')) === 0)
   if (!zoomed) {
+    await tool('More')
     await tool('Legend')
     await tap({ x: 3, y: 3 })
     check(`${label}: a tap on the backdrop closes the card`, (await count('.play-modal')) === 0)
+    await tool('More')
     await tool('Help')
     const hasBtn = await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].some(b => b.textContent.trim() === 'Legend')`)
     await shot(`${subject.name}-4-how-it-works`)

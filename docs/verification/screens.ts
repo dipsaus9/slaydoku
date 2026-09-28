@@ -170,9 +170,10 @@ async function subjectCheck(subject: Subject) {
   // 2. every object drawn on the board has a legend row
   const board = await boardDrawn()
   check(`${label}: the board draws all ${puzzle.scene.objects.length} objects of the scene, each with an icon`, board.objects.length === puzzle.scene.objects.length && board.objects.every((o) => o !== null), `${board.objects.length} drawn`)
+  await tool('More') // Legend sits behind More (SLAY-4.2)
   await tool('Legend')
   const opened = await until(`document.querySelector('.play-modal__title')?.textContent === 'Legend'`, 3000)
-  check(`${label}: the Legend opens from the toolbar`, opened)
+  check(`${label}: the Legend opens from More on the toolbar`, opened)
   if (!opened) return
   const legend = await legendOnScreen()
   const drawn = new Set(board.objects.filter((o): o is string => o !== null))

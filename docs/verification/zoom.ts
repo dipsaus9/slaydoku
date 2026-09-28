@@ -396,7 +396,8 @@ async function run(w: number, h: number) {
 
   // ---- resets ---------------------------------------------------------------------------
   check('nothing about zoom in localStorage', !(await evaluate(`Object.keys(localStorage).some(k => /zoom/i.test(k)) || Object.values(localStorage).some(v => /zoom/i.test(v))`)))
-  // restart
+  // restart (Options sits behind More, SLAY-4.2)
+  await tool('More')
   await tool('Options')
   await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Start over/.test(b.innerText))?.click()`)
   await sleep(300)
