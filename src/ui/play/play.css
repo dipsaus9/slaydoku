@@ -8,7 +8,7 @@
  * Portrait: board with the toolbar as a column beside it, cards in a strip underneath.
  * Landscape: board on the left, toolbar and scrolling cards on the right.
  * Phones (CAD-10.3) have their own two rules at the bottom: portrait up to 640px wide (one column,
- * toolbar as 6 x 2 buttons, hint under the board) and short landscape (max 500px high: board as
+ * toolbar as a 4-column grid, hint under the board) and short landscape (max 500px high: board as
  * high as the screen, header, toolbar and cards in the column beside it). iPads never match them.
  * Safe-area insets need viewport-fit=cover (index.html): every edge padding below reads them.
  */
@@ -497,6 +497,18 @@
   width: min(760px, 100%);
 }
 
+/* The More sheet (SLAY-4.2): a small panel, not the full dialog width the other panels use. */
+.play-modal__panel--more {
+  width: min(320px, 100%);
+}
+
+.play-more {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
 .play-modal__title {
   margin: 0 0 12px;
   font-size: 1.4rem;
@@ -971,10 +983,11 @@ button.play-legend__row:focus-visible {
 
 /*
  * Portrait phone (CAD-10.3): one column. The board takes the full width (a cell is 34px or more from
- * 360px wide). The twelve toolbar buttons are a 6-column grid, 48px high: the four modes, the hint and
- * the zoom button (CAD-10.4) on the first row, undo/redo/auto-X/options/help/legend (CAD-10.9) on the second. An open
- * hint sits right under the board (the toolbar goes below it) so board and hint are on screen together. The cards are a strip you
- * swipe sideways; it also lets a vertical drag scroll the page (the page is taller than a phone).
+ * 360px wide). The nine toolbar controls are a 4-column grid, 48px high (SLAY-4.2): the four modes on
+ * the first row, undo/redo/hint/zoom (CAD-10.4) on the second, and More (which opens Options, Help and
+ * Legend) alone on the third. An open hint sits right under the board (the toolbar goes below it) so
+ * board and hint are on screen together. The cards are a strip you swipe sideways; it also lets a
+ * vertical drag scroll the page (the page is taller than a phone).
  */
 @media (max-width: 640px) and (max-aspect-ratio: 1 / 1) {
   .play {
@@ -1005,7 +1018,7 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -1016,14 +1029,13 @@ button.play-legend__row:focus-visible {
   .play-tool {
     width: auto;
     min-height: 48px;
-    order: 1;
   }
 
-  /* first row: the four modes, the hint (third button of the second group) and the zoom button */
-  .play-toolbar__group:first-child .play-tool,
-  .play-toolbar__group:nth-child(2) .play-tool:nth-child(3),
-  .play-tool--zoom {
-    order: 0;
+  /* More is the only control on the third row: centred, sized like the others, not stretched full-width */
+  .play-tool--more {
+    grid-column: 1 / -1;
+    width: 100px;
+    justify-self: center;
   }
 
   .play-hint {
@@ -1098,8 +1110,8 @@ button.play-legend__row:focus-visible {
 /*
  * Short landscape (phones on their side, up to 500px high): the board is as high as the screen
  * allows (--play-board, also read by the back bar in levels.css) and sits on the left; the column on
- * the right holds the header row, the 6 x 2 toolbar, a hint when one is open, and the cards, which scroll.
- * An iPad (768px high or more) never matches this.
+ * the right holds the header row, the 4-column toolbar (SLAY-4.2), a hint when one is open, and the
+ * cards, which scroll. An iPad (768px high or more) never matches this.
  */
 @media (orientation: landscape) and (max-height: 500px) {
   :root {
@@ -1128,7 +1140,7 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -1141,13 +1153,12 @@ button.play-legend__row:focus-visible {
     min-height: 44px;
     padding: 2px 2px;
     gap: 1px;
-    order: 1;
   }
 
-  .play-toolbar__group:first-child .play-tool,
-  .play-toolbar__group:nth-child(2) .play-tool:nth-child(3),
-  .play-tool--zoom {
-    order: 0;
+  .play-tool--more {
+    grid-column: 1 / -1;
+    width: 100px;
+    justify-self: center;
   }
 
   .play-hint {

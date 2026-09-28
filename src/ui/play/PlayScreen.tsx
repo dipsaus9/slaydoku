@@ -240,7 +240,6 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
         <Toolbar
           tool={tool}
           onTool={setTool}
-          options={state.options}
           canUndo={!solved && state.history.past.length > 0}
           canRedo={!solved && state.history.future.length > 0}
           hintOpen={hintLevel !== 0}
@@ -249,7 +248,6 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
           onUndo={() => afterUndoRedo('undo')}
           onRedo={() => afterUndoRedo('redo')}
           onHint={() => (hintLevel === 0 ? showHint(1) : setHintLevel(0))}
-          onToggleAutoX={() => store.dispatch({ type: 'setOption', option: 'autoXOnPlace', value: !state.options.autoXOnPlace })}
           onOpenOptions={() => setDialog('options')}
           onOpenHelp={() => setDialog('help')}
           onOpenLegend={() => setDialog('legend')}

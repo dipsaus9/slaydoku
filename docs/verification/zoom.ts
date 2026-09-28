@@ -124,7 +124,9 @@ async function tool(label: string) {
   const r = await toolRect(label)
   if (!r) throw new Error('missing tool ' + label)
   await tap(r)
-  await sleep(250)
+  // 400ms, not 250: a tool can sit inside a dialog that just opened (Options/Help/Legend behind More, SLAY-4.2),
+  // and a click within the first 350ms of a dialog opening is ignored (ghost-click guard, modalGuard.ts).
+  await sleep(400)
 }
 const count = (sel: string) => evaluate(`document.querySelectorAll(${JSON.stringify(sel)}).length`) as Promise<number>
 const path = () => evaluate('location.pathname') as Promise<string>
@@ -208,7 +210,9 @@ async function leaveLevel() {
 
 async function run(w: number, h: number) {
   await open(w, h)
-  await evaluate(`localStorage.clear(); ${seedStorage(PLAY_DATE, false)}`)
+  // Locale pinned to 'en' (SLAY-4.2, the same fix screens.ts already carried from SLAY-3.2): a Dutch browser language
+  // would otherwise default the play screen to Dutch and break the English-text checks below (e.g. "Start playing").
+  await evaluate(`localStorage.clear(); ${seedStorage(PLAY_DATE, false, 'en')}`)
   await reload()
   await openLevel()
   check('the puzzle opens at /play', (await path()) === '/play', await path())
@@ -396,7 +400,8 @@ async function run(w: number, h: number) {
 
   // ---- resets ---------------------------------------------------------------------------
   check('nothing about zoom in localStorage', !(await evaluate(`Object.keys(localStorage).some(k => /zoom/i.test(k)) || Object.values(localStorage).some(v => /zoom/i.test(v))`)))
-  // restart
+  // restart (Options sits behind More, SLAY-4.2)
+  await tool('More')
   await tool('Options')
   await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Start over/.test(b.innerText))?.click()`)
   await sleep(300)
