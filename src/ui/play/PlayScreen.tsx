@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { PortraitLook } from '../../content/cast/index.ts'
 import type { Cell, Puzzle } from '../../engine/model/index.ts'
 import { createGameStore, defaultStorage, isPlaced, type GameStore, type StorageLike } from '../../game/index.ts'
+import { useLocale } from '../../locale/index.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 import type { FloorPattern } from '../../render/scene/index.ts'
 import { useAxisLabels } from './axisLabels.ts'
@@ -72,6 +73,7 @@ function nextUnplaced(order: readonly string[], from: string, placed: (id: strin
  */
 export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false, resultShare }: PlayScreenProps) {
   const strings = usePlayStrings()
+  const { locale } = useLocale()
   const title = givenTitle ?? strings.title
   const puzzle = useMemo(() => withCastNames(given, castSeed), [given, castSeed])
   const store = useMemo<GameStore>(
@@ -134,7 +136,7 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
   }
   // The store is read inside, so the memo is keyed on the board it reads (the solver is not cheap).
   // oxlint-disable-next-line react-hooks/exhaustive-deps
-  const hint = useMemo(() => (hintLevel === 0 ? null : store.hint(hintLevel)), [store, hintLevel, state.board])
+  const hint = useMemo(() => (hintLevel === 0 ? null : store.hint(hintLevel, locale)), [store, hintLevel, state.board, locale])
 
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
