@@ -7,37 +7,43 @@ export const DETAIL = 3
 /** Clear space between a shape's edge and the cell edge; keeps stroke inside the cell. */
 export const M = 6
 
-/** Flat colour set, kept warm and light like the official sheets. Own choices. */
+/**
+ * Flat colour set, kept warm and light like the official sheets. Own choices.
+ * SLAY-4.3: calmed down from the original, more saturated set — every hue's chroma is pulled
+ * back (~30%) and lightened a touch so the board reads quieter, less busy. Same key names, same
+ * relative hue/lightness relationships (so shapes stay distinguishable from one another and every
+ * icon that imports these keys inherits the calmer look automatically, no icon file touched).
+ */
 export const C = {
-  ink: '#2a211c',
+  ink: '#29211d',
   white: '#fbfbf8',
-  cream: '#f4ead2',
-  creamLight: '#fff8e6',
-  paper: '#efe3c4',
-  wood: '#a86f45',
-  woodLight: '#c99863',
-  woodDark: '#7b4c2b',
-  gold: '#e9a92d',
-  yellow: '#fad64a',
-  purple: '#a487c9',
-  purpleDark: '#8768ad',
-  sofa: '#d29b6a',
-  sofaDark: '#b57c4d',
-  red: '#d8514b',
-  redDark: '#b13a36',
-  terracotta: '#b9532f',
-  green: '#4f9e50',
-  greenLight: '#7cc36a',
-  greenDark: '#3a7d43',
-  sky: '#bfe3ee',
-  skyLight: '#e3f3f7',
-  steel: '#c3c9d2',
-  steelDark: '#8c94a1',
-  slate: '#4b4e5c',
+  cream: '#f2e9d4',
+  creamLight: '#fef7e7',
+  paper: '#ede2c6',
+  wood: '#a2795a',
+  woodLight: '#be9f7d',
+  woodDark: '#78553d',
+  gold: '#cea657',
+  yellow: '#e1ca73',
+  purple: '#ad9bc4',
+  purpleDark: '#907ca8',
+  sofa: '#c6a485',
+  sofaDark: '#aa8567',
+  red: '#c6706d',
+  redDark: '#a8514f',
+  terracotta: '#ae644a',
+  green: '#629b62',
+  greenLight: '#8dba82',
+  greenDark: '#4a7c51',
+  sky: '#d1e5eb',
+  skyLight: '#e3eff2',
+  steel: '#c4c9d1',
+  steelDark: '#8d94a0',
+  slate: '#4c4f5b',
   stone: '#d2d4da',
-  pink: '#f08fa6',
-  lilac: '#b79ae0',
-  slick: '#3a3450',
+  pink: '#e4aab8',
+  lilac: '#c1b0da',
+  slick: '#3b354f',
 } as const
 
 /** Round to one decimal so path data stays short and stable. */

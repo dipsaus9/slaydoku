@@ -22,6 +22,7 @@ import { PlayScreen } from './PlayScreen.tsx'
 import { ResultOverlay } from './ResultOverlay.tsx'
 import { PLAY_STRINGS } from './strings.ts'
 import { castFor, colorsFor, noteTags, withCastNames } from './people.ts'
+import { selectionAfterUndoRedo } from './undoRedoSelection.ts'
 
 const named = withCastNames(tutorial)
 const idOf = (label: string) => named.people.find((p) => p.label === label)!.id
@@ -308,6 +309,59 @@ describe('gestures drive the game store', () => {
   it('asks for a suspect first', () => {
     const { tap } = setup()
     expect(tap('note', null, at.A)).toEqual({ message: 'pickSuspect' })
+  })
+})
+
+describe('undo/redo restore the right selection (SLAY-4.1)', () => {
+  it('undo returns the person whose placement it removed; redo returns the one it restored', () => {
+    const store = createGameStore({ levelId: 'undo-select', puzzle: named, storage: null, now: () => 0 })
+    const A = idOf(Alice)
+    const beforeUndo = store.getState().board
+    store.dispatch({ type: 'place', personId: A, cell: at.A })
+    const afterPlace = store.getState().board
+    expect(selectionAfterUndoRedo('undo', beforeUndo, afterPlace)).toBeNull() // sanity: nothing removed yet
+
+    store.dispatch({ type: 'undo' })
+    const afterUndo = store.getState().board
+    expect(selectionAfterUndoRedo('undo', afterPlace, afterUndo)).toBe(A)
+
+    store.dispatch({ type: 'redo' })
+    const afterRedo = store.getState().board
+    expect(selectionAfterUndoRedo('redo', afterUndo, afterRedo)).toBe(A)
+  })
+
+  it('leaves the selection alone when the undone/redone edit was a note or a mark, not a placement', () => {
+    const store = createGameStore({ levelId: 'undo-select-note', puzzle: named, storage: null, now: () => 0 })
+    const A = idOf(Alice)
+    store.dispatch({ type: 'toggleNote', personId: A, cell: at.A })
+    const beforeUndo = store.getState().board
+    store.dispatch({ type: 'undo' })
+    const afterUndo = store.getState().board
+    expect(selectionAfterUndoRedo('undo', beforeUndo, afterUndo)).toBeNull()
+
+    store.dispatch({ type: 'redo' })
+    const afterRedo = store.getState().board
+    expect(selectionAfterUndoRedo('redo', afterUndo, afterRedo)).toBeNull()
+  })
+
+  it("the owner's scenario: place wrongly, undo, place the intended square — the same person lands there, not whoever auto-advance had moved on to", () => {
+    const store = createGameStore({ levelId: 'undo-select-owner', puzzle: named, storage: null, now: () => 0 })
+    const A = idOf(Alice)
+    // Place Alice on the wrong square (square A).
+    store.dispatch({ type: 'place', personId: A, cell: at.A })
+    expect(isPlaced(store.getState().board, A)).toBe(true)
+    const beforeUndo = store.getState().board
+
+    // Undo the wrong placement: the fix re-selects Alice, not whoever auto-advance moved on to.
+    store.dispatch({ type: 'undo' })
+    const afterUndo = store.getState().board
+    const reselected = selectionAfterUndoRedo('undo', beforeUndo, afterUndo)
+    expect(reselected).toBe(A)
+    expect(isPlaced(store.getState().board, A)).toBe(false)
+
+    // Tap the intended square (square B) for the re-selected person.
+    store.dispatch({ type: 'place', personId: reselected!, cell: at.B })
+    expect(store.getState().board.placements[A]).toEqual(at.B)
   })
 })
 
