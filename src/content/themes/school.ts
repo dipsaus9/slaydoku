@@ -21,7 +21,7 @@ export const SCHOOL_THEME: SceneTheme = {
     { name: 'Kindergarten', nameNl: 'Kleuterklas', favours: ['readingRug', 'beanbag', 'toyChest'] },
     { name: 'Corridor', nameNl: 'Gang', favours: ['lockers', 'houseplant'] },
     { name: 'Bike Shed', nameNl: 'Fietsenstalling', favours: ['bikeRack'] },
-    { name: 'Sick Bay', nameNl: 'Ziekenboeg', favours: ['infirmaryBed', 'sink', 'toilet'] },
+    { name: 'Sick Bay', nameNl: 'Ziekenboeg', favours: ['infirmaryBed', 'sink', 'toilet'], roomTypes: ['sleeping'] },
     { name: 'Craft Room', nameNl: 'Handvaardigheidslokaal', favours: ['schoolDesk', 'sink', 'blackboard'] },
     { name: 'Science Room', nameNl: 'Scheikundelokaal', favours: ['schoolDesk', 'blackboard', 'sink'] },
     { name: 'Caretaker Room', nameNl: 'Conciërgekamer', favours: ['teacherDesk', 'lockers'] },
@@ -34,7 +34,7 @@ export const SCHOOL_THEME: SceneTheme = {
     themeObject({ kind: 'readingRug', name: 'reading rug', engineType: 'rug', weight: 3, footprints: [rect(2, 1), rect(2, 2)], placement: 'centre', maxPerRoom: 1 }),
     themeObject({ kind: 'gymMat', name: 'gym mat', engineType: 'rug', themeIcon: 'gymMat', weight: 2.5, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'centre' }),
     themeObject({ kind: 'infirmaryBed', name: 'infirmary bed', engineType: 'bed', weight: 0.7, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 1 }),
-    themeObject({ kind: 'schoolBus', name: 'school bus', engineType: 'car', weight: 0.7, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2 }),
+    themeObject({ kind: 'schoolBus', name: 'school bus', engineType: 'car', weight: 0.7, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2, excludeRoomTypes: ['sleeping'] }),
     // Blocking
     themeObject({ kind: 'schoolDesk', name: 'school desk', engineType: 'desk', weight: 12, footprints: [rect(2, 1)], placement: 'centre' }),
     themeObject({ kind: 'teacherDesk', name: 'teacher desk', engineType: 'desk', weight: 2, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'wall', maxPerRoom: 1 }),

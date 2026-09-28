@@ -41,6 +41,7 @@ export { HOME_THEME, OFFICE_THEME, PARK_THEME, SCHOOL_THEME, SHOP_THEME }
 export { lShape, rect, themeObject } from './define.ts'
 export type {
   PlacementHint,
+  RoomType,
   SceneTheme,
   ThemeFootprint,
   ThemeId,

@@ -100,6 +100,7 @@ function tryBuild(
       height,
       rooms: partition,
       favours: Array.from({ length: count }, (_, i) => themeRoomOf.get(i)!.favours),
+      roomTypes: Array.from({ length: count }, (_, i) => themeRoomOf.get(i)!.roomTypes ?? []),
       theme,
       edgeFeatures,
     },

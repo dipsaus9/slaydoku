@@ -23,8 +23,8 @@ export const SHOP_THEME: SceneTheme = {
     { name: 'Entrance', nameNl: 'Entree', favours: ['houseplant', 'runner'] },
     { name: 'Parking Garage', nameNl: 'Parkeergarage', favours: ['deliveryVan', 'crates'] },
     { name: 'Collection Point', nameNl: 'Afhaalpunt', favours: ['checkoutCounter', 'shelf', 'fittingStool'] },
-    { name: 'Home Department', nameNl: 'Woonafdeling', favours: ['showroomBed', 'showroomCornerSofa', 'showroomRug'] },
-    { name: 'Bedroom Department', nameNl: 'Slaapkamerafdeling', favours: ['showroomBed', 'showroomRug', 'displayCase'] },
+    { name: 'Home Department', nameNl: 'Woonafdeling', favours: ['showroomBed', 'showroomCornerSofa', 'showroomRug'], roomTypes: ['sleeping'] },
+    { name: 'Bedroom Department', nameNl: 'Slaapkamerafdeling', favours: ['showroomBed', 'showroomRug', 'displayCase'], roomTypes: ['sleeping'] },
     { name: 'Produce Department', nameNl: 'Verse producten', favours: ['shelf', 'crates', 'houseplant'] },
   ],
   objects: [
@@ -36,7 +36,7 @@ export const SHOP_THEME: SceneTheme = {
     themeObject({ kind: 'runner', name: 'runner', engineType: 'rug', weight: 3, footprints: [rect(2, 1), rect(1, 1, 0.5)], placement: 'centre' }),
     themeObject({ kind: 'showroomRug', name: 'showroom rug', engineType: 'rug', weight: 2, footprints: [rect(2, 2), rect(2, 1)], placement: 'centre', maxPerRoom: 1 }),
     themeObject({ kind: 'showroomBed', name: 'showroom bed', engineType: 'bed', weight: 1, footprints: [rect(1, 2), rect(2, 2, 0.5)], placement: 'wall', maxPerRoom: 2 }),
-    themeObject({ kind: 'deliveryVan', name: 'delivery van', engineType: 'car', weight: 1, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2 }),
+    themeObject({ kind: 'deliveryVan', name: 'delivery van', engineType: 'car', weight: 1, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2, excludeRoomTypes: ['sleeping'] }),
     // Blocking
     themeObject({ kind: 'checkoutCounter', name: 'checkout counter', engineType: 'kitchenCounter', themeIcon: 'checkoutCounter', weight: 3, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'wall', maxPerRoom: 2 }),
     themeObject({ kind: 'shelf', name: 'shelf', engineType: 'bookshelf', weight: 10, footprints: [rect(1, 1), rect(2, 1)], placement: 'wall' }),

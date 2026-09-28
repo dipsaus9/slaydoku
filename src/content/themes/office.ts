@@ -32,7 +32,7 @@ export const OFFICE_THEME: SceneTheme = {
     themeObject({ kind: 'waitingSofa', name: 'waiting sofa', engineType: 'sofa', weight: 3, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', maxPerRoom: 2 }),
     themeObject({ kind: 'loungeSofa', name: 'lounge sofa', engineType: 'sofa', weight: 2, footprints: [lShape(2), lShape(3, 0.5)], placement: 'corner', maxPerRoom: 1 }),
     themeObject({ kind: 'floorRug', name: 'floor rug', engineType: 'rug', weight: 3, footprints: [rect(2, 1), rect(2, 2)], placement: 'centre', maxPerRoom: 1 }),
-    themeObject({ kind: 'companyCar', name: 'company car', engineType: 'car', weight: 1, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2 }),
+    themeObject({ kind: 'companyCar', name: 'company car', engineType: 'car', weight: 1, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2, excludeRoomTypes: ['sleeping'] }),
     // Blocking
     themeObject({ kind: 'desk', name: 'desk', engineType: 'desk', weight: 9, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'wall' }),
     themeObject({ kind: 'meetingTable', name: 'meeting table', engineType: 'diningTable', weight: 3, footprints: [rect(2, 1), rect(3, 1), rect(2, 2)], placement: 'centre', maxPerRoom: 1 }),
