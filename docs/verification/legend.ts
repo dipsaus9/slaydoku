@@ -90,6 +90,9 @@ async function tool(label: string) {
   const sel = await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool')].find(b => b.querySelector('.play-tool__label')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; document.querySelectorAll('[data-drive]').forEach(x => x.removeAttribute('data-drive')); e.setAttribute('data-drive', '1'); return '[data-drive]' })()`)
   if (!sel) throw new Error('missing tool ' + label)
   await tapSel(sel as string)
+  // A tool can sit inside a dialog that just opened (Options/Help/Legend behind More, SLAY-4.2), and a click within
+  // the first 350ms of a dialog opening is ignored (ghost-click guard, modalGuard.ts).
+  await sleep(400)
 }
 const shot = async (name: string) => {
   const r = await send('Page.captureScreenshot', { format: 'jpeg', quality: 80 })
@@ -129,7 +132,9 @@ const cellsOf = (cells: readonly { row: number; col: number }[]) => cells.map((c
 async function scenario(subject: Subject, zoomed: boolean) {
   const label = `${subject.name}${zoomed ? ' (2x zoom)' : ''}`
   const legend = legendOf(subject.puzzle.scene)
-  await evaluate(seedStorage(subject.date))
+  // Locale pinned to 'en' (SLAY-4.2, the same fix screens.ts already carried from SLAY-3.2): a Dutch browser language
+  // would otherwise default the play screen to Dutch and break the English-text checks below (More, Options, Help, Legend).
+  await evaluate(seedStorage(subject.date, true, 'en'))
   await load('play')
   check(`${label}: the puzzle is open`, (await count('.play-board')) === 1 && (await count('.play-modal')) === 0)
 

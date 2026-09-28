@@ -99,7 +99,9 @@ async function tool(label: string) {
   const r = await toolRect(label)
   if (!r) throw new Error('missing tool ' + label)
   await tap(r.x, r.y)
-  await sleep(250)
+  // 400ms, not 250: a tool can sit inside a dialog that just opened (Options/Help/Legend behind More, SLAY-4.2),
+  // and a click within the first 350ms of a dialog opening is ignored (ghost-click guard, modalGuard.ts).
+  await sleep(400)
 }
 async function tapSel(sel: string) {
   const r = await rectOf(sel)
@@ -177,9 +179,12 @@ const layoutProbe = () =>
 // --- scenarios -------------------------------------------------------------------------------
 const startText = () => evaluate(`document.querySelector('.daily')?.innerText ?? ''`) as Promise<string>
 const textOf = (sel: string) => evaluate(`document.querySelector(${JSON.stringify(sel)})?.textContent?.trim() ?? ''`) as Promise<string>
-/** Storage of a fresh visitor on the given date (override key set, help card not yet seen unless asked). */
+/** Storage of a fresh visitor on the given date (override key set, help card not yet seen unless asked). Locale pinned to
+ * 'en' (SLAY-4.2, the same fix screens.ts already carried from SLAY-3.2): without it, a browser whose own language is
+ * Dutch would default the play screen to Dutch (SLAY-3.1's locale toggle falls back to the browser's language) and
+ * break every English-text assertion in this driver. */
 async function resetStorage(date = PLAY_DATE, helpSeen = false) {
-  await evaluate(`localStorage.clear(); ${seedStorage(date, helpSeen)}`)
+  await evaluate(`localStorage.clear(); ${seedStorage(date, helpSeen, 'en')}`)
 }
 /** Seconds on the countdown of a block, from its text "HH:MM:SS" or "Nd HH:MM:SS". */
 const countdownSeconds = async (kind: string) => {
