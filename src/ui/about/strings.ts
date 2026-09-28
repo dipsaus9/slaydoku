@@ -32,7 +32,7 @@ export const ABOUT_EN: AboutStrings = {
   },
   privacy: {
     title: 'Privacy',
-    text: 'Everything stays on your device: no accounts, no tracking.',
+    text: 'Your own stats and streaks stay on your device. Slaydoku also counts anonymous daily totals — how many puzzles were started and solved. No accounts, no per-player identifier, no cookie.',
   },
   openSource: {
     title: 'Open source',
@@ -65,7 +65,7 @@ export const ABOUT_NL: AboutStrings = {
   },
   privacy: {
     title: 'Privacy',
-    text: 'Alles blijft op je apparaat: geen accounts, geen tracking.',
+    text: 'Je eigen statistieken en reeksen blijven op je apparaat. Slaydoku telt ook anonieme dagtotalen — hoeveel puzzels er gestart en opgelost werden. Geen accounts, geen identificatie per speler, geen cookie.',
   },
   openSource: {
     title: 'Open source',

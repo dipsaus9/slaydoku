@@ -3,7 +3,8 @@ import { SCENE_THEMES } from '../content/themes/index.ts'
 import { addDays, dayNumberOf, weekStartOf } from './dates.ts'
 import { LAUNCH_DATE } from './launch.ts'
 import {
-  ADVANCED_SIZES, ATTEMPT_WINDOW, SIZE_WEIGHTS, TIER_MIX, canFallBack, expertWeekday, isExpertDay, planDay, planDays, seedOf, sizesFor, themeOf,
+  ADVANCED_SIZES, ATTEMPT_WINDOW, RAMP_UP_DAYS, SIZE_WEIGHTS, TIER_MIX, canFallBack, expertWeekday, isDemotedExpertDay, isExpertDay, isRampUp,
+  planDay, planDays, seedOf, sizesFor, themeOf,
 } from './pick.ts'
 import type { DayPlan } from './types.ts'
 
@@ -37,15 +38,18 @@ describe('picker rules over long runs', () => {
         expect(plans[days - 1]!.n).toBe(days)
         expect(plans[0]!.date).toBe(LAUNCH_DATE)
       })
-      it('has exactly one expert in every UTC week (Monday to Sunday)', () => {
-        for (const week of fullWeeks(plans)) expect(week.filter((p) => p.tier === 'expert').length, week[0]!.date).toBe(1)
+      /** Whether a full week's would-be expert day (per the unmodified `expertWeekday`) was demoted by the ramp-up window. */
+      const isDemotedWeek = (week: DayPlan[]): boolean => isDemotedExpertDay(week[expertWeekday(weekStartOf(dayNumberOf(week[0]!.date)))]!.date)
+      it('has exactly one expert in every UTC week (Monday to Sunday), except a ramp-up week whose would-be expert was demoted', () => {
+        for (const week of fullWeeks(plans)) expect(week.filter((p) => p.tier === 'expert').length, week[0]!.date).toBe(isDemotedWeek(week) ? 0 : 1)
         // A partial head or tail week (the run does not start/end on a Monday/Sunday) holds at most one.
         for (const week of weeks(plans).filter((w) => w.length < 7)) expect(week.filter((p) => p.tier === 'expert').length, week[0]!.date).toBeLessThanOrEqual(1)
       })
-      it('puts the expert on a seeded weekday that varies from week to week', () => {
-        const weekdays = new Set(fullWeeks(plans).map((week) => week.findIndex((p) => p.tier === 'expert')))
+      it('puts the expert on a seeded weekday that varies from week to week, outside a demoted ramp-up week', () => {
+        const kept = fullWeeks(plans).filter((week) => !isDemotedWeek(week))
+        const weekdays = new Set(kept.map((week) => week.findIndex((p) => p.tier === 'expert')))
         expect(weekdays.size).toBe(7)
-        for (const week of fullWeeks(plans)) expect(week.findIndex((p) => p.tier === 'expert')).toBe(expertWeekday(weekStartOf(dayNumberOf(week[0]!.date))))
+        for (const week of kept) expect(week.findIndex((p) => p.tier === 'expert')).toBe(expertWeekday(weekStartOf(dayNumberOf(week[0]!.date))))
       })
       it('never plans a 16x16 or a size outside 6, 7, 9 and 12', () => {
         for (const p of plans) expect(SIZE_WEIGHTS.map(([s]) => s), p.date).toContain(p.size)
@@ -84,6 +88,24 @@ describe('picker rules over long runs', () => {
       })
     })
   }
+})
+
+describe('ramp-up window: no hard, at most one expert, in the first RAMP_UP_DAYS days from launch', () => {
+  const window = planDays(LAUNCH_DATE, RAMP_UP_DAYS)
+
+  it('never draws hard in the window', () => {
+    for (const p of window) expect(p.tier, p.date).not.toBe('hard')
+  })
+  it('keeps exactly one expert date in the window: the chronologically first the unmodified rule would already pick', () => {
+    const experts = window.filter((p) => p.tier === 'expert')
+    expect(experts.length).toBe(1)
+    expect(experts[0]!.date).toBe(window.find((p) => isExpertDay(p.date))!.date)
+  })
+  it('leaves a control date outside the window unaffected: the picker still gives it exactly what the unmodified rule would', () => {
+    const control = '2026-11-21' // well past the window; already a known hard day
+    expect(isRampUp(control)).toBe(false)
+    expect(planDay(control).tier).toBe('hard')
+  })
 })
 
 describe('picker is pure', () => {

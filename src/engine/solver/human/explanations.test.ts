@@ -56,7 +56,7 @@ describe('pinned explanations per technique', () => {
 describe('pinned explanations per technique: Dutch', () => {
   it('clue: one person, and two people at once', () => {
     expect(step('tutorial', 'clue', 1, false, 'nl')).toBe(
-      'A\'s kaartje zegt: "A stond naast een table." Dus A kan niet op 10 vakjes (waaronder rij 1, kolom 1 en rij 2, kolom 2) staan.',
+      'A\'s kaartje zegt: "A stond naast een tafel." Dus A kan niet op 10 vakjes (waaronder rij 1, kolom 1 en rij 2, kolom 2) staan.',
     )
     expect(step('hard', 'clue', 1, false, 'nl')).toMatch(/^\S+'s kaartje zegt: ".+" Dus .+ (kan|kunnen) niet op .+ staan\.$/)
   })
