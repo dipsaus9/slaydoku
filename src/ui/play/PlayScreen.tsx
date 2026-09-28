@@ -21,6 +21,7 @@ import { ResultOverlay } from './ResultOverlay.tsx'
 import { usePlayStrings } from './strings.ts'
 import { SuspectPanel } from './SuspectPanel.tsx'
 import { Toolbar } from './Toolbar.tsx'
+import { selectionAfterUndoRedo } from './undoRedoSelection.ts'
 import { toggleZoom, IDENTITY, type View } from './zoom.ts'
 import { useElapsed, useGameState, usePauseWhenHidden, useTelemetry } from './useGame.ts'
 
@@ -161,6 +162,17 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
     setSelectedId(nextUnplaced(order, id, (other) => isPlaced(board, other)) ?? id)
   }
 
+  // Undo/redo restore the selection the edit itself concerned, not wherever auto-advance
+  // last left it. The history holds board snapshots only (no action metadata), so the person
+  // is found by diffing placements immediately before and after the dispatch.
+  const afterUndoRedo = (kind: 'undo' | 'redo') => {
+    const before = store.getState().board
+    store.dispatch({ type: kind })
+    const after = store.getState().board
+    const changed = selectionAfterUndoRedo(kind, before, after)
+    if (changed) setSelectedId(changed)
+  }
+
   // Tapping a card selects the person and closes any hint.
   const onCard = (id: string) => {
     setSelectedId(id)
@@ -233,8 +245,8 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
           hintOpen={hintLevel !== 0}
           zoom={view}
           onZoom={() => setView(toggleZoom)}
-          onUndo={() => store.dispatch({ type: 'undo' })}
-          onRedo={() => store.dispatch({ type: 'redo' })}
+          onUndo={() => afterUndoRedo('undo')}
+          onRedo={() => afterUndoRedo('redo')}
           onHint={() => (hintLevel === 0 ? showHint(1) : setHintLevel(0))}
           onOpenOptions={() => setDialog('options')}
           onOpenHelp={() => setDialog('help')}
