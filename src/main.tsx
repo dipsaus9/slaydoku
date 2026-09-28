@@ -1,3 +1,5 @@
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -14,5 +16,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
     <UpdateNotice updater={updater} />
+    {/* Vercel Web Analytics and Speed Insights: page views and Core Web Vitals, aggregate only, no cookie.
+        Both no-op with a console notice until the corresponding toggle is switched on for this project
+        in the Vercel dashboard (Analytics / Speed Insights tabs) — an owner-only step, see docs/launch.md. */}
+    <Analytics />
+    <SpeedInsights />
   </StrictMode>,
 )

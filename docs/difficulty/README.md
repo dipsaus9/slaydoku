@@ -45,4 +45,4 @@ can place the people one at a time, and the ladder parts other than scarcity cou
 The weights and the tier bands are fitted, not guessed: `src/engine/difficulty/calibrate.ts` measures a set of puzzles (each with its tier from
 `tierFor`), searches whole-number weights that sum to 100 (every part keeping at least 2), and cuts the 0-100 score into one band per tier with the
 fewest misplaced puzzles. It can also take telemetry (`slaydoku:telemetry`) and the lab's judgements (`slaydoku:lab-judgements`) into account. The
-command line for it was dropped together with the committed puzzle data it measured (see `MIGRATION.md`); rebuild it around the puzzles you keep.
+command line for it was dropped together with the committed puzzle data it once measured (from an earlier prototype); rebuild it around the puzzles you keep.

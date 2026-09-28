@@ -4,7 +4,7 @@ import { Link } from '../router/index.ts'
 import { ABOUT_STRINGS } from './strings.ts'
 import './about.css'
 
-/** The About page (`/about`): how it works, the credit, privacy, the licence and a contact line. Static text, so it works offline like every screen. */
+/** The About page (`/about`): how it works, the credit, privacy and the licence. Static text, so it works offline like every screen. */
 export function AboutScreen() {
   const { locale } = useLocale()
   const t = ABOUT_STRINGS[locale]
@@ -47,11 +47,6 @@ export function AboutScreen() {
       <section className="about__section" aria-labelledby="about-open-source">
         <h2 id="about-open-source">{t.openSource.title}</h2>
         <p>{t.openSource.text}</p>
-      </section>
-
-      <section className="about__section" aria-labelledby="about-contact">
-        <h2 id="about-contact">{t.contact.title}</h2>
-        <p>{t.contact.placeholder}</p>
       </section>
     </main>
   )

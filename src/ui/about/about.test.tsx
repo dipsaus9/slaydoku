@@ -44,9 +44,8 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
     expect(html).toContain(t.privacy.text)
   })
 
-  it('names the license and holds a contact placeholder', () => {
+  it('names the license', () => {
     expect(html).toContain(t.openSource.text)
-    expect(html).toContain(t.contact.placeholder)
   })
 
   it('links back to the puzzles with a real href, and shows the tagline', () => {
@@ -57,7 +56,7 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
   it('has one h1, one main landmark and labelled sections', () => {
     expect(html.match(/<h1/g)).toHaveLength(1)
     expect(html.match(/<main/g)).toHaveLength(1)
-    expect(html.match(/<section[^>]*aria-labelledby=/g)).toHaveLength(5)
+    expect(html.match(/<section[^>]*aria-labelledby=/g)).toHaveLength(4)
   })
 
   it('shows every section title and the back link text', () => {
@@ -67,7 +66,6 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
     expect(text).toContain(t.credit.title)
     expect(text).toContain(t.privacy.title)
     expect(text).toContain(t.openSource.title)
-    expect(text).toContain(t.contact.title)
     expect(text).toContain(t.back)
   })
 })
