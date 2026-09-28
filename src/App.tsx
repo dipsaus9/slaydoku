@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { LocaleProvider } from './locale/index.ts'
 import { AboutScreen, isAboutPath } from './ui/about/index.ts'
 import { DailyFlow } from './ui/daily/index.ts'
 import { usePath } from './ui/router/index.ts'
@@ -27,7 +28,7 @@ function DevApp({ Lab }: { Lab: NonNullable<typeof LabRoute> }) {
 }
 
 function App() {
-  return LabRoute ? <DevApp Lab={LabRoute} /> : <Game />
+  return <LocaleProvider>{LabRoute ? <DevApp Lab={LabRoute} /> : <Game />}</LocaleProvider>
 }
 
 export default App
