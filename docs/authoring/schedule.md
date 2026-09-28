@@ -57,6 +57,11 @@ later or repeated and stay identical.
 - **Expert:** exactly one per UTC week (Monday to Sunday), on a weekday drawn per week from the week's Monday (`expertWeekday`). A schedule that
   starts in the middle of a week may have no expert in that first partial week; every whole week has exactly one.
 - **Other days:** tier from the mix very-easy 15, easy 30, easy-medium 25, medium 20, hard 10 (percent), then a size the tier allows.
+- **First 4 weeks (`isRampUp`, the 28 days from `LAUNCH_DATE`), a gentler exception:** no `hard` — `medium` picks up its 10-point share (20 -> 30:
+  very-easy 15, easy 30, easy-medium 25, medium 30, `RAMP_UP_TIER_MIX`), and only the chronologically first would-be expert day in the window stays
+  `expert` (`rampUpKeptExpertDate`); every later one in the window falls back to that hard-free mix instead, so its week holds zero experts, not one
+  (`scheduleProblems` allows for it). A day whose unmodified draw was already outside `hard` (or a normal week's single expert, or any day outside the
+  window) is untouched: it keeps the exact tier the unmodified mix would give it, so the mix table's shape change never shifts an already-fine day's plan.
 - **Size weights:** 6x6 40, 9x9 40, 7x7 8, 12x12 12. Hard and expert only on 9x9 and 12x12 (weights 40 : 12 there), so 6x6 and 7x7 only carry very-easy to
   medium. Never 16x16 (the picker has no such size and every gate refuses one).
 - **Themes:** the five themes rotate in cycles of five days (each theme once per cycle, a seeded order per cycle); a cycle that would start with the theme

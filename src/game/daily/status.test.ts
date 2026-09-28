@@ -45,7 +45,8 @@ describe('dayStatus', () => {
     const storage = createMemoryStorage()
     expect(dayStatus(storage, day)).toEqual({ kind: 'new' })
     const store = createGameStore({ levelId: id, puzzle: day.puzzle, storage, now: () => 1000 })
-    store.dispatch({ type: 'toggleNote', personId: day.puzzle.people[0]!.id, cell: { row: 0, col: 0 } })
+    // A solution cell is always free (unoccupied, unblocked) on a fresh board, whatever the schedule regenerates for this day.
+    store.dispatch({ type: 'toggleNote', personId: day.puzzle.people[0]!.id, cell: day.puzzle.solution[0]!.cell })
     expect(dayStatus(storage, day)).toEqual({ kind: 'inProgress' })
     const result = resultOf(storage, day, { murdererId: 'x', elapsedMs: 4000 })
     recordResult(storage, result)

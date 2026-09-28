@@ -3,7 +3,7 @@ import { boardKey, puzzleKey } from '../content/packs/gates.ts'
 import { addDays, dayNumberOf, monthOf, weekStartOf } from './dates.ts'
 import { indexMonthsOf, monthFileName } from './format.ts'
 import { pairProblems } from './gates.ts'
-import { FALLBACK_SIZE, canFallBack, isExpertDay, planDay } from './pick.ts'
+import { FALLBACK_SIZE, canFallBack, isDemotedExpertDay, isExpertDay, planDay } from './pick.ts'
 import type { MonthFile, ScheduleDay, ScheduleIndex } from './types.ts'
 
 /**
@@ -50,15 +50,17 @@ export function scheduleProblems(index: ScheduleIndex, files: readonly MonthFile
     puzzles.set(key, day.date)
   })
 
-  // Every UTC week (Monday to Sunday) that lies completely inside the schedule holds exactly one expert.
+  // Every UTC week (Monday to Sunday) that lies completely inside the schedule holds exactly one expert, except a ramp-up window week
+  // whose would-be expert day was demoted (isDemotedExpertDay): that week holds zero, by design.
   const first = dayNumberOf(days[0]!.date)
   const last = dayNumberOf(days[days.length - 1]!.date)
   const byDate = new Map(days.map((d) => [d.date, d]))
   for (let monday = weekStartOf(first) < first ? weekStartOf(first) + 7 : first; monday + 6 <= last; monday += 7) {
     const week = Array.from({ length: 7 }, (_, k) => byDate.get(addDays(days[0]!.date, monday + k - first))!)
     const experts = week.filter((d) => d.tier === 'expert')
-    if (experts.length !== 1) problems.push(`week of ${week[0]!.date}: ${experts.length} experts, expected exactly one`)
-    else if (!isExpertDay(experts[0]!.date)) problems.push(`week of ${week[0]!.date}: the expert is not on the seeded day`)
+    const demoted = isDemotedExpertDay(week.find((d) => isExpertDay(d.date))!.date)
+    if (experts.length !== (demoted ? 0 : 1)) problems.push(`week of ${week[0]!.date}: ${experts.length} experts, expected ${demoted ? 'zero (ramp-up)' : 'exactly one'}`)
+    else if (!demoted && !isExpertDay(experts[0]!.date)) problems.push(`week of ${week[0]!.date}: the expert is not on the seeded day`)
   }
   return problems
 }
