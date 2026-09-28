@@ -10,6 +10,10 @@
 // of the two languages on screen. It does not repeat the
 // 2700+ checks the English suite already makes in English; see docs/verification/report.md.
 //
+// SLAY-6.2 adds a second, rendered-screen day (a different theme from the main walkthrough's) and
+// an offline sweep of one scheduled day per theme (home/office/park/school/shop), both confirming
+// real Dutch object nouns — not just on the one day the rest of this file already plays.
+//
 // Usage (from the repo root):
 //   bun run build && bunx vite preview --port 5197 &
 //   BASE=http://localhost:5197/ CDP_PORT=9417 OUT=/tmp/locale-shots bun docs/verification/locale.ts
@@ -21,13 +25,47 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { roomNameNlOf } from '../../src/content/themes/index.ts'
+import { SCENE_THEMES, roomNameNlOf } from '../../src/content/themes/index.ts'
 import { deriveMurderer } from '../../src/engine/model/index.ts'
 import type { CatalogClue, RenderContext } from '../../src/engine/clues/index.ts'
-import { renderClue } from '../../src/engine/clues/index.ts'
+import { OBJECT_WORDS, bothParts, isBothClue, renderClue } from '../../src/engine/clues/index.ts'
 import { getHint, initialState } from '../../src/game/index.ts'
+import type { ObjectType } from '../../src/engine/model/index.ts'
+import type { ThemeId } from '../../src/content/themes/index.ts'
 import { bareRoomName } from '../../src/render/scene/labels.ts'
-import { PLAY_DATE, RESULTS_KEY, dayOn, seedStorage } from './daily.ts'
+import { DAYS, PLAY_DATE, RESULTS_KEY, dayOn, seedStorage } from './daily.ts'
+
+/** Independent of `OBJECT_WORDS_NL`: pinned here so a regression in the dictionary this driver is
+ * meant to catch (SLAY-6.2) cannot also make its own check pass. A handful of Dutch words happen to
+ * spell the same as their English counterpart ("bed", "plant", "tv") — left out, since "no leftover
+ * English" cannot be checked for those (there is nothing to tell apart). */
+const EXPECT_NL: Partial<Record<ObjectType, string>> = {
+  chair: 'stoel', rug: 'kleed', sofa: 'bank', car: 'auto', table: 'tafel', bookshelf: 'boekenkast',
+  tree: 'boom', easel: 'schildersezel', desk: 'bureau', wardrobe: 'kledingkast', diningTable: 'eettafel',
+  kitchenCounter: 'aanrecht', bicycle: 'fiets', gardenTable: 'tuintafel', bench: 'tuinbank', toilet: 'wc',
+  sink: 'gootsteen', shower: 'douche', cabinet: 'kast', stairs: 'trap', dryer: 'droger',
+  washingMachine: 'wasmachine', statue: 'standbeeld', flowers: 'bloembed', chest: 'kist', oilSlick: 'olievlek',
+  framedPainting: 'ingelijst schilderij',
+}
+
+/** The `objectType` a clue names, `both`'s two parts included (`bothParts`, `types.ts`: never nested). */
+function objectTypesOf(clue: CatalogClue): ObjectType[] {
+  if (isBothClue(clue)) return bothParts(clue).flatMap((part) => objectTypesOf(part as CatalogClue))
+  const type = (clue.args as Record<string, unknown>).objectType
+  return typeof type === 'string' ? [type as ObjectType] : []
+}
+
+/** The first scheduled day of `theme` that has at least one object-bearing clue, and one such type on it. */
+function firstObjectDay(theme: ThemeId): { date: string; type: ObjectType } {
+  for (const day of DAYS) {
+    if (day.theme !== theme) continue
+    for (const clue of day.puzzle.clues) {
+      const [type] = objectTypesOf(clue as CatalogClue)
+      if (type) return { date: day.date, type }
+    }
+  }
+  throw new Error(`no scheduled ${theme} day has an object-bearing clue`)
+}
 
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const PORT = Number(process.env.CDP_PORT ?? 9417)
@@ -283,6 +321,45 @@ check(
   'no leftover English on the Share panel',
   (await textOf('.share__title')) !== 'Share your result' && (await textOf('[data-action=copy]')) !== 'Copy text' && (await textOf('[data-action=download]')) !== 'Download image',
 )
+
+// 6. Object nouns (SLAY-6.2): real Dutch, not the drawn object's English noun, on more than one
+// scheduled day and every theme, not only PLAY_DATE's ("shop"). A whole-word match: "auto" must not
+// also flag "auto's", and the English check must not fire on a Dutch word that happens to contain
+// the English one as a substring.
+const wordIn = (text: string, word: string) => new RegExp(`(?<![\\p{L}\\d])${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\d])`, 'iu').test(text)
+
+// 6a. Rendered screen, a second day, a different theme from the main walkthrough's ("home" vs
+// PLAY_DATE's "shop"): the app's own DOM text, not just the pure function it is computed from.
+const homeDay = firstObjectDay('home')
+await evaluate(`localStorage.clear(); ${seedStorage(homeDay.date, true, 'nl')}`)
+await load('')
+await tapSel('[data-action=play]')
+check(`the puzzle opens (theme "home", ${homeDay.date})`, (await count('.play-board')) === 1)
+const homeCardLines = (await evaluate(
+  `JSON.stringify([...document.querySelectorAll('.play-cards .polaroid__line')].map(el => el.textContent ?? ''))`,
+).then((s) => JSON.parse(s as string))) as string[]
+const homeExpected = EXPECT_NL[homeDay.type]
+check(
+  `theme "home" (${homeDay.date}): a rendered clue card names the real Dutch noun for "${homeDay.type}" ("${homeExpected}"), no leftover English ("${OBJECT_WORDS[homeDay.type].noun}")`,
+  !!homeExpected && homeCardLines.some((l) => wordIn(l, homeExpected)) && !homeCardLines.some((l) => wordIn(l, OBJECT_WORDS[homeDay.type].noun)),
+  homeCardLines.join(' | '),
+)
+
+// 6b. Offline sweep, one scheduled day per theme (pure `renderClue(..., 'nl')`, no browser): every
+// theme actually produces a real Dutch object noun on a real scheduled puzzle, not just this
+// driver's one played day.
+for (const theme of SCENE_THEMES.map((t) => t.id)) {
+  const { date, type } = firstObjectDay(theme)
+  const day = dayOn(date)
+  const dctx: RenderContext = { scene: day.puzzle.scene, people: day.puzzle.people }
+  const lines = day.puzzle.clues.map((c) => renderClue(c as CatalogClue, dctx, 'nl'))
+  const expected = EXPECT_NL[type]
+  check(
+    `theme "${theme}" (${date}): renderClue(..., 'nl') uses the real Dutch noun for "${type}" ("${expected}"), no leftover English ("${OBJECT_WORDS[type].noun}")`,
+    !!expected && lines.some((l) => wordIn(l, expected)) && !lines.some((l) => wordIn(l, OBJECT_WORDS[type].noun)),
+    lines.find((l) => wordIn(l, expected ?? '')) ?? lines.join(' | '),
+  )
+}
 
 // --- report --------------------------------------------------------------------------------
 const failed = rows.filter((r) => !r.ok)

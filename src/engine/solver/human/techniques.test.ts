@@ -389,7 +389,7 @@ describe('the same techniques, in Dutch', () => {
     const board = new Board(rug, people)
     const clues: CatalogClue[] = [{ personId: 'A', type: 'onObject', args: { objectType: 'rug' } }]
     const found = clueEliminations.find(board, context(board, clues, 'nl'))
-    expect(found?.explanation).toBe('A\'s kaartje zegt: "A stond op een rug." Dus A kan niet op 14 vakjes (waaronder rij 1, kolom 2 en rij 1, kolom 3) staan.')
+    expect(found?.explanation).toBe('A\'s kaartje zegt: "A stond op een kleed." Dus A kan niet op 14 vakjes (waaronder rij 1, kolom 2 en rij 1, kolom 3) staan.')
 
     const board2 = new Board(rug, people)
     const roomClues: CatalogClue[] = [{ personId: 'A', type: 'emptyRoom', args: { roomId: 'top' } }]
