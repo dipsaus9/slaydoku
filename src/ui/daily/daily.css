@@ -329,9 +329,13 @@
   position: relative;
 }
 
+/* SLAY-6.1: top reads the same --play-top-clearance custom property play.css defines (24px floor)
+   so this overlaid bar's back+title row stays vertically aligned with .play-header's own
+   title/timer/settings row -- both boxes now start at the same top offset and share the same
+   48px height, instead of drifting out of sync the way two independent 8px floors would. */
 .daily-play__nav {
   position: absolute;
-  top: max(8px, env(safe-area-inset-top));
+  top: var(--play-top-clearance);
   left: max(12px, env(safe-area-inset-left));
   height: 48px;
   display: flex;
