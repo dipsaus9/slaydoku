@@ -7,11 +7,9 @@ import type { ReactNode } from 'react'
  */
 export type ToolIconName =
   | 'note'
-  | 'place'
   | 'x'
   | 'erase'
   | 'undo'
-  | 'redo'
   | 'hint'
   | 'autoX'
   | 'zoomIn'
@@ -30,13 +28,6 @@ const SHAPES: Record<ToolIconName, ReactNode> = {
       <path d="M14.5 6.3l3.2 3.2" />
     </>
   ),
-  // a person: head and shoulders (the suspect goes on the square)
-  place: (
-    <>
-      <circle cx="12" cy="8" r="3.6" />
-      <path d="M5 20.2c.6-3.7 3.3-5.7 7-5.7s6.4 2 7 5.7" />
-    </>
-  ),
   x: <path d="M6 6l12 12M18 6L6 18" />,
   // eraser: a slanted block with its cut line, and the ground line under it
   erase: (
@@ -49,12 +40,6 @@ const SHAPES: Record<ToolIconName, ReactNode> = {
     <>
       <path d="M9 14L4 9l5-5" />
       <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
-    </>
-  ),
-  redo: (
-    <>
-      <path d="M15 14l5-5-5-5" />
-      <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" />
     </>
   ),
   // light bulb
