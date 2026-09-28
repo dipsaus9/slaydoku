@@ -18,6 +18,14 @@
   /* SLAY-2.4: the local name stays (every rule below still reads it), only the value moves to
      the shared SLAY-2.1 token. */
   --accent: var(--color-accent);
+  /* SLAY-4.3: a shared floor so a short clue's card doesn't sit as a stub next to a longer one —
+     a row reads as a tidy grid instead of jagged. Sized to the photo (square, padded) + name +
+     about three wrapped lines of clue text at the grid's narrowest column (--card-min, 150px):
+     the median per-card clue across the committed schedule wraps to roughly that many lines at
+     that width. This is a floor, not a cap: min-height never clips, so a longer clue keeps
+     growing the card exactly as before (no truncation, nothing hidden).
+   */
+  min-height: 260px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
