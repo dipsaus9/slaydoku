@@ -1,10 +1,10 @@
 ---
 id: SLAY-8.1
 title: 'Scenegen: hard-exclude vehicles from sleeping-type rooms'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 21:53'
-updated_date: '2026-09-28 22:10'
+updated_date: '2026-09-28 23:11'
 labels: []
 dependencies: []
 references:

@@ -1,9 +1,10 @@
 ---
 id: SLAY-8.2
 title: 'Toolbar: Place button back, labels return when they fit, faster Legend'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 22:12'
+updated_date: '2026-09-28 23:11'
 labels: []
 dependencies: []
 references:
@@ -14,6 +15,17 @@ references:
   - src/ui/play/play.css
   - src/ui/play/PlayScreen.tsx
   - docs/verification/
+modified_files:
+  - docs/verification/drive.ts
+  - docs/verification/legend.ts
+  - docs/verification/locale.ts
+  - docs/verification/screens.ts
+  - docs/verification/zoom.ts
+  - src/ui/play/PlayScreen.tsx
+  - src/ui/play/Toolbar.tsx
+  - src/ui/play/intent.ts
+  - src/ui/play/play.css
+  - src/ui/play/toolIcons.tsx
 parent_task_id: SLAY-8
 type: feature
 ordinal: 44000
