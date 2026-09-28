@@ -1,5 +1,6 @@
 import type { MouseEvent } from 'react'
 import type { Puzzle } from '../../engine/model/index.ts'
+import { useLocale } from '../../locale/index.ts'
 import { CardGrid } from '../../render/cards/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import { usePlayStrings } from './strings.ts'
@@ -20,6 +21,7 @@ export interface SuspectPanelProps {
  * so a tap on it is picked up here on the wrapper (the card itself stays untouched).
  */
 export function SuspectPanel({ puzzle, cast, selectedId, placedIds, onSelect }: SuspectPanelProps) {
+  const { locale } = useLocale()
   const t = usePlayStrings()
   const victim = puzzle.people.find((p) => p.kind === 'victim')
   const onClick = (event: MouseEvent<HTMLElement>) => {
@@ -42,6 +44,7 @@ export function SuspectPanel({ puzzle, cast, selectedId, placedIds, onSelect }: 
         placedIds={placedIds}
         onSelect={onSelect}
         lookFor={cast.lookFor}
+        locale={locale}
       />
     </section>
   )

@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { OBJECT_TYPES } from '../model/index.ts'
 import { checkClue } from './check.ts'
 import { OBJECT_WORDS, VICTIM_TEXT, capitalizeLabel, countWord, objectNouns, objectOn, renderClue, roomName, upperFirst, withArticle } from './en.ts'
+import { renderClue as renderClueLocale } from './render.ts'
 import { people, scene } from './testing.fixture.ts'
 import { STRUCTURAL_CLUE_TYPES } from './types.ts'
 import type { CatalogClue, StructuralClue } from './types.ts'
 
 const ctx = { scene, people }
 const say = (clue: StructuralClue) => renderClue(clue, ctx)
+const sayNl = (clue: StructuralClue) => renderClueLocale(clue, ctx, 'nl')
 
 const samples: [StructuralClue, string][] = [
   [{ personId: 'A', type: 'onObject', args: { objectType: 'car' } }, 'A sat in a car.'],
@@ -99,6 +101,101 @@ const samples: [StructuralClue, string][] = [
   [{ personId: 'V', type: 'aloneWithMurderer', args: {} }, 'The victim was alone with the murderer.'],
 ]
 
+/**
+ * The Dutch counterpart of `samples`, same clues in the same order (SLAY-3.2): the object and room
+ * nouns stay the English words `samples` uses too (see `nl.ts`'s header), only the grammar around
+ * them is Dutch.
+ */
+const samplesNl: [StructuralClue, string][] = [
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'car' } }, 'A zat in een car.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'chair' } }, 'A zat op een chair.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'rug' } }, 'A stond op een rug.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'bed' } }, 'A lag op een bed.'],
+  [{ personId: 'A', type: 'onObject', args: { objectType: 'easel' } }, 'A stond op een easel.'],
+  [
+    { personId: 'A', type: 'squareWithObject', args: { objectType: 'framedPainting' } },
+    "Er lag een framed painting op A's vakje.",
+  ],
+  [
+    { personId: 'B', type: 'besideObject', args: { objectType: 'bookshelf' } },
+    'B stond naast een bookshelf.',
+  ],
+  [{ personId: 'A', type: 'besideObject', args: { objectType: 'table' } }, 'A stond naast een table.'],
+  [
+    { personId: 'B', type: 'besideObject', args: { objectType: 'bookshelf', exactlyOne: true } },
+    'B stond naast precies één bookshelf.',
+  ],
+  [
+    { personId: 'C', type: 'onlyOnObject', args: { objectType: 'chair' } },
+    'C was de enige persoon op een chair.',
+  ],
+  [
+    { personId: 'C', type: 'onlyOnObject', args: { objectType: 'car' } },
+    'C was de enige persoon in een car.',
+  ],
+  [{ personId: 'A', type: 'inRoom', args: { roomId: 'kitchen' } }, 'A was in de Kitchen.'],
+  [
+    { personId: 'A', type: 'inRoomOr', args: { roomIds: ['kitchen', 'study'] } },
+    'A was in de Kitchen of de Study.',
+  ],
+  [{ personId: 'A', type: 'inCorner', args: {} }, 'A stond in een hoek.'],
+  [
+    { personId: 'A', type: 'inCorner', args: { roomId: 'living' } },
+    'A stond in een hoek van de Living Room.',
+  ],
+  [{ personId: 'A', type: 'besideFeature', args: { feature: 'window' } }, 'A stond naast een raam.'],
+  [{ personId: 'A', type: 'besideFeature', args: { feature: 'door' } }, 'A stond naast een deur.'],
+  [{ personId: 'A', type: 'inFrontOfDoor', args: {} }, 'A stond voor een deur.'],
+  [{ personId: 'A', type: 'alone', args: {} }, 'A was alleen.'],
+  [{ personId: 'A', type: 'alone', args: { roomId: 'bedroom' } }, 'A was alleen in de Bedroom.'],
+  [{ personId: 'A', type: 'withPerson', args: { otherId: 'B' } }, 'A was samen met B.'],
+  [
+    { personId: 'A', type: 'withPerson', args: { otherId: 'B', roomId: 'living' } },
+    'A was samen met B in de Living Room.',
+  ],
+  [{ personId: 'A', type: 'aloneWith', args: { otherId: 'V' } }, 'A was alleen met V.'],
+  [
+    { personId: 'A', type: 'aloneWith', args: { otherId: 'B', roomId: 'study' } },
+    'A was alleen met B in de Study.',
+  ],
+  [{ personId: 'A', type: 'emptyRoom', args: { roomId: 'living' } }, 'Er was niemand in de Living Room.'],
+  [{ personId: 'A', type: 'roomHasGender', args: { gender: 'woman' } }, "Er was minstens één vrouw in A's kamer."],
+  [{ personId: 'A', type: 'roomHasGender', args: { gender: 'man' } }, "Er was minstens één man in A's kamer."],
+  [{ personId: 'B', type: 'aloneWithGender', args: { gender: 'man' } }, 'B was alleen met een man.'],
+  [{ personId: 'A', type: 'aloneWithGender', args: { gender: 'woman' } }, 'A was alleen met een vrouw.'],
+  [{ personId: 'A', type: 'inRow', args: { index: 2 } }, 'A stond in rij 3.'],
+  [{ personId: 'A', type: 'inColumn', args: { index: 1 } }, 'A stond in kolom 2.'],
+  [{ personId: 'A', type: 'onLine', args: { axis: 'row', position: 'first' } }, 'A stond in de bovenste rij.'],
+  [{ personId: 'A', type: 'onLine', args: { axis: 'row', position: 'last' } }, 'A stond in de onderste rij.'],
+  [{ personId: 'A', type: 'onLine', args: { axis: 'row', position: 'middle' } }, 'A stond in de middelste rij.'],
+  [{ personId: 'A', type: 'onLine', args: { axis: 'column', position: 'first' } }, 'A stond in de meest linkse kolom.'],
+  [{ personId: 'A', type: 'onLine', args: { axis: 'column', position: 'last' } }, 'A stond in de meest rechtse kolom.'],
+  [{ personId: 'A', type: 'onLine', args: { axis: 'column', position: 'middle' } }, 'A stond in de middelste kolom.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { edge: 'north' } }, 'A stond in de bovenste rij van de kamer.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { edge: 'south' } }, 'A stond in de onderste rij van de kamer.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { edge: 'west' } }, 'A stond in de meest linkse kolom van de kamer.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { edge: 'east' } }, 'A stond in de meest rechtse kolom van de kamer.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { roomId: 'kitchen', edge: 'north' } }, 'A stond in de bovenste rij van de Kitchen.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { roomId: 'study', edge: 'east' } }, 'A stond in de meest rechtse kolom van de Study.'],
+  [
+    {
+      personId: 'A',
+      type: 'both',
+      args: { a: { type: 'besideObject', args: { objectType: 'table' } }, b: { type: 'roomHasGender', args: { gender: 'woman' } } },
+    },
+    'A stond naast een table en er was minstens één vrouw in dezelfde kamer.',
+  ],
+  [
+    {
+      personId: 'A',
+      type: 'both',
+      args: { a: { type: 'alone', args: { roomId: 'kitchen' } }, b: { type: 'onLine', args: { axis: 'row', position: 'first' } } },
+    },
+    'A was alleen in de Kitchen en stond in de bovenste rij.',
+  ],
+  [{ personId: 'V', type: 'aloneWithMurderer', args: {} }, 'Het slachtoffer was alleen met de moordenaar.'],
+]
+
 describe('clue text', () => {
   it.each(samples)('%j', (clue, sentence) => {
     expect(say(clue)).toBe(sentence)
@@ -184,6 +281,33 @@ describe('clue text', () => {
     expect(withArticle('office chair')).toBe('an office chair')
     expect(withArticle('TV')).toBe('a TV')
     expect(withArticle('unicycle')).toBe('a unicycle')
+  })
+})
+
+describe('clue text: Dutch (locale nl)', () => {
+  it.each(samplesNl)('%j', (clue, sentence) => {
+    expect(sayNl(clue)).toBe(sentence)
+  })
+
+  it('has a Dutch sample for every structural kind, same clues as the English samples', () => {
+    expect(new Set(samplesNl.map(([c]) => c.type))).toEqual(new Set(STRUCTURAL_CLUE_TYPES))
+    expect(samplesNl.map(([c]) => c)).toEqual(samples.map(([c]) => c))
+  })
+
+  it('every Dutch sample is a well-formed clue', () => {
+    for (const [clue] of samplesNl) {
+      const issues = checkClue(clue, ctx)
+      const middle = clue.type === 'onLine' && clue.args.position === 'middle'
+      expect(issues.length === 0 || middle).toBe(true)
+    }
+  })
+
+  it('never uses a Dutch gendered pronoun (hij/zij/hem/haar)', () => {
+    for (const [clue] of samplesNl) expect(sayNl(clue)).not.toMatch(/\b(hij|zij|hem|haar)\b/i)
+  })
+
+  it('locale defaults to English: renderClue with no locale argument is unaffected', () => {
+    for (const [clue, sentence] of samples) expect(renderClueLocale(clue, ctx)).toBe(sentence)
   })
 })
 

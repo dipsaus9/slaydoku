@@ -10,15 +10,25 @@ import { DUTCH_RE, DUTCH_WORDS, wordMatcher } from './dutch.ts'
  * searched, so identifiers and comments cannot trip it. A hit is a whole word from `DUTCH_WORDS`, case-insensitive, and
  * only words that are not English (and not names) are on that list, so "was" and "van" are not.
  *
- * Skipped on purpose: this test and `dutch.ts` (they ARE the list). Nothing else is skipped: the help card and legend
- * (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2 — except the
- * deliberate exceptions below: the `*_NL` translation objects of the `strings.ts` files the language toggle covers
- * (`ui/daily/`, `ui/play/` since SLAY-3.4; `ui/about/`, `ui/stats/`, `ui/share/`, `pwa/` since SLAY-3.5), which are
- * blanked out before scanning so their Dutch is not flagged as a leak, while the `_EN` objects right next to them
- * stay fully guarded.
+ * Skipped on purpose: this test and `dutch.ts` (they ARE the list), `src/engine/clues/nl.ts` (the Dutch clue-text
+ * module, SLAY-3.2: it is deliberately Dutch, its sibling `en.ts` is still scanned to stay English-only), and the
+ * three test files that pin `nl.ts`'s Dutch sentences as literal expected strings (`clues/en.test.ts`,
+ * `clues/relational/en.test.ts`, `clues/both.test.ts` — their English samples and assertions are unaffected;
+ * skipping the whole file only means this particular guard does not also read them). Nothing else is skipped: the
+ * help card and legend (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2
+ * — except the deliberate exceptions below: the `*_NL` translation objects of the `strings.ts` files the language
+ * toggle covers (`ui/daily/`, `ui/play/` since SLAY-3.4; `ui/about/`, `ui/stats/`, `ui/share/`, `pwa/` since
+ * SLAY-3.5), which are blanked out before scanning so their Dutch is not flagged as a leak, while the `_EN` objects
+ * right next to them stay fully guarded.
  */
 const SCANNED = ['../engine/', '../game/', '../validation/', '../content/', '../ui/', '../pwa/', '../brand/', '../App.tsx', '../main.tsx']
-const SKIPPED = [/\/validation\/dutch(\.test)?\.ts$/]
+const SKIPPED = [
+  /\/validation\/dutch(\.test)?\.ts$/,
+  /\/clues\/nl\.ts$/,
+  /\/clues\/en\.test\.ts$/,
+  /\/clues\/relational\/en\.test\.ts$/,
+  /\/clues\/both\.test\.ts$/,
+]
 
 const modules = import.meta.glob(
   [
@@ -103,6 +113,12 @@ describe('no Dutch text is left in the game code', () => {
   it('scans a healthy number of files', () => {
     expect(files.length).toBeGreaterThan(250)
     expect(files.some(([path]) => path.endsWith('/clues/en.ts'))).toBe(true)
+    // nl.ts and its three pinning tests are the deliberate exceptions (SLAY-3.2): present among the source modules,
+    // but filtered out of `files`.
+    for (const end of ['/clues/nl.ts', '/clues/en.test.ts', '/clues/relational/en.test.ts', '/clues/both.test.ts']) {
+      expect(Object.keys(modules).some((path) => path.endsWith(end)), end).toBe(true)
+      expect(files.some(([path]) => path.endsWith(end)), end).toBe(false)
+    }
     expect(files.some(([path]) => path.endsWith('/content/themes/home.ts'))).toBe(true)
     expect(files.some(([path]) => path.endsWith('/content/demo/puzzle.json'))).toBe(true)
     // interface text (SLAY-1.2); the localized strings.ts files carry their NL exception (see NL_EXCEPTIONS below)

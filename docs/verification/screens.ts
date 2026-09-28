@@ -9,15 +9,20 @@
 //   2. legend: every object kind drawn on the board (the icon in the board's objects layer) has a row in the Legend,
 //      the Legend has no row for something that is not drawn, and the doors and windows drawn have their rows too;
 //      the board draws every object of the scene.
+//   3. Dutch cards (SLAY-3.2): for a smaller sample of the same days, on the first viewport only (card text does not
+//      depend on viewport size), the locale toggle's stored choice (`LOCALE_KEY`) is seeded to 'nl' before the play
+//      screen loads, and every suspect's card text on screen is checked against the Dutch render of the same clue.
 // The sample (daily.ts, sampleDays): days dealt over the sizes 6, 7, 9 and 12 and walked evenly through the schedule, so different tiers
-// and themes come up; SAMPLE=<n> changes the number of days, ALL=1 checks every scheduled day.
+// and themes come up; SAMPLE=<n> changes the number of days, ALL=1 checks every scheduled day. SAMPLE_NL=<n> changes the (smaller)
+// Dutch-cards sample, default 5.
 //
 // Usage (from the repo root):
 //   bun run build && bunx vite preview --port 5217 &
 //   BASE=http://localhost:5217/ CDP_PORT=9417 OUT=/tmp/screens-shots bun docs/verification/screens.ts
 // Env: VIEWPORTS (default 390x844,844x390,768x1024,1024x768), BASE (default local preview), CDP_PORT (default 9354),
 // CHROME, OUT (folder for screenshots and the log; default a folder under the system temp dir, never inside the repo),
-// SAMPLE (number of scheduled days, default 10), ALL=1 (every scheduled day instead of the sample). Exits non-zero when a check fails.
+// SAMPLE (number of scheduled days, default 10), SAMPLE_NL (Dutch-cards sample, default 5), ALL=1 (every scheduled day
+// instead of the sample). Exits non-zero when a check fails.
 import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -25,6 +30,8 @@ import { join } from 'node:path'
 import type { Puzzle } from '../../src/engine/model/index.ts'
 import type { CatalogClue } from '../../src/engine/clues/index.ts'
 import { VICTIM_TEXT, renderClue } from '../../src/engine/clues/en.ts'
+import { VICTIM_TEXT_NL } from '../../src/engine/clues/nl.ts'
+import { renderClue as renderClueLocale } from '../../src/engine/clues/render.ts'
 import { DAYS, sampleDays, seedStorage } from './daily.ts'
 
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -128,7 +135,9 @@ const legendOnScreen = () =>
 async function subjectCheck(subject: Subject) {
   const { puzzle, name } = subject
   const label = name
-  await evaluate(seedStorage(subject.date))
+  // Locale pinned to 'en' (SLAY-3.2): without it, a browser whose own language is Dutch would default the play
+  // screen to Dutch (SLAY-3.1's locale toggle falls back to the browser's language) and break every assertion here.
+  await evaluate(seedStorage(subject.date, true, 'en'))
   await load('play')
   const open = await until(`document.querySelectorAll('.play-board').length === 1 && document.querySelectorAll('.play-cards li').length > 0`, 15000)
   check(`${label}: the play screen opens (${subject.why})`, open && (await evaluate(`document.querySelectorAll('.play-modal').length`)) === 0)
@@ -177,6 +186,40 @@ async function subjectCheck(subject: Subject) {
   await tapAt(3, 3)
 }
 
+// --- Dutch cards (SLAY-3.2): a smaller sample, cards only, one viewport --------------------------------------------
+const subjectsNl: Subject[] = (process.env.ALL ? DAYS : sampleDays(Number(process.env.SAMPLE_NL ?? 5))).map((day) => ({
+  name: `day${day.n}`,
+  date: day.date,
+  puzzle: day.puzzle,
+  why: `${day.date} ${day.size}x${day.size} ${day.tier} ${day.theme}`,
+}))
+
+async function subjectCheckNl(subject: Subject) {
+  const { puzzle, name } = subject
+  const label = `${name} (nl)`
+  await evaluate(seedStorage(subject.date, true, 'nl'))
+  await load('play')
+  const open = await until(`document.querySelectorAll('.play-board').length === 1 && document.querySelectorAll('.play-cards li').length > 0`, 15000)
+  check(`${label}: the play screen opens in Dutch (${subject.why})`, open && (await evaluate(`document.querySelectorAll('.play-modal').length`)) === 0)
+  if (!open) return
+
+  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+  const context = { scene: puzzle.scene, people: puzzle.people }
+  const expected = suspects.map((p) => ({ name: p.label, lines: puzzle.clues.filter((c) => c.personId === p.id).map((c) => renderClueLocale(c as CatalogClue, context, 'nl')) }))
+  const cards = await cardsOnScreen()
+  const suspectCards = cards.filter((c) => !c.gift)
+  const giftCards = cards.filter((c) => c.gift)
+  const victim = puzzle.people.find((p) => p.kind === 'victim')
+  const giftClues = victim ? puzzle.clues.filter((c) => c.personId === victim.id) : []
+  const giftWant = giftClues.length === 1 && giftClues[0]!.type === 'aloneWithMurderer' ? [VICTIM_TEXT_NL.clue] : giftClues.map((c) => renderClueLocale(c as CatalogClue, context, 'nl'))
+  const mismatches = expected.filter((e, i) => JSON.stringify(e) !== JSON.stringify({ name: suspectCards[i]?.name, lines: suspectCards[i]?.lines }))
+  check(
+    `${label}: every card's Dutch text of every person, gift included, is on the screen, in puzzle order (${puzzle.clues.length} cards)`,
+    mismatches.length === 0 && giftCards.length === 1 && JSON.stringify(giftCards[0]!.lines) === JSON.stringify(giftWant),
+    mismatches.slice(0, 2).map((m) => `${m.name}: want ${JSON.stringify(m.lines)}`).join(' / ') + (giftCards[0] && JSON.stringify(giftCards[0].lines) !== JSON.stringify(giftWant) ? ` gift card: want ${JSON.stringify(giftWant)}, got ${JSON.stringify(giftCards[0].lines)}` : ''),
+  )
+}
+
 for (const [label, w, h] of VIEWPORTS) {
   viewport = label
   await setViewport(w, h)
@@ -185,6 +228,7 @@ for (const [label, w, h] of VIEWPORTS) {
   await load('')
   await sleep(1200)
   for (const subject of subjects) await subjectCheck(subject)
+  if (label === VIEWPORTS[0]?.[0]) for (const subject of subjectsNl) await subjectCheckNl(subject)
   await evaluate('localStorage.clear()')
 }
 

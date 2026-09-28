@@ -5,6 +5,8 @@ import { addDays } from '../../src/schedule/dates.ts'
 import { readSchedule } from '../../src/schedule/schedule.testing.ts'
 import type { ScheduleDay } from '../../src/schedule/types.ts'
 import { help } from '../../src/content/help/help.ts'
+import { LOCALE_KEY } from '../../src/locale/storage.ts'
+import type { Locale } from '../../src/locale/types.ts'
 
 const schedule = readSchedule()
 export const DAYS: readonly ScheduleDay[] = schedule.days
@@ -29,9 +31,17 @@ export const DATE_KEY = 'slaydoku:dev-date'
 export const RESULTS_KEY = 'slaydoku:daily-results'
 export const HELP_SEEN_KEY = 'slaydoku:help-seen'
 
-/** JavaScript to run in the page: set the date override, and mark the how-it-works card as seen (or it covers the puzzle). */
-export const seedStorage = (date: string, helpSeen = true): string =>
-  `localStorage.setItem(${JSON.stringify(DATE_KEY)}, ${JSON.stringify(date)}); ${helpSeen ? `localStorage.setItem(${JSON.stringify(HELP_SEEN_KEY)}, '{"version":${help.version}}')` : ''}`
+/**
+ * JavaScript to run in the page: set the date override, mark the how-it-works card as seen (or it covers the
+ * puzzle), and — when given — the language (SLAY-3.2's locale toggle, `LOCALE_KEY`), so a driver can open the
+ * play screen already switched to Dutch.
+ */
+export const seedStorage = (date: string, helpSeen = true, locale?: Locale): string =>
+  [
+    `localStorage.setItem(${JSON.stringify(DATE_KEY)}, ${JSON.stringify(date)})`,
+    ...(helpSeen ? [`localStorage.setItem(${JSON.stringify(HELP_SEEN_KEY)}, '{"version":${help.version}}')`] : []),
+    ...(locale ? [`localStorage.setItem(${JSON.stringify(LOCALE_KEY)}, ${JSON.stringify(locale)})`] : []),
+  ].join('; ')
 
 /**
  * `count` scheduled days spread over the schedule that cover every board size and as many tiers as possible: the days are dealt round
