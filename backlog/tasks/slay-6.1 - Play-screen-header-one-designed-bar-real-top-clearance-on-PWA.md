@@ -1,10 +1,10 @@
 ---
 id: SLAY-6.1
 title: 'Play-screen header: one designed bar, real top clearance on PWA'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-28 18:57'
-updated_date: '2026-09-28 19:30'
+updated_date: '2026-09-28 19:32'
 labels:
   - story
 dependencies: []
