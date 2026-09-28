@@ -19,16 +19,12 @@ const props: ToolbarProps = {
   onUndo: noop,
   onRedo: noop,
   onHint: noop,
-  onOpenOptions: noop,
-  onOpenHelp: noop,
-  onOpenLegend: noop,
   onClearAll: noop,
 }
 
-/** The eight tool controls plus More (SLAY-4.2): everything the closed toolbar shows. Options,
- * Help and Legend sit behind More and are covered by docs/verification (they need a real click,
- * which renderToStaticMarkup can't do). */
-const MAIN_ROW = ['note', 'place', 'x', 'erase', 'undo', 'redo', 'hint', 'zoom', 'more'] as const
+/** The six icon-only controls (SLAY-5.1): Place is gone, Redo lives behind a long press on
+ * Undo, and Options/Help/Legend moved to the play-screen header — everything the toolbar shows. */
+const MAIN_ROW = ['note', 'x', 'erase', 'undo', 'hint', 'zoom'] as const
 
 /** The browser language `LocaleProvider` defaults from, per `Locale` (SLAY-3.4). */
 const BROWSER_LANGUAGE: Record<Locale, string> = { en: 'en-US', nl: 'nl-NL' }
@@ -44,26 +40,28 @@ function buttons(html: string): string[] {
   return html.match(/<button\b[\s\S]*?<\/button>/g) ?? []
 }
 
-describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10) (%s)', (locale) => {
+describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10, SLAY-5.1) (%s)', (locale) => {
   const t = PLAY_STRINGS[locale]
   const html = renderToolbar(locale)
   const all = buttons(html)
 
-  it('has the nine main-row buttons (eight tools plus More), Options/Help/Legend closed behind it', () => {
-    expect(all).toHaveLength(9)
-    for (const label of [t.tools.options, t.tools.help, t.tools.legend]) {
-      expect(html).not.toContain(`<span class="play-tool__label">${label}</span>`)
+  it('has exactly the six main-row buttons, none with a visible text label', () => {
+    expect(all).toHaveLength(6)
+    expect(html).not.toContain('play-tool__label')
+    for (const label of [t.tools.note, t.tools.x, t.tools.erase, t.tools.undo, t.tools.hint, t.tools.zoom, t.tools.place, t.tools.redo, t.tools.more]) {
+      expect(html).not.toContain(`>${label}<`)
     }
   })
 
-  it('gives every main-row button an svg icon and a label in the current locale', () => {
+  it('gives every button an svg icon and an aria-label plus a title, in the current locale', () => {
     const labels = MAIN_ROW.map((key) => t.tools[key])
-    expect(labels).toHaveLength(9)
+    expect(labels).toHaveLength(6)
     for (const button of all) {
       expect(button).toMatch(/<span class="play-tool__icon" aria-hidden="true"><svg\b[^>]*class="play-tool__svg"/)
-      expect(button).toMatch(/<span class="play-tool__label">[^<]+<\/span>/)
+      expect(button).toMatch(/aria-label="[^"]+"/)
+      expect(button).toMatch(/title="[^"]+"/)
     }
-    for (const label of labels) expect(html).toContain(`<span class="play-tool__label">${label}</span>`)
+    for (const label of labels) expect(html).toContain(`aria-label="${label}"`)
   })
 
   it('draws every icon in the same 24px box and stroke, with currentColor', () => {
@@ -77,25 +75,24 @@ describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10) (%s)', (local
     }
   })
 
-  it('uses a distinct icon per button', () => {
+  it('uses a distinct icon per button: note, x, erase, undo, hint, zoom', () => {
     const used = (html.match(/data-icon="(\w+)"/g) ?? []).map((m) => m.slice(11, -1))
-    expect(new Set(used).size).toBe(used.length)
-    expect(used).toHaveLength(9)
+    expect(used).toEqual(['note', 'x', 'erase', 'undo', 'hint', 'zoomIn'])
   })
 
-  it('the More control is closed by default and reachable in one tap', () => {
-    const more = all.find((b) => b.includes('play-tool--more'))!
-    expect(more).toContain('data-icon="more"')
-    expect(more).toContain('aria-pressed="false"')
-    expect(more).toContain(`>${t.tools.more}<`)
+  it('no control keeps Place, Redo or More: they are gone from the toolbar', () => {
+    expect(html).not.toContain('data-icon="place"')
+    expect(html).not.toContain('data-icon="redo"')
+    expect(html).not.toContain('data-icon="more"')
+    expect(html).not.toContain('play-tool--more')
   })
 
   it('keeps aria-pressed and the title text on the mode buttons', () => {
-    const note = all.find((b) => b.includes(`>${t.tools.note}<`))!
+    const note = all.find((b) => b.includes(`aria-label="${t.tools.note}"`))!
     expect(note).toContain('aria-pressed="true"')
     expect(note).toContain(`title="${t.toolTitle.note}"`)
-    for (const [label, title] of [[t.tools.place, t.toolTitle.place], [t.tools.x, t.toolTitle.x], [t.tools.erase, t.toolTitle.erase]]) {
-      const b = all.find((x) => x.includes(`>${label}<`))!
+    for (const [label, title] of [[t.tools.x, t.toolTitle.x], [t.tools.erase, t.toolTitle.erase]]) {
+      const b = all.find((x) => x.includes(`aria-label="${label}"`))!
       expect(b).toContain('aria-pressed="false"')
       expect(b).toContain(`title="${title}"`)
     }
@@ -108,6 +105,20 @@ describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10) (%s)', (local
     const zoomed = buttons(renderToolbar(locale, { zoom: { ...IDENTITY, scale: 2 } })).find((b) => b.includes('play-tool--zoom'))!
     expect(zoomed).toContain('data-icon="zoomOut"')
     expect(zoomed).toContain('2×')
+  })
+
+  it('the Undo button is enabled whenever undo or redo is possible, disabled only when neither is', () => {
+    const both = all.find((b) => b.includes(`aria-label="${t.tools.undo}"`))!
+    expect(both).not.toContain('disabled')
+
+    const undoOnly = buttons(renderToolbar(locale, { canUndo: true, canRedo: false })).find((b) => b.includes(`aria-label="${t.tools.undo}"`))!
+    expect(undoOnly).not.toContain('disabled')
+
+    const redoOnly = buttons(renderToolbar(locale, { canUndo: false, canRedo: true })).find((b) => b.includes(`aria-label="${t.tools.undo}"`))!
+    expect(redoOnly).not.toContain('disabled')
+
+    const neither = buttons(renderToolbar(locale, { canUndo: false, canRedo: false })).find((b) => b.includes(`aria-label="${t.tools.undo}"`))!
+    expect(neither).toContain('disabled')
   })
 })
 

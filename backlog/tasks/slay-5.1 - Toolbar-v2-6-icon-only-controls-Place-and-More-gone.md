@@ -1,9 +1,10 @@
 ---
 id: SLAY-5.1
 title: 'Toolbar v2: 6 icon-only controls, Place and More gone'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-28 17:16'
+updated_date: '2026-09-28 17:32'
 labels:
   - story
 dependencies: []
@@ -46,4 +47,6 @@ Branch: SLAY-5.1/toolbar-v2-icon-only
 
 <!-- SECTION:NOTES:BEGIN -->
 This supersedes SLAY-4.2's More-menu approach, which the owner tested and found did not read as simpler. Keep the same control SET on phone/iPad/desktop — only sizing/spacing should differ per viewport (play.css already has per-viewport rules), never the button count.
+
+Slice 1 (source): Tool union in intent.ts drops 'place'; gestureIntent simplified so long-press always places outside erase (matches prior behaviour minus place-mode). Toolbar.tsx rebuilt to 6 icon-only controls (Note, X, Erase, Undo, Hint, Zoom): ToolButton drops its visible label span, uses aria-label + title instead; new UndoButton mirrors EraserButton's useGesture tap/long-press wiring (tap=undo, long-press=redo), disabled only when neither is possible so redo still works via long-press right after the last undo. Options/Help/Legend triggers moved from Toolbar's More sheet into PlayScreen.tsx's header (small icon next to the timer, same Modal-based sheet, now with a visible-label MenuButton since it's not touch-target-constrained). play.css: toolbar collapsed to one flat group (no more mode/actions/zoom sub-groups), portrait-phone and short-landscape grids changed from 4-col/9-item to 6-col/6-item, .play-tool--more and .play-toolbar__group rules removed. Updated intent.test.ts, Toolbar.test.tsx, PlayScreen.test.tsx for the new shape. Full suite green: lint, typecheck, 2867 tests. Still open: docs/verification driver updates (AC5) and a real verify:phone run.
 <!-- SECTION:NOTES:END -->

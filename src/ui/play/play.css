@@ -8,8 +8,9 @@
  * Portrait: board with the toolbar as a column beside it, cards in a strip underneath.
  * Landscape: board on the left, toolbar and scrolling cards on the right.
  * Phones (CAD-10.3) have their own two rules at the bottom: portrait up to 640px wide (one column,
- * toolbar as a 4-column grid, hint under the board) and short landscape (max 500px high: board as
- * high as the screen, header, toolbar and cards in the column beside it). iPads never match them.
+ * toolbar as a single 6-column grid row (SLAY-5.1: six icon-only controls), hint under the board)
+ * and short landscape (max 500px high: board as high as the screen, header, toolbar and cards in
+ * the column beside it). iPads never match them.
  * Safe-area insets need viewport-fit=cover (index.html): every edge padding below reads them.
  */
 
@@ -79,6 +80,26 @@
   font-family: var(--font-display);
   font-size: 1.5rem;
   line-height: 1.2;
+}
+
+.play-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Options, Help and Legend (SLAY-5.1): one icon next to the timer, opening the settings sheet. */
+.play-header__more {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--paper);
+  cursor: pointer;
 }
 
 .play-timer {
@@ -182,13 +203,9 @@
   align-self: start;
 }
 
+/* Six icon-only controls (SLAY-5.1: Place and the More sheet are gone, Redo lives behind a long
+   press on Undo), the same set on every viewport — a single row, one flat group. */
 .play-toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.play-toolbar__group {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -954,10 +971,6 @@ button.play-legend__row:focus-visible {
   .play-toolbar {
     flex-direction: row;
     flex-wrap: wrap;
-  }
-
-  .play-toolbar__group {
-    flex-direction: row;
     padding: 5px;
   }
 
@@ -983,11 +996,10 @@ button.play-legend__row:focus-visible {
 
 /*
  * Portrait phone (CAD-10.3): one column. The board takes the full width (a cell is 34px or more from
- * 360px wide). The nine toolbar controls are a 4-column grid, 48px high (SLAY-4.2): the four modes on
- * the first row, undo/redo/hint/zoom (CAD-10.4) on the second, and More (which opens Options, Help and
- * Legend) alone on the third. An open hint sits right under the board (the toolbar goes below it) so
- * board and hint are on screen together. The cards are a strip you swipe sideways; it also lets a
- * vertical drag scroll the page (the page is taller than a phone).
+ * 360px wide). The six icon-only toolbar controls (SLAY-5.1: Place and More are gone, Redo is a long
+ * press on Undo) are a single 6-column grid row, 48px high. An open hint sits right under the board
+ * (the toolbar goes below it) so board and hint are on screen together. The cards are a strip you
+ * swipe sideways; it also lets a vertical drag scroll the page (the page is taller than a phone).
  */
 @media (max-width: 640px) and (max-aspect-ratio: 1 / 1) {
   .play {
@@ -1018,24 +1030,16 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
-  }
-
-  .play-toolbar__group {
-    display: contents;
+    padding: 0;
+    border: none;
+    background: none;
   }
 
   .play-tool {
     width: auto;
     min-height: 48px;
-  }
-
-  /* More is the only control on the third row: centred, sized like the others, not stretched full-width */
-  .play-tool--more {
-    grid-column: 1 / -1;
-    width: 100px;
-    justify-self: center;
   }
 
   .play-hint {
@@ -1140,12 +1144,11 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
-  }
-
-  .play-toolbar__group {
-    display: contents;
+    padding: 0;
+    border: none;
+    background: none;
   }
 
   .play-tool {
@@ -1153,12 +1156,6 @@ button.play-legend__row:focus-visible {
     min-height: 44px;
     padding: 2px 2px;
     gap: 1px;
-  }
-
-  .play-tool--more {
-    grid-column: 1 / -1;
-    width: 100px;
-    justify-self: center;
   }
 
   .play-hint {
