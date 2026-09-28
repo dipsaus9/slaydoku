@@ -41,7 +41,7 @@ interface StatsStrings {
 }
 
 /** English wording of the statistics card and its entry on the start screen. */
-const EN: StatsStrings = {
+export const STATS_EN: StatsStrings = {
   open: 'Stats',
   summary: (current, best) => `Streak ${current} · Best ${best}`,
   title: 'Your statistics',
@@ -88,7 +88,7 @@ const EN: StatsStrings = {
 }
 
 /** Dutch wording of the statistics card and its entry on the start screen. */
-const NL: StatsStrings = {
+export const STATS_NL: StatsStrings = {
   open: 'Statistieken',
   summary: (current, best) => `Reeks ${current} · Beste ${best}`,
   title: 'Jouw statistieken',
@@ -135,4 +135,4 @@ const NL: StatsStrings = {
 }
 
 /** The statistics card's wording per locale. Read through `useLocale()`, never English alone. */
-export const STATS_STRINGS: Record<Locale, StatsStrings> = { en: EN, nl: NL }
+export const STATS_STRINGS: Record<Locale, StatsStrings> = { en: STATS_EN, nl: STATS_NL }

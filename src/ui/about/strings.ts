@@ -12,7 +12,7 @@ interface AboutStrings {
 }
 
 /** Everything the About page says, in English. The one file to edit to change its wording. */
-const EN: AboutStrings = {
+export const ABOUT_EN: AboutStrings = {
   title: 'About Slaydoku',
   tagline: 'A new murder mystery puzzle every day',
   back: 'Back to the puzzles',
@@ -45,7 +45,7 @@ const EN: AboutStrings = {
 }
 
 /** Dutch wording of the About page. 'Slaydoku' is a brand name and stays unchanged. */
-const NL: AboutStrings = {
+export const ABOUT_NL: AboutStrings = {
   title: 'Over Slaydoku',
   tagline: 'Elke dag een nieuwe moordmysteriepuzzel',
   back: 'Terug naar de puzzels',
@@ -78,4 +78,4 @@ const NL: AboutStrings = {
 }
 
 /** The About page's wording per locale. Read through `useLocale()`, never English alone. */
-export const ABOUT_STRINGS: Record<Locale, AboutStrings> = { en: EN, nl: NL }
+export const ABOUT_STRINGS: Record<Locale, AboutStrings> = { en: ABOUT_EN, nl: ABOUT_NL }

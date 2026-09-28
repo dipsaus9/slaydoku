@@ -18,7 +18,7 @@ import { Modal } from './Modal.tsx'
 import { castFor, colorsFor, formatTime, noteTags, withCastNames } from './people.ts'
 import './play.css'
 import { ResultOverlay } from './ResultOverlay.tsx'
-import { PLAY_EN } from './strings.ts'
+import { usePlayStrings } from './strings.ts'
 import { SuspectPanel } from './SuspectPanel.tsx'
 import { Toolbar } from './Toolbar.tsx'
 import { toggleZoom, IDENTITY, type View } from './zoom.ts'
@@ -69,7 +69,9 @@ function nextUnplaced(order: readonly string[], from: string, placed: (id: strin
  * through the game store (src/game), so it is undoable, saved per level and auto-checked.
  * Built for iPad Safari in landscape and portrait (see play.css).
  */
-export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false, resultShare }: PlayScreenProps) {
+export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false, resultShare }: PlayScreenProps) {
+  const strings = usePlayStrings()
+  const title = givenTitle ?? strings.title
   const puzzle = useMemo(() => withCastNames(given, castSeed), [given, castSeed])
   const store = useMemo<GameStore>(
     () => createGameStore({ levelId, puzzle, storage, now }),
@@ -182,7 +184,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, room
           <button
             type="button"
             className="play-timer"
-            aria-label={PLAY_EN.timerHide}
+            aria-label={strings.timerHide}
             onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: false })}
           >
             <span aria-hidden="true">{'⏱'}</span> {formatTime(elapsed)}
@@ -191,7 +193,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, room
           <button
             type="button"
             className="play-timer play-timer--off"
-            aria-label={PLAY_EN.timerShow}
+            aria-label={strings.timerShow}
             onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: true })}
           >
             <span aria-hidden="true">{'⏱'}</span>
@@ -214,7 +216,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, room
           showAxisLabels={showAxisLabels}
           dispatch={store.dispatch}
           getBoard={() => store.getState().board}
-          onMessage={() => say(PLAY_EN.pickSuspect)}
+          onMessage={() => say(strings.pickSuspect)}
           onPlaced={afterPlace}
           view={view}
           onView={setView}
@@ -283,11 +285,11 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, room
         />
       ) : null}
       {dialog === 'clear' ? (
-        <Modal title={PLAY_EN.clearConfirm.title} onClose={() => setDialog(null)}>
-          <p>{PLAY_EN.clearConfirm.text}</p>
+        <Modal title={strings.clearConfirm.title} onClose={() => setDialog(null)}>
+          <p>{strings.clearConfirm.text}</p>
           <div className="play-modal__actions">
             <button type="button" className="play-btn" onClick={() => setDialog(null)}>
-              {PLAY_EN.clearConfirm.no}
+              {strings.clearConfirm.no}
             </button>
             <button
               type="button"
@@ -297,7 +299,7 @@ export function PlayScreen({ puzzle: given, levelId, title = PLAY_EN.title, room
                 setDialog(null)
               }}
             >
-              {PLAY_EN.clearConfirm.yes}
+              {strings.clearConfirm.yes}
             </button>
           </div>
         </Modal>

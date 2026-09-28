@@ -21,7 +21,7 @@ interface ShareStrings {
 }
 
 /** English wording of the share panel. */
-const EN: ShareStrings = {
+export const SHARE_EN: ShareStrings = {
   title: 'Share your result',
   preview: (description) => `Preview of your result card. ${description}`,
   formats: { label: 'Card shape', wide: 'Wide', square: 'Square' },
@@ -42,7 +42,7 @@ const EN: ShareStrings = {
 }
 
 /** Dutch wording of the share panel. */
-const NL: ShareStrings = {
+export const SHARE_NL: ShareStrings = {
   title: 'Deel je resultaat',
   preview: (description) => `Voorbeeld van je resultaatkaart. ${description}`,
   formats: { label: 'Kaartvorm', wide: 'Breed', square: 'Vierkant' },
@@ -63,4 +63,4 @@ const NL: ShareStrings = {
 }
 
 /** The share panel's wording per locale. Read through `useLocale()`, never English alone. */
-export const SHARE_STRINGS: Record<Locale, ShareStrings> = { en: EN, nl: NL }
+export const SHARE_STRINGS: Record<Locale, ShareStrings> = { en: SHARE_EN, nl: SHARE_NL }

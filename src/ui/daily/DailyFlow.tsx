@@ -14,7 +14,7 @@ import { shareMetaOf } from '../../share/index.ts'
 import { parseRoute, routePath } from './route.ts'
 import { StartScreen } from './StartScreen.tsx'
 import type { StartState } from './StartScreen.tsx'
-import { DAILY_EN } from './strings.ts'
+import { useDailyStrings } from './strings.ts'
 import { useDayLookup } from './useDayLookup.ts'
 import { useToday } from './useToday.ts'
 import './daily.css'
@@ -132,6 +132,7 @@ interface PlayRouteProps {
  * (`observeSolve`); the play screen itself stays untouched. The help card opens by itself on the first visit of this browser.
  */
 function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
+  const t = useDailyStrings()
   const id = dailyId(day.n)
   // The theme's own art per object (a shop counter, a beanbag ...): the board and the Legend both draw it.
   const themeIcons = useMemo(() => themeIconsFor(day.theme, day.puzzle.scene.objects), [day])
@@ -142,18 +143,18 @@ function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
     <div className="daily-play">
       <PlayScreen puzzle={day.puzzle} levelId={id} title="" themeIcons={themeIcons} portraits={day.portraits} storage={watched} firstVisitHelp resultShare={(solve) => <SharePanel result={resultOf(storage, day, solve)} meta={shareMetaOf(day)} />} />
       <nav className="daily-play__nav">
-        <button type="button" className="daily-play__back" aria-label={DAILY_EN.backLabel} onClick={onBack}>
-          <span aria-hidden="true">{'‹'}</span> {DAILY_EN.back}
+        <button type="button" className="daily-play__back" aria-label={t.backLabel} onClick={onBack}>
+          <span aria-hidden="true">{'‹'}</span> {t.back}
         </button>
-        <span className="daily-play__title" data-play-title>{DAILY_EN.puzzleNumber(day.n)}</span>
+        <span className="daily-play__title" data-play-title>{t.puzzleNumber(day.n)}</span>
       </nav>
       {banner && !noticeDismissed ? (
         <div className="daily-banner daily-banner--play" role="status" data-banner="new-puzzle">
-          <span className="daily-banner__text">{DAILY_EN.rollover.banner}</span>
+          <span className="daily-banner__text">{t.rollover.banner}</span>
           <button type="button" className="daily-btn daily-btn--primary daily-banner__button" onClick={banner.onShow}>
-            {DAILY_EN.rollover.show(banner.n)}
+            {t.rollover.show(banner.n)}
           </button>
-          <button type="button" className="daily-btn daily-banner__dismiss" aria-label={DAILY_EN.rollover.dismiss} onClick={() => setNoticeDismissed(true)}>
+          <button type="button" className="daily-btn daily-banner__dismiss" aria-label={t.rollover.dismiss} onClick={() => setNoticeDismissed(true)}>
             <span aria-hidden="true">{'\u00d7'}</span>
           </button>
         </div>

@@ -4,11 +4,22 @@ import { at, puzzle } from '../../game/fixture.ts'
 import { createGameStore, isPlaced } from '../../game/index.ts'
 import type { Hint } from '../../game/index.ts'
 import { hardPuzzle } from '../../game/hints.fixture.ts'
+import { LocaleProvider } from '../../locale/index.ts'
+import type { Locale } from '../../locale/index.ts'
 import { HintBar } from './HintBar.tsx'
+import { PLAY_STRINGS } from './strings.ts'
 
 const noop = () => {}
-const bar = (level: 1 | 2 | 3, hint: Hint | null) =>
-  renderToStaticMarkup(<HintBar level={level} hint={hint} onMore={noop} onClose={noop} onPlace={noop} />)
+
+/** The browser language `LocaleProvider` defaults from, per `Locale` (SLAY-3.4). */
+const BROWSER_LANGUAGE: Record<Locale, string> = { en: 'en-US', nl: 'nl-NL' }
+
+const barFor = (locale: Locale) => (level: 1 | 2 | 3, hint: Hint | null) =>
+  renderToStaticMarkup(
+    <LocaleProvider storage={null} browserLanguage={BROWSER_LANGUAGE[locale]}>
+      <HintBar level={level} hint={hint} onMore={noop} onClose={noop} onPlace={noop} />
+    </LocaleProvider>,
+  )
 
 /** A store on the tutorial: its first hint places somebody. */
 function firstPlacement() {
@@ -21,15 +32,18 @@ function firstPlacement() {
 /** The text as it appears in the markup (quotes and apostrophes are escaped). */
 const inMarkup = (text: string): string => text.replaceAll('"', '&quot;').replaceAll("'", '&#x27;')
 
-describe('<HintBar/>', () => {
-  it('offers "Place for me" only on level 3 of a placement', () => {
+describe.each(['en', 'nl'] as const)('<HintBar/> (%s)', (locale) => {
+  const t = PLAY_STRINGS[locale].hint
+  const bar = barFor(locale)
+
+  it('offers the placement button only on level 3 of a placement; the hint text itself (engine content) stays English in every locale', () => {
     const { store, hint } = firstPlacement()
-    expect(bar(3, hint)).toContain('Place for me')
+    expect(bar(3, hint)).toContain(t.place)
     expect(bar(3, hint)).toContain(inMarkup(hint.text))
     for (const level of [1, 2] as const) {
       const lower = store.hint(level)
-      expect(bar(level, lower)).not.toContain('Place for me')
-      expect(bar(level, lower)).toContain('More help')
+      expect(bar(level, lower)).not.toContain(t.place)
+      expect(bar(level, lower)).toContain(t.more)
     }
   })
 
@@ -38,7 +52,7 @@ describe('<HintBar/>', () => {
     const hint = store.hint(3)
     expect(hint?.level === 3 && hint.instruction).toMatch(/^Note squares for /)
     expect(hint?.level === 3 && hint.placement).toBeFalsy()
-    expect(bar(3, hint)).not.toContain('Place for me')
+    expect(bar(3, hint)).not.toContain(t.place)
   })
 
   it('shows no technique name', () => {
