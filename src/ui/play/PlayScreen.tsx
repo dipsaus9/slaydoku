@@ -124,7 +124,8 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
   // Where "seen" is remembered: the storage given, else localStorage; none at all means the card never opens by itself.
   const helpStorage = storage === undefined ? defaultStorage() : storage
   const [dialog, setDialog] = useState<Dialog>(() => (firstVisitHelp && shouldShowHelp(helpStorage) ? 'help' : null))
-  // The header's settings sheet (SLAY-5.1): Options, Help and Legend, one tap away from the small icon next to the timer.
+  // The header's settings sheet: Options and Help, one tap away from the small icon next to the
+  // timer. Legend used to live here too (SLAY-5.1) but got its own direct header icon (SLAY-8.2).
   const [moreOpen, setMoreOpen] = useState(false)
   const openFromMore = (next: Dialog) => () => {
     setMoreOpen(false)
@@ -235,8 +236,18 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
               <span aria-hidden="true">{'⏱'}</span>
             </button>
           )}
-          {/* Options, Help and Legend (SLAY-5.1): once-per-session actions, out of the toolbar and
-              behind this one header icon instead, on every viewport. */}
+          {/* Legend gets its own direct header icon (SLAY-8.2): checked often enough mid-solve
+              that a second tap through the More sheet was too slow. Options and Help stay behind
+              that sheet — once-per-session actions. */}
+          <button
+            type="button"
+            className="play-header__legend"
+            aria-label={strings.tools.legend}
+            title={strings.toolTitle.legend}
+            onClick={() => setDialog('legend')}
+          >
+            <ToolIcon name="legend" />
+          </button>
           <button
             type="button"
             className="play-header__more"
@@ -253,7 +264,6 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
           <div className="play-more">
             <MenuButton icon={<ToolIcon name="options" />} label={strings.tools.options} onClick={openFromMore('options')} />
             <MenuButton icon={<ToolIcon name="help" />} label={strings.tools.help} onClick={openFromMore('help')} />
-            <MenuButton icon={<ToolIcon name="legend" />} label={strings.tools.legend} onClick={openFromMore('legend')} />
           </div>
         </Modal>
       ) : null}

@@ -106,9 +106,10 @@
   gap: var(--space-2);
 }
 
-/* Options, Help and Legend (SLAY-5.1): one icon next to the timer, opening the settings sheet.
-   Plain at rest (SLAY-6.1) -- a resting border would double up on the outer .play-header's own
-   border; :active/:focus-visible still give it a clear affordance. */
+/* Legend (its own direct icon, SLAY-8.2) and Options/Help (behind the More sheet, SLAY-5.1): two
+   icons next to the timer. Plain at rest (SLAY-6.1) -- a resting border would double up on the
+   outer .play-header's own border; :active/:focus-visible still give them a clear affordance. */
+.play-header__legend,
 .play-header__more {
   min-width: 44px;
   min-height: 44px;
@@ -124,10 +125,12 @@
   transition: background-color var(--duration-micro) var(--ease-out);
 }
 
+.play-header__legend:active,
 .play-header__more:active {
   background: rgba(42, 42, 54, 0.08);
 }
 
+.play-header__legend:focus-visible,
 .play-header__more:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
@@ -246,8 +249,10 @@
   align-self: start;
 }
 
-/* Six icon-only controls (SLAY-5.1: Place and the More sheet are gone, Redo lives behind a long
-   press on Undo), the same set on every viewport — a single row, one flat group. */
+/* Seven controls, the same set on every viewport (SLAY-8.2 brings Place back; Redo still lives
+   behind a long press on Undo; the More sheet stays gone). Base layout: a narrow column (a wide
+   screen's side rail), icon above label in each button — the phone media queries below switch to
+   a single icon-only row and hide the label. */
 .play-toolbar {
   display: flex;
   flex-direction: column;
@@ -1039,10 +1044,11 @@ button.play-legend__row:focus-visible {
 
 /*
  * Portrait phone (CAD-10.3): one column. The board takes the full width (a cell is 34px or more from
- * 360px wide). The six icon-only toolbar controls (SLAY-5.1: Place and More are gone, Redo is a long
- * press on Undo) are a single 6-column grid row, 48px high. An open hint sits right under the board
- * (the toolbar goes below it) so board and hint are on screen together. The cards are a strip you
- * swipe sideways; it also lets a vertical drag scroll the page (the page is taller than a phone).
+ * 360px wide). The seven toolbar controls (Redo is a long press on Undo, More stays gone) are a
+ * single 7-column grid row, 48px high, icon-only (SLAY-8.2: no room for the label here — it comes
+ * back on wider viewports instead). An open hint sits right under the board (the toolbar goes below
+ * it) so board and hint are on screen together. The cards are a strip you swipe sideways; it also
+ * lets a vertical drag scroll the page (the page is taller than a phone).
  */
 @media (max-width: 640px) and (max-aspect-ratio: 1 / 1) {
   .play {
@@ -1073,7 +1079,7 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 6px;
     padding: 0;
     border: none;
@@ -1083,6 +1089,12 @@ button.play-legend__row:focus-visible {
   .play-tool {
     width: auto;
     min-height: 48px;
+  }
+
+  /* Scoped to the toolbar: the More sheet's MenuButton shares .play-tool/.play-tool__label and
+     keeps its label at every width (it is not touch-target-constrained the way the toolbar is). */
+  .play-toolbar .play-tool__label {
+    display: none;
   }
 
   .play-hint {
@@ -1157,8 +1169,9 @@ button.play-legend__row:focus-visible {
 /*
  * Short landscape (phones on their side, up to 500px high): the board is as high as the screen
  * allows (--play-board, also read by the back bar in levels.css) and sits on the left; the column on
- * the right holds the header row, the 4-column toolbar (SLAY-4.2), a hint when one is open, and the
- * cards, which scroll. An iPad (768px high or more) never matches this.
+ * the right holds the header row, the 7-column icon-only toolbar (SLAY-8.2: no room for the label
+ * here), a hint when one is open, and the cards, which scroll. An iPad (768px high or more) never
+ * matches this.
  */
 @media (orientation: landscape) and (max-height: 500px) {
   :root {
@@ -1189,7 +1202,7 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 6px;
     padding: 0;
     border: none;
@@ -1201,6 +1214,11 @@ button.play-legend__row:focus-visible {
     min-height: 44px;
     padding: 2px 2px;
     gap: 1px;
+  }
+
+  /* Scoped to the toolbar, same reason as the portrait-phone rule above. */
+  .play-toolbar .play-tool__label {
+    display: none;
   }
 
   .play-hint {

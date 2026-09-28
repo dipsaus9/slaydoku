@@ -49,15 +49,17 @@ describe('<PlayScreen/>', () => {
     expect(html).toContain(`${Alice} stood next to a table.`)
   })
 
-  it('has the six icon-only toolbar tools, by aria-label, in English (no LocaleProvider ancestor here: useLocale() falls back to English)', () => {
-    // Six controls (SLAY-5.1): Place is gone, Redo lives behind a long press on Undo, and
-    // Options/Help/Legend moved to the header's settings icon (aria-label "More").
-    for (const label of ['Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom']) {
+  it('has the seven toolbar tools, by aria-label, in English (no LocaleProvider ancestor here: useLocale() falls back to English)', () => {
+    // Seven controls (SLAY-8.2): Place is back, Redo still lives behind a long press on Undo, and
+    // Options/Help still sit behind the header's settings icon (aria-label "More"); Legend has its
+    // own direct header icon.
+    for (const label of ['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom']) {
       expect(html).toContain(`aria-label="${label}"`)
     }
-    for (const label of ['Place', 'Redo']) expect(html).not.toContain(`aria-label="${label}"`)
+    expect(html).not.toContain('aria-label="Redo"')
     expect(html).toContain('role="toolbar"')
-    // The header's settings icon (Options, Help, Legend), next to the timer.
+    // The header's Legend icon and its settings icon (Options, Help), next to the timer.
+    expect(html).toContain('aria-label="Legend"')
     expect(html).toContain('aria-label="More"')
     expect(html).toContain('play-header__more')
   })
@@ -70,9 +72,9 @@ describe('<PlayScreen/>', () => {
     expect(html).toContain('style="transform:none"')
   })
 
-  it('keeps the toolbar targets 44px in the 6-column phone grid (SLAY-5.1: six icon-only controls, no More on the toolbar)', async () => {
+  it('keeps the toolbar targets 44px in the 7-column phone grid (SLAY-8.2: seven controls, no More on the toolbar)', async () => {
     const css = (await import('node:fs')).readFileSync(new URL('./play.css', import.meta.url), 'utf8')
-    expect((css.match(/repeat\(6, minmax\(0, 1fr\)\)/g) ?? []).length).toBe(2)
+    expect((css.match(/repeat\(7, minmax\(0, 1fr\)\)/g) ?? []).length).toBe(2)
     expect(css).not.toContain('.play-tool--more')
     expect(css).toMatch(/\.play-board\[data-zoomed\] \{[^}]*overflow: hidden/)
     // no will-change: the zoomed svg must be redrawn sharp, not stretched
@@ -150,14 +152,16 @@ describe('<HelpPanel/>', () => {
 })
 
 describe('the Legend (CAD-10.9)', () => {
-  it('sits behind the header\'s More sheet, not on the main toolbar row (SLAY-5.1)', () => {
+  it('has its own direct header icon, not on the main toolbar row and not behind the More sheet (SLAY-8.2)', () => {
     const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
-    // The sheet starts closed, so Legend (and Options and Help) render nowhere yet.
-    for (const label of ['Legend', 'Options', 'Help']) expect(html).not.toContain(`aria-label="${label}"`)
-    // The main toolbar row is exactly the six icon-only controls, Legend not among them.
+    // The header's own Legend icon is always there, one tap away — unlike Options and Help, which
+    // stay closed inside the More sheet until it opens.
+    expect(html).toContain('aria-label="Legend"')
+    for (const label of ['Options', 'Help']) expect(html).not.toContain(`aria-label="${label}"`)
+    // The main toolbar row is exactly the seven controls (SLAY-8.2: Place is back), Legend not among them.
     const toolbarLabels = [...html.matchAll(/<button[^>]*class="play-tool[^"]*"[^>]*aria-label="([^"]+)"/g)].map((m) => m[1])
-    expect(toolbarLabels).toEqual(['Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom'])
-    // The header's settings icon, reachable in one tap, opens the sheet Legend sits behind.
+    expect(toolbarLabels).toEqual(['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom'])
+    // The header's settings icon, reachable in one tap, opens the sheet Options and Help sit behind.
     expect(html).toContain('aria-label="More"')
   })
 

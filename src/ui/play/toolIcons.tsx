@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
  */
 export type ToolIconName =
   | 'note'
+  | 'place'
   | 'x'
   | 'erase'
   | 'undo'
@@ -26,6 +27,13 @@ const SHAPES: Record<ToolIconName, ReactNode> = {
     <>
       <path d="M4 20l1.1-4.3L16.4 4.4a2.1 2.1 0 0 1 3 0l.2.2a2.1 2.1 0 0 1 0 3L8.3 18.9z" />
       <path d="M14.5 6.3l3.2 3.2" />
+    </>
+  ),
+  // a person: head and shoulders (SLAY-8.2)
+  place: (
+    <>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M5 20.2c.6-3.7 3.3-5.7 7-5.7s6.4 2 7 5.7" />
     </>
   ),
   x: <path d="M6 6l12 12M18 6L6 18" />,

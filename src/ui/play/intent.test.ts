@@ -17,6 +17,16 @@ describe('gestureIntent', () => {
     expect(gestureIntent('x', 'longPress', 'A', cell, board())).toEqual({ action: { type: 'place', personId: 'A', cell } })
   })
 
+  it('place mode (SLAY-8.2): tap places, long press writes a note instead (the two gestures swap)', () => {
+    expect(gestureIntent('place', 'tap', 'A', cell, board())).toEqual({ action: { type: 'place', personId: 'A', cell } })
+    expect(gestureIntent('place', 'longPress', 'A', cell, board())).toEqual({ action: { type: 'toggleNote', personId: 'A', cell } })
+  })
+
+  it('place mode: tapping the suspect’s own square takes them off again', () => {
+    const placed = board({ placements: { A: cell } })
+    expect(gestureIntent('place', 'tap', 'A', cell, placed)).toEqual({ action: { type: 'remove', personId: 'A' } })
+  })
+
   it('eraser: tap clears the cell, long press does nothing, no suspect needed', () => {
     expect(gestureIntent('erase', 'tap', null, cell, board())).toEqual({ action: { type: 'eraseCell', cell } })
     expect(gestureIntent('erase', 'longPress', null, cell, board())).toBeNull()
@@ -25,6 +35,7 @@ describe('gestureIntent', () => {
   it('asks for a suspect when none is selected', () => {
     expect(gestureIntent('note', 'tap', null, cell, board())).toEqual({ message: 'pickSuspect' })
     expect(gestureIntent('x', 'tap', null, cell, board())).toEqual({ message: 'pickSuspect' })
+    expect(gestureIntent('place', 'tap', null, cell, board())).toEqual({ message: 'pickSuspect' })
   })
 
   it('placing on the suspect’s own square takes them off again', () => {
@@ -37,8 +48,9 @@ describe('gestureIntent', () => {
 })
 
 describe('painting', () => {
-  it('note mode paints notes', () => {
+  it('note mode paints notes, and so does place mode', () => {
     expect(paintKind('note')).toBe('note')
+    expect(paintKind('place')).toBe('note')
     expect(paintKind('x')).toBe('x')
     expect(paintKind('erase')).toBe('erase')
   })
