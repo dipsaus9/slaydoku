@@ -4,13 +4,15 @@ title: 'Dutch: object nouns fully translated in clues'
 status: Done
 assignee: []
 created_date: '2026-09-28 18:57'
-updated_date: '2026-09-28 19:38'
+updated_date: '2026-09-28 19:51'
 labels:
   - story
 dependencies: []
 references:
   - src/engine/clues/nl.ts
   - docs/verification/
+  - src/engine/solver/human/explanations.test.ts
+  - src/engine/solver/human/techniques.test.ts
 parent_task_id: SLAY-6
 type: feature
 ordinal: 36000
@@ -44,6 +46,8 @@ Branch: SLAY-6.2/dutch-object-nouns
 Root cause: OBJECT_WORDS_NL currently maps 1:1 onto the English OBJECT_WORDS noun by explicit design choice at SLAY-3.2 time (see its own doc comment) — this story reverses that choice at the owner's request. Cast names and room/theme names (already fixed in SLAY-5.2) are out of scope; this is object nouns only.
 
 Verified end to end: bun run build + vite preview + bun docs/verification/locale.ts (headless Chrome, foreground) — 29 checks, 0 failures. Confirms real Dutch object nouns render on screen for a second theme ('home', 2026-10-02, distinct from the main walkthrough's 'shop') and, via an offline sweep of renderClue(...,'nl') over one scheduled day per theme, for all five themes (home/office/park/school/shop) — no leftover English object noun in any. Full test suite: 138 files, 2879 tests, 0 failures (bun run lint/typecheck/test all green).
+
+Review round 1: block, scopeViolations on src/engine/solver/human/explanations.test.ts and techniques.test.ts — both are one-line pinned-Dutch-sentence fixes that are a direct, correct consequence of the in-scope OBJECT_WORDS_NL translation (a table->tafel, rug->kleed noun changed inside an already-pinned Dutch explanation string). Widened References to cover both paths (same established pattern this repo used before, e.g. CAD-10.7 widening References for package.json for an analogous incidental fix), per the reviewer's own recommendation. No code/behavior change; re-review requested.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
