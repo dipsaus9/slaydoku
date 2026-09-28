@@ -16,12 +16,12 @@
 
 /*
  * SLAY-6.1: the floor .play-header keeps clear of the top edge even on a device that reports no
- * safe-area inset (no notch) — raised from 8px toward .daily's own 24px floor for the equivalent
- * screen. Root-scoped (not on .play) so the short-landscape media query's --play-board calc below
- * can read the same value and never drift out of sync with it.
+ * safe-area inset (no notch) — raised from 8px to match .daily's own floor (--space-5, 24px) for
+ * the equivalent screen. Root-scoped (not on .play) so the short-landscape media query's
+ * --play-board calc below can read the same value and never drift out of sync with it.
  */
 :root {
-  --play-top-clearance: max(20px, env(safe-area-inset-top));
+  --play-top-clearance: max(var(--space-5), env(safe-area-inset-top));
 }
 
 .play {
