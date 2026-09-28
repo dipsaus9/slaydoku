@@ -1,16 +1,17 @@
 import type { Scene } from '../../../engine/model/index.ts'
+import type { Locale } from '../../../locale/types.ts'
 import type { SceneGeometry } from '../geometry.ts'
 import { LABEL_LINE_HEIGHT, roomLabelLayout } from '../labels.ts'
 import { THEME } from '../theme.ts'
 
 const round = (n: number) => Math.round(n * 100) / 100
 
-export function RoomLabels({ scene, geometry }: { scene: Scene; geometry: SceneGeometry }) {
+export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; geometry: SceneGeometry; locale?: Locale }) {
   const size = geometry.cellSize
   return (
     <g data-layer="room-labels" pointerEvents="none">
       {scene.rooms.map((room) => {
-        const label = roomLabelLayout(scene, room.id)
+        const label = roomLabelLayout(scene, room.id, locale)
         if (!label) return null
         const centre = geometry.toPoint(label.center.x, label.center.y)
         const w = round(label.width * size)

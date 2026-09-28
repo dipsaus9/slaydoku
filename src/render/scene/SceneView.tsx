@@ -1,5 +1,6 @@
 import { useId, type MouseEvent, type ReactNode } from 'react'
 import type { Cell, Scene } from '../../engine/model/index.ts'
+import type { Locale } from '../../locale/types.ts'
 import { createGeometry, type SceneGeometry } from './geometry.ts'
 import { AxisLabels } from './layers/AxisLabels.tsx'
 import { EdgeFeatures } from './layers/EdgeFeatures.tsx'
@@ -29,6 +30,8 @@ export interface SceneViewProps {
   className?: string
   /** Accessible name of the drawing. */
   title?: string
+  /** Language the room labels draw in (SLAY-5.2). Default 'en'. */
+  locale?: Locale
 }
 
 function resolve(content: LayerContent, geometry: SceneGeometry): ReactNode {
@@ -51,6 +54,7 @@ export function SceneView({
   onCellClick,
   className,
   title = 'Crime scene',
+  locale = 'en',
 }: SceneViewProps) {
   const geometry = createGeometry(scene, { axisLabels: showAxisLabels })
   const idPrefix = `scene-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
@@ -78,7 +82,7 @@ export function SceneView({
       <g data-layer="objects" pointerEvents="none">
         {objectsLayer && resolve(objectsLayer, geometry)}
       </g>
-      <RoomLabels scene={scene} geometry={geometry} />
+      <RoomLabels scene={scene} geometry={geometry} locale={locale} />
       <g data-layer="marks" pointerEvents="none">
         {marksLayer && resolve(marksLayer, geometry)}
       </g>
