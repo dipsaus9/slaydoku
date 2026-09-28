@@ -5,9 +5,9 @@
 // opposite: it switches the language toggle itself and checks the app actually reads in Dutch —
 // start screen, a played day's board room labels and clue cards (computed with the engine's own
 // `renderClue(..., 'nl')`/`roomNameNlOf`, the same pure functions the board and cards call, so a
-// missed locale branch fails this check rather than only "looking Dutch"), a hint, the toolbar's
-// More sheet, Stats and a solved day's Share panel — with no leftover English text and no mix of
-// the two languages on screen. It does not repeat the
+// missed locale branch fails this check rather than only "looking Dutch"), a hint, the header's
+// settings sheet, Stats and a solved day's Share panel — with no leftover English text and no mix
+// of the two languages on screen. It does not repeat the
 // 2700+ checks the English suite already makes in English; see docs/verification/report.md.
 //
 // Usage (from the repo root):
@@ -102,8 +102,11 @@ async function tapSel(sel: string) {
   await tap(r.x, r.y)
   await sleep(250)
 }
+// A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
+// has no visible text) or a header/sheet item that still shows a visible label (the header's
+// settings icon, and Options/Help/Legend behind it): whichever the element has.
 async function tool(label: string) {
-  const r = (await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool')].find(b => b.querySelector('.play-tool__label')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
+  const r = (await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
   if (!r) throw new Error('missing tool ' + label)
   await tap(r.x, r.y)
   await sleep(400) // ghost-click guard on a just-opened dialog (modalGuard.ts)
@@ -230,7 +233,7 @@ check('the hint bar closes', (await count('.play-hint')) === 0)
 
 await tool('Meer')
 const moreLabels = (await evaluate(`JSON.stringify([...document.querySelectorAll('.play-more .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string))) as string[]
-check('the toolbar\'s More sheet reads in Dutch: Opties, Help, Legenda', JSON.stringify(moreLabels) === JSON.stringify(['Opties', 'Help', 'Legenda']), moreLabels.join())
+check("the header's settings sheet reads in Dutch: Opties, Help, Legenda", JSON.stringify(moreLabels) === JSON.stringify(['Opties', 'Help', 'Legenda']), moreLabels.join())
 await tap(3, 3)
 await sleep(300)
 

@@ -12,11 +12,6 @@ describe('gestureIntent', () => {
     expect(gestureIntent('note', 'longPress', 'A', cell, board())).toEqual({ action: { type: 'place', personId: 'A', cell } })
   })
 
-  it('place mode: tap places, long press writes a note', () => {
-    expect(gestureIntent('place', 'tap', 'A', cell, board())).toEqual({ action: { type: 'place', personId: 'A', cell } })
-    expect(gestureIntent('place', 'longPress', 'A', cell, board())).toEqual({ action: { type: 'toggleNote', personId: 'A', cell } })
-  })
-
   it('x mode: tap toggles an X, long press still places', () => {
     expect(gestureIntent('x', 'tap', 'A', cell, board())).toEqual({ action: { type: 'toggleMark', personId: 'A', cell } })
     expect(gestureIntent('x', 'longPress', 'A', cell, board())).toEqual({ action: { type: 'place', personId: 'A', cell } })
@@ -42,8 +37,7 @@ describe('gestureIntent', () => {
 })
 
 describe('painting', () => {
-  it('place mode paints notes', () => {
-    expect(paintKind('place')).toBe('note')
+  it('note mode paints notes', () => {
     expect(paintKind('note')).toBe('note')
     expect(paintKind('x')).toBe('x')
     expect(paintKind('erase')).toBe('erase')

@@ -1,9 +1,10 @@
 ---
 id: SLAY-5.1
 title: 'Toolbar v2: 6 icon-only controls, Place and More gone'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 17:16'
+updated_date: '2026-09-28 18:01'
 labels:
   - story
 dependencies: []
@@ -14,6 +15,9 @@ references:
   - src/ui/play/play.css
   - src/ui/play/toolIcons.tsx
   - docs/verification/
+  - src/ui/play/Toolbar.test.tsx
+  - src/ui/play/PlayScreen.test.tsx
+  - src/ui/play/intent.test.ts
 parent_task_id: SLAY-5
 type: feature
 ordinal: 32000
@@ -29,11 +33,11 @@ Branch: SLAY-5.1/toolbar-v2-icon-only
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Toolbar.tsx's main row renders exactly 6 controls: Note, X, Erase, Undo, Hint, Zoom, none with a visible text label (icon plus aria-label/title only); every touch target stays at least 44px
-- [ ] #2 The 'place' tool is removed from src/ui/play/intent.ts's Tool union and every call site; long-press still places in every remaining mode exactly as it already did outside place-mode
-- [ ] #3 A long-press on the Undo button triggers Redo (disabled/no-op when there is nothing to redo, matching the existing disabled-button behaviour); a tap on Undo still undoes
-- [ ] #4 Options, Help and Legend open from one small icon in the play-screen header (next to the timer), not from the toolbar, on every viewport; each is still reachable in one tap
-- [ ] #5 docs/verification's drive/zoom/legend/screens suites are updated for the new control set and locations (selectors/titles/counts) and pass on all six viewports, English and the Dutch locale driver alike
+- [x] #1 Toolbar.tsx's main row renders exactly 6 controls: Note, X, Erase, Undo, Hint, Zoom, none with a visible text label (icon plus aria-label/title only); every touch target stays at least 44px
+- [x] #2 The 'place' tool is removed from src/ui/play/intent.ts's Tool union and every call site; long-press still places in every remaining mode exactly as it already did outside place-mode
+- [x] #3 A long-press on the Undo button triggers Redo (disabled/no-op when there is nothing to redo, matching the existing disabled-button behaviour); a tap on Undo still undoes
+- [x] #4 Options, Help and Legend open from one small icon in the play-screen header (next to the timer), not from the toolbar, on every viewport; each is still reachable in one tap
+- [x] #5 docs/verification's drive/zoom/legend/screens suites are updated for the new control set and locations (selectors/titles/counts) and pass on all six viewports, English and the Dutch locale driver alike
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -46,4 +50,18 @@ Branch: SLAY-5.1/toolbar-v2-icon-only
 
 <!-- SECTION:NOTES:BEGIN -->
 This supersedes SLAY-4.2's More-menu approach, which the owner tested and found did not read as simpler. Keep the same control SET on phone/iPad/desktop — only sizing/spacing should differ per viewport (play.css already has per-viewport rules), never the button count.
+
+Slice 1 (source): Tool union in intent.ts drops 'place'; gestureIntent simplified so long-press always places outside erase (matches prior behaviour minus place-mode). Toolbar.tsx rebuilt to 6 icon-only controls (Note, X, Erase, Undo, Hint, Zoom): ToolButton drops its visible label span, uses aria-label + title instead; new UndoButton mirrors EraserButton's useGesture tap/long-press wiring (tap=undo, long-press=redo), disabled only when neither is possible so redo still works via long-press right after the last undo. Options/Help/Legend triggers moved from Toolbar's More sheet into PlayScreen.tsx's header (small icon next to the timer, same Modal-based sheet, now with a visible-label MenuButton since it's not touch-target-constrained). play.css: toolbar collapsed to one flat group (no more mode/actions/zoom sub-groups), portrait-phone and short-landscape grids changed from 4-col/9-item to 6-col/6-item, .play-tool--more and .play-toolbar__group rules removed. Updated intent.test.ts, Toolbar.test.tsx, PlayScreen.test.tsx for the new shape. Full suite green: lint, typecheck, 2867 tests. Still open: docs/verification driver updates (AC5) and a real verify:phone run.
+
+Slice 2 (verification): updated the toolbar-control finder in drive.ts, zoom.ts, legend.ts, screens.ts and locale.ts to match an element's visible .play-tool__label text OR its aria-label (icon-only main-row controls now carry only the latter; the header sheet's Options/Help/Legend items keep the former). drive.ts: new toolHold() helper (long-press) replaces the two tool('Redo') calls (no Redo button anymore); Eraser/Undo split their shared play-tool--hold marker class into play-tool--erase/play-tool--undo to stay unambiguous. legend.ts: 'nine toolbar buttons, More last' check rewritten to 'six toolbar buttons, Note..Zoom, none with a visible label', scoped to .play-toolbar .play-tool. Ran bun run verify:phone (all 7 suites, all 6 viewports) foreground: 2826 checks, 0 failures. Ran docs/verification/locale.ts (SLAY-3.6 Dutch driver) on all 6 viewports (usually just one): 21 checks x 6 = 126, 0 failures — header settings sheet reads Opties/Help/Legenda in Dutch on every viewport. Added a dated entry to docs/verification/report.md per the file's established convention. lint/typecheck/test (138 files, 2867 tests) all green throughout.
+
+Review round 1: verdict block. All 5 acceptance criteria judged met. scopeViolations: PlayScreen.test.tsx, Toolbar.test.tsx, intent.test.ts edited but not covered by any declared Reference (predecessor SLAY-4.2 explicitly listed its test files in References; this story's contract did not). Advisory: toolIcons.tsx left 'place' and 'redo' as dead ToolIconName entries after the toolbar rewrite made them unused. Fix: widened References to explicitly include the three test files (matching the SLAY-4.2 convention), and removed the now-dead 'place'/'redo' icon entries from toolIcons.tsx (kept 'autoX', which was already unused before this story and is out of scope). lint/typecheck/test (138 files, 2867 tests) green after the fix.
+
+Review round 2: verdict pass. All 5 acceptance criteria met, no scope violations. One advisory (non-blocking, out of scope): src/ui/play/strings.ts still carries dead tools.place/tools.redo/toolTitle.place string keys, same class of leftover as toolIcons.tsx's place/redo shapes from round 1 — left for a follow-up since strings.ts is not a declared Reference of this story.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Toolbar rebuilt to 6 icon-only controls (Note, X, Erase, Undo, Hint, Zoom), the same set on every viewport. Place is gone from intent.ts's Tool union and every call site (long-press still places in every remaining mode, exactly as before outside place-mode). Redo lives behind a long press on Undo (new UndoButton, same tap/long-press gesture machine EraserButton already used; each gesture no-ops independently when its action isn't available, so redo still works right after the last undo). Options, Help and Legend moved from the toolbar's old More sheet into one small settings icon in PlayScreen's header, next to the timer, reachable in one tap on every viewport. docs/verification's drive/zoom/legend/screens/locale drivers were updated to find toolbar controls by aria-label (icon-only) or visible label (header sheet items) instead of the removed .play-tool__label text; drive.ts gained a toolHold() helper for the redo-via-long-press scenarios. Verified with a full bun run verify:phone (2826 checks, 0 failures, all six viewports) and the SLAY-3.6 Dutch locale driver on all six viewports (126 checks, 0 failures). Independent review passed on round 2 (round 1 blocked on undeclared test-file References, fixed by widening them to match the SLAY-4.2 convention, and on dead place/redo icon shapes in toolIcons.tsx, removed). lint/typecheck/test (138 files, 2867 tests) all green.
+<!-- SECTION:FINAL_SUMMARY:END -->

@@ -53,6 +53,16 @@ Story SLAY-3.6, the last of epic SLAY-3 (Dutch and English, same puzzle, player-
 
 **Result after both fixes: `bun run verify:phone` (English, default locale, 390x844) is 471 checks, 0 failures** (drive 111, zoom 43, legend 121, screens 106, stats 28, share 27, offline 35) — before the fix, stats/share/offline showed 27 failures total, every one of them Dutch text where English was asserted. `bun run lint`, `typecheck`, `test --maxWorkers=1` (138 files, 2866 tests) and `build` are all green.
 
+## 2026-09-28 — SLAY-5.1: toolbar v2 (icon-only, six controls), no regressions
+
+Story SLAY-5.1, epic SLAY-5, on branch `SLAY-5.1/toolbar-v2-icon-only`. The toolbar drops to six icon-only controls (Note, X, Erase, Undo, Hint, Zoom, the same set on every viewport), Place is gone (long-press already placed in every other mode), Redo moves behind a long press on Undo (the same tap-selects/long-press-clears-all machine the Erase button already used), and Options, Help and Legend move out of the toolbar into one small settings icon in the play-screen header, next to the timer.
+
+**`bun run verify:phone` (English, all six viewports): 2826 checks, 0 failures** (drive 111, zoom 43, legend 121, screens 106, stats 28, share 27, offline 35 — the same seven-suite, 471-per-viewport shape SLAY-3.6 established; check counts are unchanged from before this story because the toolbar rewrite only changed how a control is found — by its `aria-label` now that it carries no visible text, instead of by a `.play-tool__label` span — never how many checks each scenario makes). `docs/verification/locale.ts` (the SLAY-3.6 Dutch smoke driver), run on all six viewports rather than its usual one: **21 checks per viewport, 0 failures, 126 total** — the header's settings sheet still reads "Opties, Help, Legenda" from every viewport.
+
+No product regression found. Every driver that finds a toolbar control by label (`drive.ts`, `zoom.ts`, `legend.ts`, `screens.ts`, `locale.ts`) was updated in this story's own files (all declared References): the shared `tool()`/`toolRect()` helper in each now matches an element's visible `.play-tool__label` text *or* its `aria-label`, so it keeps working for both the toolbar's new icon-only controls and the header sheet's still-labelled Options/Help/Legend items unchanged. `drive.ts` gained a `toolHold()` helper (a long press instead of a tap) for the two scenarios that used to tap a dedicated Redo button. `legend.ts`'s "nine toolbar buttons, More last" check became "six toolbar buttons, Note through Zoom, none with a visible label". The Eraser and Undo buttons both needed the `play-tool--hold` marker class `drive.ts` used to find the eraser by; split into `play-tool--erase` and `play-tool--undo` so the two are no longer ambiguous under one selector.
+
+`bun run lint`, `typecheck` and `test` (138 files, 2867 tests, only `intent.test.ts`, `Toolbar.test.tsx` and `PlayScreen.test.tsx` touched for the new shape) are all green.
+
 ## How it was run
 
 Commands, with `OUT` pointing outside the repo:

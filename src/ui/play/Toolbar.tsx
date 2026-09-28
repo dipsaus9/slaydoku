@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import type { Tool } from './intent.ts'
-import { Modal } from './Modal.tsx'
 import { usePlayStrings } from './strings.ts'
 import { ToolIcon } from './toolIcons.tsx'
 import { useGesture } from './useGesture.ts'
@@ -16,19 +15,22 @@ interface ToolButtonProps {
   className?: string
 }
 
-/** A 44px+ touch target: icon on top, short label below. */
+/**
+ * A 44px+ touch target: icon only (SLAY-5.1). The label never shows — it is the button's
+ * accessible name (`aria-label`) and, absent a longer one, its `title` too.
+ */
 function ToolButton({ icon, label, title, pressed, disabled, onClick, className }: ToolButtonProps) {
   return (
     <button
       type="button"
       className={['play-tool', className].filter(Boolean).join(' ')}
       aria-pressed={pressed}
+      aria-label={label}
       disabled={disabled}
-      title={title}
+      title={title ?? label}
       onClick={onClick}
     >
       <span className="play-tool__icon" aria-hidden="true">{icon}</span>
-      <span className="play-tool__label">{label}</span>
     </button>
   )
 }
@@ -40,21 +42,48 @@ const ORIGIN = { row: 0, col: 0 }
  * to clear the whole board (as in the official app). Uses the same tap/long-press machine as
  * the board, so it also survives Safari's callout.
  */
-function EraserButton({ active, onSelect, onClearAll }: { active: boolean; onSelect: () => void; onClearAll: () => void }) {
-  const t = usePlayStrings()
+function EraserButton({ active, label, title, onSelect, onClearAll }: { active: boolean; label: string; title: string; onSelect: () => void; onClearAll: () => void }) {
   const { bind } = useGesture(() => ORIGIN, { onTap: onSelect, onLongPress: onClearAll }, { longPressMs: 600, slopPx: 16 })
   return (
     <button
       type="button"
-      className="play-tool play-tool--hold"
+      className="play-tool play-tool--erase"
       aria-pressed={active}
-      title={t.toolTitle.erase}
+      aria-label={label}
+      title={title}
       {...bind}
       // Keyboard and screen readers: Enter/Space clicks; the pointer path handles touch.
       onClick={(e) => e.detail === 0 && onSelect()}
     >
       <span className="play-tool__icon" aria-hidden="true"><ToolIcon name="erase" /></span>
-      <span className="play-tool__label">{t.tools.erase}</span>
+    </button>
+  )
+}
+
+/**
+ * Undo is one button with two gestures, the same machine the eraser uses (SLAY-5.1): a tap
+ * undoes, a long press redoes — Redo no longer has a button of its own. Each gesture no-ops on
+ * its own when there is nothing to do, so e.g. a long press still redoes right after the last
+ * possible undo (`canUndo` false, `canRedo` true); the button only goes fully `disabled` (and
+ * unreachable by keyboard) when neither is possible.
+ */
+function UndoButton({ canUndo, canRedo, label, title, onUndo, onRedo }: { canUndo: boolean; canRedo: boolean; label: string; title?: string; onUndo: () => void; onRedo: () => void }) {
+  const { bind } = useGesture(
+    () => ORIGIN,
+    { onTap: () => canUndo && onUndo(), onLongPress: () => canRedo && onRedo() },
+    { longPressMs: 600, slopPx: 16 },
+  )
+  return (
+    <button
+      type="button"
+      className="play-tool play-tool--undo"
+      aria-label={label}
+      title={title ?? label}
+      disabled={!canUndo && !canRedo}
+      {...bind}
+      onClick={(e) => e.detail === 0 && canUndo && onUndo()}
+    >
+      <span className="play-tool__icon" aria-hidden="true"><ToolIcon name="undo" /></span>
     </button>
   )
 }
@@ -71,68 +100,39 @@ export interface ToolbarProps {
   onUndo: () => void
   onRedo: () => void
   onHint: () => void
-  onOpenOptions: () => void
-  onOpenHelp: () => void
-  onOpenLegend: () => void
   onClearAll: () => void
 }
 
+/**
+ * The play-screen toolbar (SLAY-5.1): exactly six icon-only controls, the same set on every
+ * viewport — Note, X, Erase, Undo, Hint, Zoom. Place is gone (its one capability, a tap that
+ * places, was already reachable as the long press every mode has); Redo lives behind a long
+ * press on Undo; Options, Help and Legend moved to a small icon in the play-screen header.
+ */
 export function Toolbar(props: ToolbarProps) {
   const strings = usePlayStrings()
   const t = strings.tools
   const { tool, onTool } = props
-  const [moreOpen, setMoreOpen] = useState(false)
-  // Each item both dismisses the More sheet and runs the toolbar action it stands in for.
-  const openFromMore = (action: () => void) => () => {
-    setMoreOpen(false)
-    action()
-  }
   return (
     <div className="play-toolbar" role="toolbar" aria-label={t.label}>
-      <div className="play-toolbar__group" role="group" aria-label={t.mode}>
-        <ToolButton icon={<ToolIcon name="note" />} label={t.note} title={strings.toolTitle.note} pressed={tool === 'note'} onClick={() => onTool('note')} />
-        <ToolButton icon={<ToolIcon name="place" />} label={t.place} title={strings.toolTitle.place} pressed={tool === 'place'} onClick={() => onTool('place')} />
-        <ToolButton icon={<ToolIcon name="x" />} label={t.x} title={strings.toolTitle.x} pressed={tool === 'x'} onClick={() => onTool('x')} />
-        <EraserButton active={tool === 'erase'} onSelect={() => onTool('erase')} onClearAll={props.onClearAll} />
-      </div>
-      <div className="play-toolbar__group">
-        <ToolButton icon={<ToolIcon name="undo" />} label={t.undo} disabled={!props.canUndo} onClick={props.onUndo} />
-        <ToolButton icon={<ToolIcon name="redo" />} label={t.redo} disabled={!props.canRedo} onClick={props.onRedo} />
-        <ToolButton icon={<ToolIcon name="hint" />} label={t.hint} pressed={props.hintOpen} onClick={props.onHint} />
-      </div>
-      <div className="play-toolbar__group">
-        <ToolButton
-          icon={
-            <>
-              <ToolIcon name={isZoomed(props.zoom) ? 'zoomOut' : 'zoomIn'} />
-              <span className="play-tool__badge">{zoomLabel(props.zoom)}</span>
-            </>
-          }
-          label={t.zoom}
-          title={strings.toolTitle.zoom}
-          pressed={isZoomed(props.zoom)}
-          onClick={props.onZoom}
-          className="play-tool--zoom"
-        />
-        {/* Options, Help and Legend are once-per-session actions (unlike Zoom, used often during
-            play): they sit behind this one control instead of their own toolbar buttons. */}
-        <ToolButton
-          icon={<ToolIcon name="more" />}
-          label={t.more}
-          pressed={moreOpen}
-          onClick={() => setMoreOpen(true)}
-          className="play-tool--more"
-        />
-      </div>
-      {moreOpen ? (
-        <Modal title={t.more} onClose={() => setMoreOpen(false)} className="play-modal__panel--more">
-          <div className="play-more">
-            <ToolButton icon={<ToolIcon name="options" />} label={t.options} onClick={openFromMore(props.onOpenOptions)} />
-            <ToolButton icon={<ToolIcon name="help" />} label={t.help} onClick={openFromMore(props.onOpenHelp)} />
-            <ToolButton icon={<ToolIcon name="legend" />} label={t.legend} title={strings.toolTitle.legend} onClick={openFromMore(props.onOpenLegend)} />
-          </div>
-        </Modal>
-      ) : null}
+      <ToolButton icon={<ToolIcon name="note" />} label={t.note} title={strings.toolTitle.note} pressed={tool === 'note'} onClick={() => onTool('note')} />
+      <ToolButton icon={<ToolIcon name="x" />} label={t.x} title={strings.toolTitle.x} pressed={tool === 'x'} onClick={() => onTool('x')} />
+      <EraserButton active={tool === 'erase'} label={t.erase} title={strings.toolTitle.erase} onSelect={() => onTool('erase')} onClearAll={props.onClearAll} />
+      <UndoButton canUndo={props.canUndo} canRedo={props.canRedo} label={t.undo} onUndo={props.onUndo} onRedo={props.onRedo} />
+      <ToolButton icon={<ToolIcon name="hint" />} label={t.hint} pressed={props.hintOpen} onClick={props.onHint} />
+      <ToolButton
+        icon={
+          <>
+            <ToolIcon name={isZoomed(props.zoom) ? 'zoomOut' : 'zoomIn'} />
+            <span className="play-tool__badge">{zoomLabel(props.zoom)}</span>
+          </>
+        }
+        label={t.zoom}
+        title={strings.toolTitle.zoom}
+        pressed={isZoomed(props.zoom)}
+        onClick={props.onZoom}
+        className="play-tool--zoom"
+      />
     </div>
   )
 }

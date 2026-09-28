@@ -93,15 +93,27 @@ async function hold(x: number, y: number, ms = 700) { await touch('touchStart', 
 // Scrolls the element into view first when needed (a phone page is taller than the screen); on an iPad nothing scrolls.
 const rectOf = (sel: string) =>
   evaluate(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
+// A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
+// has no visible text) or a header/sheet item that still shows a visible label (the header's
+// settings icon, and Options/Help/Legend behind it): whichever the element has.
 const toolRect = (label: string) =>
-  evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool')].find(b => b.querySelector('.play-tool__label')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
+  evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
 async function tool(label: string) {
   const r = await toolRect(label)
   if (!r) throw new Error('missing tool ' + label)
   await tap(r.x, r.y)
-  // 400ms, not 250: a tool can sit inside a dialog that just opened (Options/Help/Legend behind More, SLAY-4.2),
-  // and a click within the first 350ms of a dialog opening is ignored (ghost-click guard, modalGuard.ts).
+  // 400ms, not 250: a tool can sit inside a dialog that just opened (Options/Help/Legend behind
+  // the header's settings icon, SLAY-5.1), and a click within the first 350ms of a dialog opening
+  // is ignored (ghost-click guard, modalGuard.ts).
   await sleep(400)
+}
+// Redo has no button of its own (SLAY-5.1): a long press on Undo reaches it, the same gesture the
+// eraser's tap-selects/long-press-clears-all pattern already uses.
+async function toolHold(label: string, ms = 650) {
+  const r = await toolRect(label)
+  if (!r) throw new Error('missing tool ' + label)
+  await hold(r.x, r.y, ms)
+  await sleep(300)
 }
 async function tapSel(sel: string) {
   const r = await rectOf(sel)
@@ -376,7 +388,7 @@ async function firstVisit() {
   check('second visit does not show the card', (await count('.play-modal')) === 0 && (await count('.play-board')) === 1)
   await reload()
   check('reload does not show the card either', (await count('.play-modal')) === 0 && (await count('.play-board')) === 1)
-  // Help sits behind More (SLAY-4.2).
+  // Help sits behind the header's settings icon (SLAY-5.1).
   await tool('More')
   await tool('Help')
   check('Help button reopens the card, glossary hidden', (await panelProbe())?.title === 'How it works' && (await panelProbe())?.glossary === 0)
@@ -429,11 +441,11 @@ async function playDay(first: boolean, w: number, h: number) {
   await shot('02-note')
   check('screenshot note', true)
 
-  // Undo / redo.
+  // Undo / redo: redo has no button of its own (SLAY-5.1), a long press on Undo reaches it.
   await tool('Undo')
   check('undo removes the note', (await count('[data-note]')) === 0)
-  await tool('Redo')
-  check('redo brings the note back', (await count('[data-note]')) === 1)
+  await toolHold('Undo')
+  check('a long press on Undo redoes: the note comes back', (await count('[data-note]')) === 1)
   await tool('Undo')
 
   // X mode.
@@ -458,8 +470,8 @@ async function playDay(first: boolean, w: number, h: number) {
   check('selection advances to the next suspect', after !== before, `${before} -> ${after}`)
   await tool('Undo')
   check('undo removes the placement', (await count('[data-person]')) === 0)
-  await tool('Redo')
-  check('redo restores the placement', (await count('[data-person]')) >= 1)
+  await toolHold('Undo')
+  check('a long press on Undo redoes: the placement is restored', (await count('[data-person]')) >= 1)
 
   // Hints 1..3.
   await tool('Hint')
@@ -511,7 +523,7 @@ async function playDay(first: boolean, w: number, h: number) {
     await sleep(250)
   }
 
-  // Help and options, both behind More (SLAY-4.2) (first viewport run only: same component on every day).
+  // Help and options, both behind the header's settings icon (SLAY-5.1) (first viewport run only: same component on every day).
   if (first) {
     await tool('More')
     await tool('Help')
@@ -553,7 +565,7 @@ async function playDay(first: boolean, w: number, h: number) {
   // Clear-all dialog: long-press the eraser, cancel, then confirm.
   // Measured again on every use: on a phone the page may have scrolled since.
   const holdEraser = async () => {
-    const er = (await rectOf('.play-tool--hold'))!
+    const er = (await rectOf('.play-tool--erase'))!
     await hold(er.x, er.y, 800)
   }
   await holdEraser()
