@@ -222,7 +222,8 @@ async function startScreen() {
   const timer = (await evaluate(`(() => { const t = document.querySelector('[data-countdown=ends] time'); return { role: t.getAttribute('role'), label: t.getAttribute('aria-label'), live: t.getAttribute('aria-live') } })()`)) as { role: string; label: string; live: string }
   check('start screen: the countdown is a timer with a spoken label, not announced every second', timer.role === 'timer' && /^11 hours.* left$/.test(timer.label) && timer.live === 'off', JSON.stringify(timer))
   const untilText = await textOf('[data-until]')
-  const localWant = (await evaluate(`new Date(Date.UTC(2026, 9, 16, 0, 0)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })`)) as string
+  // Reference instant: one day after PLAY_DATE at midnight UTC, same as the page's own dayEnd — must stay in the same DST season as PLAY_DATE.
+  const localWant = (await evaluate(`new Date(Date.UTC(2026, 10, 22, 0, 0)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })`)) as string
   check('start screen: "Ends at 00:00 UTC (HH:MM Amsterdam time)", the same for every visitor', untilText === (localWant === '00:00' ? 'Ends at 00:00 UTC' : `Ends at 00:00 UTC (${localWant} Amsterdam time)`), `${untilText} (Amsterdam says ${localWant})`)
   const lay = await layoutProbe()
   check('start screen fits the viewport, no sideways scroll', lay.sw <= lay.iw, `scrollWidth=${lay.sw} innerWidth=${lay.iw}`)

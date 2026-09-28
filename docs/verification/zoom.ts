@@ -371,14 +371,20 @@ async function run(w: number, h: number) {
   await touch('touchEnd', [])
   await sleep(300)
   check('a second finger cancels a pending long press (nothing placed)', (await count('[data-person]')) === nPeople && (await count('[data-note]')) === 0, `people ${await count('[data-person]')}, notes ${await count('[data-note]')}`)
-  // a drag that began as a one-finger paint ends when the second finger lands
+  // a drag that began as a one-finger paint ends when the second finger lands. Step sizes scale with the actual on-screen
+  // cell size (not a fixed pixel count): on large viewports the board is bigger, and a fixed 72px total move can land
+  // inside the starting cell without ever crossing into the next one.
   const g0 = { x: fp.l + fp.w * 0.3, y: fp.t + fp.h * 0.4 }
+  const cellW = (await centerOfCell((await oracle(g0)).row, (await oracle(g0)).col)).w
+  const step1 = Math.max(12, cellW / 3)
+  const step2 = Math.max(20, cellW / 2)
   await touch('touchStart', [g0])
-  for (let i = 1; i <= 6; i++) { await sleep(25); await touch('touchMove', [{ x: g0.x + i * 12, y: g0.y }]) }
+  for (let i = 1; i <= 6; i++) { await sleep(25); await touch('touchMove', [{ x: g0.x + i * step1, y: g0.y }]) }
   await sleep(200)
   const painting = await count('[data-note]')
-  await touch('touchStart', [{ x: g0.x + 72, y: g0.y }, { x: g0.x + 200, y: g0.y + 40 }])
-  for (let i = 1; i <= 6; i++) { await sleep(25); await touch('touchMove', [{ x: g0.x + 72 + i * 20, y: g0.y }, { x: g0.x + 200 + i * 10, y: g0.y + 40 }]) }
+  const gx = g0.x + 6 * step1
+  await touch('touchStart', [{ x: gx, y: g0.y }, { x: gx + 128, y: g0.y + 40 }])
+  for (let i = 1; i <= 6; i++) { await sleep(25); await touch('touchMove', [{ x: gx + i * step2, y: g0.y }, { x: gx + 128 + i * 10, y: g0.y + 40 }]) }
   await touch('touchEnd', [])
   await sleep(300)
   check('a second finger stops a drag: no more notes painted after it landed', (await count('[data-note]')) === painting && painting >= 1, `notes at 2nd finger ${painting}, after ${await count('[data-note]')}`)
