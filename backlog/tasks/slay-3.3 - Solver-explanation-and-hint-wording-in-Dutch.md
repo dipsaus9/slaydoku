@@ -1,10 +1,10 @@
 ---
 id: SLAY-3.3
 title: Solver-explanation and hint wording in Dutch
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-28 10:20'
-updated_date: '2026-09-28 13:41'
+updated_date: '2026-09-28 13:43'
 labels:
   - story
 dependencies:
@@ -49,3 +49,9 @@ Depends on SLAY-3.2 because this module imports roomName/VICTIM_TEXT/possessive/
 
 AC3 (real UI showing Dutch hints) is explicitly deferred to SLAY-3.6's driver per the story text; this delivery gives it a ready, locale-aware API: solveHuman/solveAdvanced take options.locale ('en' default), and hintText.ts's focusHint/stepHint/cellsText take a locale param ('en' default). No UI call site (src/game/hints.ts, knowledge.ts, ui/lab/insight.ts, generator/*) was touched, so every existing caller keeps rendering English unchanged, matching the SLAY-3.2 render.ts precedent. Dutch prose for the solver/hintText sentences lives in new nl-only files (human/nl.ts, advanced/nl.ts, game/hintText.nl.ts) rather than inline in the technique/hintText files themselves, so the Dutch-text guard test could skip those files wholesale (its blankConst mechanism only fits a single 'export const X_NL = {...}' block, which doesn't match this story's per-technique sentence builders). References widened (--ref) to cover hintText.nl.ts, hintText.test.ts and validation/dutch.test.ts, which the real diff needed but the original contract did not foresee (same pattern as CAD-10.7's reference-widening commit).
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Threaded a locale option through the human and advanced solvers (HumanContext.locale / HumanOptions.locale / AdvancedOptions.locale, default 'en') and through src/game/hintText.ts's focusHint/stepHint/cellsText (locale param, default 'en'), so every step explanation and hint sentence can render in Dutch. Dutch prose lives in new nl-only modules mirroring the existing en.ts pattern: src/engine/solver/human/nl.ts (wording helpers + per-technique sentences), src/engine/solver/advanced/nl.ts (advanced-technique sentences and the room head-count 'why' clauses, written with correct Dutch subordinate-clause word order), and src/game/hintText.nl.ts (the hint bar's own sentences) - kept out of the technique/hintText files themselves so src/validation/dutch.test.ts's existing file-skip mechanism covers them, same as clues/nl.ts. Parametrized the existing solver-explanation and hint tests over both locales (en.test.ts, techniques.test.ts x2, explanations.test.ts) and added game/hintText.test.ts to exercise focusHint/stepHint directly in Dutch; extended dutch.test.ts's exceptions for the new files. No UI call site (hints.ts, knowledge.ts, generator, lab) was touched, so every existing caller keeps rendering English unchanged - AC3 (the real-UI check) is left for SLAY-3.6's driver as the story specifies. References widened in a follow-up chore commit to cover the Dutch sibling files (hintText.nl.ts, hintText.test.ts, validation/dutch.test.ts) the real diff needed, matching the CAD-10.7 precedent.
+<!-- SECTION:FINAL_SUMMARY:END -->
