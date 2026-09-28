@@ -4,7 +4,7 @@ title: 'Interface text in Dutch: start screen and play screen'
 status: In Progress
 assignee: []
 created_date: '2026-09-28 10:20'
-updated_date: '2026-09-28 12:08'
+updated_date: '2026-09-28 12:13'
 labels:
   - story
 dependencies:
@@ -28,8 +28,8 @@ Branch: SLAY-3.4/daily-play-text-dutch
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 src/ui/daily/strings.ts and src/ui/play/strings.ts each carry an 'en' and 'nl' entry; every component that read the flat _EN constant now reads through useLocale()
-- [ ] #2 Switching the toggle re-renders the start and play screens in the chosen language immediately, no reload needed
-- [ ] #3 Existing daily/play component tests are parametrized over locale and pass for both
+- [x] #2 Switching the toggle re-renders the start and play screens in the chosen language immediately, no reload needed
+- [x] #3 Existing daily/play component tests are parametrized over locale and pass for both
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -44,4 +44,6 @@ Branch: SLAY-3.4/daily-play-text-dutch
 SLAY-3.1 already added the toggle to src/ui/daily/; this story's job is making the rest of that directory (and src/ui/play/) actually react to it.
 
 AC1: strings.ts (daily+play) restructured into typed {en,nl} pairs via DailyStrings/PlayStrings + useDailyStrings()/usePlayStrings() hooks. Every component that read the flat _EN constant now reads through the hook (StartScreen, Countdown, DailyFlow/PlayRoute, Board, HintBar, OptionsPanel, PlayScreen, ResultOverlay, SuspectPanel, Toolbar/EraserButton). Fixed src/validation/dutch.test.ts, which pre-dates locale support and hard-guards against any Dutch string anywhere in src/ui: it now blanks only the new DAILY_NL/PLAY_NL objects (brace-matched) before scanning, so intentional Dutch passes while the _EN objects and everything else stay fully guarded.
+
+AC2: satisfied by construction — every consuming component reads locale strings through useDailyStrings()/usePlayStrings(), which call useLocale() (React context via useContext). Any setLocale() call in LocaleProvider re-renders every subscribed consumer in the same render tree immediately, no remount/reload, same mechanism already proven by SLAY-3.1's LocaleProvider/useLocale tests (src/locale/locale.test.tsx). AC3: parametrized src/ui/daily/daily.test.tsx (StartScreen, 10 cases x 2 locales = 20 tests), src/ui/play/Toolbar.test.tsx (7 x 2 = 14), src/ui/play/HintBar.test.tsx (4 x 2 = 8), and the locale-bearing suites of src/ui/play/PlayScreen.test.tsx (toolbar text, ResultOverlay, options-panel axis-labels switch) over both 'en' and 'nl' via LocaleProvider + PLAY_STRINGS/DAILY_STRINGS lookups instead of hardcoded English literals. Full baseline verify (lint, typecheck, test) green: 137 test files / 2589 tests. Text sourced outside this story's References (date formatting in src/schedule, hint/clue content in src/engine/clues, the help card/legend in src/content/help) intentionally stays English in both locales -- confirmed unaffected and left as-is.
 <!-- SECTION:NOTES:END -->

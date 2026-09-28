@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_OPTIONS } from '../../game/index.ts'
-import { PLAY_EN } from './strings.ts'
+import { LocaleProvider } from '../../locale/index.ts'
+import type { Locale } from '../../locale/index.ts'
+import { PLAY_STRINGS } from './strings.ts'
 import { Toolbar, type ToolbarProps } from './Toolbar.tsx'
 import { IDENTITY } from './zoom.ts'
 
@@ -26,20 +28,31 @@ const props: ToolbarProps = {
   onClearAll: noop,
 }
 
+/** The browser language `LocaleProvider` defaults from, per `Locale` (SLAY-3.4). */
+const BROWSER_LANGUAGE: Record<Locale, string> = { en: 'en-US', nl: 'nl-NL' }
+
+const renderToolbar = (locale: Locale, over: Partial<ToolbarProps> = {}) =>
+  renderToStaticMarkup(
+    <LocaleProvider storage={null} browserLanguage={BROWSER_LANGUAGE[locale]}>
+      <Toolbar {...props} {...over} />
+    </LocaleProvider>,
+  )
+
 function buttons(html: string): string[] {
   return html.match(/<button\b[\s\S]*?<\/button>/g) ?? []
 }
 
-describe('<Toolbar/> icons (CAD-10.10)', () => {
-  const html = renderToStaticMarkup(<Toolbar {...props} />)
+describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10) (%s)', (locale) => {
+  const t = PLAY_STRINGS[locale]
+  const html = renderToolbar(locale)
   const all = buttons(html)
 
   it('has all twelve buttons', () => {
     expect(all).toHaveLength(12)
   })
 
-  it('gives every tool button an svg icon and an English label', () => {
-    const labels = Object.entries(PLAY_EN.tools)
+  it('gives every tool button an svg icon and a label in the current locale', () => {
+    const labels = Object.entries(t.tools)
       .filter(([key]) => key !== 'label' && key !== 'mode')
       .map(([, label]) => label)
     expect(labels).toHaveLength(12)
@@ -68,10 +81,10 @@ describe('<Toolbar/> icons (CAD-10.10)', () => {
   })
 
   it('keeps aria-pressed and the title text on the mode buttons', () => {
-    const note = all.find((b) => b.includes('>Note<'))!
+    const note = all.find((b) => b.includes(`>${t.tools.note}<`))!
     expect(note).toContain('aria-pressed="true"')
-    expect(note).toContain(`title="${PLAY_EN.toolTitle.note}"`)
-    for (const [label, title] of [['Place', PLAY_EN.toolTitle.place], ['X', PLAY_EN.toolTitle.x], ['Erase', PLAY_EN.toolTitle.erase]]) {
+    expect(note).toContain(`title="${t.toolTitle.note}"`)
+    for (const [label, title] of [[t.tools.place, t.toolTitle.place], [t.tools.x, t.toolTitle.x], [t.tools.erase, t.toolTitle.erase]]) {
       const b = all.find((x) => x.includes(`>${label}<`))!
       expect(b).toContain('aria-pressed="false"')
       expect(b).toContain(`title="${title}"`)
@@ -82,7 +95,7 @@ describe('<Toolbar/> icons (CAD-10.10)', () => {
     const zoom = all.find((b) => b.includes('play-tool--zoom'))!
     expect(zoom).toContain('data-icon="zoomIn"')
     expect(zoom).toContain('<span class="play-tool__badge">1×</span>')
-    const zoomed = buttons(renderToStaticMarkup(<Toolbar {...props} zoom={{ ...IDENTITY, scale: 2 }} />)).find((b) => b.includes('play-tool--zoom'))!
+    const zoomed = buttons(renderToolbar(locale, { zoom: { ...IDENTITY, scale: 2 } })).find((b) => b.includes('play-tool--zoom'))!
     expect(zoomed).toContain('data-icon="zoomOut"')
     expect(zoomed).toContain('2×')
   })
