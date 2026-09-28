@@ -142,9 +142,9 @@ async function tapSel(sel: string) {
 }
 // A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
 // has no visible text) or a header/sheet item that still shows a visible label (the header's
-// settings icon, and Options/Help/Legend behind it): whichever the element has.
+// settings icon and Options/Help behind it, the header's own Legend icon): whichever the element has.
 async function tool(label: string) {
-  const r = (await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
+  const r = (await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
   if (!r) throw new Error('missing tool ' + label)
   await tap(r.x, r.y)
   await sleep(400) // ghost-click guard on a just-opened dialog (modalGuard.ts)
@@ -271,7 +271,7 @@ check('the hint bar closes', (await count('.play-hint')) === 0)
 
 await tool('Meer')
 const moreLabels = (await evaluate(`JSON.stringify([...document.querySelectorAll('.play-more .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string))) as string[]
-check("the header's settings sheet reads in Dutch: Opties, Help, Legenda", JSON.stringify(moreLabels) === JSON.stringify(['Opties', 'Help', 'Legenda']), moreLabels.join())
+check("the header's settings sheet reads in Dutch: Opties, Help (Legenda has its own header icon, SLAY-8.2)", JSON.stringify(moreLabels) === JSON.stringify(['Opties', 'Help']), moreLabels.join())
 await tap(3, 3)
 await sleep(300)
 

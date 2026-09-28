@@ -120,9 +120,9 @@ const rectJs = (sel: string, scroll: boolean) =>
 const rectOf = (sel: string, scroll = true) => evaluate(rectJs(sel, scroll)) as Promise<Rect | null>
 // A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
 // has no visible text) or a header/sheet item that still shows a visible label (the header's
-// settings icon, and Options/Help/Legend behind it): whichever the element has.
+// settings icon and Options/Help behind it, the header's own Legend icon): whichever the element has.
 const toolRect = (label: string) =>
-  evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
+  evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
 async function tool(label: string) {
   const r = await toolRect(label)
   if (!r) throw new Error('missing tool ' + label)

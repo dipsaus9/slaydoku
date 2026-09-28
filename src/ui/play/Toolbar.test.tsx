@@ -22,9 +22,11 @@ const props: ToolbarProps = {
   onClearAll: noop,
 }
 
-/** The six icon-only controls (SLAY-5.1): Place is gone, Redo lives behind a long press on
- * Undo, and Options/Help/Legend moved to the play-screen header — everything the toolbar shows. */
-const MAIN_ROW = ['note', 'x', 'erase', 'undo', 'hint', 'zoom'] as const
+/** The seven controls (SLAY-8.2: Place is back), Redo still lives behind a long press on Undo,
+ * and Options/Help/Legend still live outside the toolbar (the play-screen header) — everything
+ * the toolbar shows. The text label renders next to every icon; play.css hides it on phone
+ * widths and shows it wherever there is room (this file renders raw markup, no CSS applied). */
+const MAIN_ROW = ['place', 'note', 'x', 'erase', 'undo', 'hint', 'zoom'] as const
 
 /** The browser language `LocaleProvider` defaults from, per `Locale` (SLAY-3.4). */
 const BROWSER_LANGUAGE: Record<Locale, string> = { en: 'en-US', nl: 'nl-NL' }
@@ -40,22 +42,22 @@ function buttons(html: string): string[] {
   return html.match(/<button\b[\s\S]*?<\/button>/g) ?? []
 }
 
-describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10, SLAY-5.1) (%s)', (locale) => {
+describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10, SLAY-8.2) (%s)', (locale) => {
   const t = PLAY_STRINGS[locale]
   const html = renderToolbar(locale)
   const all = buttons(html)
 
-  it('has exactly the six main-row buttons, none with a visible text label', () => {
-    expect(all).toHaveLength(6)
-    expect(html).not.toContain('play-tool__label')
-    for (const label of [t.tools.note, t.tools.x, t.tools.erase, t.tools.undo, t.tools.hint, t.tools.zoom, t.tools.place, t.tools.redo, t.tools.more]) {
-      expect(html).not.toContain(`>${label}<`)
+  it('has exactly the seven main-row buttons, each with a visible text label next to its icon', () => {
+    expect(all).toHaveLength(7)
+    for (const label of [t.tools.place, t.tools.note, t.tools.x, t.tools.erase, t.tools.undo, t.tools.hint, t.tools.zoom]) {
+      expect(html).toContain(`<span class="play-tool__label" aria-hidden="true">${label}</span>`)
     }
+    for (const label of [t.tools.redo, t.tools.more]) expect(html).not.toContain(`>${label}<`)
   })
 
   it('gives every button an svg icon and an aria-label plus a title, in the current locale', () => {
     const labels = MAIN_ROW.map((key) => t.tools[key])
-    expect(labels).toHaveLength(6)
+    expect(labels).toHaveLength(7)
     for (const button of all) {
       expect(button).toMatch(/<span class="play-tool__icon" aria-hidden="true"><svg\b[^>]*class="play-tool__svg"/)
       expect(button).toMatch(/aria-label="[^"]+"/)
@@ -75,13 +77,13 @@ describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10, SLAY-5.1) (%s
     }
   })
 
-  it('uses a distinct icon per button: note, x, erase, undo, hint, zoom', () => {
+  it('uses a distinct icon per button: place, note, x, erase, undo, hint, zoom', () => {
     const used = (html.match(/data-icon="(\w+)"/g) ?? []).map((m) => m.slice(11, -1))
-    expect(used).toEqual(['note', 'x', 'erase', 'undo', 'hint', 'zoomIn'])
+    expect(used).toEqual(['place', 'note', 'x', 'erase', 'undo', 'hint', 'zoomIn'])
   })
 
-  it('no control keeps Place, Redo or More: they are gone from the toolbar', () => {
-    expect(html).not.toContain('data-icon="place"')
+  it('Place is back (SLAY-8.2), but Redo and More still are not toolbar controls', () => {
+    expect(html).toContain('data-icon="place"')
     expect(html).not.toContain('data-icon="redo"')
     expect(html).not.toContain('data-icon="more"')
     expect(html).not.toContain('play-tool--more')
