@@ -22,3 +22,11 @@ describe('missingCardText', () => {
     })
   }
 })
+
+describe('missingCardText, Dutch (locale nl, SLAY-3.2)', () => {
+  for (const [name, puzzle] of named) {
+    it(`finds every card of every suspect of ${name} on the screen, in Dutch`, () => {
+      expect(missingCardText(puzzle, 'nl')).toEqual([])
+    })
+  }
+})

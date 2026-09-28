@@ -1,8 +1,9 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { CatalogClue } from '../../engine/clues/index.ts'
-import { renderClue } from '../../engine/clues/en.ts'
+import { renderClue } from '../../engine/clues/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
+import type { Locale } from '../../locale/types.ts'
 import { CardGrid } from './CardGrid.tsx'
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" }
@@ -22,18 +23,20 @@ export function markupText(html: string): string {
 
 /**
  * Cards of a puzzle that the rendered `CardGrid` does not show. For every suspect and every card the puzzle gives them (the victim's
- * fixed card excluded) the Dutch text of the card must appear in the rendered markup, and be non-empty. Empty result: everyone sees all of
- * their cards. This is the check for the bug class "a card exists in the data but not on the screen" (an empty bubble for a relational card,
- * a second card of a person that was never drawn).
+ * fixed card excluded) the card's text (in `locale`, default 'en') must appear in the rendered markup, and be non-empty. Empty result:
+ * everyone sees all of their cards. This is the check for the bug class "a card exists in the data but not on the screen" (an empty
+ * bubble for a relational card, a second card of a person that was never drawn) — in either language (SLAY-3.2).
  */
-export function missingCardText(puzzle: Pick<Puzzle, 'people' | 'clues' | 'scene'>): string[] {
-  const text = markupText(renderToStaticMarkup(createElement(CardGrid, { people: puzzle.people, clues: puzzle.clues, scene: puzzle.scene })))
+export function missingCardText(puzzle: Pick<Puzzle, 'people' | 'clues' | 'scene'>, locale: Locale = 'en'): string[] {
+  const text = markupText(
+    renderToStaticMarkup(createElement(CardGrid, { people: puzzle.people, clues: puzzle.clues, scene: puzzle.scene, locale })),
+  )
   const context = { scene: puzzle.scene, people: puzzle.people }
   const missing: string[] = []
   for (const person of puzzle.people.filter((p) => p.kind === 'suspect')) {
     const own = puzzle.clues.filter((c) => c.personId === person.id)
     for (const clue of own) {
-      const line = renderClue(clue as CatalogClue, context).trim()
+      const line = renderClue(clue as CatalogClue, context, locale).trim()
       if (line === '') missing.push(`${person.label}: card ${clue.type} has no text`)
       else if (!text.includes(line)) missing.push(`${person.label}: card "${line}" is not on the screen`)
     }

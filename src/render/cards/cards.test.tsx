@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { VICTIM_TEXT, renderClue } from '../../engine/clues/en.ts'
+import { VICTIM_TEXT_NL } from '../../engine/clues/nl.ts'
 import type { Clue, Person } from '../../engine/model/index.ts'
 import { CardGrid } from './CardGrid.tsx'
 import { CAST } from './cast.ts'
@@ -87,6 +88,13 @@ describe('VictimCard', () => {
       const source = readFileSync(new URL(file, dir), 'utf8')
       expect(source, file).not.toMatch(/alone with the murderer/i)
     }
+  })
+
+  it('is the victim in Dutch, worded from nl.ts, when locale is nl (SLAY-3.2)', () => {
+    const htmlNl = renderToStaticMarkup(<VictimCard locale="nl" />)
+    expect(htmlNl).toContain(VICTIM_TEXT_NL.title)
+    expect(htmlNl).toContain(VICTIM_TEXT_NL.clue)
+    expect(strip(htmlNl)).toContain('Het slachtoffer Was alleen met de moordenaar.')
   })
 })
 

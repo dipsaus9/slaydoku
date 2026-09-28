@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { renderClue } from '../../engine/clues/en.ts'
+import { renderClue as renderClueLocale } from '../../engine/clues/render.ts'
 import type { CatalogClue } from '../../engine/clues/index.ts'
 import type { Puzzle } from '../../engine/model/index.ts'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
@@ -54,5 +55,25 @@ describe('CardGrid with several cards per person', () => {
     const html = renderToStaticMarkup(<CardGrid people={puzzle.people} clues={puzzle.clues} scene={puzzle.scene} />)
     const lines = (html.match(/polaroid__line/g) ?? []).length
     expect(lines).toBe(puzzle.clues.filter((c) => c.type !== 'aloneWithMurderer').length + 1)
+  })
+})
+
+describe('CardGrid clue text, Dutch (locale nl, SLAY-3.2)', () => {
+  for (const name of names) {
+    it(`shows the Dutch text of every card, gift included, in ${name}`, () => {
+      const puzzle = load(name)
+      const text = strip(renderToStaticMarkup(<CardGrid people={puzzle.people} clues={puzzle.clues} scene={puzzle.scene} locale="nl" />))
+      const context = { scene: puzzle.scene, people: puzzle.people }
+      for (const clue of puzzle.clues) {
+        if (clue.type === 'aloneWithMurderer') continue
+        expect(text, `${clue.personId}: ${clue.type}`).toContain(renderClueLocale(clue as CatalogClue, context, 'nl'))
+      }
+    })
+  }
+
+  it('defaults to English when no locale is given', () => {
+    const puzzle = load('demo')
+    const html = renderToStaticMarkup(<CardGrid people={puzzle.people} clues={puzzle.clues} scene={puzzle.scene} />)
+    expect(strip(html)).not.toContain('slachtoffer')
   })
 })
