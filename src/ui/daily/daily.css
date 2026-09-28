@@ -340,15 +340,28 @@
   z-index: 2;
 }
 
+/* Plain at rest (SLAY-6.1) -- matches the play-header's own chrome-less title/timer/settings
+   controls (src/ui/play/play.css's .play-header__more/.play-timer): no resting border/background,
+   just a touch target; :active/:focus-visible give it a clear affordance instead. */
 .daily-play__back {
   min-width: 44px;
   min-height: 44px;
   padding: 0 16px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 22px;
-  background: var(--paper);
+  background: transparent;
   font-size: 1.1rem;
   cursor: pointer;
+  transition: background-color var(--duration-micro) var(--ease-out);
+}
+
+.daily-play__back:active {
+  background: rgba(42, 42, 54, 0.08);
+}
+
+.daily-play__back:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .daily-play__title {
