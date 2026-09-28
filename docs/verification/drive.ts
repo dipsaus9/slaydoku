@@ -1,5 +1,5 @@
 // Verification driver for the daily flow (SLAY-1.5; About page checks added in SLAY-1.10).
-// Drives headless Chrome over the DevTools protocol with touch emulation. The app runs on the dev-only date override (2026-09-30 = puzzle
+// Drives headless Chrome over the DevTools protocol with touch emulation. The app runs on the dev-only date override (2026-11-21 = puzzle
 // #4, see daily.ts): it checks the start screen in its states (new day, continue, solved, before the launch, after the last day, the
 // override refused on another host), the clean URLs (/, /play, /play/<n>, old /level/... paths, unknown paths, old #/ links), the
 // first-visit help card on the first Play, and plays that day end to end through the real UI (notes, undo, X, placement, hints, help,
@@ -210,7 +210,7 @@ async function startScreen() {
   ctx.level = 'start'
   await resetStorage(PLAY_DATE, false)
   await load('')
-  check('start screen: puzzle number, UTC date, difficulty and grid size', (await textOf('[data-puzzle-number]')) === `Puzzle #${DAY.n}` && (await textOf('[data-date]')) === 'Wednesday 30 September 2026' && /^Difficulty: Hard$/.test(await textOf('[data-tier]')) && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `#${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
+  check('start screen: puzzle number, UTC date, difficulty and grid size', (await textOf('[data-puzzle-number]')) === `Puzzle #${DAY.n}` && (await textOf('[data-date]')) === 'Saturday 21 November 2026' && /^Difficulty: Hard$/.test(await textOf('[data-tier]')) && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `#${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
   const play = await rectOf('[data-action=play]')
   check('start screen: one Play button, a big touch target', (await count('[data-action]')) === 1 && (await textOf('[data-action]')) === 'Play' && !!play && play.h >= 44 && play.w >= 44, JSON.stringify(play))
   check('start screen: no puzzle board and no how-it-works card before Play', (await count('.play-board')) === 0 && (await count('.play-modal')) === 0)
@@ -318,8 +318,8 @@ async function routing() {
       (await count('.about__section')) === 5,
   )
   check(
-    'About page: credits Murdoku by Manuel Garand, says no accounts and no tracking, names the MIT license',
-    aboutText.includes('Inspired by Murdoku by Manuel Garand.') && aboutText.includes('no accounts, no tracking') && aboutText.includes('MIT license'),
+    'About page: credits Murdoku by Manuel Garand, states the anonymous-counting privacy line, names the MIT license',
+    aboutText.includes('Inspired by Murdoku by Manuel Garand.') && aboutText.includes('No accounts, no per-player identifier, no cookie.') && aboutText.includes('MIT license'),
   )
   const aboutBox = (await evaluate(
     `(() => { const b = document.querySelector('.about__back').getBoundingClientRect(); return { sw: document.documentElement.scrollWidth, iw: innerWidth, backH: b.height } })()`,
@@ -619,8 +619,8 @@ async function playDay(first: boolean, w: number, h: number) {
   check('the stored result did not change', JSON.stringify(again) === JSON.stringify(result))
 
   // The next day: a new puzzle, the result of the day before stays.
-  const next = dayOn('2026-10-01')
-  await evaluate(`localStorage.setItem(${JSON.stringify(DATE_KEY)}, '2026-10-01')`)
+  const next = dayOn('2026-11-22')
+  await evaluate(`localStorage.setItem(${JSON.stringify(DATE_KEY)}, '2026-11-22')`)
   await load('')
   check(`the next day shows a new puzzle (#${next.n}), not solved`, (await textOf('[data-puzzle-number]')) === `Puzzle #${next.n}` && (await count('[data-action]')) === 1 && (await count('[data-result=solved]')) === 0, await textOf('[data-puzzle-number]'))
   const kept = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))).results[String(DAY.n)]
@@ -631,10 +631,10 @@ async function playDay(first: boolean, w: number, h: number) {
 // Midnight rollover (SLAY-1.5): the clock starts 5 seconds before 00:00 UTC of the next day (date override with a time) and passes it while the page is open.
 async function rollover() {
   ctx.level = 'rollover'
-  const next = dayOn('2026-10-01')
+  const next = dayOn('2026-11-22')
   const key = `slaydoku:game:daily-${DAY.n}`
   // (1) In the middle of a puzzle: the player keeps the puzzle, the notice offers the new one.
-  await resetStorage('2026-09-30T23:59:55', true)
+  await resetStorage('2026-11-21T23:59:55', true)
   await load('play')
   const spot = puzzle.solution[2]!.cell
   await tapSel(cellSel(spot.row, spot.col))
@@ -655,7 +655,7 @@ async function rollover() {
   await shot('12-rollover-ended-day')
   await evaluate(`document.querySelector('[data-banner] button').click()`)
   await sleep(500)
-  check(`the notice button loads the new day: puzzle #${next.n}, Thursday 1 October 2026, Play`, (await textOf('[data-puzzle-number]')) === `Puzzle #${next.n}` && (await textOf('[data-date]')) === 'Thursday 1 October 2026' && (await count('[data-action]')) === 1 && (await count('[data-banner]')) === 0, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')}`)
+  check(`the notice button loads the new day: puzzle #${next.n}, Sunday 22 November 2026, Play`, (await textOf('[data-puzzle-number]')) === `Puzzle #${next.n}` && (await textOf('[data-date]')) === 'Sunday 22 November 2026' && (await count('[data-action]')) === 1 && (await count('[data-banner]')) === 0, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')}`)
   check('the saved board of the day before is untouched', (await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)) === saved)
   await shot('13-rollover-new-day')
   await evaluate(`document.querySelector('[data-action]').click()`)
@@ -663,7 +663,7 @@ async function rollover() {
   check('Play now opens the new puzzle', (await path()) === '/play' && (await textOf('[data-play-title]')) === `Puzzle #${next.n}` && (await count('[data-note]')) === 0)
 
   // (2) On the start screen with a solved day: the result stays, the notice loads the new day.
-  await resetStorage('2026-09-30T23:59:55', true)
+  await resetStorage('2026-11-21T23:59:55', true)
   await evaluate(`localStorage.setItem(${JSON.stringify(RESULTS_KEY)}, JSON.stringify({ version: 1, results: { ${DAY.n}: { n: ${DAY.n}, date: ${JSON.stringify(DAY.date)}, fp: ${JSON.stringify(DAY.fp)}, elapsedMs: 754000, hints: 2, wrongChecks: 1, murdererId: ${JSON.stringify(deriveMurderer(DAY.puzzle, DAY.puzzle.solution))} } } }))`)
   await load('')
   check('start screen of a solved day before midnight: the result shows', (await count('[data-result=solved]')) === 1 && /Time: 12:34/.test(await startText()) && /2 hints/.test(await startText()))
