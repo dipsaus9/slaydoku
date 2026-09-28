@@ -11,7 +11,10 @@ import { DUTCH_RE, DUTCH_WORDS, wordMatcher } from './dutch.ts'
  * only words that are not English (and not names) are on that list, so "was" and "van" are not.
  *
  * Skipped on purpose: this test and `dutch.ts` (they ARE the list). Nothing else is skipped: the help card and legend
- * (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2.
+ * (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2 — except the one
+ * deliberate exception below: the `DAILY_NL` / `PLAY_NL` translation objects of `ui/daily/strings.ts` and
+ * `ui/play/strings.ts` (SLAY-3.4), which are blanked out before scanning so their Dutch is not flagged as a leak,
+ * while the `_EN` objects right next to them stay fully guarded.
  */
 const SCANNED = ['../engine/', '../game/', '../validation/', '../content/', '../ui/', '../pwa/', '../brand/', '../App.tsx', '../main.tsx']
 const SKIPPED = [/\/validation\/dutch(\.test)?\.ts$/]
@@ -58,6 +61,39 @@ function strings(path: string, source: string): string[] {
   return [...literals, ...[...code.matchAll(JSX_TEXT_RE)].map((m) => m[1]!)]
 }
 
+/**
+ * Blanks the top-level `export const <name> = { ... }` block (brace-matched, so nested `}` inside
+ * it don't end it early) with spaces of the same length, so its string literals disappear from the
+ * source before scanning while every offset outside it — and every other export in the file —
+ * stays exactly where it was.
+ */
+function blankConst(source: string, name: string): string {
+  const marker = `export const ${name}`
+  const at = source.indexOf(marker)
+  if (at === -1) return source
+  const open = source.indexOf('{', at)
+  if (open === -1) return source
+  let depth = 0
+  let end = open
+  for (; end < source.length; end++) {
+    if (source[end] === '{') depth++
+    else if (source[end] === '}') {
+      depth--
+      if (depth === 0) {
+        end++
+        break
+      }
+    }
+  }
+  return source.slice(0, open) + ' '.repeat(end - open) + source.slice(end)
+}
+
+/** The one intentional exception (SLAY-3.4): the Dutch translation object each file carries. */
+const NL_EXCEPTIONS: Record<string, string> = {
+  '/ui/daily/strings.ts': 'DAILY_NL',
+  '/ui/play/strings.ts': 'PLAY_NL',
+}
+
 describe('no Dutch text is left in the game code', () => {
   it('scans a healthy number of files', () => {
     expect(files.length).toBeGreaterThan(250)
@@ -72,7 +108,9 @@ describe('no Dutch text is left in the game code', () => {
 
   it('finds no Dutch word in any string literal or JSX text of src/engine, src/game, src/validation, src/content, src/ui, src/pwa or src/brand', () => {
     const hits: string[] = []
-    for (const [path, source] of files) {
+    for (const [path, rawSource] of files) {
+      const nlConst = Object.entries(NL_EXCEPTIONS).find(([suffix]) => path.endsWith(suffix))?.[1]
+      const source = nlConst ? blankConst(rawSource, nlConst) : rawSource
       for (const text of strings(path, source)) {
         const found = DUTCH_RE.exec(text)?.[0]
         if (found) hits.push(`${path}: "${found}" in ${text.length > 80 ? `${text.slice(0, 80)}...` : text}`)

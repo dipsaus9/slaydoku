@@ -1,9 +1,10 @@
 ---
 id: SLAY-3.4
 title: 'Interface text in Dutch: start screen and play screen'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-28 10:20'
+updated_date: '2026-09-28 12:08'
 labels:
   - story
 dependencies:
@@ -26,7 +27,7 @@ Branch: SLAY-3.4/daily-play-text-dutch
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 src/ui/daily/strings.ts and src/ui/play/strings.ts each carry an 'en' and 'nl' entry; every component that read the flat _EN constant now reads through useLocale()
+- [x] #1 src/ui/daily/strings.ts and src/ui/play/strings.ts each carry an 'en' and 'nl' entry; every component that read the flat _EN constant now reads through useLocale()
 - [ ] #2 Switching the toggle re-renders the start and play screens in the chosen language immediately, no reload needed
 - [ ] #3 Existing daily/play component tests are parametrized over locale and pass for both
 <!-- AC:END -->
@@ -41,4 +42,6 @@ Branch: SLAY-3.4/daily-play-text-dutch
 
 <!-- SECTION:NOTES:BEGIN -->
 SLAY-3.1 already added the toggle to src/ui/daily/; this story's job is making the rest of that directory (and src/ui/play/) actually react to it.
+
+AC1: strings.ts (daily+play) restructured into typed {en,nl} pairs via DailyStrings/PlayStrings + useDailyStrings()/usePlayStrings() hooks. Every component that read the flat _EN constant now reads through the hook (StartScreen, Countdown, DailyFlow/PlayRoute, Board, HintBar, OptionsPanel, PlayScreen, ResultOverlay, SuspectPanel, Toolbar/EraserButton). Fixed src/validation/dutch.test.ts, which pre-dates locale support and hard-guards against any Dutch string anywhere in src/ui: it now blanks only the new DAILY_NL/PLAY_NL objects (brace-matched) before scanning, so intentional Dutch passes while the _EN objects and everything else stay fully guarded.
 <!-- SECTION:NOTES:END -->

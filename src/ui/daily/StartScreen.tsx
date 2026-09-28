@@ -8,7 +8,7 @@ import { HelpPanel, formatTime, withCastNames } from '../play/index.ts'
 import { Link } from '../router/index.ts'
 import { Countdown } from './Countdown.tsx'
 import { LocaleToggle } from './LocaleToggle.tsx'
-import { DAILY_EN } from './strings.ts'
+import { useDailyStrings } from './strings.ts'
 
 /**
  * Everybody sees the same clock: Amsterdam time, not each visitor's own device timezone (owner decision, 2026-09-27). "Ends at 00:00 UTC
@@ -38,7 +38,7 @@ export interface StartScreenProps {
 }
 
 function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; status: DayStatus; ended: boolean; clock: () => number; onPlay: () => void }) {
-  const t = DAILY_EN
+  const t = useDailyStrings()
   const solved = status.kind === 'solved' ? status.result : null
   const name = useMemo(() => {
     if (!solved) return ''
@@ -91,7 +91,7 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
 }
 
 function BeforeLaunch({ first, clock }: { first: string; clock: () => number }) {
-  const t = DAILY_EN.before
+  const t = useDailyStrings().before
   const target = startOfUtcDay(first)
   return (
     <section className="daily-card" data-state="before-launch" aria-labelledby="daily-before">
@@ -104,7 +104,7 @@ function BeforeLaunch({ first, clock }: { first: string; clock: () => number }) 
 
 /** The start screen (`/`): the puzzle of today with how to play it, until when it runs, and the result once solved. */
 export function StartScreen({ state, clock, onPlay, rollover, share, stats }: StartScreenProps) {
-  const t = DAILY_EN
+  const t = useDailyStrings()
   const [helpOpen, setHelpOpen] = useState(false)
   return (
     <main className="daily">

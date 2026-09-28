@@ -8,7 +8,7 @@ import { createGeometry, SceneView, type FloorPattern } from '../../render/scene
 import { FlashLayer, HintLayer, MarksLayer, PeopleLayer, PressRing } from './BoardLayers.tsx'
 import { hintCells } from './hintCells.ts'
 import { gestureIntent, paintIntent, paintModeFor, type Intent, type PaintMode, type Tool } from './intent.ts'
-import { PLAY_EN } from './strings.ts'
+import { usePlayStrings } from './strings.ts'
 import { useBoardZoom } from './useBoardZoom.ts'
 import { cellAtPoint, useGesture } from './useGesture.ts'
 import { boxAroundCells, isZoomed, revealBox, viewTransform, type View } from './zoom.ts'
@@ -54,6 +54,7 @@ const NO_CELLS: readonly Cell[] = []
  * pinch and pan (useBoardZoom.ts) and cancel the one-finger gesture.
  */
 export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hint, roomStyles, themeIcons, showAxisLabels = true, dispatch, getBoard, onMessage, onPlaced, view, onView, flash = NO_CELLS }: BoardProps) {
+  const t = usePlayStrings()
   const stroke = useRef<{ mode: PaintMode } | null>(null)
   const run = (intent: Intent) => {
     if (!intent) return
@@ -128,7 +129,7 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
           scene={puzzle.scene}
           roomStyles={roomStyles}
           showAxisLabels={showAxisLabels}
-          title={PLAY_EN.board}
+          title={t.board}
           objectsLayer={(g) => <SceneObjectIcons objects={puzzle.scene.objects} geometry={g} themeIcons={themeIcons} />}
           marksLayer={(g) => (
             <>
