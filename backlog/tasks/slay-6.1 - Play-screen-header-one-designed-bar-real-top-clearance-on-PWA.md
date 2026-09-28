@@ -4,7 +4,7 @@ title: 'Play-screen header: one designed bar, real top clearance on PWA'
 status: Done
 assignee: []
 created_date: '2026-09-28 18:57'
-updated_date: '2026-09-28 20:20'
+updated_date: '2026-09-28 21:41'
 labels:
   - story
 dependencies: []
@@ -14,6 +14,13 @@ references:
   - docs/verification/
   - src/ui/daily/daily.css
   - src/ui/daily/DailyFlow.tsx
+modified_files:
+  - src/ui/play/PlayScreen.tsx
+  - src/ui/play/play.css
+  - docs/verification/drive.ts
+  - docs/verification/offline.ts
+  - docs/verification/zoom.ts
+  - docs/verification/locale.ts
 parent_task_id: SLAY-6
 type: feature
 ordinal: 35000
