@@ -62,6 +62,14 @@ describe('SceneView', () => {
     expect(html).toContain('data-layer="walls"')
   })
 
+  it('draws the room label in Dutch when locale is nl, the same noun the clue text uses (SLAY-5.2)', () => {
+    const en = render({ scene: tutorial })
+    const nl = render({ scene: tutorial, locale: 'nl' })
+    expect(en).toContain('>LIVING ROOM<')
+    expect(nl).toContain('>WOONKAMER<')
+    expect(nl).not.toContain('LIVING ROOM')
+  })
+
   it('renders windows and doors on their edges', () => {
     const html = render({ scene: sample9x9 })
     expect(html).toContain('data-feature="window"')

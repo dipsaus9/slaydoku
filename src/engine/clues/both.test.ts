@@ -218,7 +218,7 @@ const pairsNl: [string, BothClue, string][] = [
   [
     'an object and a room',
     both({ type: 'onObject', args: { objectType: 'car' } }, { type: 'inRoom', args: { roomId: 'living' } }),
-    'Henry zat in een car en was in de Living Room.',
+    'Henry zat in een car en was in de Woonkamer.',
   ],
   [
     'a corner and alone',
@@ -238,12 +238,12 @@ const pairsNl: [string, BothClue, string][] = [
   [
     'a numbered row and the edge of a named room',
     both({ type: 'inRow', args: { index: 2 } }, { type: 'inRoomEdge', args: { roomId: 'study', edge: 'east' } }),
-    'Henry stond in rij 3 en stond in de meest rechtse kolom van de Study.',
+    'Henry stond in rij 3 en stond in de meest rechtse kolom van de Studeerkamer.',
   ],
   [
     'the only one on an object, and in one of two rooms',
     both({ type: 'onlyOnObject', args: { objectType: 'chair' } }, { type: 'inRoomOr', args: { roomIds: ['kitchen', 'study'] } }),
-    'Henry was de enige persoon op een chair en was in de Kitchen of de Study.',
+    'Henry was de enige persoon op een chair en was in de Keuken of de Studeerkamer.',
   ],
   [
     'the holder is another person: the name is theirs',

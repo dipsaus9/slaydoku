@@ -1,6 +1,7 @@
 import { useEffect, useRef, type Dispatch, type PointerEvent as ReactPointerEvent, type SetStateAction } from 'react'
 import type { Cell, Puzzle } from '../../engine/model/index.ts'
 import type { Board as BoardData, GameAction, Hint } from '../../game/index.ts'
+import { useLocale } from '../../locale/index.ts'
 import { SceneObjectIcons } from '../../render/icons/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
@@ -55,6 +56,7 @@ const NO_CELLS: readonly Cell[] = []
  */
 export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hint, roomStyles, themeIcons, showAxisLabels = true, dispatch, getBoard, onMessage, onPlaced, view, onView, flash = NO_CELLS }: BoardProps) {
   const t = usePlayStrings()
+  const { locale } = useLocale()
   const stroke = useRef<{ mode: PaintMode } | null>(null)
   const run = (intent: Intent) => {
     if (!intent) return
@@ -130,6 +132,7 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
           roomStyles={roomStyles}
           showAxisLabels={showAxisLabels}
           title={t.board}
+          locale={locale}
           objectsLayer={(g) => <SceneObjectIcons objects={puzzle.scene.objects} geometry={g} themeIcons={themeIcons} />}
           marksLayer={(g) => (
             <>

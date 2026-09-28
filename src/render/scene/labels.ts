@@ -1,4 +1,6 @@
+import { roomNameNlOf } from '../../content/themes/index.ts'
 import { cellKey, cellsInRoom, type Cell, type Scene } from '../../engine/model/index.ts'
+import type { Locale } from '../../locale/types.ts'
 
 /** Room label placement in cell units (1 = one cell), independent of pixel size. */
 export interface RoomLabelLayout {
@@ -86,9 +88,11 @@ function fitFont(lines: string[], available: number): number {
  * Where to draw a room's name so it lies inside the room. The label goes on
  * the longest row run of the room that no object covers (any run when every
  * cell is covered), nearest the room's centre; long names shrink or wrap to two
- * lines to fit the run.
+ * lines to fit the run. Dutch (SLAY-5.2) draws the same real Dutch noun the clue
+ * text uses (`roomNameNlOf`, content/themes/index.ts) — never a second translation;
+ * a name no theme defines falls back to the bare English noun, exactly as `'en'` does.
  */
-export function roomLabelLayout(scene: Scene, roomId: string): RoomLabelLayout | undefined {
+export function roomLabelLayout(scene: Scene, roomId: string, locale: Locale = 'en'): RoomLabelLayout | undefined {
   const room = scene.rooms.find((r) => r.id === roomId)
   const cells = cellsInRoom(scene, roomId)
   if (!room || cells.length === 0) return undefined
@@ -107,8 +111,10 @@ export function roomLabelLayout(scene: Scene, roomId: string): RoomLabelLayout |
       : best,
   )
 
-  // A room name may carry its article ("the Kitchen"); the map shows the bare noun.
-  const name = bareRoomName(room.name).toUpperCase()
+  // A room name may carry its article ("the Kitchen"); the map shows the bare noun. Dutch
+  // (`nameNl`) never carries one, so it needs no stripping.
+  const nameNl = locale === 'nl' ? roomNameNlOf(room.name) : undefined
+  const name = (nameNl ?? bareRoomName(room.name)).toUpperCase()
   const words = name.split(/\s+/).filter(Boolean)
   const available = length(run) - 2 * RUN_INSET - PILL_PAD_X
   let lines = [words.join(' ')]

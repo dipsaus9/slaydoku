@@ -110,7 +110,13 @@ button.polaroid {
 }
 
 .polaroid--victim .polaroid__name {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
+  /* "Het slachtoffer" (Dutch, SLAY-5.2) is longer than "The victim": wrap at the word boundary,
+     never mid-word, and never auto-hyphenated — same policy as .polaroid__clue just below. A clean
+     two-line wrap here is fine, never awkward; the card only grows to fit it (SLAY-4.3's
+     min-height, above, is a floor, never a cap). */
+  overflow-wrap: break-word;
+  hyphens: manual;
 }
 
 .polaroid__badge {

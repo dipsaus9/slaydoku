@@ -100,7 +100,7 @@ const samplesNl: [RelationalClue, string][] = [
   [{ personId: 'A', type: 'directionOf', args: { side: 'west', otherId: 'B' } }, 'A stond verder naar het westen dan B.'],
   [
     { personId: 'A', type: 'directionOf', args: { side: 'north', otherId: 'B', roomId: 'kitchen' } },
-    'A was in de Kitchen, verder naar het noorden dan B.',
+    'A was in de Keuken, verder naar het noorden dan B.',
   ],
   [
     { personId: 'A', type: 'directionOf', args: { side: 'west', otherId: 'B', alone: true } },
@@ -132,7 +132,7 @@ const samplesNl: [RelationalClue, string][] = [
       type: 'exactDistance',
       args: { side: 'north', count: 1, otherId: 'B', alone: true, roomId: 'study' },
     },
-    'A was alleen in de Study, precies één rij boven B.',
+    'A was alleen in de Studeerkamer, precies één rij boven B.',
   ],
   [
     { personId: 'A', type: 'directlyNextToObject', args: { side: 'south', objectType: 'easel' } },
@@ -157,7 +157,7 @@ const samplesNl: [RelationalClue, string][] = [
   ],
   [
     { personId: 'A', type: 'diagonal', args: { otherId: 'B', roomId: 'living', alone: true } },
-    'A was alleen in de Living Room, op dezelfde diagonaal als B.',
+    'A was alleen in de Woonkamer, op dezelfde diagonaal als B.',
   ],
   [
     { personId: 'A', type: 'quadrant', args: { direction: 'northeast', otherId: 'B' } },

@@ -133,32 +133,32 @@ const samplesNl: [StructuralClue, string][] = [
     { personId: 'C', type: 'onlyOnObject', args: { objectType: 'car' } },
     'C was de enige persoon in een car.',
   ],
-  [{ personId: 'A', type: 'inRoom', args: { roomId: 'kitchen' } }, 'A was in de Kitchen.'],
+  [{ personId: 'A', type: 'inRoom', args: { roomId: 'kitchen' } }, 'A was in de Keuken.'],
   [
     { personId: 'A', type: 'inRoomOr', args: { roomIds: ['kitchen', 'study'] } },
-    'A was in de Kitchen of de Study.',
+    'A was in de Keuken of de Studeerkamer.',
   ],
   [{ personId: 'A', type: 'inCorner', args: {} }, 'A stond in een hoek.'],
   [
     { personId: 'A', type: 'inCorner', args: { roomId: 'living' } },
-    'A stond in een hoek van de Living Room.',
+    'A stond in een hoek van de Woonkamer.',
   ],
   [{ personId: 'A', type: 'besideFeature', args: { feature: 'window' } }, 'A stond naast een raam.'],
   [{ personId: 'A', type: 'besideFeature', args: { feature: 'door' } }, 'A stond naast een deur.'],
   [{ personId: 'A', type: 'inFrontOfDoor', args: {} }, 'A stond voor een deur.'],
   [{ personId: 'A', type: 'alone', args: {} }, 'A was alleen.'],
-  [{ personId: 'A', type: 'alone', args: { roomId: 'bedroom' } }, 'A was alleen in de Bedroom.'],
+  [{ personId: 'A', type: 'alone', args: { roomId: 'bedroom' } }, 'A was alleen in de Slaapkamer.'],
   [{ personId: 'A', type: 'withPerson', args: { otherId: 'B' } }, 'A was samen met B.'],
   [
     { personId: 'A', type: 'withPerson', args: { otherId: 'B', roomId: 'living' } },
-    'A was samen met B in de Living Room.',
+    'A was samen met B in de Woonkamer.',
   ],
   [{ personId: 'A', type: 'aloneWith', args: { otherId: 'V' } }, 'A was alleen met V.'],
   [
     { personId: 'A', type: 'aloneWith', args: { otherId: 'B', roomId: 'study' } },
-    'A was alleen met B in de Study.',
+    'A was alleen met B in de Studeerkamer.',
   ],
-  [{ personId: 'A', type: 'emptyRoom', args: { roomId: 'living' } }, 'Er was niemand in de Living Room.'],
+  [{ personId: 'A', type: 'emptyRoom', args: { roomId: 'living' } }, 'Er was niemand in de Woonkamer.'],
   [{ personId: 'A', type: 'roomHasGender', args: { gender: 'woman' } }, "Er was minstens één vrouw in A's kamer."],
   [{ personId: 'A', type: 'roomHasGender', args: { gender: 'man' } }, "Er was minstens één man in A's kamer."],
   [{ personId: 'B', type: 'aloneWithGender', args: { gender: 'man' } }, 'B was alleen met een man.'],
@@ -175,8 +175,8 @@ const samplesNl: [StructuralClue, string][] = [
   [{ personId: 'A', type: 'inRoomEdge', args: { edge: 'south' } }, 'A stond in de onderste rij van de kamer.'],
   [{ personId: 'A', type: 'inRoomEdge', args: { edge: 'west' } }, 'A stond in de meest linkse kolom van de kamer.'],
   [{ personId: 'A', type: 'inRoomEdge', args: { edge: 'east' } }, 'A stond in de meest rechtse kolom van de kamer.'],
-  [{ personId: 'A', type: 'inRoomEdge', args: { roomId: 'kitchen', edge: 'north' } }, 'A stond in de bovenste rij van de Kitchen.'],
-  [{ personId: 'A', type: 'inRoomEdge', args: { roomId: 'study', edge: 'east' } }, 'A stond in de meest rechtse kolom van de Study.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { roomId: 'kitchen', edge: 'north' } }, 'A stond in de bovenste rij van de Keuken.'],
+  [{ personId: 'A', type: 'inRoomEdge', args: { roomId: 'study', edge: 'east' } }, 'A stond in de meest rechtse kolom van de Studeerkamer.'],
   [
     {
       personId: 'A',
@@ -191,7 +191,7 @@ const samplesNl: [StructuralClue, string][] = [
       type: 'both',
       args: { a: { type: 'alone', args: { roomId: 'kitchen' } }, b: { type: 'onLine', args: { axis: 'row', position: 'first' } } },
     },
-    'A was alleen in de Kitchen en stond in de bovenste rij.',
+    'A was alleen in de Keuken en stond in de bovenste rij.',
   ],
   [{ personId: 'V', type: 'aloneWithMurderer', args: {} }, 'Het slachtoffer was alleen met de moordenaar.'],
 ]
@@ -428,6 +428,18 @@ describe('the victim label at the start of a sentence', () => {
     expect(renderClue({ personId: 'A', type: 'aloneWith', args: { otherId: 'V' } }, victim)).toBe('Alice was alone with the victim.')
     expect(renderClue({ personId: 'A', type: 'quadrant', args: { direction: 'northwest', otherId: 'V' } }, victim)).toBe(
       'Alice stood somewhere to the northwest of the victim.',
+    )
+  })
+
+  it('Dutch: a clue that names the victim by reference says "het slachtoffer", never the stored English label (SLAY-5.2)', () => {
+    expect(renderClueLocale({ personId: 'A', type: 'aloneWith', args: { otherId: 'V' } }, victim, 'nl')).toBe(
+      'Alice was alleen met het slachtoffer.',
+    )
+    expect(renderClueLocale({ personId: 'A', type: 'quadrant', args: { direction: 'northwest', otherId: 'V' } }, victim, 'nl')).toBe(
+      'Alice stond ergens ten noordwesten van het slachtoffer.',
+    )
+    expect(renderClueLocale({ personId: 'V', type: 'onObject', args: { objectType: 'bed' } }, victim, 'nl')).toBe(
+      'Het slachtoffer lag op een bed.',
     )
   })
 

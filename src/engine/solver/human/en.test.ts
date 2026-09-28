@@ -123,7 +123,7 @@ describe('solver wording helpers: Dutch', () => {
 
   it('reuses the Dutch clue-text room name (locale nl) and the victim label', () => {
     expect(nl.roomName(nlBoard, 0)).toBe('de Gallery')
-    expect(nl.roomName(nlBoard, 1)).toBe('de Storeroom')
+    expect(nl.roomName(nlBoard, 1)).toBe('de Bergruimte')
     expect(nl.victimName(nlBoard)).toBe('het slachtoffer')
   })
 

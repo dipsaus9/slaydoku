@@ -20,4 +20,18 @@ describe('room labels drop the article of a stored room name', () => {
       expect(label.width).toBeLessThanOrEqual(label.run.toCol - label.run.fromCol + 1)
     }
   })
+
+  it('draws the real Dutch noun, the same one the clue text uses, not a second translation (SLAY-5.2)', () => {
+    const expected: Record<string, string> = { kitchen: 'KEUKEN', hall: 'HAL', bedroom: 'SLAAPKAMER', living: 'WOONKAMER' }
+    for (const room of demoScene.rooms) {
+      const label = roomLabelLayout(demoScene, room.id, 'nl')!
+      expect(label.lines.join(' '), room.id).toBe(expected[room.id])
+    }
+  })
+
+  it('a Dutch label falls back to the bare English noun when no theme defines a Dutch name', () => {
+    const scene = { ...demoScene, rooms: [{ id: 'kitchen', name: 'Not A Real Room' }] }
+    const label = roomLabelLayout(scene, 'kitchen', 'nl')!
+    expect(label.lines.join(' ')).toBe('NOT A REAL ROOM')
+  })
 })

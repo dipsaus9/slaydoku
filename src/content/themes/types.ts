@@ -53,6 +53,8 @@ export interface ThemeObject {
 /** A room name (bare, without "the"), with the objects that belong in such a room. */
 export interface ThemeRoom {
   name: string
+  /** The real Dutch noun for this room (SLAY-5.2), e.g. "Keuken" for "Kitchen": no article, no "de"/"het" — `roomNameNl` (engine/clues/nl.ts) wraps it with the Dutch article. */
+  nameNl: string
   /** Object kinds of this theme that fit this room; the generator boosts them. */
   favours: string[]
   /** Outdoor area (garden, playground): drawn without an interior floor. */
@@ -64,6 +66,8 @@ export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop'
 export interface SceneTheme {
   id: ThemeId
   name: string
+  /** The real Dutch counterpart of `name` (SLAY-5.2), e.g. "Kantoor" for "Office". */
+  nameNl: string
   /** Pool the generator draws room names from (no repeats within one scene). */
   rooms: ThemeRoom[]
   objects: ThemeObject[]

@@ -71,7 +71,7 @@ export function lineNames(rows: boolean, lines: readonly number[]): string {
   return `${noun} ${joinList(numbers)}`
 }
 
-/** "de Kitchen", "de Balcony": the shared clue-text helper (locale `'nl'`), by room index. */
+/** "de Keuken", "de Balcony": the shared clue-text helper (locale `'nl'`), by room index. */
 export function roomName(board: BoardView, room: number): string {
   const id = board.scene.rooms[room]?.id ?? String(room)
   return roomNameLocale({ scene: board.scene, people: [...board.people] }, id, 'nl')
