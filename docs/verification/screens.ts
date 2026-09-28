@@ -96,9 +96,10 @@ async function tapAt(x: number, y: number) {
   await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
   await sleep(300)
 }
-/** Taps a toolbar button by its label, like a finger would (scrolled into view first). */
+/** Taps a toolbar control by its accessible name (SLAY-5.1: icon-only, so aria-label — or a
+ * header/sheet item's visible label), like a finger would (scrolled into view first). */
 async function tool(label: string) {
-  const r = (await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool')].find(b => b.querySelector('.play-tool__label')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
+  const r = (await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
   if (!r) throw new Error('missing tool ' + label)
   await tapAt(r.x, r.y)
 }
@@ -170,10 +171,10 @@ async function subjectCheck(subject: Subject) {
   // 2. every object drawn on the board has a legend row
   const board = await boardDrawn()
   check(`${label}: the board draws all ${puzzle.scene.objects.length} objects of the scene, each with an icon`, board.objects.length === puzzle.scene.objects.length && board.objects.every((o) => o !== null), `${board.objects.length} drawn`)
-  await tool('More') // Legend sits behind More (SLAY-4.2)
+  await tool('More') // Legend sits behind the header's settings icon (SLAY-5.1)
   await tool('Legend')
   const opened = await until(`document.querySelector('.play-modal__title')?.textContent === 'Legend'`, 3000)
-  check(`${label}: the Legend opens from More on the toolbar`, opened)
+  check(`${label}: the Legend opens from the header's settings icon`, opened)
   if (!opened) return
   const legend = await legendOnScreen()
   const drawn = new Set(board.objects.filter((o): o is string => o !== null))

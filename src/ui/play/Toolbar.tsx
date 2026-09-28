@@ -47,7 +47,7 @@ function EraserButton({ active, label, title, onSelect, onClearAll }: { active: 
   return (
     <button
       type="button"
-      className="play-tool play-tool--hold"
+      className="play-tool play-tool--erase"
       aria-pressed={active}
       aria-label={label}
       title={title}
@@ -76,7 +76,7 @@ function UndoButton({ canUndo, canRedo, label, title, onUndo, onRedo }: { canUnd
   return (
     <button
       type="button"
-      className="play-tool play-tool--hold"
+      className="play-tool play-tool--undo"
       aria-label={label}
       title={title ?? label}
       disabled={!canUndo && !canRedo}
