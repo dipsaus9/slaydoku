@@ -8,7 +8,6 @@ interface AboutStrings {
   credit: { title: string; inspired: string; original: string }
   privacy: { title: string; text: string }
   openSource: { title: string; text: string }
-  contact: { title: string; placeholder: string }
 }
 
 /** Everything the About page says, in English. The one file to edit to change its wording. */
@@ -38,10 +37,6 @@ export const ABOUT_EN: AboutStrings = {
     title: 'Open source',
     text: 'Slaydoku is open source, released under the MIT license.',
   },
-  contact: {
-    title: 'Contact',
-    placeholder: 'Contact details will be added here.',
-  },
 }
 
 /** Dutch wording of the About page. 'Slaydoku' is a brand name and stays unchanged. */
@@ -70,10 +65,6 @@ export const ABOUT_NL: AboutStrings = {
   openSource: {
     title: 'Open source',
     text: 'Slaydoku is open source, uitgebracht onder de MIT-licentie.',
-  },
-  contact: {
-    title: 'Contact',
-    placeholder: 'Contactgegevens volgen hier nog.',
   },
 }
 

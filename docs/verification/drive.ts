@@ -311,12 +311,12 @@ async function routing() {
   await evaluate(`document.querySelector('.daily__about').click()`)
   await sleep(500)
   check('the About link opens /about and its back link returns to /', (await path()) === '/about' && (await count('.about')) === 1)
-  // The About page (SLAY-1.10): its five sections, the credit, the privacy line, the licence, and it fits the screen.
+  // The About page (SLAY-1.10): its four sections, the credit, the privacy line, the licence, and it fits the screen.
   const aboutText = (await evaluate(`document.querySelector('.about').innerText`)) as string
   check(
-    'About page: title, tagline and the sections How it works, Credit, Privacy, Open source and Contact',
-    ['About Slaydoku', 'A new murder mystery puzzle every day', 'How it works', 'Credit', 'Privacy', 'Open source', 'Contact'].every((t) => aboutText.includes(t)) &&
-      (await count('.about__section')) === 5,
+    'About page: title, tagline and the sections How it works, Credit, Privacy and Open source',
+    ['About Slaydoku', 'A new murder mystery puzzle every day', 'How it works', 'Credit', 'Privacy', 'Open source'].every((t) => aboutText.includes(t)) &&
+      (await count('.about__section')) === 4,
   )
   check(
     'About page: credits Murdoku by Manuel Garand, states the anonymous-counting privacy line, names the MIT license',

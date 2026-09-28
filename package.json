@@ -24,6 +24,8 @@
   },
   "dependencies": {
     "@upstash/redis": "^1.39.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
@@ -37,6 +39,6 @@
     "vite": "^8.3.0",
     "vitest": "^3.2.4"
   },
-  "description": "A new murder mystery puzzle every day (work in progress).",
+  "description": "A new murder mystery puzzle every day.",
   "license": "MIT"
 }
