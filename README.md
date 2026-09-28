@@ -2,10 +2,9 @@
 
 **A new murder mystery puzzle every day.** Slaydoku is a browser puzzle: read the suspects' statements, place everybody on the floor plan, and work out
 who was alone with the victim. Every puzzle has exactly one solution and can be solved by reasoning alone. It runs on phone, iPad and desktop, works offline
-once opened, and keeps everything on your device: no accounts, no tracking. The goal is one puzzle per UTC day for everybody, with Wordle-like sharing of the result.
+once opened, and keeps everything on your device: no accounts, no per-player identifier, no cookie. Everybody gets the same puzzle per UTC day, with Wordle-like sharing of the result, in English or Dutch.
 
-**Status: work in progress, not public yet.** The daily flow and the schedule are not built yet. What runs today is one demo level, the play
-screen with hints and a legend, an About page (`/about`), and the puzzle generator behind it. All text is English: clues, hints and solver text, and the interface (menus, help card, legend, update notice).
+Play at [slaydoku.vercel.app](https://slaydoku.vercel.app).
 
 ## Run it
 
@@ -23,8 +22,7 @@ bun run indexing       # show whether the site is open for search engines (defau
 
 Other entry points: `bun run generate` (one puzzle from a scene), `bun tools/ladder.ts` (the ladder generator), `bun run verify <file>` (check a
 puzzle file), `bun run pack` (the puzzle pack pipeline), `bun run validate:generation` (sweep the generators on fresh seeds).
-`bun run test:slow` adds the slow generator sweeps. See [docs/authoring/README.md](docs/authoring/README.md) for how the pieces fit together and
-[MIGRATION.md](MIGRATION.md) for what this repository does not have yet.
+`bun run test:slow` adds the slow generator sweeps. See [docs/authoring/README.md](docs/authoring/README.md) for how the pieces fit together.
 
 ## How the game works
 
@@ -63,7 +61,9 @@ must be green before a change is merged.
 
 ## Credit
 
-Inspired by Murdoku by Manuel Garand. Slaydoku is an independent project and uses no official assets: every puzzle, name and drawing here is original.
+Inspired by Murdoku by Manuel Garand. Slaydoku is an independent project and uses no official assets: every puzzle, name and drawing here is original,
+with one disclosed exception: the small 4x4 walkthrough puzzle used in tests (`src/engine/model/tutorial.fixture.ts`) is a structural transcription
+(layout and solution only, no art or text) of the public tutorial example on murdokus.nl.
 
 ## License
 
