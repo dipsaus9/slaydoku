@@ -133,7 +133,7 @@ try {
   await goto(`/?date=${PLAY_DATE}`) // the dev-only date override (localhost only), copied into localStorage
   check('first visit: the start screen shows today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === `Puzzle #${DAY.n}`)
   const chunks = (await evaluate(`performance.getEntriesByType('resource').map(e => new URL(e.name).pathname).filter(p => /\\/assets\\/\\d{4}-\\d{2}-/.test(p)).join(',')`)) as string
-  check('first visit: the page itself fetched only the month file that holds today (lazy chunk)', chunks.split(',').filter(Boolean).length === 1 && chunks.includes('/assets/2026-09-'), chunks || 'none')
+  check('first visit: the page itself fetched only the month file that holds today (lazy chunk)', chunks.split(',').filter(Boolean).length === 1 && chunks.includes('/assets/2026-11-'), chunks || 'none')
   check('first visit: no update notice on a fresh install', (await count('[data-update-notice]')) === 0)
   check('the worker takes control of the page without a second load', await until('navigator.serviceWorker.controller !== null', 15000))
   const sw = (await evaluate(`fetch('/sw.js').then(r => r.text().then(t => JSON.stringify({ status: r.status, type: r.headers.get('content-type'), size: t.length })))`)) as string
@@ -190,7 +190,7 @@ try {
   // The About page is a clean URL like any other: the cached shell answers it, and the link on the list opens it offline.
   await goto('/about')
   check('offline reload on /about: the About page opens', await until(`document.querySelector('.about') !== null`))
-  check('offline /about has the credit and the privacy line', (await evaluate(`document.body.textContent.includes('Inspired by Murdoku by Manuel Garand') && document.body.textContent.includes('no accounts, no tracking')`)) === true)
+  check('offline /about has the credit and the privacy line', (await evaluate(`document.body.textContent.includes('Inspired by Murdoku by Manuel Garand') && document.body.textContent.includes('No accounts, no per-player identifier, no cookie.')`)) === true)
   await shot('offline-03-about')
   await goto('/')
   await until(START)

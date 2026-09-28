@@ -14,6 +14,16 @@
  * Safe-area insets need viewport-fit=cover (index.html): every edge padding below reads them.
  */
 
+/*
+ * SLAY-6.1: the floor .play-header keeps clear of the top edge even on a device that reports no
+ * safe-area inset (no notch) — raised from 8px to match .daily's own floor (--space-5, 24px) for
+ * the equivalent screen. Root-scoped (not on .play) so the short-landscape media query's
+ * --play-board calc below can read the same value and never drift out of sync with it.
+ */
+:root {
+  --play-top-clearance: max(var(--space-5), env(safe-area-inset-top));
+}
+
 .play {
   /* SLAY-2.3: the local names stay (every rule below still reads them), only the values move to
      the shared SLAY-2.1 tokens — warm surface/border tones instead of the old flat gray/blue. */
@@ -25,7 +35,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   padding: 8px 12px 12px;
-  padding-top: max(8px, env(safe-area-inset-top));
+  padding-top: var(--play-top-clearance);
   padding-left: max(12px, env(safe-area-inset-left));
   padding-right: max(12px, env(safe-area-inset-right));
   padding-bottom: max(12px, env(safe-area-inset-bottom));
@@ -62,14 +72,22 @@
 
 /* ---- header ------------------------------------------------------------------------ */
 
+/*
+ * SLAY-6.1: one deliberate bar. The outer .play-header is the single bordered surface; title,
+ * timer and settings icon are plain, chrome-less controls inside it (no nested border/background
+ * of their own) instead of the old mix of an unadorned title next to a bordered timer pill next to
+ * a bordered settings circle -- the same "no button chrome, just a touch target" language as
+ * src/ui/about/about.css's .about__back. Padding/gaps sit on the shared spacing scale
+ * (src/brand/tokens.css) rather than the old off-scale 6px/12px values.
+ */
 .play-header {
   grid-area: header;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
   min-height: 48px;
-  padding: 6px 12px;
+  padding: var(--space-2) var(--space-4);
   border-radius: 14px;
   background: rgba(253, 248, 236, 0.7);
   border: 1px solid var(--line);
@@ -85,10 +103,12 @@
 .play-header__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
-/* Options, Help and Legend (SLAY-5.1): one icon next to the timer, opening the settings sheet. */
+/* Options, Help and Legend (SLAY-5.1): one icon next to the timer, opening the settings sheet.
+   Plain at rest (SLAY-6.1) -- a resting border would double up on the outer .play-header's own
+   border; :active/:focus-visible still give it a clear affordance. */
 .play-header__more {
   min-width: 44px;
   min-height: 44px;
@@ -96,27 +116,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   border-radius: 22px;
-  background: var(--paper);
+  background: transparent;
+  color: inherit;
   cursor: pointer;
+  transition: background-color var(--duration-micro) var(--ease-out);
 }
 
+.play-header__more:active {
+  background: rgba(42, 42, 54, 0.08);
+}
+
+.play-header__more:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Plain at rest (SLAY-6.1), same reasoning as .play-header__more above. */
 .play-timer {
   min-width: 44px;
   min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
   border-radius: 22px;
-  background: var(--paper);
+  background: transparent;
   font-family: var(--font-display);
   font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
+  color: inherit;
   cursor: pointer;
+  transition: background-color var(--duration-micro) var(--ease-out);
+}
+
+.play-timer:active {
+  background: rgba(42, 42, 54, 0.08);
+}
+
+.play-timer:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .play-timer--off {
-  padding: 0 12px;
+  padding: 0 var(--space-1);
   opacity: 0.6;
 }
 
@@ -1119,7 +1162,9 @@ button.play-legend__row:focus-visible {
  */
 @media (orientation: landscape) and (max-height: 500px) {
   :root {
-    --play-board: min(calc(100dvh - max(8px, env(safe-area-inset-top)) - max(8px, env(safe-area-inset-bottom))), 58vw);
+    /* SLAY-6.1: the top term is --play-top-clearance (defined above), the same floor .play's own
+       padding-top reads, so this board budget never drifts out of sync with it. */
+    --play-board: min(calc(100dvh - var(--play-top-clearance) - max(8px, env(safe-area-inset-bottom))), 58vw);
   }
 
   .play {
