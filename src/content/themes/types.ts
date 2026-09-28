@@ -48,6 +48,8 @@ export interface ThemeObject {
   themeIcon?: ThemeIconId
   /** Cap per room, so a house does not get five televisions. Absent: unlimited. */
   maxPerRoom?: number
+  /** Room types (see `RoomType`) this object must never be placed in, hard exclusion. */
+  excludeRoomTypes?: RoomType[]
 }
 
 /** A room name (bare, without "the"), with the objects that belong in such a room. */
@@ -59,7 +61,18 @@ export interface ThemeRoom {
   favours: string[]
   /** Outdoor area (garden, playground): drawn without an interior floor. */
   outdoor?: boolean
+  /** Room types (see `RoomType`) this room belongs to, for hard placement exclusions. */
+  roomTypes?: RoomType[]
 }
+
+/**
+ * A room category used for hard placement exclusions (see `ThemeObject.excludeRoomTypes`
+ * and `ThemeRoom.roomTypes`) — unlike `favours`, a preference the generator only weighs,
+ * a room type is a rule the generator never breaks (CAD-owner: "a delivery van can never
+ * be in a sleeping room"). `'sleeping'` marks a room with a bed-like object (a real bedroom,
+ * a showroom bedroom, a sick bay bed, a garden hammock nook): no vehicle belongs there.
+ */
+export type RoomType = 'sleeping'
 
 export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop'
 

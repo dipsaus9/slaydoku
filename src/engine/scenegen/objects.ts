@@ -1,4 +1,4 @@
-import type { SceneTheme, ThemeFootprint, ThemeObject } from '../../content/themes/index.ts'
+import type { RoomType, SceneTheme, ThemeFootprint, ThemeObject } from '../../content/themes/index.ts'
 import type { Cell, EdgeFeature, PlacedObject } from '../model/index.ts'
 import { inBounds, step } from '../model/index.ts'
 import { pick, pickWeighted, shuffle, type Random } from './random.ts'
@@ -22,6 +22,8 @@ export interface PlaceObjectsInput {
   rooms: number[][]
   /** The theme room (with its `favours` list) of each room index. */
   favours: readonly (readonly string[])[]
+  /** The theme room's `roomTypes` of each room index, for hard placement exclusions. */
+  roomTypes: readonly (readonly RoomType[])[]
   theme: SceneTheme
   edgeFeatures: readonly EdgeFeature[]
 }
@@ -54,8 +56,10 @@ function orientations(footprint: ThemeFootprint): Cell[][] {
  * overlap, keep clear of doors, and follow their placement hint when a spot
  * allows it. Blocking objects never take the last occupiable cells of a row,
  * column or room (see MIN_FREE_PER_LINE, MIN_FREE_SHARE); occupiable objects
- * (chairs, beds, rugs...) never block anything. Object ids read
- * `<theme kind>-<n>`, so the themed kind survives in the engine scene.
+ * (chairs, beds, rugs...) never block anything. An object never lands in a
+ * room whose `roomTypes` it excludes (see `ThemeObject.excludeRoomTypes`) —
+ * a hard rule, unlike `favours`, which the generator only weighs. Object ids
+ * read `<theme kind>-<n>`, so the themed kind survives in the engine scene.
  */
 export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedObject[] {
   const { width, height, rooms, theme } = input
@@ -96,6 +100,7 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
       for (let col = 0; col < width; col++) if (rooms[row]![col] === room) cells.push({ row, col })
     }
     const favoured = new Set(input.favours[room] ?? [])
+    const excluded = new Set(input.roomTypes[room] ?? [])
     const perKind = new Map<string, number>()
     const target = Math.max(1, Math.round(size * (0.22 + random() * 0.22)))
     let covered = 0
@@ -158,7 +163,10 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
     while (covered < target && misses < 8) {
       const onlyFavoured = signature > 0
       const candidates = theme.objects.filter(
-        (o) => (perKind.get(o.kind) ?? 0) < (o.maxPerRoom ?? Infinity) && (!onlyFavoured || favoured.has(o.kind)),
+        (o) =>
+          (perKind.get(o.kind) ?? 0) < (o.maxPerRoom ?? Infinity) &&
+          (!onlyFavoured || favoured.has(o.kind)) &&
+          !o.excludeRoomTypes?.some((t) => excluded.has(t)),
       )
       const object = pickWeighted(random, candidates, (o) => o.weight * (favoured.has(o.kind) ? FAVOUR_BOOST : 1))
       if (!object) break

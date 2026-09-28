@@ -19,6 +19,18 @@ const dayLines = (file: string): string[] => readFileSync(file, 'utf8').split('\
 const bare = (line: string): string => line.replace(/,$/, '')
 const committed = dayLines(join(SCHEDULE_DIR, '2026-09.json'))
 
+/**
+ * 2026-09-28 (n=2) was generated before SLAY-8.1 (scenegen: hard-exclude vehicles from
+ * sleeping-type rooms) and still carries that bug in the committed schedule (a delivery van
+ * in the Bedroom Department) — the day already played out, so regenerating its committed
+ * content (which would also change its clues, not just the one object) is left for the owner
+ * to decide, not done automatically here. Until then, the generator legitimately produces a
+ * different day 2 than what is committed; both comparisons below exclude just that one day so
+ * the rest of the window still guards real determinism.
+ */
+const KNOWN_DIVERGED_DAYS = new Set(['2026-09-28'])
+const withoutKnownDiverged = (lines: string[]): string[] => lines.filter((l) => !KNOWN_DIVERGED_DAYS.has(JSON.parse(bare(l)).date))
+
 describe('bun run schedule', () => {
   it('writes byte-identical files whatever --jobs is, equal to the committed days', { timeout: 180_000 }, () => {
     const one = join(scratch, 'one')
@@ -26,7 +38,7 @@ describe('bun run schedule', () => {
     expect(schedule(one, ['--start', '2026-09-27', '--days', '4', '--jobs', '1']).code).toBe(0)
     expect(schedule(many, ['--start', '2026-09-27', '--days', '4', '--jobs', '3']).code).toBe(0)
     for (const name of ['2026-09.json', 'index.json']) expect(readFileSync(join(one, name), 'utf8'), name).toBe(readFileSync(join(many, name), 'utf8'))
-    expect(dayLines(join(one, '2026-09.json')).map(bare)).toEqual(committed.slice(0, 4).map(bare))
+    expect(withoutKnownDiverged(dayLines(join(one, '2026-09.json')).map(bare))).toEqual(withoutKnownDiverged(committed.slice(0, 4).map(bare)))
     const index = JSON.parse(readFileSync(join(one, 'index.json'), 'utf8'))
     expect(index).toMatchObject({ launch: '2026-09-27', first: '2026-09-27', last: '2026-09-30', count: 4 })
     const report = readFileSync(join(scratch, 'report/report.md'), 'utf8')
@@ -39,7 +51,7 @@ describe('bun run schedule', () => {
     expect(schedule(dir, ['--days', '2', '--jobs', '2']).code).toBe(0)
     const days = dayLines(join(dir, '2026-09.json'))
     expect(days.length).toBe(4)
-    expect(days.map(bare)).toEqual(committed.slice(0, 4).map(bare))
+    expect(withoutKnownDiverged(days.map(bare))).toEqual(withoutKnownDiverged(committed.slice(0, 4).map(bare)))
 
     const gap = schedule(dir, ['--start', '2026-10-05', '--days', '1'])
     expect(gap.code).toBe(2)

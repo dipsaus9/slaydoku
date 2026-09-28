@@ -118,6 +118,26 @@ describe('scene themes', () => {
         }
       })
 
+      it('never favours a kind in a room type that kind hard-excludes (e.g. a vehicle in a sleeping room)', () => {
+        const objectByKind = new Map(theme.objects.map((o) => [o.kind, o]))
+        for (const room of theme.rooms) {
+          const roomTypes = new Set(room.roomTypes ?? [])
+          for (const kind of room.favours) {
+            const excluded = objectByKind.get(kind)?.excludeRoomTypes ?? []
+            expect(excluded.some((t) => roomTypes.has(t)), `${room.name} favours excluded ${kind}`).toBe(false)
+          }
+        }
+      })
+
+      it('hard-excludes every vehicle kind (car engine type) from every sleeping room', () => {
+        const vehicles = theme.objects.filter((o) => o.engineType === 'car')
+        const sleepingRooms = theme.rooms.filter((r) => r.roomTypes?.includes('sleeping'))
+        if (vehicles.length === 0 || sleepingRooms.length === 0) return
+        for (const vehicle of vehicles) {
+          expect(vehicle.excludeRoomTypes, vehicle.kind).toContain('sleeping')
+        }
+      })
+
       it('lets every object kind be favoured by at least one room', () => {
         const favoured = new Set(theme.rooms.flatMap((r) => r.favours))
         const orphans = theme.objects.filter((o) => !favoured.has(o.kind)).map((o) => o.kind)

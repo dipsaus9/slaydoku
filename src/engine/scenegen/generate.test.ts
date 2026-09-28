@@ -109,6 +109,14 @@ function assertGoodScene(scene: Scene, theme: SceneTheme, label: string, rooms: 
     const key = `${room}:${themed!.kind}`
     perRoom.set(key, (perRoom.get(key) ?? 0) + 1)
     expect(perRoom.get(key)!, `${label} ${key} cap`).toBeLessThanOrEqual(themed!.maxPerRoom ?? Infinity)
+
+    // Hard exclusions: e.g. a delivery van never lands in a sleeping room (see ThemeObject.excludeRoomTypes).
+    if (themed!.excludeRoomTypes?.length) {
+      const roomName = scene.rooms.find((r) => r.id === room)!.name
+      const themeRoom = theme.rooms.find((r) => r.name === roomName)!
+      const clash = themed!.excludeRoomTypes.some((t) => themeRoom.roomTypes?.includes(t))
+      expect(clash, `${label} ${object.id} in excluded room ${roomName}`).toBe(false)
+    }
   }
 
   // Occupiable cells: every room, row and column keeps enough of them.
