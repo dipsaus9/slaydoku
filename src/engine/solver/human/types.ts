@@ -1,4 +1,5 @@
 import type { CatalogClue } from '../../clues/index.ts'
+import type { Locale } from '../../../locale/types.ts'
 import type { Cell, Person, Placement, Scene } from '../../model/index.ts'
 import type { BoardView } from './board.ts'
 
@@ -9,6 +10,8 @@ export interface HumanContext {
   clues: readonly CatalogClue[]
   /** Per-solve cache. Keys are the technique's own business: prefix them with the technique id. */
   memo: Map<string, unknown>
+  /** Language the step explanations are written in (SLAY-3.3). Defaults to `'en'` when not given to `solveHuman`. */
+  locale: Locale
 }
 
 /** A candidate removed from a person, by index (see `BoardView`). */
@@ -109,4 +112,6 @@ export interface HumanOptions {
   techniques?: readonly Technique[]
   /** Rating bands instead of the registry's. */
   bands?: readonly DifficultyBand[]
+  /** Language the step explanations are written in (SLAY-3.3). Default `'en'`. */
+  locale?: Locale
 }

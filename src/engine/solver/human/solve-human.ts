@@ -10,9 +10,10 @@ import type { Deduction, HumanContext, HumanOptions, HumanResult, HumanStep, Tec
 /**
  * Solves a puzzle the way a person does: by applying named techniques one at
  * a time, easiest first, and never by guessing. Every application is recorded
- * as a step with an English explanation. `solved` is false when the techniques
- * run out before everybody is placed (the puzzle needs search or a technique
- * the catalog lacks) or when the clues contradict themselves.
+ * as a step with an explanation, in `options.locale` (default `'en'`, SLAY-3.3).
+ * `solved` is false when the techniques run out before everybody is placed
+ * (the puzzle needs search or a technique the catalog lacks) or when the
+ * clues contradict themselves.
  */
 export function solveHuman(
   scene: Scene,
@@ -23,7 +24,7 @@ export function solveHuman(
   const techniques = sortTechniques(options.techniques ?? defaultRegistry.list())
   const bands = sortBands(options.bands ?? defaultRegistry.listBands())
   const board = new Board(scene, people)
-  const context: HumanContext = { scene, people, clues, memo: new Map() }
+  const context: HumanContext = { scene, people, clues, memo: new Map(), locale: options.locale ?? 'en' }
   const steps: HumanStep[] = []
   let contradiction = board.victim < 0 || new Set(people.map((p) => p.id)).size !== people.length
 

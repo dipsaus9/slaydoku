@@ -1,6 +1,7 @@
 import type { BoardView } from '../board.ts'
-import type { Deduction, Elimination, Technique } from '../types.ts'
-import { victimName, peopleNames, roomName, sentences } from '../en.ts'
+import type { Deduction, Elimination, HumanContext, Technique } from '../types.ts'
+import * as en from '../en.ts'
+import * as nl from '../nl.ts'
 
 /**
  * Room and victim reasoning: the victim shares their room with exactly one
@@ -14,7 +15,7 @@ export const victimRoom: Technique = {
   id: 'victim-room',
   title: 'Room of the victim',
   level: 2,
-  find(board) {
+  find(board, context) {
     if (board.victim < 0) return null
     const suspects = board.people.flatMap((p, i) => (p.kind === 'suspect' ? [i] : []))
     const rooms = board.scene.rooms.length
@@ -26,7 +27,7 @@ export const victimRoom: Technique = {
       const seen = new Set(board.candidates(s).map((c) => board.room(c)))
       for (const r of seen) if (r >= 0) (reach[r] as number[]).push(s)
     }
-    return crowded(board, sure) ?? unreachable(board, reach) ?? settled(board, suspects, sure, reach)
+    return crowded(board, context, sure) ?? unreachable(board, context, reach) ?? settled(board, context, suspects, sure, reach)
   },
 }
 
@@ -38,18 +39,21 @@ function victimIn(board: BoardView, room: number): Elimination[] {
     .map((cell) => ({ person: board.victim, cell }))
 }
 
-function crowded(board: BoardView, sure: number[][]): Deduction | null {
+function crowded(board: BoardView, context: HumanContext, sure: number[][]): Deduction | null {
   if (board.isPlaced(board.victim)) return null
+  const w = context.locale === 'nl' ? nl : en
   for (let room = 0; room < sure.length; room++) {
     const inside = sure[room] as number[]
     if (inside.length < 2) continue
     const eliminate = victimIn(board, room)
     if (eliminate.length === 0) continue
+    const explanation =
+      context.locale === 'nl'
+        ? nl.crowdedText(w.peopleNames(board, inside), inside.length, w.roomName(board, room), w.victimName(board))
+        : `${w.peopleNames(board, inside)} ${inside.length === 1 ? 'is' : 'are'} sure to be in ${w.roomName(board, room)}. ${w.victimName(board)} is with exactly one suspect, so cannot be there.`
     return {
       eliminate,
-      explanation: sentences(
-        `${peopleNames(board, inside)} ${inside.length === 1 ? 'is' : 'are'} sure to be in ${roomName(board, room)}. ${victimName(board)} is with exactly one suspect, so cannot be there.`,
-      ),
+      explanation: w.sentences(explanation),
       people: [board.victim, ...inside],
       cells: eliminate.map((e) => e.cell),
     }
@@ -57,17 +61,20 @@ function crowded(board: BoardView, sure: number[][]): Deduction | null {
   return null
 }
 
-function unreachable(board: BoardView, reach: number[][]): Deduction | null {
+function unreachable(board: BoardView, context: HumanContext, reach: number[][]): Deduction | null {
   if (board.isPlaced(board.victim)) return null
+  const w = context.locale === 'nl' ? nl : en
   for (let room = 0; room < reach.length; room++) {
     if ((reach[room] as number[]).length > 0) continue
     const eliminate = victimIn(board, room)
     if (eliminate.length === 0) continue
+    const explanation =
+      context.locale === 'nl'
+        ? nl.unreachableText(w.roomName(board, room), w.victimName(board))
+        : `No suspect can still stand in ${w.roomName(board, room)}. ${w.victimName(board)} is with a suspect, so cannot be there.`
     return {
       eliminate,
-      explanation: sentences(
-        `No suspect can still stand in ${roomName(board, room)}. ${victimName(board)} is with a suspect, so cannot be there.`,
-      ),
+      explanation: w.sentences(explanation),
       people: [board.victim],
       cells: eliminate.map((e) => e.cell),
     }
@@ -77,14 +84,16 @@ function unreachable(board: BoardView, reach: number[][]): Deduction | null {
 
 function settled(
   board: BoardView,
+  context: HumanContext,
   suspects: number[],
   sure: number[][],
   reach: number[][],
 ): Deduction | null {
   const room = board.certainRoom(board.victim)
   if (room < 0) return null
+  const w = context.locale === 'nl' ? nl : en
   const inside = sure[room] as number[]
-  const name = roomName(board, room)
+  const name = w.roomName(board, room)
   if (inside.length === 1) {
     const eliminate: Elimination[] = []
     for (const s of suspects) {
@@ -92,11 +101,13 @@ function settled(
       for (const c of board.candidates(s)) if (board.room(c) === room) eliminate.push({ person: s, cell: c })
     }
     if (eliminate.length === 0) return null
+    const explanation =
+      context.locale === 'nl'
+        ? nl.settledInsideText(w.victimName(board), name, w.peopleNames(board, inside))
+        : `${w.victimName(board)} is in ${name}, together with ${w.peopleNames(board, inside)}. That is the murderer, so no other suspect can stand there.`
     return {
       eliminate,
-      explanation: sentences(
-        `${victimName(board)} is in ${name}, together with ${peopleNames(board, inside)}. That is the murderer, so no other suspect can stand there.`,
-      ),
+      explanation: w.sentences(explanation),
       people: [board.victim, ...inside, ...new Set(eliminate.map((e) => e.person))],
       cells: [...new Set(eliminate.map((e) => e.cell))],
     }
@@ -109,11 +120,13 @@ function settled(
       .filter((c) => board.room(c) !== room)
       .map((cell) => ({ person: s, cell }))
     if (eliminate.length === 0) return null
+    const explanation =
+      context.locale === 'nl'
+        ? nl.settledOnlyText(w.victimName(board), name, w.peopleNames(board, only))
+        : `${w.victimName(board)} is in ${name} and must be there with a suspect. Only ${w.peopleNames(board, only)} can still get there, so that person stands there.`
     return {
       eliminate,
-      explanation: sentences(
-        `${victimName(board)} is in ${name} and must be there with a suspect. Only ${peopleNames(board, only)} can still get there, so that person stands there.`,
-      ),
+      explanation: w.sentences(explanation),
       people: [board.victim, s],
       cells: eliminate.map((e) => e.cell),
     }

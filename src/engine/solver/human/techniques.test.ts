@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CatalogClue } from '../../clues/index.ts'
+import type { Locale } from '../../../locale/types.ts'
 import type { Person, Scene } from '../../model/index.ts'
 import { Board } from './board.ts'
 import { clueEliminations } from './techniques/clue.ts'
@@ -42,11 +43,12 @@ function only(board: Board, person: number, cells: [number, number][]): void {
   for (const c of board.candidates(person)) if (!keep.has(c)) board.eliminate(person, c)
 }
 
-const context = (board: Board, clues: CatalogClue[] = []): HumanContext => ({
+const context = (board: Board, clues: CatalogClue[] = [], locale: Locale = 'en'): HumanContext => ({
   scene: board.scene,
   people,
   clues,
   memo: new Map(),
+  locale,
 })
 
 describe('single-candidate', () => {
@@ -291,5 +293,107 @@ describe('clue', () => {
     const found = clueEliminations.find(board, ctx)
     for (const e of found?.eliminate ?? []) board.eliminate(e.person, e.cell)
     expect(clueEliminations.find(board, ctx)).toBeNull()
+  })
+})
+
+/**
+ * The same scenarios, in Dutch (locale 'nl', SLAY-3.3): every technique explanation above,
+ * pinned again through the Dutch wording module (`nl.ts`), so both locales are exercised by this
+ * file's own fixtures rather than only by `en.ts`'s.
+ */
+describe('the same techniques, in Dutch', () => {
+  it('single-candidate', () => {
+    const board = new Board(scene(), people)
+    only(board, 1, [[2, 3]])
+    const found = singleCandidate.find(board, context(board, [], 'nl'))
+    expect(found?.explanation).toBe('B kan nu nog maar op één vakje staan: rij 3, kolom 4. Die rij en kolom zijn daarmee bezet.')
+  })
+
+  it('scan: a placement and an elimination', () => {
+    const board = new Board(scene(), people)
+    for (let p = 0; p < 4; p++) {
+      for (const c of board.candidates(p)) {
+        if (board.row(c) === 0 && !(p === 0 && board.col(c) === 1)) board.eliminate(p, c)
+      }
+    }
+    const found = scan.find(board, context(board, [], 'nl'))
+    expect(found?.explanation).toBe(
+      'Elke rij en kolom houdt iemand, en in rij 1 is nog maar één vakje vrij: kolom 2. Alleen A kan daar nog staan. Dus A staat op rij 1, kolom 2.',
+    )
+
+    const board2 = new Board(scene(), people)
+    for (let p = 0; p < 4; p++) {
+      for (const c of board2.candidates(p)) {
+        const keep = board2.row(c) === 0 && board2.col(c) === 1 && p < 2
+        if (board2.row(c) === 0 && !keep) board2.eliminate(p, c)
+      }
+    }
+    const found2 = scan.find(board2, context(board2, [], 'nl'))
+    expect(found2?.explanation).toBe(
+      'Elke rij en kolom houdt iemand, en in rij 1 is nog maar één vakje vrij: kolom 2. Een van deze mensen staat daar: A of B. We weten nog niet wie, maar kolom 2 is hoe dan ook bezet, dus niemand anders kan daar staan.',
+    )
+  })
+
+  it('overload: a group and a single confined person', () => {
+    const board = new Board(scene(), people)
+    only(board, 0, [[0, 0], [1, 2]])
+    only(board, 1, [[0, 3], [1, 1]])
+    const found = overload.find(board, context(board, [], 'nl'))
+    expect(found?.explanation).toBe(
+      'A en B kunnen nu alleen nog in rijen 1 en 2 staan. We weten niet wie welke rij neemt, maar die rijen zijn samen van hen, dus niemand anders kan daar staan.',
+    )
+
+    const board2 = new Board(scene(), people)
+    only(board2, 2, [[0, 3], [3, 3]])
+    const found2 = overload.find(board2, context(board2, [], 'nl'))
+    expect(found2?.explanation).toBe('C kan nu alleen nog in kolom 4 staan. Die kolom is van C, dus niemand anders kan daar staan.')
+  })
+
+  it('intersect', () => {
+    const board = new Board(scene(), people)
+    only(board, 0, [[0, 0], [1, 1]])
+    const found = intersect.find(board, context(board, [], 'nl'))
+    expect(found?.explanation).toBe(
+      'A kan nu alleen nog op rij 1, kolom 1 en rij 2, kolom 2 staan. Elk van die vakjes deelt een rij of kolom met rij 1, kolom 2 en rij 2, kolom 1. Als iemand anders daar zou staan, had A niets meer over. Dus niemand anders kan daar staan.',
+    )
+  })
+
+  it('victim-room: every branch', () => {
+    const board = new Board(scene(), people)
+    only(board, 0, [[0, 0], [1, 1]])
+    only(board, 1, [[0, 2], [1, 3]])
+    expect(victimRoom.find(board, context(board, [], 'nl'))?.explanation).toBe('A en B staan zeker in de North Wing. V is bij precies één verdachte, en kan daar dus niet zijn.')
+
+    const pair = [people[0] as Person, people[3] as Person]
+    const board2 = new Board(scene(), pair)
+    for (const c of board2.candidates(0)) if (board2.room(c) === 1) board2.eliminate(0, c)
+    expect(victimRoom.find(board2, { scene: board2.scene, people: pair, clues: [], memo: new Map(), locale: 'nl' })?.explanation).toBe(
+      'Geen enkele verdachte kan nog in de South Wing staan. V is bij een verdachte, en kan daar dus niet zijn.',
+    )
+
+    const board3 = new Board(scene(), people)
+    only(board3, 3, [[0, 0], [1, 1]])
+    only(board3, 0, [[0, 2], [1, 3]])
+    expect(victimRoom.find(board3, context(board3, [], 'nl'))?.explanation).toBe('V is in de North Wing, samen met A. Dat is de dader, dus geen andere verdachte kan daar staan.')
+
+    const board4 = new Board(scene(), people)
+    only(board4, 3, [[0, 0], [1, 1]])
+    for (const p of [1, 2]) for (const c of board4.candidates(p)) if (board4.room(c) === 0) board4.eliminate(p, c)
+    expect(victimRoom.find(board4, context(board4, [], 'nl'))?.explanation).toBe(
+      'V is in de North Wing en moet daar samen zijn met een verdachte. Alleen A kan daar nog komen, dus die persoon staat daar.',
+    )
+  })
+
+  it('clue: one person, and an empty room', () => {
+    const rug = scene([{ id: 'rug', type: 'rug', cells: [{ row: 0, col: 0 }, { row: 3, col: 3 }] }])
+    const board = new Board(rug, people)
+    const clues: CatalogClue[] = [{ personId: 'A', type: 'onObject', args: { objectType: 'rug' } }]
+    const found = clueEliminations.find(board, context(board, clues, 'nl'))
+    expect(found?.explanation).toBe('A\'s kaartje zegt: "A stond op een rug." Dus A kan niet op 14 vakjes (waaronder rij 1, kolom 2 en rij 1, kolom 3) staan.')
+
+    const board2 = new Board(rug, people)
+    const roomClues: CatalogClue[] = [{ personId: 'A', type: 'emptyRoom', args: { roomId: 'top' } }]
+    const found2 = clueEliminations.find(board2, context(board2, roomClues, 'nl'))
+    expect(found2?.explanation).toBe('Een kaartje zegt: "Er was niemand in de North Wing." Dus niemand kan in de North Wing staan.')
   })
 })

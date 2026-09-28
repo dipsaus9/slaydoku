@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { demoPuzzle } from '../../../content/demo/puzzle.ts'
 import { generatedPuzzles } from '../../../content/generated.testing.ts'
-import { VICTIM_TEXT } from '../../clues/index.ts'
+import { VICTIM_TEXT, VICTIM_TEXT_NL } from '../../clues/index.ts'
 import type { CatalogClue } from '../../clues/index.ts'
+import type { Locale } from '../../../locale/types.ts'
 import type { Puzzle } from '../../model/index.ts'
 import { puzzle as tutorial } from '../../../game/fixture.ts'
 import { hardPuzzle, hintPath } from '../../../game/hints.fixture.ts'
@@ -23,9 +24,9 @@ const puzzles: Record<string, Puzzle> = {
 }
 
 /** The explanation of the `nth` (1-based) step of a technique, placing or not. */
-function step(name: string, technique: string, nth = 1, placing = false): string {
+function step(name: string, technique: string, nth = 1, placing = false, locale: Locale = 'en'): string {
   const p = puzzles[name] as Puzzle
-  const result = solveHuman(p.scene, p.people, p.clues as CatalogClue[])
+  const result = solveHuman(p.scene, p.people, p.clues as CatalogClue[], { locale })
   const found = result.steps.filter((s) => s.technique === technique && (s.placed !== undefined) === placing)[nth - 1]
   if (!found) throw new Error(`${name}: no ${technique} step ${nth}`)
   return found.explanation
@@ -48,6 +49,27 @@ describe('pinned explanations per technique', () => {
 
   it('intersect: a square shared by every possible square of somebody', () => {
     expect(step('hard', 'intersect')).toMatch(/^\S+ can only stand on .+ now\. Each of those squares shares a row or column with row \d+, column \d+\. If somebody else stood there, \S+ would have nothing left\. So nobody else can stand there\.$/)
+  })
+})
+
+/** The same pins, in Dutch (locale 'nl', SLAY-3.3): `solveHuman` given `locale: 'nl'`. */
+describe('pinned explanations per technique: Dutch', () => {
+  it('clue: one person, and two people at once', () => {
+    expect(step('tutorial', 'clue', 1, false, 'nl')).toBe(
+      'A\'s kaartje zegt: "A stond naast een table." Dus A kan niet op 10 vakjes (waaronder rij 1, kolom 1 en rij 2, kolom 2) staan.',
+    )
+    expect(step('hard', 'clue', 1, false, 'nl')).toMatch(/^\S+'s kaartje zegt: ".+" Dus .+ (kan|kunnen) niet op .+ staan\.$/)
+  })
+
+  it('single-candidate: with and without an object under the square', () => {
+    expect(step('tutorial', 'single-candidate', 1, true, 'nl')).toBe('C kan nu nog maar op één vakje staan: rij 3, kolom 4. Die rij en kolom zijn daarmee bezet.')
+    expect(step('demo', 'single-candidate', 1, true, 'nl')).toMatch(/^\S+ kan nu nog maar op één vakje staan: rij \d+, kolom \d+(, op een? \S+)?\. Die rij en kolom zijn daarmee bezet\.$/)
+  })
+
+  it('intersect: a square shared by every possible square of somebody', () => {
+    expect(step('hard', 'intersect', 1, false, 'nl')).toMatch(
+      /^\S+ kan nu alleen nog op .+ staan\. Elk van die vakjes deelt een rij of kolom met .+\. Als iemand anders daar zou staan, had \S+ niets meer over\. Dus niemand anders kan daar staan\.$/,
+    )
   })
 })
 
@@ -86,6 +108,30 @@ describe.each(Object.entries(puzzles))('house style on %s', (name, puzzle) => {
       expectHouseStyle(h.level2, `${name} level 2 #${i + 1}`)
       expectHouseStyle(h.level1, `${name} level 1 #${i + 1}`)
     })
+  })
+})
+
+/**
+ * The house style, in Dutch (locale 'nl', SLAY-3.3): capital sentence starts, the victim named once
+ * per sentence (the Dutch label this time), and every solver step short enough. Hints go through
+ * `hintText.ts`'s own Dutch tests (`game/hintText.test.ts`); `hintPath` here always solves in
+ * English (`game/hints.ts` is not in this story's scope), so only the solver steps are checked here.
+ */
+function expectDutchHouseStyle(text: string, where: string, max = 330): void {
+  expect(text, where).not.toMatch(/\br\d+[kc]\d+\b/) // cryptic cell names
+  expect(text.length, where).toBeLessThanOrEqual(max)
+  for (const sentence of sentencesOf(text)) {
+    expect(sentence, where).toMatch(/^[^\p{Ll}]/u) // every sentence starts with a capital
+    const outsideCards = sentence.replace(/"[^"]*"/g, '')
+    expect(outsideCards.toLowerCase().split(VICTIM_TEXT_NL.noun).length - 1, `${where}: ${sentence}`).toBeLessThanOrEqual(1)
+  }
+}
+
+describe.each(Object.entries(puzzles))('house style on %s: Dutch', (name, puzzle) => {
+  it('holds for every solver step', () => {
+    const result = solveHuman(puzzle.scene, puzzle.people, puzzle.clues as CatalogClue[], { locale: 'nl' })
+    if (name !== 'hard') expect(result.solved).toBe(true)
+    result.steps.forEach((s) => expectDutchHouseStyle(s.explanation, `${name} step ${s.index} (nl)`))
   })
 })
 

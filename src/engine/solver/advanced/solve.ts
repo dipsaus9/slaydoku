@@ -1,4 +1,5 @@
 import type { CatalogClue } from '../../clues/index.ts'
+import type { Locale } from '../../../locale/types.ts'
 import type { Person, Scene } from '../../model/index.ts'
 import { solveHuman } from '../human/solve-human.ts'
 import type { HumanResult } from '../human/types.ts'
@@ -7,6 +8,8 @@ import { advancedRegistry } from './registry.ts'
 export interface AdvancedOptions {
   /** Leave out techniques above this level (e.g. 4 = no chain reasoning). Default: use everything. */
   maxLevel?: number
+  /** Language the step explanations are written in (SLAY-3.3). Default `'en'`. */
+  locale?: Locale
 }
 
 /**
@@ -25,5 +28,6 @@ export function solveAdvanced(
   return solveHuman(scene, people, clues, {
     techniques: advancedRegistry.list().filter((t) => t.level <= max),
     bands: advancedRegistry.listBands(),
+    locale: options.locale,
   })
 }

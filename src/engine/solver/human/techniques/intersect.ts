@@ -1,5 +1,6 @@
 import type { Elimination, Technique } from '../types.ts'
-import { cellList, personName, sentences } from '../en.ts'
+import * as en from '../en.ts'
+import * as nl from '../nl.ts'
 
 /**
  * Intersecting squares (official technique "intersect"): when every square a
@@ -13,7 +14,8 @@ export const intersect: Technique = {
   id: 'intersect',
   title: 'Rule out crossing squares',
   level: 3,
-  find(board) {
+  find(board, context) {
+    const w = context.locale === 'nl' ? nl : en
     for (let a = 0; a < board.people.length; a++) {
       if (board.isPlaced(a)) continue
       const own = board.candidates(a)
@@ -30,12 +32,16 @@ export const intersect: Technique = {
       }
       if (eliminate.length === 0) continue
       const cells = [...new Set(eliminate.map((e) => e.cell))]
-      const name = personName(board, a)
+      const name = w.personName(board, a)
+      const ownText = w.cellList(board, own)
+      const crossText = w.cellList(board, cells)
+      const explanation =
+        context.locale === 'nl'
+          ? nl.intersectText(name, ownText, crossText)
+          : `${name} can only stand on ${ownText} now. Each of those squares shares a row or column with ${crossText}. If somebody else stood there, ${name} would have nothing left. So nobody else can stand there.`
       return {
         eliminate,
-        explanation: sentences(
-          `${name} can only stand on ${cellList(board, own)} now. Each of those squares shares a row or column with ${cellList(board, cells)}. If somebody else stood there, ${name} would have nothing left. So nobody else can stand there.`,
-        ),
+        explanation: w.sentences(explanation),
         people: [a],
         cells: [...own, ...cells],
       }

@@ -1,6 +1,8 @@
 import { countWord } from '../../../clues/index.ts'
-import { cellList, lineNames, personName, sentences } from '../../human/en.ts'
-import type { Deduction, Elimination, Technique } from '../../human/types.ts'
+import * as en from '../../human/en.ts'
+import * as nl from '../../human/nl.ts'
+import type { Deduction, Elimination, HumanContext, Technique } from '../../human/types.ts'
+import * as advNl from '../nl.ts'
 import { snapshot, subsets } from '../snapshot.ts'
 import type { Snapshot } from '../snapshot.ts'
 
@@ -17,12 +19,12 @@ export function fish(min: number, max: number, id: string, level: number, title:
     id,
     title,
     level,
-    find(board) {
+    find(board, context) {
       const snap = snapshot(board)
       if (!snap.square) return null
       for (let size = min; size <= max; size++) {
         for (const rows of [true, false]) {
-          const found = pattern(snap, rows, size)
+          const found = pattern(snap, context, rows, size)
           if (found) return found
         }
       }
@@ -37,7 +39,7 @@ function across(snap: Snapshot, rows: boolean, line: number): Set<number> {
   return new Set(cells.map((c) => (rows ? snap.board.col(c) : snap.board.row(c))))
 }
 
-function pattern(snap: Snapshot, rows: boolean, size: number): Deduction | null {
+function pattern(snap: Snapshot, context: HumanContext, rows: boolean, size: number): Deduction | null {
   const { board } = snap
   const free = rows ? snap.freeRows : snap.freeCols
   const other = new Map<number, Set<number>>()
@@ -58,19 +60,22 @@ function pattern(snap: Snapshot, rows: boolean, size: number): Deduction | null 
       }
     }
     if (eliminate.length === 0) continue
+    const w = context.locale === 'nl' ? nl : en
     const corners = lines.flatMap((l) =>
       (rows ? snap.rowCells : snap.colCells)[l]?.filter((c) => opposite.has(rows ? board.col(c) : board.row(c))) ?? [],
     )
-    const own = lineNames(rows, lines)
-    const cross = lineNames(!rows, [...opposite])
-    const noun = rows ? 'rows' : 'columns'
-    const crossNoun = rows ? 'columns' : 'rows'
+    const own = w.lineNames(rows, lines)
+    const cross = w.lineNames(!rows, [...opposite])
     const first = eliminate[0] as Elimination
+    const cornersText = w.cellList(board, corners)
+    const personText = w.personName(board, first.person)
+    const explanation =
+      context.locale === 'nl'
+        ? advNl.rectangleText(own, cornersText, cross, rows, size, personText)
+        : `In ${own}, only these squares are still free: ${cornersText}. They all lie in ${cross}. So ${countWord(size)} ${rows ? 'rows' : 'columns'} need ${countWord(size)} ${rows ? 'columns' : 'rows'}: together they use up ${cross}. Outside ${own}, nobody can stand in ${cross}, and that includes ${personText}.`
     return {
       eliminate,
-      explanation: sentences(
-        `In ${own}, only these squares are still free: ${cellList(board, corners)}. They all lie in ${cross}. So ${countWord(size)} ${noun} need ${countWord(size)} ${crossNoun}: together they use up ${cross}. Outside ${own}, nobody can stand in ${cross}, and that includes ${personName(board, first.person)}.`,
-      ),
+      explanation: w.sentences(explanation),
       people: [...new Set(eliminate.map((e) => e.person))],
       cells: [...new Set([...corners, ...eliminate.map((e) => e.cell)])],
     }
@@ -88,7 +93,7 @@ export const intersectWide: Technique = {
   id: 'intersect-wide',
   title: 'Rule out crossing squares (wide)',
   level: 4,
-  find(board) {
+  find(board, context) {
     const snap = snapshot(board)
     const { width, height } = snap
     for (const a of snap.unplaced) {
@@ -113,13 +118,17 @@ export const intersectWide: Technique = {
         }
       }
       if (eliminate.length === 0) continue
+      const w = context.locale === 'nl' ? nl : en
       const cells = [...new Set(eliminate.map((e) => e.cell))]
-      const name = personName(board, a)
+      const name = w.personName(board, a)
+      const cellListText = w.cellList(board, cells)
+      const explanation =
+        context.locale === 'nl'
+          ? advNl.intersectWideText(name, own.length, cellListText)
+          : `${name} can still stand on ${countWord(own.length)} squares, and each of them lies in the same row or column as ${cellListText}. If somebody else stood there, ${name} would have nothing left. So nobody else can stand there.`
       return {
         eliminate,
-        explanation: sentences(
-          `${name} can still stand on ${countWord(own.length)} squares, and each of them lies in the same row or column as ${cellList(board, cells)}. If somebody else stood there, ${name} would have nothing left. So nobody else can stand there.`,
-        ),
+        explanation: w.sentences(explanation),
         people: [a],
         cells: [...own, ...cells],
       }

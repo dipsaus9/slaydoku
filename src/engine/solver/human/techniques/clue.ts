@@ -2,7 +2,8 @@ import { bothPartsText, evaluate, expandClue, isGenderClue, renderClue } from '.
 import type { CatalogClue } from '../../../clues/index.ts'
 import type { BoardView } from '../board.ts'
 import type { Deduction, Elimination, HumanContext, Technique } from '../types.ts'
-import { cellSummary, peopleNames, personName, possessive, roomName, sentences } from '../en.ts'
+import * as en from '../en.ts'
+import * as nl from '../nl.ts'
 
 /**
  * Clue-specific eliminations: what one clue card alone rules out. Uses the
@@ -69,8 +70,9 @@ function fromClue(board: BoardView, context: HumanContext, index: number): Deduc
   }
   const eliminate = [...found.values()]
   if (eliminate.length === 0) return null
+  const w = context.locale === 'nl' ? nl : en
   const ctx = { scene: board.scene, people: [...board.people] }
-  const text = renderClue(card, ctx)
+  const text = renderClue(card, ctx, context.locale)
   // People who lose the very same squares are named together.
   const lost = new Map<string, { people: number[]; cells: number[] }>()
   for (const p of new Set(eliminate.map((e) => e.person))) {
@@ -80,20 +82,31 @@ function fromClue(board: BoardView, context: HumanContext, index: number): Deduc
     lost.set(cells.join(','), group)
   }
   const verdicts = [...lost.values()].map(({ people, cells }, i) => {
-    const who = peopleNames(board, people)
-    const where = cellSummary(board, cells)
+    const who = w.peopleNames(board, people)
+    const where = w.cellSummary(board, cells)
+    if (context.locale === 'nl') return nl.clueVerdictText(who, where, people.length, i === 0)
     return i === 0 ? `So ${who} cannot stand on ${where}` : `${who} cannot stand on ${where} either`
   })
   const room =
     card.type === 'emptyRoom' ? board.scene.rooms.findIndex((r) => r.id === (card.args as { roomId: string }).roomId) : -1
-  const twoParts = bothPartsText(card, ctx)
+  const twoParts = bothPartsText(card, ctx, undefined, context.locale)
   const lead =
-    room >= 0
-      ? `A card says: "${text}"`
-      : `${possessive(personName(board, holder))} card says: "${text}"${twoParts === null ? '' : ` ${twoParts}`}`
+    context.locale === 'nl'
+      ? nl.clueLeadText(room >= 0, w.possessive(w.personName(board, holder)), text, twoParts)
+      : room >= 0
+        ? `A card says: "${text}"`
+        : `${w.possessive(w.personName(board, holder))} card says: "${text}"${twoParts === null ? '' : ` ${twoParts}`}`
+  const explanation =
+    context.locale === 'nl'
+      ? room >= 0
+        ? nl.clueRoomText(lead, w.roomName(board, room))
+        : nl.clueVerdictsText(lead, verdicts.join('. '))
+      : room >= 0
+        ? `${lead} So nobody can stand in ${w.roomName(board, room)}.`
+        : `${lead} ${verdicts.join('. ')}.`
   return {
     eliminate,
-    explanation: sentences(room >= 0 ? `${lead} So nobody can stand in ${roomName(board, room)}.` : `${lead} ${verdicts.join('. ')}.`),
+    explanation: w.sentences(explanation),
     people: [...new Set([holder, ...others, ...eliminate.map((e) => e.person)])],
     cells: [...new Set(eliminate.map((e) => e.cell))],
     clueIndex: index,
