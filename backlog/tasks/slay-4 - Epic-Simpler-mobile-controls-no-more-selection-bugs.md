@@ -1,9 +1,10 @@
 ---
 id: SLAY-4
 title: 'Epic: Simpler mobile controls, no more selection bugs'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 13:17'
+updated_date: '2026-09-28 16:11'
 labels:
   - epic
 dependencies: []
@@ -18,8 +19,14 @@ Outcome: playing a puzzle on a phone feels natural — the toolbar shows fewer c
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Undoing or redoing a placement selects the person that placement action concerned, not whatever auto-advance had selected
-- [ ] #2 The play-screen toolbar's main row shows 8 controls (Note, Place, X, Erase, Undo, Redo, Hint, Zoom); Options, Help and Legend live behind one More control; Auto-X is an Options toggle
-- [ ] #3 Board furniture/object icons keep their shapes but read calmer (less saturated, less visual noise); room labels and grid lines use the existing warm design tokens; suspect/victim cards line up to a consistent height
-- [ ] #4 No game logic, puzzle content, icon silhouette or card text changes; the full verify:phone suite stays green
+- [x] #1 Undoing or redoing a placement selects the person that placement action concerned, not whatever auto-advance had selected
+- [x] #2 The play-screen toolbar's main row shows 8 controls (Note, Place, X, Erase, Undo, Redo, Hint, Zoom); Options, Help and Legend live behind one More control; Auto-X is an Options toggle
+- [x] #3 Board furniture/object icons keep their shapes but read calmer (less saturated, less visual noise); room labels and grid lines use the existing warm design tokens; suspect/victim cards line up to a consistent height
+- [x] #4 No game logic, puzzle content, icon silhouette or card text changes; the full verify:phone suite stays green
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+All three stories (4.1 undo/redo selection, 4.2 toolbar consolidation, 4.3 calmer board/cards) delivered and merged (PRs #32, #34, #31). Closed by the orchestrator once the last story's PR (blocked on a subagent-side push permission false positive) was pushed and merged directly.
+<!-- SECTION:NOTES:END -->
