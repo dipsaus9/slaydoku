@@ -22,6 +22,22 @@ export const ADVANCED_SIZES: readonly number[] = [9, 12]
 /** Tier mix of the days that are not the week's expert day, in percent (sums to 100). */
 export const TIER_MIX: readonly (readonly [TierId, number])[] = [['very-easy', 15], ['easy', 30], ['easy-medium', 25], ['medium', 20], ['hard', 10]]
 
+/**
+ * Tier mix for the first-4-weeks ramp-up window (`isRampUp`): hard-free, `medium` picking up its 10-point share (20 -> 30). Same total
+ * (100) as `TIER_MIX`, so a roll that already landed on `medium`/`easy`/etc. under the unmodified mix keeps its value; only a roll that
+ * would have been `hard` is remapped onto this table instead (see `tierOf`).
+ */
+export const RAMP_UP_TIER_MIX: readonly (readonly [TierId, number])[] = [['very-easy', 15], ['easy', 30], ['easy-medium', 25], ['medium', 30]]
+
+/** Number of days from `LAUNCH_DATE` (inclusive) that the gentler ramp-up rule applies to. */
+export const RAMP_UP_DAYS = 28
+
+/** Whether a date falls within the first `RAMP_UP_DAYS` days from `LAUNCH_DATE` (day 1 included). */
+export const isRampUp = (date: string): boolean => {
+  const offset = dayNumberOf(date) - dayNumberOf(LAUNCH_DATE)
+  return offset >= 0 && offset < RAMP_UP_DAYS
+}
+
 /** The tiers whose puzzles need a 9x9 or 12x12 board. */
 export const ADVANCED_TIERS: readonly TierId[] = ['hard', 'expert']
 
@@ -63,6 +79,38 @@ export const isExpertDay = (date: string): boolean => {
   return weekdayOfDayNumber(day) === expertWeekday(weekStartOf(day))
 }
 
+/**
+ * The one date in the ramp-up window that stays the week's expert day: the chronologically first date within the window that the
+ * unmodified `isExpertDay` already calls an expert day. Every later would-be expert date in the window falls back to `RAMP_UP_TIER_MIX`
+ * instead (`tierOf`), so its week holds zero experts, not one (`scheduleProblems` allows for it). Pure: the window is fixed by
+ * `LAUNCH_DATE`.
+ */
+export const rampUpKeptExpertDate = (): string => {
+  const launch = dayNumberOf(LAUNCH_DATE)
+  for (let offset = 0; offset < RAMP_UP_DAYS; offset++) {
+    const date = dateOfDayNumber(launch + offset)
+    if (isExpertDay(date)) return date
+  }
+  throw new RangeError('no expert day found in the ramp-up window')
+}
+
+/** Whether `date` is a would-be expert day (`isExpertDay`) that the ramp-up window demotes: in the window, but not its one kept expert day. */
+export const isDemotedExpertDay = (date: string): boolean => isExpertDay(date) && isRampUp(date) && date !== rampUpKeptExpertDate()
+
+/**
+ * The tier of a date. Outside the ramp-up window: unchanged (the week's expert day is `expert`, every other day draws `TIER_MIX`).
+ * Inside it: the window's one kept expert day (`rampUpKeptExpertDate`) stays `expert`; every later would-be expert day draws
+ * `RAMP_UP_TIER_MIX` instead; every other day keeps its unmodified `TIER_MIX` draw exactly UNLESS that draw would have been `hard`, in
+ * which case it draws `RAMP_UP_TIER_MIX` instead (same seed, same total of 100, so a non-`hard` draw is never disturbed by the mix
+ * table's shape changing).
+ */
+function tierOf(date: string): TierId {
+  if (!isRampUp(date)) return isExpertDay(date) ? 'expert' : weighted(TIER_MIX, createRng(`tier:${date}`))
+  if (isExpertDay(date)) return isDemotedExpertDay(date) ? weighted(RAMP_UP_TIER_MIX, createRng(`tier:${date}`)) : 'expert'
+  const unmodified = weighted(TIER_MIX, createRng(`tier:${date}`))
+  return unmodified === 'hard' ? weighted(RAMP_UP_TIER_MIX, createRng(`tier:${date}`)) : unmodified
+}
+
 const THEME_IDS: readonly ThemeId[] = SCENE_THEMES.map((t) => t.id)
 const THEME_CYCLE = THEME_IDS.length
 
@@ -81,9 +129,9 @@ export function themeOf(date: string): ThemeId {
   return order[day - cycle * THEME_CYCLE]!
 }
 
-/** Size and tier of a date. The expert day of the week is an expert; every other day draws a tier from `TIER_MIX`, then a size the tier allows. */
+/** Size and tier of a date. The expert day of the week is an expert; every other day draws a tier from `TIER_MIX` (see `tierOf` for the ramp-up window's exception), then a size the tier allows. */
 export function sizeAndTierOf(date: string): { size: number; tier: TierId } {
-  const tier: TierId = isExpertDay(date) ? 'expert' : weighted(TIER_MIX, createRng(`tier:${date}`))
+  const tier: TierId = tierOf(date)
   return { tier, size: weighted(sizesFor(tier), createRng(`size:${date}`)) }
 }
 

@@ -1,9 +1,10 @@
 ---
 id: SLAY-6.3
 title: 'Schedule: no hard, at most one expert, in the first 4 weeks'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 18:57'
+updated_date: '2026-09-28 19:53'
 labels:
   - story
 dependencies: []
@@ -12,6 +13,8 @@ references:
   - src/schedule/pick.test.ts
   - src/content/schedule/
   - docs/authoring/schedule.md
+  - src/schedule/check.ts
+  - src/game/daily/status.test.ts
 parent_task_id: SLAY-6
 type: feature
 ordinal: 37000
@@ -27,11 +30,11 @@ Branch: SLAY-6.3/gentle-first-four-weeks
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 src/schedule/pick.ts draws from a hard-free mix (very-easy 15, easy 30, easy-medium 25, medium 30) for any date within 28 days of LAUNCH_DATE that is not the window's one kept expert day; every other date's tier mix is unchanged
-- [ ] #2 Within the 28-day window, only the chronologically first date that the unmodified isExpertDay would call an expert day stays expert; every later such date in the window falls back to the hard-free mix instead (a normal week outside the window is unaffected)
-- [ ] #3 pick.test.ts covers the new rule directly: no hard tier in the window, exactly one expert date in the window, and a control date outside the window is unaffected by the change
-- [ ] #4 The committed schedule (src/content/schedule/) is regenerated for exactly the dates the new rule changes (today's date, currently hard, is confirmed among them by the owner); every date the rule does not change is byte-identical to before, verified by tools/schedule.test.ts
-- [ ] #5 docs/authoring/schedule.md's tier-mix description is updated to describe the first-4-weeks exception
+- [x] #1 src/schedule/pick.ts draws from a hard-free mix (very-easy 15, easy 30, easy-medium 25, medium 30) for any date within 28 days of LAUNCH_DATE that is not the window's one kept expert day; every other date's tier mix is unchanged
+- [x] #2 Within the 28-day window, only the chronologically first date that the unmodified isExpertDay would call an expert day stays expert; every later such date in the window falls back to the hard-free mix instead (a normal week outside the window is unaffected)
+- [x] #3 pick.test.ts covers the new rule directly: no hard tier in the window, exactly one expert date in the window, and a control date outside the window is unaffected by the change
+- [x] #4 The committed schedule (src/content/schedule/) is regenerated for exactly the dates the new rule changes (today's date, currently hard, is confirmed among them by the owner); every date the rule does not change is byte-identical to before, verified by tools/schedule.test.ts
+- [x] #5 docs/authoring/schedule.md's tier-mix description is updated to describe the first-4-weeks exception
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -44,4 +47,16 @@ Branch: SLAY-6.3/gentle-first-four-weeks
 
 <!-- SECTION:NOTES:BEGIN -->
 Owner confirmed: today (day 2, 2026-09-28) is currently 'hard' and live/playable; the owner explicitly accepted overwriting it despite the 'published day never changes' rule, as the one exception. Do not overwrite any date the new rule does not actually change (day 1 must stay exactly as committed) — regenerating the whole window unconditionally would violate that and is not what was asked.
+
+Regeneration was surgical: identified the exact 9 dates the rule changes (09-28, 09-30, 10-10, 10-13, 10-15, 10-16, 10-20, 10-23, 10-24) by diffing old vs new sizeAndTierOf() over the 28-day window. Whole-window regeneration (--start 2026-09-28 --days 27 --overwrite) was tried first and rejected: it rippled the nominal cast chain (castFor's previousCast exclusion) into 7 unrelated dates (10-01,10-02,10-11,10-12,10-14,10-17,10-18) whose own plan does not change, purely because an earlier date's SIZE changed. Fix: a one-off script rebuilt only the 9 target dates, grounding each one's cast on the REAL committed previous day's names (or the just-built previous target's names when adjacent) instead of letting nominalCast recompute the whole chain from CAST_CHAIN_START. Diffed the result against the pre-change schedule: only the 9 dates differ, byte-for-byte, everything else (including day 1 and index.json) untouched. Also required: src/schedule/check.ts's scheduleProblems 'every week has exactly one expert' invariant needed a ramp-up exception (a demoted week now legitimately holds zero) via the new isDemotedExpertDay/rampUpKeptExpertDate exports -- without it 'bun run schedule' would permanently refuse any future generation touching these weeks. Also fixed src/game/daily/status.test.ts, which hardcoded cell {0,0} for day index 3 (2026-09-30, one of the regenerated dates) and that cell is now blocked by furniture in the new smaller puzzle; switched to day.puzzle.solution[0].cell (always free on a fresh board).
+
+References widened post-review to include src/schedule/check.ts (scheduleProblems' week-expert invariant needed a ramp-up exception, or bun run schedule would permanently refuse the new committed schedule) and src/game/daily/status.test.ts (a hardcoded cell for the regenerated 2026-09-30 day is now blocked by furniture in the new puzzle). Both are necessary, tightly-coupled consequences of AC #2/#4, not independent scope creep; flagged by the independent reviewer as an undeclared-References scope violation and widened per repo precedent (see CAD-10.7).
+
+Independent review: round 1 blocked solely on two undeclared-but-necessary References (src/schedule/check.ts, src/game/daily/status.test.ts); References widened, round 2 passed clean (verdict: pass, all 5 ACs met, no scope violations, no findings).
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added a hard-free ramp-up rule to src/schedule/pick.ts for the first 28 days from LAUNCH_DATE: a date that would draw 'hard' now redraws from RAMP_UP_TIER_MIX (very-easy 15, easy 30, easy-medium 25, medium 30), and only the chronologically first would-be expert day in the window keeps 'expert' (rampUpKeptExpertDate/isDemotedExpertDay) — every later one falls back to the same hard-free mix. Every date the rule doesn't touch, including day 1, keeps its exact unmodified draw. check.ts's scheduleProblems week-expert invariant now allows a demoted week's legitimate zero-experts. pick.test.ts adds direct coverage (no hard in window, exactly one expert in window, control date outside the window unaffected). The committed schedule was regenerated surgically for exactly the 9 dates the rule changes (2026-09-28/30, 10-10, 10-13, 10-15/16, 10-20, 10-23/24, including today as the owner's one confirmed exception to 'a published day never changes') via a one-off script that grounds each day's cast on the real committed previous day rather than letting the nominal cast chain recompute from scratch and ripple into unrelated dates (a whole-window regeneration was tried first and rejected for exactly that ripple). Every other date, including day 1 and index.json, is byte-identical to what was committed; tools/schedule.test.ts confirms it live. status.test.ts's hardcoded cell was swapped for the puzzle's own first solution cell, since the regenerated day 4 puzzle now blocks the old cell with furniture. docs/authoring/schedule.md documents the exception. Independent review passed clean on round 2 after References were widened to declare check.ts and status.test.ts (round 1 flagged them as undeclared but necessary).
+<!-- SECTION:FINAL_SUMMARY:END -->
