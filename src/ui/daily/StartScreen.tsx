@@ -11,6 +11,10 @@ import { Modal } from '../play/Modal.tsx'
 import { Link } from '../router/index.ts'
 import { Countdown } from './Countdown.tsx'
 import { LocaleToggle } from './LocaleToggle.tsx'
+import gameplayEnStill from './intro/gameplay-en-still.webp'
+import gameplayEn from './intro/gameplay-en.webp'
+import gameplayNlStill from './intro/gameplay-nl-still.webp'
+import gameplayNl from './intro/gameplay-nl.webp'
 import { useDailyStrings } from './strings.ts'
 
 /**
@@ -18,6 +22,13 @@ import { useDailyStrings } from './strings.ts'
  * (02:00 Amsterdam time)" reads the same for every player, wherever they are.
  */
 const LOCAL_CLOCK = { timeZone: 'Europe/Amsterdam', label: 'Amsterdam time' } as const
+
+/**
+ * The gameplay example next to the intro (SLAY-9.18): a short loop recorded from the real play screen by
+ * `docs/verification/intro.ts`, on day #1, which is over, so it spoils nothing anyone can still play. Under
+ * prefers-reduced-motion a single still frame shows instead of the loop.
+ */
+const GAMEPLAY = { en: { loop: gameplayEn, still: gameplayEnStill }, nl: { loop: gameplayNl, still: gameplayNlStill } } as const
 
 /** What the start screen shows. */
 export type StartState =
@@ -40,7 +51,12 @@ export interface StartScreenProps {
   stats?: ReactNode
 }
 
-function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; status: DayStatus; ended: boolean; clock: () => number; onPlay: () => void }) {
+/**
+ * Today's puzzle, inside the open hero (SLAY-9.18): no box around it. The action comes first, right under the tagline
+ * (Play/Continue, or the result with View board and Share once solved); difficulty and size, the byline and the countdown
+ * follow as small lines under it, the way Wordle keeps its date and number to a quiet byline.
+ */
+function PuzzleCard({ day, status, ended, clock, onPlay, onShare }: { day: ScheduleDay; status: DayStatus; ended: boolean; clock: () => number; onPlay: () => void; onShare: (() => void) | null }) {
   const t = useDailyStrings()
   const solved = status.kind === 'solved' ? status.result : null
   const name = useMemo(() => {
@@ -51,60 +67,75 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
   const dayEnd = startOfUtcDay(day.date) + 86_400_000
   return (
     <section className="daily-card" data-status={status.kind} data-day={day.date} aria-labelledby="daily-number">
-      <p className="daily-card__meta">
-        <span className="daily-card__tier" data-tier={day.tier}>
-          <span className="daily-card__tier-label">{t.difficulty}:</span> {t.tier[day.tier]}
-        </span>
-        <span className="daily-card__size" data-size={day.size}>{t.size(day.size)}</span>
-      </p>
-
       {solved ? (
-        <>
-          <div className="daily-result" data-result="solved">
-            <p className="daily-result__title">{t.solved.title}</p>
-            <p className="daily-result__alone">{t.solved.alone(name)}</p>
-            <p className="daily-result__facts">
-              <span data-fact="time">{t.solved.time(formatTime(solved.elapsedMs))}</span>
-              <span aria-hidden="true">{' · '}</span>
-              <span data-fact="hints">{t.solved.hints(solved.hints)}</span>
-            </p>
-          </div>
-          {/* SLAY-9.16: a fresh app/tab landing on '/' after the day is already solved had no way back to
-              the board (the PWA reopen dead end) -- this reuses the same onPlay wiring the unsolved
-              Play/Continue button below uses, which already resolves to the current day's /play route. */}
-          <button type="button" className="daily-btn daily-btn--primary daily-card__play" data-action="view-board" onClick={onPlay}>
-            {t.solved.viewBoard}
-          </button>
-        </>
-      ) : ended ? (
-        <p className="daily-card__ended" data-ended>{t.ended}</p>
+        <div className="daily-result" data-result="solved">
+          <p className="daily-result__title">{t.solved.title}</p>
+          <p className="daily-result__alone">{t.solved.alone(name)}</p>
+          <p className="daily-result__facts">
+            <span data-fact="time">{t.solved.time(formatTime(solved.elapsedMs))}</span>
+            <span aria-hidden="true">{' · '}</span>
+            <span data-fact="hints">{t.solved.hints(solved.hints)}</span>
+          </p>
+        </div>
+      ) : null}
+
+      {ended && !solved ? (
+        <p className="daily-card__ended" data-ended>
+          {t.ended}
+        </p>
       ) : (
-        <button type="button" className="daily-btn daily-btn--primary daily-card__play" data-action={status.kind === 'inProgress' ? 'continue' : 'play'} onClick={onPlay}>
-          {status.kind === 'inProgress' ? t.continue : t.play}
-        </button>
+        <div className="daily-card__actions">
+          {solved ? (
+            // SLAY-9.16: a fresh app/tab landing on '/' after the day is already solved had no way back to the board (the PWA
+            // reopen dead end) -- the same onPlay wiring as Play/Continue, which resolves to the current day's /play route.
+            <button type="button" className="daily-btn daily-btn--primary daily-card__play" data-action="view-board" onClick={onPlay}>
+              {t.solved.viewBoard}
+            </button>
+          ) : (
+            <button type="button" className="daily-btn daily-btn--primary daily-card__play" data-action={status.kind === 'inProgress' ? 'continue' : 'play'} onClick={onPlay}>
+              {status.kind === 'inProgress' ? t.continue : t.play}
+            </button>
+          )}
+          {/* The Share popover's opener (SLAY-9.13): a second pill in the same row once the day is solved, the slot empty before that. */}
+          <div className="daily__slot daily__slot--inline" data-slot="share">
+            {solved && onShare ? (
+              <button type="button" className="daily-btn daily-btn--outline" data-action="share" onClick={onShare}>
+                {t.slots.share}
+              </button>
+            ) : null}
+          </div>
+        </div>
       )}
 
-      {ended ? null : (
-        <Countdown
-          clock={clock}
-          target={dayEnd}
-          kind={solved ? 'next' : 'ends'}
-          label={solved ? t.nextIn : t.endsIn}
-          until={(solved ? t.nextAt : t.endsAt)(utcWithLocal(dayEnd, LOCAL_CLOCK))}
-        />
-      )}
-
-      {/* Wordle-style byline (SLAY-9.9): the puzzle's date-based label (SLAY-10.2) and the site name,
-          one small muted line under the primary action instead of the big heading the label used to
-          be. The label already carries the date (SLAY-9.15): no second, always-English long-date
-          segment alongside it. */}
-      <p className="daily-card__byline">
-        <span id="daily-number" className="daily-card__byline-label" data-puzzle-number={day.n}>
-          {t.puzzleLabel(day.date)}
-        </span>
-        <span className="daily-card__byline-sep" aria-hidden="true">·</span>
-        <span className="daily-card__byline-site">{t.title}</span>
-      </p>
+      <div className="daily-card__details">
+        {/* Wordle-style byline (SLAY-9.9): the puzzle's date-based label (SLAY-10.2) and the site name. The label already carries
+            the date (SLAY-9.15): no second, always-English long-date segment alongside it. */}
+        <p className="daily-card__byline">
+          <span id="daily-number" className="daily-card__byline-label" data-puzzle-number={day.n}>
+            {t.puzzleLabel(day.date)}
+          </span>
+          <span className="daily-card__byline-sep" aria-hidden="true">·</span>
+          <span className="daily-card__byline-site">{t.title}</span>
+        </p>
+        <p className="daily-card__meta">
+          <span className="daily-card__tier" data-tier={day.tier}>
+            <span className="daily-card__tier-label">{t.difficulty}:</span> {t.tier[day.tier]}
+          </span>
+          <span className="daily-card__meta-sep" aria-hidden="true">·</span>
+          <span className="daily-card__size" data-size={day.size}>
+            {t.size(day.size)}
+          </span>
+        </p>
+        {ended ? null : (
+          <Countdown
+            clock={clock}
+            target={dayEnd}
+            kind={solved ? 'next' : 'ends'}
+            label={solved ? t.nextIn : t.endsIn}
+            until={(solved ? t.nextAt : t.endsAt)(utcWithLocal(dayEnd, LOCAL_CLOCK))}
+          />
+        )}
+      </div>
     </section>
   )
 }
@@ -117,6 +148,29 @@ function BeforeLaunch({ first, clock }: { first: string; clock: () => number }) 
       <h2 id="daily-before" className="daily-card__number">{t.title(formatDayMonth(first))}</h2>
       <p className="daily-card__date">{t.text}</p>
       <Countdown clock={clock} target={target} kind="starts" label={t.startsIn} until={t.startsAt(utcWithLocal(target, { ...LOCAL_CLOCK, withDate: true }))} />
+    </section>
+  )
+}
+
+/** What the game is, for somebody who has never played, next to a short recording of real play (SLAY-9.18). */
+function Intro() {
+  const t = useDailyStrings().intro
+  const { locale } = useLocale()
+  const media = GAMEPLAY[locale]
+  return (
+    <section className="daily-intro" aria-labelledby="daily-intro-title">
+      <h2 id="daily-intro-title" className="daily-intro__title">
+        {t.title}
+      </h2>
+      <p className="daily-intro__text">{t.text}</p>
+      <figure className="daily-intro__figure">
+        <picture>
+          <source srcSet={media.still} media="(prefers-reduced-motion: reduce)" />
+          {/* Lazy: below the hero, it never holds up the Play button. */}
+          <img className="daily-intro__media" src={media.loop} width="600" height="351" alt={t.alt} loading="lazy" decoding="async" />
+        </picture>
+        <figcaption className="daily-intro__caption">{t.caption}</figcaption>
+      </figure>
     </section>
   )
 }
@@ -134,20 +188,16 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
   const [shareOpen, setShareOpen] = useState(false)
   return (
     <main className="daily">
-      {/* Wordle-style landing pattern (SLAY-9.9): a small icon mark, the wordmark and a one-line tagline, centered
-          above everything else -- there is exactly one primary action below (Play/Continue), no Login or
-          subscription button (Slaydoku has no accounts or leaderboard at launch, CLAUDE.md). */}
-      <div className="daily__hero">
-        <img className="daily__mark" src={iconMark} width="48" height="48" alt="" />
-        <h1 className="daily__title">{t.title}</h1>
-        <p className="daily__subtitle">{t.subtitle}</p>
-      </div>
-
-      <div className="daily__controls">
-        <LocaleToggle />
+      {/* The language switch and the Help link sit in a quiet top bar (SLAY-9.18), out of the hero's own
+          flow: a Wordle-style landing has nothing between its tagline and its buttons. */}
+      <div className="daily__bar">
         <button type="button" className="daily-btn daily-btn--quiet daily__help" onClick={() => setHelpOpen(true)}>
+          <span className="daily__help-icon" aria-hidden="true">
+            ?
+          </span>
           {help.link}
         </button>
+        <LocaleToggle />
       </div>
 
       {rollover ? (
@@ -159,39 +209,53 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
         </div>
       ) : null}
 
-      {state.kind === 'loading' ? <p className="daily__loading" role="status">{t.loading}</p> : null}
-      {state.kind === 'error' ? (
-        <section className="daily-card" data-state="error" role="alert">
-          <h2 className="daily-card__number">{t.error.title}</h2>
-          <p>{t.error.text}</p>
-          <button type="button" className="daily-btn daily-btn--primary" onClick={state.onRetry}>
-            {t.error.retry}
-          </button>
-        </section>
-      ) : null}
-      {state.kind === 'before-launch' ? <BeforeLaunch first={state.first} clock={clock} /> : null}
-      {state.kind === 'after-schedule' ? (
-        <section className="daily-card" data-state="after-schedule" aria-labelledby="daily-after">
-          <h2 id="daily-after" className="daily-card__number">{t.after.title}</h2>
-          <p className="daily-card__date">{t.after.text}</p>
-        </section>
-      ) : null}
-      {state.kind === 'day' ? <PuzzleCard day={state.day} status={state.status} ended={state.ended} clock={clock} onPlay={onPlay} /> : null}
+      {/* One open hero on the plain background (SLAY-9.18, after SLAY-9.9's first pass): the icon mark, the wordmark, a
+          prominent tagline and, straight under it, the one next step -- no card or box around any of it. There is no Login
+          or subscription button (Slaydoku has no accounts or leaderboard at launch, CLAUDE.md). */}
+      <div className="daily__hero">
+        <img className="daily__mark" src={iconMark} width="64" height="64" alt="" />
+        <h1 className="daily__title">{t.title}</h1>
+        <p className="daily__subtitle">{t.subtitle}</p>
 
-      <div className="daily__slot" data-slot="share">
-        {state.kind === 'day' && state.status.kind === 'solved' && share ? (
-          <button type="button" className="daily-btn daily-btn--quiet" data-action="share" onClick={() => setShareOpen(true)}>
-            {t.slots.share}
-          </button>
+        {state.kind === 'loading' ? (
+          <p className="daily__loading" role="status">
+            {t.loading}
+          </p>
+        ) : null}
+        {state.kind === 'error' ? (
+          <section className="daily-card" data-state="error" role="alert">
+            <h2 className="daily-card__number">{t.error.title}</h2>
+            <p>{t.error.text}</p>
+            <button type="button" className="daily-btn daily-btn--primary" onClick={state.onRetry}>
+              {t.error.retry}
+            </button>
+          </section>
+        ) : null}
+        {state.kind === 'before-launch' ? <BeforeLaunch first={state.first} clock={clock} /> : null}
+        {state.kind === 'after-schedule' ? (
+          <section className="daily-card" data-state="after-schedule" aria-labelledby="daily-after">
+            <h2 id="daily-after" className="daily-card__number">{t.after.title}</h2>
+            <p className="daily-card__date">{t.after.text}</p>
+          </section>
+        ) : null}
+        {state.kind === 'day' ? (
+          <PuzzleCard day={state.day} status={state.status} ended={state.ended} clock={clock} onPlay={onPlay} onShare={share ? () => setShareOpen(true) : null} />
         ) : null}
       </div>
-      <div className="daily__slot" data-slot="stats">{stats}</div>
 
-      <footer className="daily__footer">
-        <Link href="/about" className="daily__about">
-          {t.about}
-        </Link>
-      </footer>
+      {/* Below a clear break, quieter than the hero: the streak line (SLAY-1.6), what the game is, the About link. */}
+      <div className="daily__more">
+        <div className="daily__slot" data-slot="stats">
+          {stats}
+        </div>
+        <Intro />
+        <footer className="daily__footer">
+          <Link href="/about" className="daily__about">
+            {t.about}
+          </Link>
+        </footer>
+      </div>
+
       {helpOpen ? <HelpPanel onClose={() => setHelpOpen(false)} /> : null}
       {shareOpen ? (
         <Modal title={t.slots.share} onClose={() => setShareOpen(false)}>

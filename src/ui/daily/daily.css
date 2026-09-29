@@ -21,19 +21,23 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+
+/*
+ * Start screen (SLAY-9.18, redoing SLAY-9.9's first pass): Wordle's landing composition. One open hero on the plain
+ * background -- icon mark, wordmark, a large serif tagline and the one next step straight under it -- with no card or box
+ * around any of it. The language switch and Help sit in a quiet top bar; the streak line, what the game is and About
+ * come after a clear break, quieter than the hero.
+ */
 .daily {
   box-sizing: border-box;
   min-height: 100vh;
   min-height: 100dvh;
-  max-width: 460px;
   margin: 0 auto;
-  padding: 24px 16px 32px;
-  padding-top: max(24px, env(safe-area-inset-top));
+  padding: 8px 16px 32px;
+  padding-top: max(8px, env(safe-area-inset-top));
   padding-left: max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
   padding-bottom: max(32px, env(safe-area-inset-bottom));
-  /* Wordle-style landing pattern (SLAY-9.9): everything from the icon mark down reads as one
-     centered column, narrower than the old 560px header layout. */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -54,47 +58,39 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ---- hero: icon mark, wordmark, tagline (SLAY-9.9, Wordle's landing pattern) --------- */
+/* ---- top bar: Help on the left, the language switch on the right ---------------------- */
 
-.daily__hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 4px;
-}
-
-.daily__mark {
-  display: block;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 10px;
-  border-radius: 22%;
-  box-shadow: 0 2px 8px rgba(42, 42, 54, 0.25);
-}
-
-.daily__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-  line-height: 1.15;
-}
-
-.daily__subtitle {
-  margin: 4px 0 0;
-  font-size: 1.1rem;
-  opacity: 0.75;
-}
-
-/* A small centered row under the hero for the controls that used to live in the header: the
-   language switch and the Help link, "repositioned to fit the new centered composition" (SLAY-9.9). */
-.daily__controls {
+.daily__bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
-  margin: 10px 0 18px;
+  max-width: 1080px;
+}
+
+.daily__help {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 10px 0 6px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.daily__help-icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .daily__locale {
@@ -118,14 +114,64 @@
   text-decoration: none;
 }
 
-.daily__help {
-  min-height: 44px;
-  padding: 0 12px;
-  font-size: 1rem;
+/* In the start screen's top bar the chosen language is a soft chip, not an accent-outlined pill: the bar stays quiet. */
+.daily__bar .daily__locale-option {
+  font-size: 0.9rem;
+}
+
+.daily__bar .daily__locale-option[aria-pressed='true'] {
+  border-color: transparent;
+  background: rgba(42, 42, 54, 0.08);
+}
+
+/* ---- hero: icon mark, wordmark, tagline, the next step --------------------------------- */
+
+/* Takes the first screen (minus the bar and a strip at the bottom where the next section starts), its content centered in
+   it, as Wordle's landing block is. Capped, so a tall iPad in portrait does not float it in a sea of empty space. */
+.daily__hero {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  min-height: min(calc(100vh - 210px), 720px);
+  min-height: min(calc(100svh - 210px), 720px);
+  padding: 16px 0 24px;
+}
+
+.daily__mark {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  border-radius: 22%;
+  box-shadow: 0 2px 8px rgba(42, 42, 54, 0.25);
+}
+
+.daily__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+/* A prominent serif line, full ink -- not a small grey caption. */
+.daily__subtitle {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
 .daily__loading {
   width: 100%;
+  margin: 28px 0 0;
   font-size: 1.1rem;
 }
 
@@ -135,12 +181,103 @@
 
 .daily__slot {
   width: 100%;
-  margin-top: 14px;
+}
+
+/* The Share pill sits in the same row as View board: its slot adds no box of its own. */
+.daily__slot--inline {
+  display: contents;
+}
+
+/* ---- after the hero: streak, what the game is, About ------------------------------------ */
+
+.daily__more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+}
+
+/* The clear break between the hero and everything quieter under it: a short hairline, not a box. */
+.daily__more::before {
+  content: '';
+  width: 48px;
+  margin-bottom: 12px;
+  border-top: 1px solid var(--line);
+}
+
+/* The streak line (StatsEntry, src/ui/stats/): on this screen a plain line with a text button, no bordered panel of its own
+   -- it must not compete with the hero. Scoped under .daily so the card it opens keeps its own look. */
+.daily .stats-entry {
+  justify-content: center;
+  gap: 0 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.daily .stats-entry__summary {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.daily .stats-entry__open {
+  flex: none;
+  min-height: 44px;
+  padding: 0 8px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 1rem;
+  text-decoration: underline;
+}
+
+.daily-intro {
+  width: 100%;
+  margin-top: 28px;
+}
+
+.daily-intro__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.daily-intro__text {
+  margin: 10px auto 0;
+  max-width: 40ch;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.daily-intro__figure {
+  margin: 20px 0 0;
+}
+
+/* The recording shares the page's own background: a soft shadow and rounded corners mark it as a screen snippet. */
+.daily-intro__media {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow:
+    0 1px 2px rgba(42, 42, 54, 0.12),
+    0 8px 24px rgba(42, 42, 54, 0.14);
+}
+
+.daily-intro__caption {
+  margin: 12px auto 0;
+  max-width: 40ch;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  opacity: 0.75;
 }
 
 .daily__footer {
   width: 100%;
-  margin-top: 24px;
+  margin-top: 16px;
   text-align: center;
 }
 
@@ -176,13 +313,29 @@
   color: var(--paper);
 }
 
+/* A second pill next to the primary one (Wordle's outlined buttons): ink outline, no fill. */
+.daily-btn--outline {
+  min-width: 140px;
+  min-height: 52px;
+  padding: 0 28px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 600;
+}
+
 .daily-btn--quiet {
   border-color: transparent;
   background: transparent;
   text-decoration: underline;
 }
 
-/* ---- the day's card ----------------------------------------------------------------- */
+.daily-btn:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- the day, inside the hero ---------------------------------------------------------- */
 
 /* Restrained fade/slide-in on mount; the duration token itself collapses to near-zero under
    prefers-reduced-motion (src/brand/tokens.css), so no separate override is needed here. */
@@ -193,24 +346,25 @@
   }
 }
 
+/* No border, no fill: the day's content is part of the one open hero block. */
 .daily-card {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  box-sizing: border-box;
-  padding: 20px 20px 22px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--paper);
+  margin-top: 28px;
   text-align: center;
   animation: daily-entrance var(--duration-small) var(--ease-out) both;
+}
+
+.daily-card > * + * {
+  margin-top: 8px;
 }
 
 .daily-card__number {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.9rem;
+  font-size: 1.6rem;
   line-height: 1.15;
 }
 
@@ -220,13 +374,67 @@
   opacity: 0.8;
 }
 
-.daily-card__meta {
+.daily-card__actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 16px;
+  gap: 12px;
+}
+
+.daily-card__play {
+  min-width: 200px;
+  min-height: 52px;
+  padding: 0 36px;
+  border-radius: 999px;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.daily-card__ended {
   margin: 0;
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+/* Wordle's quiet byline: the date-based label first, then difficulty and size, then the countdown -- small lines, no rules. */
+.daily-card__details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.daily-card > .daily-card__details {
+  margin-top: 28px;
+}
+
+.daily-card__byline,
+.daily-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 6px;
+  margin: 0;
+}
+
+.daily-card__byline {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.daily-card__byline-label,
+.daily-card__byline-site {
+  white-space: nowrap;
+}
+
+.daily-card__byline-sep,
+.daily-card__meta-sep {
+  opacity: 0.5;
+}
+
+.daily-card__meta {
+  font-size: 0.95rem;
 }
 
 .daily-card__tier {
@@ -235,113 +443,69 @@
 
 .daily-card__tier-label {
   font-weight: 400;
-  opacity: 0.65;
-}
-
-.daily-card__play {
-  width: 100%;
-  margin-top: 8px;
-  min-height: 56px;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.daily-card__ended {
-  margin: 8px 0 0;
-  font-size: 1.1rem;
-  opacity: 0.75;
-}
-
-.daily-card[data-status='inProgress'] {
-  border-color: var(--accent);
-  border-width: 2px;
-  padding: 19px 19px 21px;
-}
-
-/* Wordle-style byline (SLAY-9.9): the puzzle's date-based label, the full date and the site name,
-   one small muted line under the primary action and the countdown. */
-.daily-card__byline {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  column-gap: 6px;
-  row-gap: 2px;
-  margin: 10px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-  font-size: 0.85rem;
-  opacity: 0.65;
-}
-
-.daily-card__byline-label,
-.daily-card__byline-date,
-.daily-card__byline-site {
-  white-space: nowrap;
-}
-
-.daily-card__byline-sep {
   opacity: 0.7;
 }
 
 /* ---- result of a solved day --------------------------------------------------------- */
 
 .daily-result {
-  margin-top: 6px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: var(--paper);
-  border: 1px solid var(--line);
   animation: daily-entrance var(--duration-small) var(--ease-out) both;
 }
 
 .daily-result__title {
   margin: 0;
-  font-size: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--good);
 }
 
 .daily-result__alone {
-  margin: 4px 0 8px;
+  max-width: 30ch;
+  margin: 6px auto 6px;
   font-size: 1.15rem;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .daily-result__facts {
-  margin: 0;
+  margin: 0 0 12px;
   font-size: 1.1rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 /* ---- countdown ---------------------------------------------------------------------- */
 
 .daily-countdown {
-  margin-top: 10px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+  margin-top: 6px;
 }
 
 .daily-countdown__line {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
 }
 
 .daily-countdown__time {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
 
 .daily-countdown__until {
-  margin: 2px 0 0;
-  font-size: 1rem;
-  opacity: 0.8;
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 
 /* ---- the "New puzzle available" notice ---------------------------------------------- */
+
+/* On the start screen: in the column, between the top bar and the hero. */
+.daily > .daily-banner {
+  max-width: 480px;
+  margin: 8px 0 0;
+}
 
 .daily-banner {
   display: flex;
@@ -457,37 +621,45 @@
 
 @media (max-width: 640px) {
   .daily__hero {
-    margin-bottom: 0;
+    min-height: calc(100vh - 190px);
+    min-height: calc(100svh - 190px);
   }
 
   .daily__mark {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 8px;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 14px;
   }
 
   .daily__title {
-    font-size: 1.9rem;
+    font-size: 2.6rem;
   }
 
   .daily__subtitle {
-    font-size: 1rem;
-  }
-
-  .daily__controls {
-    margin: 8px 0 14px;
+    font-size: 1.4rem;
   }
 
   .daily-card {
-    padding: 16px 16px 18px;
+    margin-top: 24px;
   }
 
-  .daily-card[data-status='inProgress'] {
-    padding: 15px 15px 17px;
+  .daily-card > .daily-card__details {
+    margin-top: 24px;
+  }
+
+  /* View board and Share stay on one row down to 320px. */
+  .daily-card__play {
+    min-width: 160px;
+    padding: 0 28px;
+  }
+
+  .daily-btn--outline {
+    min-width: 116px;
+    padding: 0 22px;
   }
 
   .daily-card__number {
-    font-size: 1.7rem;
+    font-size: 1.45rem;
   }
 
   .daily-play__nav {
@@ -537,26 +709,30 @@
     padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 
+  /* No room to fill the first screen: the hero keeps to its content. */
   .daily__hero {
-    margin-bottom: 0;
+    min-height: 0;
+    padding: 4px 0 20px;
   }
 
   .daily__mark {
-    width: 32px;
-    height: 32px;
-    margin-bottom: 4px;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 6px;
   }
 
   .daily__title {
-    font-size: 1.5rem;
+    font-size: 1.9rem;
   }
 
   .daily__subtitle {
-    display: none;
+    margin-top: 4px;
+    font-size: 1.15rem;
   }
 
-  .daily__controls {
-    margin: 6px 0 10px;
+  .daily-card,
+  .daily-card > .daily-card__details {
+    margin-top: 14px;
   }
 
   .daily-play__nav {
