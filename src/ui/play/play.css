@@ -308,7 +308,7 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  width: 64px;
+  min-width: 44px;
   min-height: 56px;
   padding: 4px 2px;
   border: 1px solid var(--line);
@@ -342,9 +342,13 @@
 }
 
 .play-tool__label {
+  max-width: 100%;
+  overflow: hidden;
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Hover only where a real pointer exists: on a touch screen it would stick after a tap. */
@@ -1059,7 +1063,7 @@ button.play-legend__row:focus-visible {
   }
 
   .play-tool {
-    width: 58px;
+    min-width: 44px;
   }
 
   .play-side {
