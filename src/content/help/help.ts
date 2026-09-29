@@ -214,10 +214,10 @@ export const HELP_NL: HelpContent = {
 export const HELP_CONTENT: Record<Locale, HelpContent> = { en: HELP_EN, nl: HELP_NL }
 
 /**
- * The English content, kept as a plain export for the consumers of `help.ts` not yet switched to
- * locale-aware content (`src/ui/help/Legend.tsx`, `src/ui/play/LegendPanel.tsx`,
- * `src/ui/play/PlayScreen.tsx`, `src/ui/daily/StartScreen.tsx`, `src/ui/help/firstVisit.ts`) — out
- * of SLAY-9.7's References. New reads of this file's content should go through `HELP_CONTENT` and
- * `useLocale()` instead, as `HowItWorks.tsx`, `Glossary.tsx` and `HelpPanel.tsx` now do.
+ * The English content, kept as a plain export for the one remaining consumer of `help.ts` not yet
+ * switched to locale-aware content (`src/ui/help/firstVisit.ts`) — out of SLAY-9.7's References.
+ * `src/ui/daily/StartScreen.tsx` switched to `HELP_CONTENT` in SLAY-9.15, joining `HowItWorks.tsx`,
+ * `Glossary.tsx`, `HelpPanel.tsx`, `Legend.tsx`, `LegendPanel.tsx` and `PlayScreen.tsx`. New reads
+ * of this file's content should go through `HELP_CONTENT` and `useLocale()` instead.
  */
 export const help: HelpContent = HELP_EN
