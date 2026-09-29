@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { help } from '../../content/help/help.ts'
+import { HELP_CONTENT } from '../../content/help/help.ts'
+import { useLocale } from '../../locale/index.ts'
 import { Glossary, HowItWorks } from '../help/index.ts'
 import { Modal } from './Modal.tsx'
 
@@ -12,6 +13,8 @@ type View = 'guide' | 'keywords'
  */
 export function HelpPanel({ onClose, onLegend }: { onClose: () => void; onLegend?: () => void }) {
   const [view, setView] = useState<View>('guide')
+  const { locale } = useLocale()
+  const help = HELP_CONTENT[locale]
   const t = help.keywords
   return (
     <Modal title={view === 'guide' ? help.title : t.title} onClose={onClose} className="play-modal__panel--wide play-modal__panel--help">

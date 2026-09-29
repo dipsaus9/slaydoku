@@ -23,19 +23,23 @@ export const ADVANCED_SIZES: readonly number[] = [9, 12]
 export const TIER_MIX: readonly (readonly [TierId, number])[] = [['very-easy', 15], ['easy', 30], ['easy-medium', 25], ['medium', 20], ['hard', 10]]
 
 /**
- * Tier mix for the first-4-weeks ramp-up window (`isRampUp`): hard-free, `medium` picking up its 10-point share (20 -> 30). Same total
- * (100) as `TIER_MIX`, so a roll that already landed on `medium`/`easy`/etc. under the unmodified mix keeps its value; only a roll that
- * would have been `hard` is remapped onto this table instead (see `tierOf`).
+ * Tier mix for the ramp-up window (`isRampUp`): hard-free AND expert-free, `medium` picking up the 10-point share `hard` would otherwise
+ * have held (20 -> 30). Same total (100) as `TIER_MIX`, so a roll that already landed on `medium`/`easy`/etc. under the unmodified mix
+ * keeps its value; only a roll that would have been `hard` is remapped onto this table instead (see `tierOf`); an `expert` day inside the
+ * window draws straight from this table too, with no kept-expert exception.
  */
 export const RAMP_UP_TIER_MIX: readonly (readonly [TierId, number])[] = [['very-easy', 15], ['easy', 30], ['easy-medium', 25], ['medium', 30]]
 
-/** Number of days from `LAUNCH_DATE` (inclusive) that the gentler ramp-up rule applies to. */
-export const RAMP_UP_DAYS = 28
+/**
+ * Last UTC date, inclusive, through which the ramp-up window suppresses `hard` and `expert` entirely (see `isRampUp`). Extended (SLAY-10.1)
+ * from SLAY-6.3's 28-day, one-expert-kept window to run through this date, with no kept-expert exception anywhere inside it.
+ */
+export const RAMP_UP_END_DATE = '2026-10-31'
 
-/** Whether a date falls within the first `RAMP_UP_DAYS` days from `LAUNCH_DATE` (day 1 included). */
+/** Whether a date falls within the ramp-up window: from `LAUNCH_DATE` through `RAMP_UP_END_DATE`, both inclusive. */
 export const isRampUp = (date: string): boolean => {
-  const offset = dayNumberOf(date) - dayNumberOf(LAUNCH_DATE)
-  return offset >= 0 && offset < RAMP_UP_DAYS
+  const day = dayNumberOf(date)
+  return day >= dayNumberOf(LAUNCH_DATE) && day <= dayNumberOf(RAMP_UP_END_DATE)
 }
 
 /** The tiers whose puzzles need a 9x9 or 12x12 board. */
@@ -79,34 +83,19 @@ export const isExpertDay = (date: string): boolean => {
   return weekdayOfDayNumber(day) === expertWeekday(weekStartOf(day))
 }
 
-/**
- * The one date in the ramp-up window that stays the week's expert day: the chronologically first date within the window that the
- * unmodified `isExpertDay` already calls an expert day. Every later would-be expert date in the window falls back to `RAMP_UP_TIER_MIX`
- * instead (`tierOf`), so its week holds zero experts, not one (`scheduleProblems` allows for it). Pure: the window is fixed by
- * `LAUNCH_DATE`.
- */
-export const rampUpKeptExpertDate = (): string => {
-  const launch = dayNumberOf(LAUNCH_DATE)
-  for (let offset = 0; offset < RAMP_UP_DAYS; offset++) {
-    const date = dateOfDayNumber(launch + offset)
-    if (isExpertDay(date)) return date
-  }
-  throw new RangeError('no expert day found in the ramp-up window')
-}
-
-/** Whether `date` is a would-be expert day (`isExpertDay`) that the ramp-up window demotes: in the window, but not its one kept expert day. */
-export const isDemotedExpertDay = (date: string): boolean => isExpertDay(date) && isRampUp(date) && date !== rampUpKeptExpertDate()
+/** Whether `date` is a would-be expert day (`isExpertDay`) that the ramp-up window suppresses: every expert day inside the window, with no exception. */
+export const isSuppressedExpertDay = (date: string): boolean => isExpertDay(date) && isRampUp(date)
 
 /**
  * The tier of a date. Outside the ramp-up window: unchanged (the week's expert day is `expert`, every other day draws `TIER_MIX`).
- * Inside it: the window's one kept expert day (`rampUpKeptExpertDate`) stays `expert`; every later would-be expert day draws
- * `RAMP_UP_TIER_MIX` instead; every other day keeps its unmodified `TIER_MIX` draw exactly UNLESS that draw would have been `hard`, in
- * which case it draws `RAMP_UP_TIER_MIX` instead (same seed, same total of 100, so a non-`hard` draw is never disturbed by the mix
- * table's shape changing).
+ * Inside it: every would-be expert day draws `RAMP_UP_TIER_MIX` instead (no kept-expert exception, so a suppressed week holds zero
+ * experts, not one — see `scheduleProblems`); every other day keeps its unmodified `TIER_MIX` draw exactly UNLESS that draw would have
+ * been `hard`, in which case it draws `RAMP_UP_TIER_MIX` instead (same seed, same total of 100, so a non-`hard` draw is never disturbed
+ * by the mix table's shape changing).
  */
 function tierOf(date: string): TierId {
   if (!isRampUp(date)) return isExpertDay(date) ? 'expert' : weighted(TIER_MIX, createRng(`tier:${date}`))
-  if (isExpertDay(date)) return isDemotedExpertDay(date) ? weighted(RAMP_UP_TIER_MIX, createRng(`tier:${date}`)) : 'expert'
+  if (isExpertDay(date)) return weighted(RAMP_UP_TIER_MIX, createRng(`tier:${date}`))
   const unmodified = weighted(TIER_MIX, createRng(`tier:${date}`))
   return unmodified === 'hard' ? weighted(RAMP_UP_TIER_MIX, createRng(`tier:${date}`)) : unmodified
 }
