@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import iconMark from '../../brand/icon.svg'
-import { help } from '../../content/help/help.ts'
+import { HELP_CONTENT } from '../../content/help/help.ts'
 import type { DayStatus } from '../../game/index.ts'
-import { formatLongDate, formatDayMonth, startOfUtcDay, utcWithLocal } from '../../schedule/index.ts'
+import { useLocale } from '../../locale/index.ts'
+import { formatDayMonth, startOfUtcDay, utcWithLocal } from '../../schedule/index.ts'
 import type { ScheduleDay } from '../../schedule/index.ts'
 import { HelpPanel, formatTime, withCastNames } from '../play/index.ts'
 import { Modal } from '../play/Modal.tsx'
@@ -85,14 +86,14 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
         />
       )}
 
-      {/* Wordle-style byline (SLAY-9.9): the puzzle's date-based label (SLAY-10.2), the full date and the site
-          name, one small muted line under the primary action instead of the big heading the label used to be. */}
+      {/* Wordle-style byline (SLAY-9.9): the puzzle's date-based label (SLAY-10.2) and the site name,
+          one small muted line under the primary action instead of the big heading the label used to
+          be. The label already carries the date (SLAY-9.15): no second, always-English long-date
+          segment alongside it. */}
       <p className="daily-card__byline">
         <span id="daily-number" className="daily-card__byline-label" data-puzzle-number={day.n}>
           {t.puzzleLabel(day.date)}
         </span>
-        <span className="daily-card__byline-sep" aria-hidden="true">·</span>
-        <span className="daily-card__byline-date" data-date>{formatLongDate(day.date)}</span>
         <span className="daily-card__byline-sep" aria-hidden="true">·</span>
         <span className="daily-card__byline-site">{t.title}</span>
       </p>
@@ -115,6 +116,8 @@ function BeforeLaunch({ first, clock }: { first: string; clock: () => number }) 
 /** The start screen (`/`): the puzzle of today with how to play it, until when it runs, and the result once solved. */
 export function StartScreen({ state, clock, onPlay, rollover, share, stats }: StartScreenProps) {
   const t = useDailyStrings()
+  const { locale } = useLocale()
+  const help = HELP_CONTENT[locale]
   const [helpOpen, setHelpOpen] = useState(false)
   // The solved day's share card as a reopenable popover (SLAY-9.13, AC #4), not shown inline any
   // more: a compact button opens the same Modal-wrapped share panel PlayScreen's own persistent

@@ -1,9 +1,10 @@
 ---
 id: SLAY-9.15
 title: 'Start screen: ''How it works'' still English, byline date duplicated'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-29 17:06'
+updated_date: '2026-09-29 17:20'
 labels:
   - story
 dependencies: []
@@ -39,4 +40,6 @@ Bug 2 — confirmed live: StartScreen.tsx's byline (~line 88-97, added by SLAY-9
 
 <!-- SECTION:NOTES:BEGIN -->
 Owner (Dutch, paraphrased): 'How it works still needs translating' and 'Tuesday 29 September 2026 appears twice.' Both confirmed live on localhost with locale=nl.
+
+Readiness gate: collision check flagged SLAY-9.16 (StartScreen.tsx) and SLAY-9.18 (StartScreen.tsx, daily.css) as References overlaps. Verified both are still To Do, both list SLAY-9.15 in Dependencies (sequencing only, no functional relationship per their own notes), and neither has a branch or worktree in flight (git branch --list, git ls-remote, git worktree list all empty for both ids). Per owner pre-clearance, proceeding past the collision gate on this basis. Delivering in an isolated worktree (.worktrees/SLAY-9.15) since SLAY-9.17 is being delivered concurrently by another worker.
 <!-- SECTION:NOTES:END -->
