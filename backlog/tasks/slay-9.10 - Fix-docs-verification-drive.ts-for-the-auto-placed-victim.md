@@ -1,14 +1,17 @@
 ---
 id: SLAY-9.10
 title: Fix docs/verification/drive.ts for the auto-placed victim
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-29 12:59'
+updated_date: '2026-09-29 14:32'
 labels:
   - story
 dependencies: []
 references:
   - docs/verification/drive.ts
+  - docs/verification/stats.ts
+  - docs/verification/share.ts
 parent_task_id: SLAY-9
 type: chore
 ordinal: 66000
@@ -26,13 +29,29 @@ Root cause (found while delivering SLAY-9.2, confirmed on a clean origin/main ba
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 placeAll() (and any other scenario in this file with the same assumption) only long-presses suspects; it does not wait for or attempt to select/click-place the victim
-- [ ] #2 The victim's auto-fill is asserted directly instead (e.g. check that the last remaining cell holds the victim once every suspect is placed, without any click on it)
-- [ ] #3 bun run verify:phone passes cleanly at the previously-crashing viewport (844x390) and every other viewport, with no other regression introduced
+- [x] #1 placeAll() (and any other scenario in this file with the same assumption) only long-presses suspects; it does not wait for or attempt to select/click-place the victim
+- [x] #2 The victim's auto-fill is asserted directly instead (e.g. check that the last remaining cell holds the victim once every suspect is placed, without any click on it)
+- [x] #3 bun run verify:phone passes cleanly at the previously-crashing viewport (844x390) and every other viewport, with no other regression introduced
 <!-- AC:END -->
 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-Change placeAll()'s loop to iterate only suspects (puzzle.people.filter(p => p.kind === 'suspect')); after suspects are all placed, assert the victim's cell is auto-filled correctly instead of driving a click for it.
+1) docs/verification/drive.ts: placeAll() loops only over suspects (idByName/loop bound from puzzle.people.filter(kind==='suspect')), drops the victim branch from pid resolution; after the suspect loop, assert the victim auto-filled via the existing .play-cards[data-victim-placed] marker (SuspectPanel.tsx) and, for the correct-solve path (swap=false), that the [data-person] element for the victim id sits on the correct [data-cell-key] (BoardLayers.tsx PeopleLayer). 2) Same file: the card-panel scroll scenario that taps the gift/victim polaroid and asserts data-victim-selected (dead CSS since SLAY-9.5, victim card has no onClick per SuspectPanel.tsx) is changed to only assert the gift card scrolls into view; drop the now-meaningless tap+selected assertion. 3) docs/verification/stats.ts and docs/verification/share.ts: same placeAll() fix (suspects-only loop + data-victim-placed assertion) since bun run verify:phone (AC #3) runs every suite and both have the identical bug (confirmed by a pre-fix baseline run at 844x390). 4) Verify: bun run lint/typecheck/test, then bun run verify:phone at 844x390 for drive/stats/share (fast pre-check), then the full bun run verify:phone across all viewports/suites before closing out.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Widened References to include stats.ts and share.ts: baselined bun run verify:phone (SUITES=drive,stats,share VIEWPORTS=844x390) against a clean build BEFORE any change and confirmed both stats.ts and share.ts have the identical placeAll()/selectedName() victim-selection assumption as drive.ts (data-victim-selected is dead CSS since SLAY-9.5) and fail the same way (2 and 1 failures respectively). AC #3 requires 'bun run verify:phone passes cleanly', which runs all suites, so fixing drive.ts alone cannot satisfy it; widening scope to fix all three placeAll() implementations consistently.
+
+Two real bugs found beyond the described root cause, both fixed: (1) drive.ts's wrong-board scenario (placeAll(puzzle, true)) swapped puzzle.solution[0]/[1], but solution[0] is the victim's own entry -- swapping it with a suspect broke withAutoVictim's leftover-cell derivation. Fixed to swap two SUSPECT solution entries only. (2) The advance order (order.ts / nextUnplaced in PlayScreen.tsx) still walks through the victim's own slot and can select it before every suspect is placed (observed after the file's existing clear-all/undo dance leaves one suspect, Anna, unplaced while the wrap reaches the victim's turn first); since the victim is never rendered as selected post-SLAY-9.5, selectedName() then reports NONE. placeAll() now recovers by tapping the still-unplaced suspect's own card (scrollIntoView + tap) instead of trusting the advance order blindly. (3) A correctly-solved board navigates back to '/' on its own (DailyFlow.tsx's solvedNow effect, no button click) as soon as it is solved -- checking the board's data-victim-placed/data-person after that races the navigation and always loses. Removed the internal board assertion for the correct-solve path in all three files; the callers' existing 'solved, path is /, data-result=solved' checks already prove the victim square filled in correctly (a wrong board could never reach that state). Kept a direct .play-cards[data-victim-placed] assertion only for drive.ts's wrong-board path, where the board stays on screen. Verified with: bun run lint/typecheck/test (140 files, 3013 tests green), then bun run verify:phone (SKIP_BUILD after bun run build) across all 6 viewports and all 7 suites: 2814 checks, 0 failures.
+
+Independent review (dipsaus-ai:story-reviewer): verdict pass, all 3 acceptance criteria met, no scope violations. Advisory (non-blocking): could optionally add a direct data-victim-placed-style check to stats.ts/share.ts's happy path too, instead of relying solely on the existing data-result=solved check; not required, the existing check already depends on the auto-filled victim cell satisfying the puzzle.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Fixed docs/verification/drive.ts, stats.ts and share.ts's placeAll() for SLAY-9.5's auto-placed victim: they now only long-press suspects (never wait for or click-place the victim). Along the way, fixed two related bugs the SLAY-9.5 change exposed: the wrong-board test in drive.ts was accidentally swapping the victim's own solution entry with a suspect's (solution[0] is the victim), and the app's selection-advance order can point at the victim's own (now invisible) slot before every suspect is placed, which placeAll() now recovers from by tapping the still-unplaced suspect's own card. A correctly solved board navigates back to '/' on its own as soon as it is solved, so the direct victim-auto-fill assertion is only made for the wrong-board path (board stays on screen); for a correct solve, the existing downstream 'solved, path is /, data-result=solved' check already proves it. Verified with bun run lint/typecheck/test (3013 tests green) and a full bun run verify:phone across all 6 viewports and 7 suites: 2814 checks, 0 failures, including the previously-crashing 844x390 viewport.
+<!-- SECTION:FINAL_SUMMARY:END -->
