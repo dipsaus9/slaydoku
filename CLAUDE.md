@@ -22,7 +22,7 @@ Slaydoku is a public, Wordle-style daily murder-grid puzzle (Murdoku-like), in E
 - Bun only, never python3. Run long commands (tests, sweeps, generation) in the foreground with a generous timeout.
 - Verification drivers and tests run on the dev-only date override (`?date=2026-10-15`, see `docs/daily-flow.md`); it works only in dev and on `localhost`.
 - Git: use `git fetch origin` then `git merge --ff-only origin/main` (plain `git pull` can fail here). Stage explicit paths only; a hook blocks blanket staging. Never force-push. Open PRs with `gh pr create --head <branch> --base main`. Workflow files need the `workflow` token scope (`gh auth refresh -h github.com -s workflow`, run by the owner).
-- Tests: `--maxWorkers=1` (parallel runs time out under load). Known load flakes: solver perf 16x16 and sweep wall-clock tests: rerun alone first.
+- Tests: `--maxWorkers=1` (parallel runs time out under load). Wall-clock/ms-budget assertions live only in `*.slow.test.ts` files and `sweep.*.test.ts` (run via `bun run test:slow`), never in `bun run test`, so CPU variance can't flake a PR (SLAY-11.1).
 - Sources under `src/` run in the browser: no `process.*`, no `node:` imports (a test guards it).
 - Check the rendered screen, not only the puzzle data (`docs/verification/screens.ts`): an earlier bug showed only the first clue card of each person while all data checks passed.
 - Workers deliver one story each with backlog-deliver in `.worktrees/<id>`, then a reviewer pass; if the review blocks only on scope, widen the story References with `backlog task edit --ref` (re-pass all existing refs) and re-review. Backlog tasks are edited only through the `backlog` CLI. Prefix: SLAY. Workflow config: `.claude/backlog-workflow.json`.
