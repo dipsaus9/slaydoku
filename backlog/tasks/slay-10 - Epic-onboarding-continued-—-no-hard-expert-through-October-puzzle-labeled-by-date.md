@@ -3,10 +3,10 @@ id: SLAY-10
 title: >-
   Epic: onboarding continued — no hard/expert through October, puzzle labeled by
   date
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-29 09:59'
-updated_date: '2026-09-29 13:09'
+updated_date: '2026-09-29 13:31'
 labels:
   - epic
 dependencies: []
@@ -24,5 +24,11 @@ Alternative considered (discussed with the owner): keep the existing SLAY-6.3 'a
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 No date from LAUNCH_DATE through 2026-10-31 draws 'hard' or 'expert'
-- [ ] #2 Puzzle #N is replaced everywhere a player sees it (header, start screen, tab title, share card) with a date-based label, in both locales
+- [x] #2 Puzzle #N is replaced everywhere a player sees it (header, start screen, tab title, share card) with a date-based label, in both locales
 <!-- AC:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Both stories delivered: SLAY-10.1 suppresses hard/expert through 2026-10-31; SLAY-10.2 replaces 'Puzzle #N' with a date-based label (header, start screen, tab title, share card) in English and Dutch, keeping the internal puzzle-number identity (storage keys, stats dedup) untouched.
+<!-- SECTION:FINAL_SUMMARY:END -->
