@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cellView, hasMark, hasNote, occupantAt } from './board.ts'
+import { cellView, hasMark, hasNote, isPlaced, occupantAt } from './board.ts'
 import { at, blocked, puzzle } from './fixture.ts'
 import { elapsedMs, initialState, reduce } from './reducer.ts'
 import type { GameAction, GameOptions, GameState } from './types.ts'
@@ -276,5 +276,44 @@ describe('timer', () => {
     expect(s.history.past).toHaveLength(0)
     expect(s.options.autoXOnPlace).toBe(true)
     expect(elapsedMs(s, 1000)).toBe(100)
+  })
+})
+
+describe('the victim fills in on its own (SLAY-9.5)', () => {
+  it('is not placed while a suspect is still missing', () => {
+    const s = run(fresh(), { type: 'place', personId: 'A', cell: at.A }, { type: 'place', personId: 'C', cell: at.C })
+    expect(isPlaced(s.board, 'V')).toBe(false)
+  })
+
+  it('fills the one square left the moment every suspect has a placement, whatever order they land in', () => {
+    const s = run(fresh(), { type: 'place', personId: 'B', cell: at.B }, { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'A', cell: at.A })
+    expect(s.board.placements.V).toEqual(at.V)
+  })
+
+  it('fills in even when a suspect stands on the wrong square: whichever square is left over', () => {
+    // A and C swapped: still every suspect placed, so the victim takes the one cell nobody stands on.
+    const s = run(fresh(), { type: 'place', personId: 'A', cell: at.C }, { type: 'place', personId: 'C', cell: at.A }, { type: 'place', personId: 'B', cell: at.B })
+    expect(s.board.placements.V).toEqual(at.V)
+  })
+
+  it('keeps its own square when a suspect is lifted and placed again, no re-fill needed', () => {
+    // A and C swapped: every suspect is still placed and the victim fills in, but two are wrong,
+    // so the level stays open (a solved level locks the grid, see check.test.ts) and can be edited.
+    const filled = run(fresh(), { type: 'place', personId: 'A', cell: at.C }, { type: 'place', personId: 'C', cell: at.A }, { type: 'place', personId: 'B', cell: at.B })
+    expect(filled.board.placements.V).toEqual(at.V)
+    expect(filled.status).toBe('playing')
+    const lifted = run(filled, { type: 'remove', personId: 'C' })
+    expect(lifted.board.placements.V).toEqual(at.V)
+    expect(isPlaced(lifted.board, 'C')).toBe(false)
+    const back = run(lifted, { type: 'place', personId: 'C', cell: at.A })
+    expect(back.board.placements.V).toEqual(at.V)
+  })
+
+  it('erasing the victim off the grid is undone at once: the only empty square is theirs again', () => {
+    // A and C swapped, as above, so the grid stays open and the eraser actually reaches the cell.
+    const filled = run(fresh(), { type: 'place', personId: 'A', cell: at.C }, { type: 'place', personId: 'C', cell: at.A }, { type: 'place', personId: 'B', cell: at.B })
+    expect(filled.status).toBe('playing')
+    const erased = run(filled, { type: 'eraseCell', cell: at.V })
+    expect(erased.board.placements.V).toEqual(at.V)
   })
 })
