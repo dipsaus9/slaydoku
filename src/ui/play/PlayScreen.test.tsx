@@ -49,11 +49,12 @@ describe('<PlayScreen/>', () => {
     expect(html).toContain(`${Alice} stood next to a table.`)
   })
 
-  it('has the seven toolbar tools, by aria-label, in English (no LocaleProvider ancestor here: useLocale() falls back to English)', () => {
-    // Seven controls (SLAY-8.2): Place is back, Redo still lives behind a long press on Undo. On
-    // narrow viewports Options/Help sit behind the header's settings icon (aria-label "More");
-    // Legend has its own direct header icon (SLAY-8.2, always icon-only).
-    for (const label of ['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom']) {
+  it('has the six toolbar tools, by aria-label, in English (no LocaleProvider ancestor here: useLocale() falls back to English)', () => {
+    // Six controls (SLAY-8.2: Place is back; SLAY-9.8: Zoom is gone, pinch/ctrl+wheel cover it),
+    // Redo still lives behind a long press on Undo. On narrow viewports Options/Help sit behind
+    // the header's settings icon (aria-label "More"); Legend has its own direct header icon
+    // (SLAY-8.2, always icon-only).
+    for (const label of ['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint']) {
       expect(html).toContain(`aria-label="${label}"`)
     }
     expect(html).not.toContain('aria-label="Redo"')
@@ -82,17 +83,16 @@ describe('<PlayScreen/>', () => {
     expect(wide).toMatch(/\.play-header__more \{\s*display: none;/)
   })
 
-  it('starts at 1x: a zoom button that shows 1x, an unzoomed board (CAD-10.4)', () => {
-    expect(html).toContain('play-tool--zoom')
-    expect(html).toContain('>1\u00d7<')
+  it('starts at 1x: an unzoomed board, no button needed \u2014 pinch and ctrl+wheel drive zoom (CAD-10.4, SLAY-9.8)', () => {
+    expect(html).not.toContain('play-tool--zoom')
     expect(html).toContain('data-zoom="1.00"')
     expect(html).not.toContain('data-zoomed')
     expect(html).toContain('style="transform:none"')
   })
 
-  it('keeps the toolbar targets 44px in the 7-column phone grid (SLAY-8.2: seven controls, no More on the toolbar)', async () => {
+  it('keeps the toolbar targets 44px in the 6-column phone grid (SLAY-8.2: six controls after SLAY-9.8 removes Zoom, no More on the toolbar)', async () => {
     const css = (await import('node:fs')).readFileSync(new URL('./play.css', import.meta.url), 'utf8')
-    expect((css.match(/repeat\(7, minmax\(0, 1fr\)\)/g) ?? []).length).toBe(2)
+    expect((css.match(/repeat\(6, minmax\(0, 1fr\)\)/g) ?? []).length).toBe(2)
     expect(css).not.toContain('.play-tool--more')
     expect(css).toMatch(/\.play-board\[data-zoomed\] \{[^}]*overflow: hidden/)
     // no will-change: the zoomed svg must be redrawn sharp, not stretched
@@ -141,8 +141,8 @@ describe.each(['en', 'nl'] as const)('<PlayScreen/> toolbar text (%s) (SLAY-3.4,
   const t = PLAY_STRINGS[locale].tools
   const html = renderToStaticMarkup(withLocale(locale, <PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />))
 
-  it('shows the six toolbar tools by aria-label in the current locale, Options/Help as direct header actions (SLAY-9.2, CSS decides which pair is visible per viewport), and the settings icon that still reaches them on narrow viewports; Legend stays icon-only', () => {
-    for (const label of [t.note, t.x, t.erase, t.undo, t.hint, t.zoom]) {
+  it('shows the toolbar tools by aria-label in the current locale, Options/Help as direct header actions (SLAY-9.2, CSS decides which pair is visible per viewport), and the settings icon that still reaches them on narrow viewports; Legend stays icon-only', () => {
+    for (const label of [t.note, t.x, t.erase, t.undo, t.hint]) {
       expect(html).toContain(`aria-label="${label}"`)
     }
     expect(html).toContain('role="toolbar"')
@@ -177,9 +177,10 @@ describe('the Legend (CAD-10.9)', () => {
     // stay closed inside the More sheet until it opens.
     expect(html).toContain('aria-label="Legend"')
     for (const label of ['Options', 'Help']) expect(html).not.toContain(`aria-label="${label}"`)
-    // The main toolbar row is exactly the seven controls (SLAY-8.2: Place is back), Legend not among them.
+    // The main toolbar row is exactly the six controls (SLAY-8.2: Place is back; SLAY-9.8: Zoom
+    // is gone), Legend not among them.
     const toolbarLabels = [...html.matchAll(/<button[^>]*class="play-tool[^"]*"[^>]*aria-label="([^"]+)"/g)].map((m) => m[1])
-    expect(toolbarLabels).toEqual(['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom'])
+    expect(toolbarLabels).toEqual(['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint'])
     // The header's settings icon, reachable in one tap, opens the sheet Options and Help sit behind.
     expect(html).toContain('aria-label="More"')
   })

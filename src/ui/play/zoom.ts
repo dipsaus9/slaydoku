@@ -8,7 +8,7 @@ import type { SceneGeometry } from '../../render/scene/index.ts'
  * A `View` says how: a board point p (as a fraction 0..1 of the frame's width and height) shows at
  * `p * scale + (x, y)` (also fractions of the frame). At 1x the view is `IDENTITY`. Because
  * everything is a fraction of the frame, the state does not depend on the pixel size of the board
- * (rotation, resize) and the toolbar button needs no measuring.
+ * (rotation, resize) and pinch/ctrl+wheel need no measuring.
  *
  * Two rules hold for every view this module returns: the scale is within 1x..3x and the pane covers
  * the whole frame (pan is clamped to the board edges, no empty margin appears).
@@ -36,8 +36,6 @@ export interface Box {
 
 export const MIN_SCALE = 1
 export const MAX_SCALE = 3
-/** What the toolbar button zooms to. */
-export const BUTTON_SCALE = 2
 export const IDENTITY: View = { scale: 1, x: 0, y: 0 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
@@ -68,11 +66,6 @@ export function zoomAt(view: View, scale: number, focus: Point): View {
   const next = clampScale(scale)
   const under = frameToBoard(view, focus)
   return clampView({ scale: next, x: focus.x - under.x * next, y: focus.y - under.y * next })
-}
-
-/** The toolbar button: any zoomed view goes back to 1x, 1x goes to 2x around the middle of the board. */
-export function toggleZoom(view: View): View {
-  return isZoomed(view) ? IDENTITY : zoomAt(view, BUTTON_SCALE, { x: 0.5, y: 0.5 })
 }
 
 /** Shifts the view by a frame distance (a drag or a scroll wheel). */
@@ -132,9 +125,6 @@ export function boxAroundCells(geometry: SceneGeometry, cells: readonly Cell[]):
   }
   return box
 }
-
-/** The label of the zoom button: "1×", "2×", "1.5×". */
-export const zoomLabel = (view: View): string => `${Math.round(view.scale * 10) / 10}×`
 
 /** CSS transform of the pane for a view (percentages are of the pane, which is as big as the frame). */
 export const viewTransform = (view: View): string =>
