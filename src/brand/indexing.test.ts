@@ -19,8 +19,8 @@ const read = (file: string) => readFileSync(join(ROOT, file), 'utf8')
 const SITE = 'https://slaydoku.example'
 
 describe('the switch file', () => {
-  it('holds a boolean flag, false (noindex) until the site goes public', () => {
-    expect(parseIndexable(read('src/brand/site.json'))).toBe(false)
+  it('holds a boolean flag, true (indexable) now that the site is public', () => {
+    expect(parseIndexable(read('src/brand/site.json'))).toBe(true)
   })
 
   it('rejects anything else', () => {
