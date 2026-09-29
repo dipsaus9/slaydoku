@@ -1,7 +1,8 @@
 // Board-zoom verification driver.
 // Drives headless Chrome over the DevTools protocol with touch emulation and checks the board zoom of the play
-// screen on the puzzle of 2026-11-21 (date override, see daily.ts; a 9x9 board): the toolbar button (1x/2x), two-finger pinch and pan (two real touch points via
-// Input.dispatchTouchEvent), clamping, one-finger notes / long-press placement / drag-notes on a zoomed board landing
+// screen on the puzzle of 2026-11-21 (date override, see daily.ts; a 9x9 board): two-finger pinch and pan (two real
+// touch points via Input.dispatchTouchEvent; the toolbar had a Zoom button once, but it's gone since SLAY-9.8 —
+// pinch/ctrl+wheel already covered it), clamping, one-finger notes / long-press placement / drag-notes on a zoomed board landing
 // on the right square, a pinch cancelling a running one-finger gesture, hints coming into view, and the reset on
 // restart, on leaving the puzzle and on reload. The "right square" is computed independently of the app: from where the
 // board's svg is drawn on screen (its transformed bounding box) and the cell rects of the svg.
@@ -139,8 +140,6 @@ async function tool(label: string) {
 const count = (sel: string) => evaluate(`document.querySelectorAll(${JSON.stringify(sel)}).length`) as Promise<number>
 const path = () => evaluate('location.pathname') as Promise<string>
 const zoomOf = () => evaluate(`Number(document.querySelector('.play-board')?.dataset.zoom)`) as Promise<number>
-const zoomButton = () =>
-  evaluate(`(() => { const b = document.querySelector('.play-tool--zoom'); return b ? { pressed: b.getAttribute('aria-pressed'), text: b.textContent, w: b.getBoundingClientRect().width, h: b.getBoundingClientRect().height } : null })()`) as Promise<{ pressed: string; text: string; w: number; h: number } | null>
 /** The frame: the fixed box of the board on screen (scrolled into view). */
 const frame = () => rectOf('.play-board') as Promise<Rect>
 /** The drawn board (the svg inside the scaled pane) on screen. */
@@ -207,6 +206,23 @@ async function covers() {
   return d.l <= f.l + eps && d.t <= f.t + eps && d.r >= f.r - eps && d.b >= f.b - eps
 }
 
+// The toolbar's Zoom button is gone (SLAY-9.8: pinch/ctrl+wheel already covered it), so every place
+// this driver used to click it now pinches instead, from the frame's centre.
+/** Pinch out enough that, starting from 1x, the board lands close to 2x. */
+async function pinchZoomIn() {
+  const f = await frame()
+  const cx = f.l + f.w / 2
+  const cy = f.t + f.h / 2
+  await twoFingers({ x: cx - 30, y: cy }, { x: cx + 30, y: cy }, { x: cx - 60, y: cy }, { x: cx + 60, y: cy })
+}
+/** Pinch in hard enough, from any starting zoom, that the scale clamps down to 1x. */
+async function pinchZoomReset() {
+  const f = await frame()
+  const cx = f.l + f.w / 2
+  const cy = f.t + f.h / 2
+  await twoFingers({ x: cx - 100, y: cy }, { x: cx + 100, y: cy }, { x: cx - 10, y: cy }, { x: cx + 10, y: cy })
+}
+
 async function openLevel() {
   await evaluate(`document.querySelector('[data-action]').click()`)
   await sleep(1200)
@@ -228,27 +244,24 @@ async function run(w: number, h: number) {
   await openLevel()
   check('the puzzle opens at /play', (await path()) === '/play', await path())
 
-  // ---- the button -----------------------------------------------------------------------
+  // ---- pinch zoom -------------------------------------------------------------------------
   const lay = await layoutProbe()
-  const zb0 = await zoomButton()
-  check('zoom button exists, 1x, not pressed', !!zb0 && zb0.pressed === 'false' && /1×/.test(zb0.text), JSON.stringify(zb0))
-  check('all toolbar targets >= 44px incl. the zoom button, no horizontal scroll', lay.minTool >= 44 && lay.sw <= lay.iw && !!zb0 && zb0.w >= 44 && zb0.h >= 44, JSON.stringify({ ...lay, zoomW: zb0?.w, zoomH: zb0?.h }))
+  check('all toolbar targets >= 44px, no horizontal scroll', lay.minTool >= 44 && lay.sw <= lay.iw, JSON.stringify(lay))
   const f1 = await frame()
   const d1 = await drawn()
   check('at 1x the drawn board fills the frame exactly', near(d1.w, f1.w, 0.5) && near(d1.h, f1.h, 0.5) && near(d1.l, f1.l, 0.5) && near(d1.t, f1.t, 0.5), `frame ${Math.round(f1.w)}x${Math.round(f1.h)} drawn ${Math.round(d1.w)}x${Math.round(d1.h)}`)
   await shot('01-1x')
 
-  await tool('Zoom')
-  const zb1 = await zoomButton()
+  await pinchZoomIn()
   const f2 = await frame()
   const d2 = await drawn()
-  check('button: 2x, pressed, label 2x', near(await zoomOf(), 2) && zb1?.pressed === 'true' && /2×/.test(zb1.text), JSON.stringify(zb1))
-  check('button zoom: drawn board is 2x the frame and covers it', near(d2.w, f2.w * 2, 1) && near(d2.h, f2.h * 2, 1) && (await covers()), `drawn ${Math.round(d2.w)}x${Math.round(d2.h)} in frame ${Math.round(f2.w)}x${Math.round(f2.h)}`)
+  check('pinch out zooms to 2x', near(await zoomOf(), 2, 0.1), `zoom ${await zoomOf()}`)
+  check('pinch zoom: drawn board is 2x the frame and covers it', near(d2.w, f2.w * 2, 1) && near(d2.h, f2.h * 2, 1) && (await covers()), `drawn ${Math.round(d2.w)}x${Math.round(d2.h)} in frame ${Math.round(f2.w)}x${Math.round(f2.h)}`)
   check('the frame itself did not move or resize when zooming', near(f2.w, f1.w, 0.5) && near(f2.h, f1.h, 0.5) && near(f2.l, f1.l, 0.5), `${Math.round(f1.l)},${Math.round(f1.t)} -> ${Math.round(f2.l)},${Math.round(f2.t)}`)
   const cellSize1 = (await centerOfCell(4, 4)).w
   check('a cell is at least 60px at 2x (touch target)', cellSize1 >= 60, `cell ${Math.round(cellSize1)}px`)
   check('no horizontal scroll while zoomed', (await layoutProbe()).sw <= w)
-  await shot('02-2x-button')
+  await shot('02-2x-pinch')
 
   // ---- one finger on a zoomed board -----------------------------------------------------
   // taps at spots of the frame: the note must land on the cell drawn under the finger, not the 1x cell of that spot
@@ -346,8 +359,8 @@ async function run(w: number, h: number) {
   await shot('05-pan-topleft')
 
   // ---- pinch ----------------------------------------------------------------------------
-  await tool('Zoom') // back to 1x
-  check('button again: back to 1x, not pressed', near(await zoomOf(), 1) && (await zoomButton())?.pressed === 'false')
+  await pinchZoomReset() // back to 1x
+  check('pinch reset lands back at 1x', near(await zoomOf(), 1))
   const fp = await frame()
   const c0 = { x: fp.l + fp.w / 2, y: fp.t + fp.h / 2 }
   const before = [await count('[data-person]'), await count('[data-note]'), await count('[data-mark]')]
@@ -367,7 +380,7 @@ async function run(w: number, h: number) {
   await twoFingers({ x: focus.x - 15, y: focus.y }, { x: focus.x + 15, y: focus.y }, { x: focus.x - 35, y: focus.y }, { x: focus.x + 35, y: focus.y })
   const cellAfter = await oracle(focus)
   check('pinching around a point keeps the square under it', same(cellBefore, cellAfter) && (await zoomOf()) > 1.5, `r${cellBefore.row + 1}c${cellBefore.col + 1} -> r${cellAfter.row + 1}c${cellAfter.col + 1} at ${await zoomOf()}x`)
-  await tool('Zoom') // 1x
+  await pinchZoomReset() // 1x
 
   // ---- a second finger cancels the one-finger gesture ------------------------------------
   const nPeople = await count('[data-person]')
@@ -397,7 +410,7 @@ async function run(w: number, h: number) {
   check('a second finger stops a drag: no more notes painted after it landed', (await count('[data-note]')) === painting && painting >= 1, `notes at 2nd finger ${painting}, after ${await count('[data-note]')}`)
   for (let i = 0; i < painting; i++) await tool('Undo')
   check('the fingers left over after the pinch painted nothing extra (undoing the stroke clears every note)', (await count('[data-note]')) === 0, `notes left ${await count('[data-note]')}`)
-  await tool('Zoom') // 2x again
+  await pinchZoomIn() // 2x again
 
   // ---- hints on a zoomed board ----------------------------------------------------------
   await tool('Hint')
@@ -425,17 +438,17 @@ async function run(w: number, h: number) {
   await evaluate(`[...document.querySelectorAll('.play-modal .play-btn')].find(b => /Sure[?]/.test(b.innerText))?.click()`)
   await sleep(400)
   const zAfterRestart = await zoomOf()
-  check('restart resets the zoom to 1x', near(zAfterRestart, 1, 0.001) && (await zoomButton())?.pressed === 'false', `zoom ${zAfterRestart}, modals ${await count('.play-modal')}`)
+  check('restart resets the zoom to 1x', near(zAfterRestart, 1, 0.001), `zoom ${zAfterRestart}, modals ${await count('.play-modal')}`)
   await evaluate(`document.querySelector('.play-modal .play-modal__close, .play-modal .play-btn')?.click()`)
   await sleep(200)
   // leaving the puzzle
-  await tool('Zoom')
+  await pinchZoomIn()
   check('zoomed again before leaving', near(await zoomOf(), 2))
   await leaveLevel()
   await openLevel()
   check('leaving and re-entering the puzzle: 1x', near(await zoomOf(), 1, 0.001), `zoom ${await zoomOf()}`)
   // reload
-  await tool('Zoom')
+  await pinchZoomIn()
   await reload()
   check('reload: 1x', near(await zoomOf(), 1, 0.001), `zoom ${await zoomOf()}`)
   await shot('08-after-reload')

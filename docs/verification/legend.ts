@@ -102,6 +102,27 @@ async function tool(label: string) {
   // (ghost-click guard, modalGuard.ts).
   await sleep(400)
 }
+// The toolbar's Zoom button is gone (SLAY-9.8: pinch/ctrl+wheel already covered it), so the
+// "zoomed" scenario now pinches the board to 2x from its centre instead of clicking it.
+const twoFingerTouch = (type: 'touchStart' | 'touchMove' | 'touchEnd', points: P[]) =>
+  send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : points.map((p, i) => ({ x: p.x, y: p.y, id: i + 1 })) })
+async function pinchZoomIn() {
+  const f = await rectOf('.play-board', false)
+  if (!f) throw new Error('missing .play-board')
+  const cx = f.x
+  const cy = f.y
+  await twoFingerTouch('touchStart', [{ x: cx - 30, y: cy }])
+  await sleep(50)
+  await twoFingerTouch('touchStart', [{ x: cx - 30, y: cy }, { x: cx + 30, y: cy }])
+  for (let i = 1; i <= 12; i++) {
+    await sleep(25)
+    const t = i / 12
+    await twoFingerTouch('touchMove', [{ x: cx - 30 - t * 30, y: cy }, { x: cx + 30 + t * 30, y: cy }])
+  }
+  await sleep(50)
+  await twoFingerTouch('touchEnd', [])
+  await sleep(150)
+}
 const shot = async (name: string) => {
   const r = await send('Page.captureScreenshot', { format: 'jpeg', quality: 80 })
   await Bun.write(join(SHOTS, `${viewport}-${name}.jpg`), Buffer.from(r.data, 'base64'))
@@ -146,15 +167,16 @@ async function scenario(subject: Subject, zoomed: boolean) {
   await load('play')
   check(`${label}: the puzzle is open`, (await count('.play-board')) === 1 && (await count('.play-modal')) === 0)
 
-  // toolbar (SLAY-8.2): seven controls (Place is back), Legend has its own direct header icon
+  // toolbar (SLAY-8.2): six controls (Place is back), Legend has its own direct header icon.
+  // Zoom is gone since SLAY-9.8 -- pinch (touch/pen) and ctrl+wheel already zoom the board.
   const tb = await evaluate(`JSON.stringify({ labels: [...document.querySelectorAll('.play-toolbar .play-tool')].map(b => b.getAttribute('aria-label')), sizes: [...document.querySelectorAll('.play-toolbar .play-tool')].map(b => { const r = b.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] }), iw: innerWidth, sw: document.documentElement.scrollWidth })`).then((s) => JSON.parse(s as string) as { labels: (string | null)[]; sizes: number[][]; iw: number; sw: number })
   if (!zoomed) {
-    check(`${label}: seven toolbar buttons, Place, Note, X, Erase, Undo, Hint, Zoom`, JSON.stringify(tb.labels) === JSON.stringify(['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom']), tb.labels.join())
+    check(`${label}: six toolbar buttons, Place, Note, X, Erase, Undo, Hint`, JSON.stringify(tb.labels) === JSON.stringify(['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint']), tb.labels.join())
     check(`${label}: every toolbar button is a 44px+ target, no sideways scroll`, tb.sizes.every(([w, h]) => w >= 44 && h >= 44) && tb.sw <= tb.iw, `min ${Math.min(...tb.sizes.map(([w, h]) => Math.min(w, h)))}px, page ${tb.sw}/${tb.iw}`)
     await shot(`${subject.name}-0-toolbar`)
   }
   if (zoomed) {
-    await tool('Zoom')
+    await pinchZoomIn()
     check(`${label}: board zoomed to 2x`, near(Number(await evaluate(`document.querySelector('.play-board').dataset.zoom`)), 2, 0.01))
   }
 
