@@ -1077,8 +1077,11 @@ button.play-legend__row:focus-visible {
     padding: 5px;
   }
 
+  /* SLAY-9.14: a shared fixed width (not each button's own content width, which SLAY-9.3 left
+     ragged -- 'X' vs 'Ongedaan') sized to comfortably fit the longest label in either locale
+     ('Ongedaan', NL) so the row reads as one deliberate set of controls. */
   .play-tool {
-    min-width: 44px;
+    width: 74px;
   }
 
   .play-side {
