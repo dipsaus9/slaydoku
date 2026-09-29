@@ -4,7 +4,7 @@ title: Serverless endpoint + Vercel KV daily counters
 status: Done
 assignee: []
 created_date: '2026-09-28 19:01'
-updated_date: '2026-09-28 19:29'
+updated_date: '2026-09-29 08:58'
 labels:
   - story
 dependencies: []
@@ -42,11 +42,7 @@ Branch: SLAY-7.1/stats-kv-endpoint
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Keep the key shape and request contract simple and documented in the endpoint's own comments — SLAY-7.2 (client calls) and SLAY-7.3 (CLI reader) both depend on this story and need to match it exactly. No auth/CAPTCHA on the write path is a deliberate, accepted tradeoff (no accounts, low stakes if someone spams fake counts) — do not add account-based protection. OWNER PREREQUISITE, not doable by the delivering agent: a Vercel KV (Upstash Redis) store must be provisioned and linked to this Vercel project in the dashboard before AC3 can be verified against a real deployment — that provisioning is account/dashboard-gated, the same category as the earlier Vercel Git-connection step. Write and unit-test the function logic against a mocked KV client regardless; if the real store is not yet provisioned when this story is delivered, say so plainly and leave AC3's live-deployment check as a follow-up for the owner to run once it is (documented steps, not skipped silently).
-
-Implemented api/stats.ts (POST records start/solve, GET reads a day's counters) with pure, unit-tested logic in api/_lib/kv.ts against a fake CounterStore (13 tests) plus api/stats.ts handler tests (10 tests) and api/_lib/redis-store.ts tests (2 tests) — 25 new tests total, all green. Used @upstash/redis directly (not @vercel/kv, which npm marks deprecated as of this delivery — Vercel's own KV product is deprecated in favor of Marketplace Upstash Redis). Real store env vars expected: KV_REST_API_URL / KV_REST_API_TOKEN. AC3 (live-deployment routing check) is NOT done: no Vercel KV store is provisioned for this project yet (owner-only, dashboard-gated per this story's notes), AND vercel.json's ignoreCommand skips building any branch but main on this repo's hobby plan, so a PR-branch preview would not even build to test against. Left vercel.json's catch-all rewrite untouched (Vercel's documented precedence: an existing Function matches before a rewrite is applied) rather than making an unverifiable speculative routing change; added api/vercel-routing.test.ts as a regression guard + documented reliance. Owner follow-up once KV is provisioned: merge to main (or deploy manually), then curl POST and GET /api/stats on the live URL to confirm the rewrite does not swallow it, and check off AC3.
-
-Review gate (dipsaus-ai:story-reviewer): verdict=pass. AC1 met, AC2 met, AC4 met. AC3 met=false, noted as the documented owner follow-up (KV not provisioned, ignoreCommand blocks non-main preview builds) — reviewer confirmed the code itself is ready for that check (real Upstash-backed store, fails loudly without env vars, not a stub). No scope violations. Advisory findings (not blocking, left as-is): (1) no auth/rate-limiting on POST or GET — accepted tradeoff per story notes; (2) DAY_RE only checks YYYY-MM-DD shape, not calendar validity (e.g. 2026-13-40 would pass) — optional follow-up for SLAY-7.3 if it matters.
+Superseded by SLAY-8.4: the owner did not want to provision a Vercel Marketplace database (even a free-tier one) just for two daily numbers. The /api/stats endpoint, api/_lib/kv.ts and api/_lib/redis-store.ts built here were removed and replaced with PostHog custom events.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary

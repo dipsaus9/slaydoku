@@ -326,7 +326,10 @@ async function scenario(w: number, h: number) {
   await tapSel('[data-action=copy]')
   check('offline: the card is still made and downloaded, the text still copied', !!offlinePng && offlinePng.w === 1080 && (await logOf('copied')) === 2, JSON.stringify(offlinePng))
   await send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 })
-  check('nothing was requested from another origin (all data stays on the device)', ((await evaluate(`performance.getEntriesByType('resource').every((e) => new URL(e.name).origin === location.origin)`)) as boolean) === true)
+  // SLAY-8.4: solving a day now fires one anonymous PostHog event (src/game/playCounters.ts),
+  // unrelated to the Share panel itself, which is what this check guards. Requests to PostHog
+  // are allowed; anything else would mean the card or its downloads reach off the device.
+  check('nothing but the anonymous play counters was requested from another origin (the share card and its downloads stay on the device)', ((await evaluate(`performance.getEntriesByType('resource').every((e) => new URL(e.name).origin === location.origin || new URL(e.name).hostname.endsWith('.posthog.com'))`)) as boolean) === true)
 
   // No clipboard API either: the textarea fallback.
   await setMode('noclip')

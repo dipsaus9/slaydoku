@@ -4,7 +4,7 @@ title: CLI stats viewer and honest privacy copy
 status: Done
 assignee: []
 created_date: '2026-09-28 19:02'
-updated_date: '2026-09-28 19:50'
+updated_date: '2026-09-29 08:58'
 labels:
   - story
 dependencies:
@@ -42,9 +42,7 @@ Branch: SLAY-7.3/stats-cli-and-privacy-copy
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Depends on SLAY-7.1 for the read-path contract. Keep the About wording short and plain, matching the existing About page's tone.
-
-Verify: bun run lint, bun run typecheck both clean. bun run test: 143/143 files, 2919/2919 tests pass (both default parallel and --maxWorkers=1); each run's own process exits 1 only from an internal vitest-worker RPC reporter timeout ('[vitest-worker]: Timeout calling onTaskUpdate'), not a test failure -- reproduced with SLAY-6.1/6.2/6.3 running their own concurrent test suites in sibling worktrees of this same repo at the time (ps confirmed SLAY-6.2's own maxWorkers=1 run active simultaneously), which is the likely cause of the RPC heartbeat miss under shared CPU load. Zero assertion failures in either run. Live check: bun tools/stats.ts 2026-09-28 against the real https://slaydoku.vercel.app/api/stats -- endpoint currently returns a raw platform 500 (x-vercel-error: FUNCTION_INVOCATION_FAILED, non-JSON body), not the documented JSON {error} shape unit-tested in api/stats.test.ts; the CLI handles it without crashing (prints a clear 'could not read stats' message, exit 1) since it isn't the documented not-configured shape. This is a pre-existing SLAY-7.1/api/ condition (KV not provisioned, and/or a runtime crash before the handler's own try/catch), out of this story's References (tools/, src/ui/about/strings.ts, docs/launch.md) -- flagged for whoever provisions KV next, not fixed here.
+Superseded by SLAY-8.4: the CLI viewer (tools/stats.ts) read the /api/stats endpoint built in SLAY-7.1, which was removed. Reading the numbers now means the PostHog project dashboard directly.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
