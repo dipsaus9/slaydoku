@@ -4,7 +4,7 @@ title: 'Desktop header: show Options and Help inline instead of behind the ... m
 status: Done
 assignee: []
 created_date: '2026-09-29 09:55'
-updated_date: '2026-09-29 12:36'
+updated_date: '2026-09-29 12:46'
 labels:
   - story
 dependencies: []
@@ -61,6 +61,8 @@ Full bun run verify:phone (all suites, all six viewports) is green except the pr
 Review round 1: reviewer flagged src/ui/play/PlayScreen.test.tsx as a scope violation -- it was edited (as AC4 itself requires) but never added to References, since 'PlayScreen.tsx' as a Reference doesn't cover its .test.tsx sibling by this project's convention. Fixed by widening References to include it explicitly. All four criteria were already judged met; this was the sole blocking finding.
 
 Review round 2: verdict pass, 0 findings, 0 scope violations. All four acceptance criteria confirmed met from the diff alone.
+
+Post-merge (origin/main now includes SLAY-9.1, SLAY-9.5, SLAY-9.6): re-ran verify:phone at 844x390/390x844. legend and zoom are green; drive now crashes on an unrelated step ('card panel scrolls...'/'complete-but-wrong board' -> missing .play-result .play-btn--primary), but this SLAY-9.2 fix itself holds -- 'options open' and 'help opens' both pass. Confirmed the drive crash is pre-existing on a clean origin/main baseline worktree (SLAY-9.5's victim auto-placement changed the play-through flow drive.ts assumes), unrelated to this story and out of scope here.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
