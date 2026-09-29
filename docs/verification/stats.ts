@@ -115,6 +115,24 @@ async function press(key: string, code: string, vk: number) {
 }
 const setDate = (date: string) => evaluate(`localStorage.setItem(${JSON.stringify(DATE_KEY)}, ${JSON.stringify(date)})`)
 
+// --- text contrast (SLAY-9.17): the actual rendered/computed color, not the CSS source -------
+const styleOf = (sel: string) =>
+  evaluate(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; const cs = getComputedStyle(e); return { color: cs.color, background: cs.backgroundColor } })()`) as Promise<{ color: string; background: string } | null>
+function relativeLuminance([r, g, b]: [number, number, number]): number {
+  const chan = (c: number) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
+  return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b)
+}
+/** WCAG contrast ratio (1..21) between two `rgb(...)` strings, as the browser actually resolved them post-cascade. */
+function contrastRatio(a: string, b: string): number {
+  const parse = (s: string): [number, number, number] => {
+    const m = /rgba?\((\d+), *(\d+), *(\d+)/.exec(s)
+    if (!m) throw new Error(`not an rgb() color: ${s}`)
+    return [Number(m[1]), Number(m[2]), Number(m[3])]
+  }
+  const [l1, l2] = [relativeLuminance(parse(a)), relativeLuminance(parse(b))].sort((x, y) => y - x)
+  return (l1 + 0.05) / (l2 + 0.05)
+}
+
 // --- logging ---------------------------------------------------------------------------------
 interface Row { viewport: string; scenario: string; ok: boolean; detail: string; shots: string[] }
 const rows: Row[] = []
@@ -226,8 +244,31 @@ async function scenario(w: number, h: number) {
   check('empty card: a labelled modal dialog that fits the screen, targets of 44px', !!empty && empty.dialog === 'dialog' && empty.modal === 'true' && empty.labelled && fits(empty) && empty.small === 0, JSON.stringify(empty))
   check('empty card: zeros, dashes for rate and average, and a hint instead of times', (await stat('played')) === '0' && (await stat('solved')) === '0' && (await stat('solve-rate')) === '–' && (await stat('current-streak')) === '0' && (await stat('best-streak')) === '0' && (await stat('total-hints')) === '0' && (await stat('average-hints')) === '–' && (await count('[data-empty]')) === 1)
   await shot('01-card-empty')
+
+  // SLAY-9.17: the Close button used to render dark ink text on its red background here (the stats
+  // popover opens from the start screen, outside .play, where the fix used to have no effect). The
+  // computed style is read from the live cascade, not just matched against the CSS source.
+  const closeStyle = await styleOf('[data-action=close]')
+  check(
+    'card: the Close button has readable (WCAG AA, >= 4.5:1) text contrast on its red background',
+    !!closeStyle && contrastRatio(closeStyle.color, closeStyle.background) >= 4.5,
+    JSON.stringify(closeStyle),
+  )
+  check('card: the device-only privacy line is gone (redundant with the About page)', (await count('.stats-note--device')) === 0)
+
   await press('Escape', 'Escape', 27)
   check('Escape closes the card and the focus returns to the Stats button', (await count('.stats-panel')) === 0 && (await focusInfo()).action === 'open-stats')
+
+  // SLAY-9.17 AC #2: the same bug hit HelpPanel's primary buttons too, when "How it works" opens
+  // from the start screen (also outside .play) rather than from inside PlayScreen.
+  await tapSel('.daily__help')
+  const helpStyle = await styleOf('.play-btn--primary')
+  check(
+    'start screen: "How it works" primary button also has readable text contrast (SLAY-9.17 AC #2)',
+    !!helpStyle && contrastRatio(helpStyle.color, helpStyle.background) >= 4.5,
+    JSON.stringify(helpStyle),
+  )
+  await press('Escape', 'Escape', 27)
 
   // Two consecutive days solved through the real UI.
   check(`day 1 (#${DAY1.n}, ${DAY1.date}, ${DAY1.size}x${DAY1.size}) is solved through the UI`, await solveDay(DAY1))

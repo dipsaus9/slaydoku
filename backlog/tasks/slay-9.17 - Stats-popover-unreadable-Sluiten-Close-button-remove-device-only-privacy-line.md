@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-09-29 17:09'
-updated_date: '2026-09-29 17:42'
+updated_date: '2026-09-29 17:49'
 labels:
   - story
 dependencies: []
@@ -16,6 +16,7 @@ references:
   - src/ui/play/play.css
   - src/ui/stats/stats.css
   - src/ui/stats/stats.test.tsx
+  - docs/verification/stats.ts
 parent_task_id: SLAY-9
 type: feature
 ordinal: 73000
@@ -53,4 +54,6 @@ Root cause for the stats popover (bug 1) is stats.css: .stats-btn--primary/.stat
 Owner (Dutch): 'Zwarte tekst op rode button is niet leesbaar' + 'Blijft alleen op dit apparaat, staat er dubbel in' (the phrasing suggests it also reads as redundant with disclosure elsewhere, e.g. the About page's privacy section).
 
 AC #2 search: grepped every *-btn--primary/*-btn--danger definition (play-btn, stats-btn, daily-btn, share-btn, lab-btn) and every place each is rendered, to find which non-.play instances could actually lose the ancestor-scoped color:inherit reset. Found and fixed two real instances: StatsPanel's Close/Reset buttons (stats-btn, always opened from the start screen) and HelpPanel's primary buttons (play-btn, opened both from PlayScreen's dialog and from the start screen's 'How it works' button -- only the latter was broken). daily-btn--primary/--danger and share-btn--primary already had their own working two-class overrides ('.daily button.daily-btn--primary', '.share .share-btn--primary'). lab-btn--primary/--danger have no ancestor color:inherit reset above them, so no bug there (dev-only tool anyway).
+
+AC #4 (round 2, after reviewer block): added two computed-style checks to docs/verification/stats.ts (WCAG contrast ratio between getComputedStyle(...).color and .backgroundColor, read from the live cascade in headless Chrome, not the CSS source) -- one for the stats popover's Close button, one for HelpPanel's primary button opened from the start screen (AC #2's named case). Verified as a real regression test with a negative control: temporarily restored the pre-fix stats.css/play.css (git show 9e7d640:...), rebuilt, reran -- both new checks correctly FAIL (color rgb(42,42,54) dark ink on rgb(179,65,62) red); restored the fix and reran -- both PASS (color rgb(253,248,236)/rgb(255,255,255) on the same red). The driver's later solve-through-the-UI steps fail in this sandbox both before and after this story's changes (confirmed against unmodified origin/main too) -- pre-existing, unrelated to this fix.
 <!-- SECTION:NOTES:END -->
