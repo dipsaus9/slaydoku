@@ -1,9 +1,10 @@
 ---
 id: SLAY-12
 title: 'Epic: go-live readiness'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-29 10:00'
+updated_date: '2026-09-29 16:41'
 labels:
   - epic
 dependencies: []
