@@ -97,9 +97,12 @@ async function tapAt(x: number, y: number) {
   await sleep(300)
 }
 /** Taps a toolbar control by its accessible name (SLAY-5.1: icon-only, so aria-label — or a
- * header/sheet item's visible label), like a finger would (scrolled into view first). */
+ * header/sheet item's visible label), like a finger would (scrolled into view first). Options/Help
+ * now match twice (SLAY-9.2: a direct header copy plus the More sheet's copy, CSS deciding which is
+ * visible at a given width) -- the visible match wins (offsetParent is null anywhere in a
+ * display:none subtree), falling back to the first match so a truly-missing tool still throws. */
 async function tool(label: string) {
-  const r = (await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
+  const r = (await evaluate(`(() => { const matches = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].filter(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); const e = matches.find(b => b.offsetParent !== null) ?? matches[0]; if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number } | null
   if (!r) throw new Error('missing tool ' + label)
   await tapAt(r.x, r.y)
 }
