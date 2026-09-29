@@ -12,14 +12,16 @@ import { DUTCH_RE, DUTCH_WORDS, wordMatcher } from './dutch.ts'
  *
  * Skipped on purpose: this test and `dutch.ts` (they ARE the list), `src/engine/clues/nl.ts` (the Dutch clue-text
  * module, SLAY-3.2: it is deliberately Dutch, its sibling `en.ts` is still scanned to stay English-only), and the
- * three test files that pin `nl.ts`'s Dutch sentences as literal expected strings (`clues/en.test.ts`,
- * `clues/relational/en.test.ts`, `clues/both.test.ts` — their English samples and assertions are unaffected;
- * skipping the whole file only means this particular guard does not also read them). Nothing else is skipped: the
- * help card and legend (src/content/help) and all interface text under src/ui and src/pwa are English since SLAY-1.2
- * — except the deliberate exceptions below: the `*_NL` translation objects of the `strings.ts` files the language
- * toggle covers (`ui/daily/`, `ui/play/` since SLAY-3.4; `ui/about/`, `ui/stats/`, `ui/share/`, `pwa/` since
- * SLAY-3.5), which are blanked out before scanning so their Dutch is not flagged as a leak, while the `_EN` objects
- * right next to them stay fully guarded.
+ * test files that pin a Dutch module's sentences as literal expected strings (`clues/en.test.ts`,
+ * `clues/relational/en.test.ts`, `clues/both.test.ts`; `content/help/help.test.ts` since SLAY-9.7, which pins a
+ * couple of `HELP_NL.legend` exact-string checks the same way the English variant of that test pins the English
+ * ones — their English samples and assertions are unaffected; skipping the whole file only means this particular
+ * guard does not also read them). Nothing else is skipped: the help card and legend (src/content/help) and all
+ * interface text under src/ui and src/pwa are English since SLAY-1.2 — except the deliberate exceptions below: the
+ * `*_NL` translation objects of the `strings.ts` files the language toggle covers (`ui/daily/`, `ui/play/` since
+ * SLAY-3.4; `ui/about/`, `ui/stats/`, `ui/share/`, `pwa/` since SLAY-3.5; `content/help/help.ts`'s `HELP_NL` and
+ * `ui/play/glossary.ts`'s `GLOSSARY_NL`/`EXTRA_TERMS_NL` since SLAY-9.7), which are blanked out before scanning so
+ * their Dutch is not flagged as a leak, while the `_EN` objects right next to them stay fully guarded.
  */
 const SCANNED = ['../engine/', '../game/', '../validation/', '../content/', '../ui/', '../pwa/', '../brand/', '../App.tsx', '../main.tsx']
 const SKIPPED = [
@@ -28,6 +30,8 @@ const SKIPPED = [
   /\/clues\/en\.test\.ts$/,
   /\/clues\/relational\/en\.test\.ts$/,
   /\/clues\/both\.test\.ts$/,
+  // Pins a couple of HELP_NL.legend exact-string checks as literal Dutch (SLAY-9.7, same pattern as above).
+  /\/content\/help\/help\.test\.ts$/,
   // The Dutch solver/hint-wording modules and the tests that pin their Dutch sentences as literal
   // expected strings (SLAY-3.3, same pattern as clues/nl.ts and its three pinning tests above).
   /\/solver\/human\/nl\.ts$/,
@@ -83,22 +87,35 @@ function strings(path: string, source: string): string[] {
 }
 
 /**
- * Blanks the top-level `export const <name> = { ... }` block (brace-matched, so nested `}` inside
- * it don't end it early) with spaces of the same length, so its string literals disappear from the
- * source before scanning while every offset outside it — and every other export in the file —
- * stays exactly where it was.
+ * Blanks the top-level `export const <name> = { ... }` or `export const <name> = [ ... ]` block
+ * (bracket-matched on whichever of `{`/`[` opens the value, so nested brackets inside it — including
+ * a `kinds: ['inRoom']` array inside an object-array entry — don't end it early) with spaces of the
+ * same length, so its string literals disappear from the source before scanning while every offset
+ * outside it — and every other export in the file — stays exactly where it was.
  */
 function blankConst(source: string, name: string): string {
   const marker = `export const ${name}`
   const at = source.indexOf(marker)
   if (at === -1) return source
-  const open = source.indexOf('{', at)
+  const eq = source.indexOf('=', at)
+  if (eq === -1) return source
+  let open = -1
+  for (let i = eq + 1; i < source.length; i++) {
+    const ch = source[i]!
+    if (ch === '{' || ch === '[') {
+      open = i
+      break
+    }
+    if (!/\s/.test(ch)) break
+  }
   if (open === -1) return source
+  const OPEN = source[open]!
+  const CLOSE = OPEN === '{' ? '}' : ']'
   let depth = 0
   let end = open
   for (; end < source.length; end++) {
-    if (source[end] === '{') depth++
-    else if (source[end] === '}') {
+    if (source[end] === OPEN) depth++
+    else if (source[end] === CLOSE) {
       depth--
       if (depth === 0) {
         end++
@@ -109,23 +126,29 @@ function blankConst(source: string, name: string): string {
   return source.slice(0, open) + ' '.repeat(end - open) + source.slice(end)
 }
 
-/** The one intentional exception (SLAY-3.4, SLAY-3.5): the Dutch translation object each localized file carries. */
-const NL_EXCEPTIONS: Record<string, string> = {
-  '/ui/daily/strings.ts': 'DAILY_NL',
-  '/ui/play/strings.ts': 'PLAY_NL',
-  '/ui/about/strings.ts': 'ABOUT_NL',
-  '/ui/stats/strings.ts': 'STATS_NL',
-  '/ui/share/strings.ts': 'SHARE_NL',
-  '/pwa/strings.ts': 'UPDATE_NL',
+/**
+ * The one intentional exception (SLAY-3.4, SLAY-3.5, SLAY-9.7): the Dutch translation object(s) each
+ * localized file carries. Most files carry one; `glossary.ts` carries two (`GLOSSARY_NL` and
+ * `EXTRA_TERMS_NL`), so a path can map to more than one const name.
+ */
+const NL_EXCEPTIONS: Record<string, readonly string[]> = {
+  '/ui/daily/strings.ts': ['DAILY_NL'],
+  '/ui/play/strings.ts': ['PLAY_NL'],
+  '/ui/about/strings.ts': ['ABOUT_NL'],
+  '/ui/stats/strings.ts': ['STATS_NL'],
+  '/ui/share/strings.ts': ['SHARE_NL'],
+  '/pwa/strings.ts': ['UPDATE_NL'],
+  '/content/help/help.ts': ['HELP_NL'],
+  '/ui/play/glossary.ts': ['GLOSSARY_NL', 'EXTRA_TERMS_NL'],
 }
 
 describe('no Dutch text is left in the game code', () => {
   it('scans a healthy number of files', () => {
     expect(files.length).toBeGreaterThan(250)
     expect(files.some(([path]) => path.endsWith('/clues/en.ts'))).toBe(true)
-    // nl.ts and its three pinning tests are the deliberate exceptions (SLAY-3.2): present among the source modules,
-    // but filtered out of `files`.
-    for (const end of ['/clues/nl.ts', '/clues/en.test.ts', '/clues/relational/en.test.ts', '/clues/both.test.ts']) {
+    // nl.ts and its pinning tests are the deliberate exceptions (SLAY-3.2, SLAY-9.7): present among the source
+    // modules, but filtered out of `files`.
+    for (const end of ['/clues/nl.ts', '/clues/en.test.ts', '/clues/relational/en.test.ts', '/clues/both.test.ts', '/content/help/help.test.ts']) {
       expect(Object.keys(modules).some((path) => path.endsWith(end)), end).toBe(true)
       expect(files.some(([path]) => path.endsWith(end)), end).toBe(false)
     }
@@ -140,8 +163,8 @@ describe('no Dutch text is left in the game code', () => {
   it('finds no Dutch word in any string literal or JSX text of src/engine, src/game, src/validation, src/content, src/ui, src/pwa or src/brand', () => {
     const hits: string[] = []
     for (const [path, rawSource] of files) {
-      const nlConst = Object.entries(NL_EXCEPTIONS).find(([suffix]) => path.endsWith(suffix))?.[1]
-      const source = nlConst ? blankConst(rawSource, nlConst) : rawSource
+      const nlConsts = Object.entries(NL_EXCEPTIONS).find(([suffix]) => path.endsWith(suffix))?.[1] ?? []
+      const source = nlConsts.reduce((blanked, name) => blankConst(blanked, name), rawSource)
       for (const text of strings(path, source)) {
         const found = DUTCH_RE.exec(text)?.[0]
         if (found) hits.push(`${path}: "${found}" in ${text.length > 80 ? `${text.slice(0, 80)}...` : text}`)

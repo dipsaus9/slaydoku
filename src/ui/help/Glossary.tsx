@@ -1,9 +1,13 @@
-import { help } from '../../content/help/help.ts'
-import { GLOSSARY, EXTRA_TERMS } from '../play/glossary.ts'
+import { HELP_CONTENT } from '../../content/help/help.ts'
+import { useLocale } from '../../locale/index.ts'
+import { GLOSSARY_CONTENT, EXTRA_TERMS_CONTENT } from '../play/glossary.ts'
 
 /** Every clue keyword with its meaning and an example, plus a few extra terms. Only shown behind the "Keywords" button. */
 export function Glossary() {
-  const t = help.keywords
+  const { locale } = useLocale()
+  const t = HELP_CONTENT[locale].keywords
+  const GLOSSARY = GLOSSARY_CONTENT[locale]
+  const EXTRA_TERMS = EXTRA_TERMS_CONTENT[locale]
   return (
     <div className="play-help">
       <dl className="play-help__list play-help__glossary">

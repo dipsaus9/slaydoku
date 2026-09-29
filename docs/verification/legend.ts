@@ -89,8 +89,12 @@ async function tapSel(sel: string) {
 // A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
 // has no visible text) or a header/sheet item that still shows a visible label (the header's
 // settings icon and Options/Help behind it, the header's own Legend icon): whichever the element has.
+// Options/Help now match twice (SLAY-9.2: a direct header copy plus the More sheet's copy, CSS
+// deciding which is visible at a given width) -- the visible match wins (offsetParent is null
+// anywhere in a display:none subtree), falling back to the first match so a truly-missing tool
+// still throws below.
 async function tool(label: string) {
-  const sel = await evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; document.querySelectorAll('[data-drive]').forEach(x => x.removeAttribute('data-drive')); e.setAttribute('data-drive', '1'); return '[data-drive]' })()`)
+  const sel = await evaluate(`(() => { const matches = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].filter(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); const e = matches.find(b => b.offsetParent !== null) ?? matches[0]; if (!e) return null; document.querySelectorAll('[data-drive]').forEach(x => x.removeAttribute('data-drive')); e.setAttribute('data-drive', '1'); return '[data-drive]' })()`)
   if (!sel) throw new Error('missing tool ' + label)
   await tapSel(sel as string)
   // A tool can sit inside a dialog that just opened (Options/Help/Legend behind the header's
@@ -154,11 +158,20 @@ async function scenario(subject: Subject, zoomed: boolean) {
     check(`${label}: board zoomed to 2x`, near(Number(await evaluate(`document.querySelector('.play-board').dataset.zoom`)), 2, 0.01))
   }
 
-  await tool('More')
-  const moreLabels = await evaluate(`JSON.stringify([...document.querySelectorAll('.play-more .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string) as string[])
-  check(`${label}: More opens a sheet with Options and Help, not Legend (SLAY-8.2: Legend has its own header icon)`, JSON.stringify(moreLabels) === JSON.stringify(['Options', 'Help']), moreLabels.join())
-  await tap({ x: 3, y: 3 }) // close the More sheet (its own backdrop), Legend is reached directly now
-  check(`${label}: the More sheet closes`, (await count('.play-modal')) === 0)
+  // Options/Help sit behind the ... (More) sheet on narrow viewports, or render as their own direct
+  // header actions at desktop widths (SLAY-9.2) -- CSS alone decides which, so check whichever the
+  // ... trigger's own visibility says is live right now, never both.
+  const moreVisible = await evaluate(`!!document.querySelector('.play-header__more')?.offsetParent`)
+  if (moreVisible) {
+    await tool('More')
+    const moreLabels = await evaluate(`JSON.stringify([...document.querySelectorAll('.play-more .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string) as string[])
+    check(`${label}: More opens a sheet with Options and Help, not Legend (SLAY-8.2: Legend has its own header icon)`, JSON.stringify(moreLabels) === JSON.stringify(['Options', 'Help']), moreLabels.join())
+    await tap({ x: 3, y: 3 }) // close the More sheet (its own backdrop), Legend is reached directly now
+    check(`${label}: the More sheet closes`, (await count('.play-modal')) === 0)
+  } else {
+    const quickLabels = await evaluate(`JSON.stringify([...document.querySelectorAll('.play-header__quick .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string) as string[])
+    check(`${label}: Options and Help are direct header actions, not Legend, and no More sheet opens (SLAY-9.2/SLAY-8.2)`, JSON.stringify(quickLabels) === JSON.stringify(['Options', 'Help']) && (await count('.play-modal')) === 0, quickLabels.join())
+  }
   await tool('Legend')
   check(`${label}: Legend opens from the header's direct icon`, (await count('.play-modal [role=dialog], .play-modal[role=dialog], .play-modal__panel--legend')) > 0 && (await evaluate(`document.querySelector('.play-modal__title')?.textContent`)) === 'Legend')
   const onScreen = await rowsOnScreen()
