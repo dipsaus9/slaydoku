@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import { HELP_CONTENT } from '../../content/help/help.ts'
 import { LocaleProvider } from '../../locale/index.ts'
 import type { Locale } from '../../locale/index.ts'
 import { readSchedule } from '../../schedule/schedule.testing.ts'
@@ -33,13 +34,24 @@ describe.each(['en', 'nl'] as const)('<StartScreen/> (%s)', (locale) => {
     const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
     const text = strip(html)
     expect(text).toContain(t.puzzleLabel(day.date))
-    // The date itself is formatted by src/schedule (out of this story's References) and stays English in every locale.
-    expect(text).toContain('Wednesday 30 September 2026')
     expect(text).toContain(t.tier[day.tier])
     expect(text).toContain(t.size(day.size))
     expect(html).toContain('data-action="play"')
     expect(html).toContain(`>${t.play}<`)
     expect(html).not.toContain(t.continue)
+  })
+
+  it('shows the puzzle date once, not twice in a second always-English long-date format (SLAY-9.15)', () => {
+    const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
+    // The byline used to also render `formatLongDate` (schedule/display.ts, deliberately English-only)
+    // right next to the already-localized puzzleLabel, duplicating the date. Only the label remains.
+    expect(html).not.toContain('Wednesday 30 September 2026')
+    expect(html).not.toContain('daily-card__byline-date')
+  })
+
+  it("shows the 'How it works' link in the reader's own locale, not always English (SLAY-9.15)", () => {
+    const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
+    expect(strip(html)).toContain(HELP_CONTENT[locale].link)
   })
 
   it('offers Continue when a board is saved', () => {
