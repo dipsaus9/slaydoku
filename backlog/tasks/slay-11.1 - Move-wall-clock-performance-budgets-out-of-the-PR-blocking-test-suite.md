@@ -1,19 +1,29 @@
 ---
 id: SLAY-11.1
 title: Move wall-clock performance budgets out of the PR-blocking test suite
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-29 10:00'
+updated_date: '2026-09-29 14:16'
 labels:
   - story
 dependencies:
   - SLAY-10.2
 references:
   - src/engine/solver/perf.test.ts
+  - src/engine/solver/perf.fixture.ts
+  - src/engine/solver/perf.slow.test.ts
   - src/engine/solver/advanced/benchmark.test.ts
+  - src/engine/solver/advanced/benchmark.fixture.ts
+  - src/engine/solver/advanced/benchmark.slow.test.ts
   - src/engine/generator/generate.test.ts
+  - src/engine/generator/generate.fixture.ts
+  - src/engine/generator/generate.slow.test.ts
   - src/engine/generator/scale/generate.test.ts
+  - src/engine/generator/scale/generate.slow.test.ts
   - src/engine/generator/tiers/generate.test.ts
+  - src/engine/generator/tiers/generate.fixture.ts
+  - src/engine/generator/tiers/generate.slow.test.ts
   - vitest.config.ts
   - .github/workflows/ci.yml
   - CLAUDE.md
@@ -34,11 +44,11 @@ Files with a hard toBeLessThan(<ms>) against performance.now()/elapsed time, all
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every toBeLessThan(<ms budget>) assertion against performance.now()/elapsed time in these 5 files is removed from what bun run test (CI's blocking suite) runs
-- [ ] #2 Each file's non-timing correctness assertions (unique solution, technique-level caps, timedOut reporting on an intentionally-tiny budget) remain in the blocking suite, unchanged
-- [ ] #3 The moved timing checks still run somewhere (test:slow, or a new informational CI job) so an actual solver/generator slowdown is still caught, just not by failing a correct PR
-- [ ] #4 bun run test --maxWorkers=1 run 3 times locally back-to-back shows no flake from these files (a cheap local proxy for CI variance)
-- [ ] #5 CLAUDE.md's 'Known load flakes: solver perf 16x16 and sweep wall-clock tests: rerun alone first' line is removed or updated since the note itself should no longer apply
+- [x] #1 Every toBeLessThan(<ms budget>) assertion against performance.now()/elapsed time in these 5 files is removed from what bun run test (CI's blocking suite) runs
+- [x] #2 Each file's non-timing correctness assertions (unique solution, technique-level caps, timedOut reporting on an intentionally-tiny budget) remain in the blocking suite, unchanged
+- [x] #3 The moved timing checks still run somewhere (test:slow, or a new informational CI job) so an actual solver/generator slowdown is still caught, just not by failing a correct PR
+- [x] #4 bun run test --maxWorkers=1 run 3 times locally back-to-back shows no flake from these files (a cheap local proxy for CI variance)
+- [x] #5 CLAUDE.md's 'Known load flakes: solver perf 16x16 and sweep wall-clock tests: rerun alone first' line is removed or updated since the note itself should no longer apply
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -51,4 +61,16 @@ For each flagged file, split the it(...) blocks so the ms-budget expectation liv
 
 <!-- SECTION:NOTES:BEGIN -->
 Dependency on SLAY-10.2 is sequencing only (both touch CLAUDE.md, different lines) — no functional relationship.
+
+Implemented: split each of the 5 files' toBeLessThan(<ms>)/performance.now() assertions into a sibling *.slow.test.ts (already excluded from bun run test by vitest.config.ts's SLOW glob, runs via bun run test:slow). Correctness-only assertions stay unchanged in the blocking file. Shared fixtures moved to new *.fixture.ts modules per the existing testing.fixture.ts/sweep.fixture.ts convention. Verified: bun run lint, bun run typecheck, and bun run test --maxWorkers=1 all green, run 3x back-to-back (140/140 files, 3011/3011 tests each run) with no flake. The 5 new *.slow.test.ts files verified separately via vitest --mode slow (13/13 tests green). CLAUDE.md's stale 'Known load flakes' line replaced with the new split's actual behavior.
+
+Review round 1 verdict: block, only on scopeViolations (all 5 ACs met). Reviewer flagged the new *.fixture.ts/*.slow.test.ts sibling files as out of declared scope since References listed exact leaf paths only. Widened References (re-passing all existing refs) to include the 9 new sibling files these correctness/timing splits required, per CLAUDE.md's 'widen References with backlog task edit --ref, re-review' rule. Re-review requested.
+
+Review round 2 verdict: pass. All 5 acceptance criteria met, no scope violations, no findings. Proceeding to close-out.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Split the 5 wall-clock-budget test files (perf.test.ts, benchmark.test.ts, and the 3 generator generate.test.ts files) so every toBeLessThan(<ms>)/performance.now() assertion moved into a new sibling *.slow.test.ts file (run via bun run test:slow, already excluded from bun run test by vitest.config.ts's SLOW glob), while every non-timing correctness assertion (unique solution, technique-level caps, timedOut reporting) stayed in the blocking file unchanged. Shared fixtures/helpers used by both the fast and slow file moved into new *.fixture.ts modules, following the repo's existing testing.fixture.ts/sweep.fixture.ts convention. Verified bun run lint, bun run typecheck and bun run test --maxWorkers=1 green 3x back-to-back (140/140 files, 3011/3011 tests, no flake), and the 5 new slow files green under vitest --mode slow (13/13 tests). CLAUDE.md's stale 'Known load flakes' line replaced. Independent review passed on round 2 (round 1 blocked only on a scope gap, fixed by widening References to the new sibling files).
+<!-- SECTION:FINAL_SUMMARY:END -->
