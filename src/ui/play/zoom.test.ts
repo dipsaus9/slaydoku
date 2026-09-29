@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createGeometry } from '../../render/scene/index.ts'
 import {
-  BUTTON_SCALE,
   boardToFrame,
   boxAroundCells,
   clampView,
@@ -14,10 +13,8 @@ import {
   panBy,
   pinchView,
   revealBox,
-  toggleZoom,
   viewTransform,
   zoomAt,
-  zoomLabel,
   type FingerEvent,
   type FingerState,
   type Point,
@@ -29,6 +26,9 @@ const closePoint = (a: Point, b: Point) => {
   close(a.x, b.x)
   close(a.y, b.y)
 }
+/** A 2x view around the board's middle: what the removed toolbar button used to toggle to
+ * (SLAY-9.8); several tests below still want a generic zoomed-in fixture. */
+const zoomed2x = (view: View = IDENTITY): View => zoomAt(view, 2, { x: 0.5, y: 0.5 })
 
 /** A 9x9 board like the phone shows it: which cell is under a spot of the frame, through the view. */
 const geometry = createGeometry({ width: 9, height: 9 }, { axisLabels: true })
@@ -50,7 +50,6 @@ describe('view maths', () => {
     expect(clampView(IDENTITY)).toEqual(IDENTITY)
     expect(isZoomed(IDENTITY)).toBe(false)
     expect(viewTransform(IDENTITY)).toBe('none')
-    expect(zoomLabel(IDENTITY)).toBe('1×')
   })
 
   it('clamps the scale to 1x..3x', () => {
@@ -83,14 +82,10 @@ describe('view maths', () => {
     expect(far).toEqual({ scale: 2, x: -1, y: -1 })
   })
 
-  it('the button toggles 1x and 2x around the middle', () => {
-    const on = toggleZoom(IDENTITY)
-    expect(on).toEqual({ scale: BUTTON_SCALE, x: -0.5, y: -0.5 })
-    expect(zoomLabel(on)).toBe('2×')
+  it('zooming in around the middle transforms the pane accordingly', () => {
+    const on = zoomed2x()
+    expect(on).toEqual({ scale: 2, x: -0.5, y: -0.5 })
     expect(viewTransform(on)).toBe('translate(-50%, -50%) scale(2)')
-    expect(toggleZoom(on)).toEqual(IDENTITY)
-    // a pinched-in view also goes straight back to 1x
-    expect(toggleZoom({ scale: 1.4, x: -0.1, y: -0.2 })).toEqual(IDENTITY)
   })
 
   it('boardToFrame and frameToBoard are inverses', () => {
@@ -108,7 +103,7 @@ describe('hit-testing while zoomed', () => {
   })
 
   it('at 2x the cell drawn under a spot is the one a tap there hits', () => {
-    for (const view of [toggleZoom(IDENTITY), zoomAt(IDENTITY, 2, { x: 0.8, y: 0.2 }), panBy(toggleZoom(IDENTITY), 0.31, -0.17)]) {
+    for (const view of [zoomed2x(), zoomAt(IDENTITY, 2, { x: 0.8, y: 0.2 }), panBy(zoomed2x(), 0.31, -0.17)]) {
       for (const cell of [{ row: 0, col: 0 }, { row: 3, col: 6 }, { row: 5, col: 2 }, { row: 8, col: 8 }]) {
         const shown = boardToFrame(view, centerOf(cell))
         // only cells that are on screen can be tapped
@@ -119,14 +114,14 @@ describe('hit-testing while zoomed', () => {
   })
 
   it('a cell is twice as big on screen at 2x', () => {
-    const view = toggleZoom(IDENTITY)
+    const view = zoomed2x()
     const a = boardToFrame(view, centerOf({ row: 4, col: 4 }))
     const b = boardToFrame(view, centerOf({ row: 4, col: 5 }))
     close(b.x - a.x, (2 * geometry.cellSize) / geometry.viewBox.width)
   })
 
-  it('the middle of the frame at 2x (button) is the middle cell, as at 1x', () => {
-    expect(cellAtFrame(toggleZoom(IDENTITY), { x: 0.5, y: 0.5 })).toEqual(cellAtFrame(IDENTITY, { x: 0.5, y: 0.5 }))
+  it('the middle of the frame at 2x is the middle cell, as at 1x', () => {
+    expect(cellAtFrame(zoomed2x(), { x: 0.5, y: 0.5 })).toEqual(cellAtFrame(IDENTITY, { x: 0.5, y: 0.5 }))
   })
 
   it('the edge of the frame at max pan is the edge cell', () => {
@@ -236,7 +231,7 @@ describe('two fingers versus one', () => {
   })
 
   it('a pinch that starts on a zoomed board continues from the current view', () => {
-    const start = toggleZoom(IDENTITY)
+    const start = zoomed2x()
     const { steps, view } = run(
       [
         { type: 'down', id: 1, at: at(0.4) },
