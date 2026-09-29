@@ -5,7 +5,7 @@ import { defaultRegistry, solveHuman } from '../engine/solver/human/index.ts'
 import { uniquePuzzle } from '../engine/solver/testing.fixture.ts'
 import { hasMark, hasNote } from './board.ts'
 import { at, puzzle } from './fixture.ts'
-import { hardPuzzle, hintPath } from './hints.fixture.ts'
+import { expertPuzzle, hardPuzzle, hintPath } from './hints.fixture.ts'
 import { getHint, hintFor, nextStep } from './hints.ts'
 import type { NextStep } from './hints.ts'
 import { initialState, reduce } from './reducer.ts'
@@ -198,6 +198,83 @@ describe('hints on generated puzzles', () => {
       expect(s.status).toBe('solved')
     }
     expect(followed).toBeGreaterThanOrEqual(3)
+  })
+})
+
+/** Whether `personId` already stands on their true cell in `s` (mirrors `nextStep`'s own `known`). */
+function isKnownAt(p: Puzzle, s: GameState, personId: string): boolean {
+  const at2 = s.board.placements[personId]
+  const truth = p.solution.find((sol) => sol.personId === personId)?.cell
+  return at2 !== undefined && truth !== undefined && at2.row === truth.row && at2.col === truth.col
+}
+
+describe('hint explanations are grounded in what the player has already been shown (SLAY-8.3)', () => {
+  it('never names an already-solved suspect or the victim in an elimination hint (AC4)', () => {
+    let checked = 0
+    for (let seed = 1; seed <= 15; seed++) {
+      const { scene, people, solution, clues } = uniquePuzzle(seed, 6, 3)
+      const generated: Puzzle = { scene, people, solution, clues }
+      const victimId = generated.people.find((p) => p.kind === 'victim')?.id
+      let s = empty()
+      for (let i = 0; i < 200 && s.status === 'playing'; i++) {
+        const next = nextStep(generated, s)
+        if (!next) break
+        // Only elimination hints are at risk here: a placement's target is always the true, not-yet-known cell.
+        if (!next.focus && !next.placement) {
+          checked++
+          const hint = getHint(generated, s, 1)
+          if (hint?.level === 1) {
+            expect(hint.personIds).not.toContain(victimId)
+            for (const id of hint.personIds) expect(isKnownAt(generated, s, id)).toBe(false)
+          }
+        }
+        s = follow(generated, s, next)
+      }
+    }
+    // Sanity: the scenario this guards against (an elimination hint at all) actually occurred.
+    expect(checked).toBeGreaterThan(0)
+  })
+
+  it('grounds an elimination hint in the earlier steps it leans on, not a bare technique conclusion (AC1)', () => {
+    // Deterministic: seed 1 at this size/block reaches an elimination hint with a non-empty chain.
+    const { scene, people, solution, clues } = uniquePuzzle(1, 6, 3)
+    const generated: Puzzle = { scene, people, solution, clues }
+    let s = empty()
+    let found = false
+    for (let i = 0; i < 200 && s.status === 'playing' && !found; i++) {
+      const next = nextStep(generated, s)
+      if (!next) break
+      if (!next.focus && !next.placement && next.chain && next.chain.length > 0) {
+        found = true
+        const h3 = getHint(generated, s, 3)
+        if (h3?.level === 3) {
+          const newest = next.chain.at(-1)
+          // The explanation carries the earlier step's own wording (the derivation), not just the
+          // technique's own bare conclusion on its own -- that is exactly what was missing before.
+          expect(h3.explanation).toContain(newest?.explanation)
+          expect(h3.explanation.length).toBeGreaterThan(next.step.explanation.length)
+        }
+      }
+      s = follow(generated, s, next)
+    }
+    expect(found).toBe(true)
+  })
+
+  it('a full expert-tier walk never jumps ahead: every placement is the true cell (AC5)', () => {
+    // Expert puzzles lean hardest on deduction()'s advanced-technique fallback, the exact path this
+    // story reworked -- the story's own flagged risk is that a wrong fix makes these unhintable.
+    const p = expertPuzzle()
+    let s = empty()
+    for (let i = 0; i < 400 && s.status === 'playing'; i++) {
+      const next = nextStep(p, s)
+      if (!next) break
+      if (next.placement) {
+        const truth = p.solution.find((sol) => sol.personId === next.placement?.personId)
+        expect(next.placement.cell).toEqual(truth?.cell)
+      }
+      s = follow(p, s, next)
+    }
+    expect(s.status).toBe('solved')
   })
 })
 

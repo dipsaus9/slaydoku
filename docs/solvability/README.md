@@ -57,3 +57,26 @@ table above and are enforced by the ladder generator and the tests (`src/engine/
 `precision(puzzle)` answers, per card: how many squares it leaves its holder alone (nobody else placed), and whether all people holding the very
 same card can still stand in distinct rows and columns. It also lists the people placeable from their own card alone (a card without person
 reference that leaves exactly one square), the cards that leave no square and the identical cards whose holders cannot all fit.
+
+## Hint explanations vs. this ladder (SLAY-8.3)
+
+The in-game hint (`src/game/hints.ts`, `deduction()`) and this ladder are two different things that are easy to conflate: the ladder decides
+whether a puzzle is generated at all at a tier (this file, `src/engine/solvable/`), while the hint decides what to tell the player about a puzzle
+that already exists. `deduction()` has always reached for the full advanced technique catalog (`advancedRegistry`, scan through chains) the
+moment the cards and the basic techniques (`knowledge()`'s `defaultRegistry`) run out, on every tier -- a very-easy puzzle that happens to stump
+the basic techniques on some board state still gets a hint from the same catalog a hard puzzle does. SLAY-8.3 did not change this: which
+technique fires, in what order, and at what point deduction() reaches for it are exactly as before.
+
+What SLAY-8.3 changed is what the hint *says* once a technique fires beyond a single-candidate placement: every such hint's explanation is now
+grounded in the earlier steps it actually leans on (the same derivation-chain mechanism `chainTo` already used for a single-candidate placement,
+generalised to elimination hints too -- `src/game/knowledge.ts`, `src/game/hintText.ts`), and it never names the victim or a suspect the player
+has already correctly placed as its own subject (it may still cite an already-placed suspect's card or room as background reasoning, same as a
+placement's own reasoning already did). Both are presentation fixes: they change what an elimination hint's text says, never which step it is
+or when it is offered.
+
+Net effect on the tier table above: **none**. A tier's guarantee is about what the *ladder* can do without the advanced solver at all (see "The
+tiers" above); it says nothing about what `deduction()`'s hint reaches for once a puzzle already needs a technique beyond the ladder, and that
+was true before this story and remains true after it. The "second, milder gap" noted when this story was written -- that `knowledge()`'s own
+`defaultRegistry` (scan, victim-room, overload, intersect) already reasons beyond what the ladder alone guarantees for very-easy through medium
+-- is real, but it is a pre-existing, separate question about the ladder's own basic-technique boundary, not something this story's grounding
+fix touches; it is not addressed here.

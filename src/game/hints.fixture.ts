@@ -65,3 +65,20 @@ export function hardPuzzle(): Puzzle {
   }
   throw new Error('no hard 6x6 puzzle with a note as its first hint in 100 seeds')
 }
+
+let expert: Puzzle | null = null
+
+/**
+ * A 9x9 expert puzzle, built on the spot from the first working seed (test support, SLAY-8.3): the
+ * one difficulty tier that needs the advanced solver's hard/expert techniques throughout, so it
+ * exercises `deduction()`'s fallback path (not just single-candidate placements). Deterministic:
+ * same code, same puzzle.
+ */
+export function expertPuzzle(): Puzzle {
+  if (expert) return expert
+  for (let seed = seedBase('expert'); seed < seedBase('expert') + 100; seed++) {
+    const built = buildEntry(9, 'expert', 'home', seed, 60_000)
+    if (built.ok) return (expert = built.entry.puzzle)
+  }
+  throw new Error('no expert 9x9 puzzle in 100 seeds')
+}
