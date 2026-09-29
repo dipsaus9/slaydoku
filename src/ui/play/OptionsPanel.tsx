@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { GameOptions } from '../../game/index.ts'
+import { LocaleToggle } from '../daily/LocaleToggle.tsx'
 import { Modal } from './Modal.tsx'
 import { usePlayStrings } from './strings.ts'
 
@@ -13,7 +14,11 @@ export interface OptionsPanelProps {
   onClose: () => void
 }
 
-/** The three toggles of the official app, the axis labels toggle, plus clear-all and restart. */
+/**
+ * The three toggles of the official app, the axis labels toggle, clear-all and restart, plus the
+ * language switch (SLAY-9.4: reachable from the play screen, not only the start screen, so a
+ * player can change language mid-puzzle without losing board state).
+ */
 export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, onClearAll, onRestart, onClose }: OptionsPanelProps) {
   const t = usePlayStrings().options
   const [confirmRestart, setConfirmRestart] = useState(false)
@@ -32,6 +37,9 @@ export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, 
   ]
   return (
     <Modal title={t.title} onClose={onClose}>
+      <div className="play-options__locale">
+        <LocaleToggle />
+      </div>
       <ul className="play-options">
         {rows.map((row) => (
           <li key={row.key}>

@@ -1,6 +1,7 @@
 import type { Cell, Puzzle } from '../../engine/model/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
-import { help } from '../../content/help/help.ts'
+import { HELP_CONTENT } from '../../content/help/help.ts'
+import { useLocale } from '../../locale/index.ts'
 import { Legend } from '../help/index.ts'
 import { Modal } from './Modal.tsx'
 
@@ -22,6 +23,8 @@ export interface LegendPanelProps {
  * close button stays in reach at the bottom while the list scrolls.
  */
 export function LegendPanel({ puzzle, cast, tags, colors, onShow, peek, onClose }: LegendPanelProps) {
+  const { locale } = useLocale()
+  const help = HELP_CONTENT[locale]
   return (
     <Modal title={help.legend.title} onClose={onClose} peek={peek} className="play-modal__panel--wide play-modal__panel--help play-modal__panel--legend">
       <Legend puzzle={puzzle} cast={cast} tags={tags} colors={colors} onShow={onShow} />

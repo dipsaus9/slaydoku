@@ -8,7 +8,7 @@ import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 import type { FloorPattern } from '../../render/scene/index.ts'
 import { useAxisLabels } from './axisLabels.ts'
 import { Board } from './Board.tsx'
-import { help } from '../../content/help/help.ts'
+import { HELP_CONTENT } from '../../content/help/help.ts'
 import { markHelpSeen, shouldShowHelp } from '../help/index.ts'
 import { HelpPanel } from './HelpPanel.tsx'
 import { HintBar } from './HintBar.tsx'
@@ -89,8 +89,14 @@ function nextUnplaced(order: readonly string[], from: string, placed: (id: strin
 export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false, resultShare }: PlayScreenProps) {
   const strings = usePlayStrings()
   const { locale } = useLocale()
+  // The "peek" chip's own text (below) used to import the English-only `help` fallback constant
+  // and never re-read locale (SLAY-9.4 AC #3): it now reads reactively, like `strings` above.
+  const help = HELP_CONTENT[locale]
   const title = givenTitle ?? strings.title
   const puzzle = useMemo(() => withCastNames(given, castSeed), [given, castSeed])
+  // `locale` must never join this dependency list (SLAY-9.4 AC #2): the game store holds the
+  // board, notes, timer and undo/redo history, and a language switch mid-puzzle must not recreate
+  // it -- only the surrounding chrome (strings/help above) re-renders.
   const store = useMemo<GameStore>(
     () => createGameStore({ levelId, puzzle, storage, now }),
     [levelId, puzzle, storage, now],

@@ -7,7 +7,7 @@ import { objectNouns } from '../../engine/clues/en.ts'
 import { OBJECT_WORDS_NL } from '../../engine/clues/nl.ts'
 import { OBJECT_CATALOG, cellKey } from '../../engine/model/index.ts'
 import type { PlacedObject, Puzzle, Scene } from '../../engine/model/index.ts'
-import { help } from '../../content/help/help.ts'
+import { HELP_CONTENT, help } from '../../content/help/help.ts'
 import { LocaleProvider } from '../../locale/index.ts'
 import type { Locale } from '../../locale/index.ts'
 import { castFor, colorsFor, noteTags } from '../play/people.ts'
@@ -204,14 +204,15 @@ describe('<Legend/>', () => {
       it(`${name}, ${locale}: one button per row, each with its ${locale} noun and flag`, () => {
         const html = renderLegend(puzzle, locale)
         const legend = legendOf(puzzle.scene, locale)
+        const t = HELP_CONTENT[locale].legend
         const objectList = html.slice(html.indexOf('data-legend-list="objects"'), html.indexOf('</ul>', html.indexOf('data-legend-list="objects"')))
         expect((objectList.match(/<button\b/g) ?? []).length).toBe(legend.objects.length)
         for (const row of legend.objects) {
           const button = objectList.match(new RegExp(`<button[^>]*data-legend="${row.key}"[\\s\\S]*?</button>`))?.[0]
           expect(button, row.key).toBeDefined()
           expect(button).toContain(`<strong>${row.noun}</strong>`)
-          expect(button).toContain(row.occupiable ? help.legend.canOccupy : help.legend.blocked)
-          expect(button).not.toContain(row.occupiable ? help.legend.blocked : help.legend.canOccupy)
+          expect(button).toContain(row.occupiable ? t.canOccupy : t.blocked)
+          expect(button).not.toContain(row.occupiable ? t.blocked : t.canOccupy)
           expect(button).toContain('<svg') // drawn as its icon
         }
       })
@@ -230,6 +231,17 @@ describe('<Legend/>', () => {
       expect(row.noun).toBe(OBJECT_WORDS_NL[row.type].noun)
     }
     expect(en).not.toBe(nl)
+  })
+
+  it('switches the surrounding chrome text (section headings, the occupied/blocked flag, the rule) too, not only the object nouns (SLAY-9.4: this text used to come from a hardcoded English-only import)', () => {
+    const puzzle = houses[0]!.puzzle
+    const nl = renderLegend(puzzle, 'nl')
+    const tNl = HELP_CONTENT.nl.legend
+    expect(nl).toContain(tNl.objectsTitle)
+    expect(nl).toContain(tNl.marksTitle)
+    expect(nl).toContain(tNl.rule)
+    expect(nl).not.toContain(help.legend.objectsTitle) // the English fallback text must not leak into an nl render
+    expect(nl).not.toContain(help.legend.rule)
   })
 
   it('shows door and window rows only when the level has them', () => {

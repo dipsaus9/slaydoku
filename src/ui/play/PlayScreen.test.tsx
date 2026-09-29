@@ -430,6 +430,32 @@ describe('axis labels', () => {
   })
 })
 
+describe('language switch in the Options modal (SLAY-9.4: LocaleToggle reachable from the play screen, not only the start screen)', () => {
+  const props = { options: DEFAULT_OPTIONS, showAxisLabels: true, onChange: () => {}, onAxisLabels: () => {}, onClearAll: () => {}, onRestart: () => {}, onClose: () => {} }
+
+  it.each(['en', 'nl'] as const)('renders the EN/NL locale toggle, reflecting the active locale (%s)', (locale) => {
+    const html = renderToStaticMarkup(withLocale(locale, <OptionsPanel {...props} />))
+    expect(html).toContain('aria-label="Language"')
+    expect(html).toContain('data-locale-option="en"')
+    expect(html).toContain('data-locale-option="nl"')
+    // aria-pressed is declared before data-locale-option in LocaleToggle.tsx's JSX, in that order in the DOM.
+    const active = html.match(/aria-pressed="true"[^>]*data-locale-option="([a-z]+)"/)?.[1]
+    expect(active).toBe(locale)
+  })
+
+  it('is the same control the start screen uses: switching language does not require leaving the puzzle (LocaleToggle is a shared component, not a duplicate)', () => {
+    const html = renderToStaticMarkup(withLocale('en', <OptionsPanel {...props} />))
+    expect(html).toContain('daily__locale-option')
+  })
+
+  it("does not key the game store's useMemo on locale (AC #2: the board, notes, timer and undo/redo history must survive a language switch, not be recreated by it)", async () => {
+    const src = (await import('node:fs')).readFileSync(new URL('./PlayScreen.tsx', import.meta.url), 'utf8')
+    const storeMemo = src.match(/const store = useMemo<GameStore>\(\s*\(\) => createGameStore\([^)]*\),\s*(\[[^\]]*\])/)
+    expect(storeMemo, 'store useMemo not found in PlayScreen.tsx').not.toBeNull()
+    expect(storeMemo![1]).not.toContain('locale')
+  })
+})
+
 describe('the hint bar slot in the play grid (CAD-4.34 layout stays)', () => {
   it('starts closed, and the hint bar keeps its own grid row', async () => {
     const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
