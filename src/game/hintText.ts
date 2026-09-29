@@ -100,8 +100,24 @@ const techniqueOf = (id: string): { id: string; title: string } => ({
   title: advancedRegistry.list().find((t) => t.id === id)?.title ?? id,
 })
 
-/** The longest reasoning of a placement that is worked out through other steps; the instruction comes after it. */
+/** The longest reasoning of a step that is worked out through other steps; the instruction comes after it. */
 const MAX_REASONING = 340
+
+/**
+ * A step's own explanation, grounded in the earlier steps (`chain`, oldest first) it leans on: as
+ * many of them as fit ahead of the final explanation, newest kept when it has to crop, with a
+ * generic lead-in for what got cropped. Empty `chain` returns the final explanation unchanged.
+ * Shared by a placement's reasoning below and an elimination hint's own explanation
+ * (`stepHint`, SLAY-8.3): neither ever hands the player a bare conclusion out of a technique's own
+ * candidate bookkeeping -- only steps the player has already been shown, or their own cards.
+ */
+function chainedText(chain: readonly HumanStep[], final: string, locale: Locale): string {
+  const parts = [...chain.map((s) => s.explanation), final]
+  let used = parts
+  while (used.length > 1 && used.join(' ').length > MAX_REASONING) used = used.slice(1)
+  const prefix = locale === 'nl' ? nlText.earlierSteps : 'Earlier steps already ruled out other squares.'
+  return (used.length < parts.length ? [prefix, ...used] : used).join(' ')
+}
 
 /**
  * Why the person stands (or may stand) where the hint says. The cards when they leave the squares on their
@@ -111,11 +127,7 @@ const MAX_REASONING = 340
 function reasoning(next: NextStep, focus: Focus, cards: Card[], label: string, at: string, locale: Locale): string {
   const { placement, step } = next
   if (placement && (focus.chain.length > 0 || step.technique !== 'single-candidate')) {
-    const parts = [...focus.chain.map((s) => s.explanation), step.explanation]
-    let used = parts
-    while (used.length > 1 && used.join(' ').length > MAX_REASONING) used = used.slice(1)
-    const prefix = locale === 'nl' ? nlText.earlierSteps : 'Earlier steps already ruled out other squares.'
-    return (used.length < parts.length ? [prefix, ...used] : used).join(' ')
+    return chainedText(focus.chain, step.explanation, locale)
   }
   const [first, second] = cards
   const said = first
@@ -214,11 +226,15 @@ export function focusHint(puzzle: Puzzle, next: NextStep, focus: Focus, level: H
  * The hint for one step of the solver's own reasoning (a technique beyond the cards): the squares it
  * rules out, or the person it places. The lab also builds its solve trace from these.
  */
-export function stepHint(puzzle: Puzzle, { step, placement, eliminations }: NextStep, level: HintLevel, locale: Locale = 'en'): Hint {
+export function stepHint(puzzle: Puzzle, next: NextStep, level: HintLevel, locale: Locale = 'en'): Hint {
+  const { step, placement, eliminations, subjects, chain } = next
   const { labelOf, roomOf, sentences, roomsOf } = wording(puzzle, locale)
   const crossed = placement ? [] : (eliminations ?? step.eliminated)
   const cells = placement ? [placement.cell] : dedupe(crossed.length > 0 ? crossed.map((e) => e.cell) : step.cells)
-  const personIds = placement ? [placement.personId] : [...new Set(step.people)]
+  // A placement's target is always the right, already-filtered answer. An elimination hint's own
+  // `subjects` (AC4) drops the victim and anybody already correctly placed, even when the
+  // technique's own `step.people` still mentions them as reasoning context.
+  const personIds = placement ? [placement.personId] : (subjects ?? [...new Set(step.people)])
   const roomIds = roomsOf(cells)
   const who = joinList(locale, personIds.map(labelOf))
   const rooms = roomIds.length > 0 && roomIds.length <= MAX_NAMED_ROOMS ? joinList(locale, roomIds.map(roomOf)) : ''
@@ -227,7 +243,7 @@ export function stepHint(puzzle: Puzzle, { step, placement, eliminations }: Next
   const base = { personIds, roomIds }
   if (level === 1) {
     // The person, and the area: a person who is placed stands in it, otherwise it is where squares fall away.
-    const named = personIds.length <= MAX_NAMED_PEOPLE
+    const named = personIds.length > 0 && personIds.length <= MAX_NAMED_PEOPLE
     const lookEn = (lead: string): string => {
       if (placement) return `${lead} at ${who}${rooms ? ` in ${rooms}` : ''}.`
       if (named) return `${lead} at ${who}${rooms ? `, and pay attention to ${rooms}` : ''}.`
@@ -267,13 +283,17 @@ export function stepHint(puzzle: Puzzle, { step, placement, eliminations }: Next
         : ` for ${joinList(locale, crossedWho)}`
       : ''
   const crossedCells = cells.length <= MAX_NAMED_CELLS ? at : locale === 'nl' ? nlText.markedSquares : 'the marked squares'
-  const explanation = sentences(
+  const ownExplanation =
     card && !card.room && crossedWho.length > 0
       ? locale === 'nl'
         ? nlText.ruledOutText(card.parts ?? nlText.cardSays(possessive(card.owner), card.text), crossedNames)
         : `${card.parts ?? `${possessive(card.owner)} card says: "${card.text}"`} That rules out squares${crossedNames}.`
-      : step.explanation,
-  )
+      : step.explanation
+  // A placement's `crossed` is always [] (see above), so `crossedWho` is always empty there and this
+  // is always `step.explanation` for a placement -- unaffected by the chain, which a placement grounds
+  // through `focus.chain`/`reasoning()` instead (`focusHint`). Only an elimination hint's own bare
+  // technique conclusion (SLAY-8.3, AC1) gets grounded here, in the earlier steps it leans on.
+  const explanation = sentences(placement ? ownExplanation : chainedText(chain ?? [], ownExplanation, locale))
   const instruction = sentences(
     locale === 'nl'
       ? placement

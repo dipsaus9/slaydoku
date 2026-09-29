@@ -74,7 +74,7 @@ export function knowledge(puzzle: Puzzle, known: readonly Person[], truth: Reado
         cells: [step.placed.cell],
         cards: rankCards(puzzle, byCard.get(personId), personId),
         placed: known.length > 0,
-        chain: chainTo(step, seen, personId, real.length),
+        chain: chainTo(seen, [personId], real.length),
       }
       return { possible: snapshot(), placement: { step, focus }, byCard }
     }
@@ -91,14 +91,18 @@ export function knowledge(puzzle: Puzzle, known: readonly Person[], truth: Reado
 }
 
 /**
- * The steps a placement leans on beyond the cards themselves: walking back from the placement, every
- * earlier step that is about the person, or about somebody an included step is about. Steps that only
- * read a card or place a person the cards already settle are not part of the chain, nor are the
- * bookkeeping steps of the players who are placed already.
+ * The steps a step leans on beyond the cards themselves: walking back through `before`, every
+ * earlier step that is about one of `subjects`, or about somebody an included step is about (the
+ * "about" set grows as the walk finds more). Steps that only read a card, or place a person the
+ * cards already settle, are not part of the chain, nor are the bookkeeping steps of the players
+ * who are placed already. Used for a placement's own person (one subject) and for an elimination
+ * step's people (several, unfiltered -- an already-placed or victim subject can still legitimately
+ * ground the chain, even though neither is ever the hint's own target): either way the result is
+ * what the player would need to have already been shown for this step to read as the next honest
+ * move, not a conclusion out of nowhere.
  */
-export function chainTo(placement: HumanStep, before: readonly HumanStep[], personId: string, realClues: number): HumanStep[] {
-  if (placement.technique !== 'single-candidate') return []
-  const about = new Set([personId])
+export function chainTo(before: readonly HumanStep[], subjects: readonly string[], realClues: number): HumanStep[] {
+  const about = new Set(subjects)
   const chain: HumanStep[] = []
   for (let i = before.length - 1; i >= 0; i--) {
     const step = before[i] as HumanStep
