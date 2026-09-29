@@ -221,7 +221,11 @@ async function scenario(w: number, h: number) {
   check(`card: a time bar for each tier played (${tiers.join(', ')}) with best and median in words`, (await count('.stats-times__row')) === tiers.length && (await Promise.all(tiers.map((t) => count(`.stats-times__row[data-tier=${t}]`)))).every((n) => n === 1) && (await evaluate(`[...document.querySelectorAll('.stats-times__bar')].every((b) => /best \\d+:\\d\\d, median \\d+:\\d\\d$/.test(b.getAttribute('aria-label') ?? ''))`)) === true)
   check('card: hints used and hints per puzzle are numbers', /^\d+$/.test(await stat('total-hints')) && /^(\d+(\.\d)?)$/.test(await stat('average-hints')), `${await stat('total-hints')} / ${await stat('average-hints')}`)
   check('card: fits the screen, its actions reachable by scrolling inside it, targets of 44px', !!card && fits(card) && card.small === 0, JSON.stringify(card))
-  check('card: nothing was requested from another origin (all data stays on the device)', ((await evaluate(`performance.getEntriesByType('resource').every((e) => new URL(e.name).origin === location.origin)`)) as boolean) === true)
+  // SLAY-8.4: solving a day now fires one anonymous PostHog event (src/game/playCounters.ts) --
+  // unrelated to this card, which is what this check actually guards: opening/reading your own
+  // local stats never itself reaches another origin. Requests to PostHog are allowed; anything
+  // else would be a real leak.
+  check('card: nothing but the anonymous play counters was requested from another origin (own stats stay on the device)', ((await evaluate(`performance.getEntriesByType('resource').every((e) => new URL(e.name).origin === location.origin || new URL(e.name).hostname.endsWith('.posthog.com'))`)) as boolean) === true)
   await shot('03-card-two-days')
 
   // Keyboard: focus starts inside the card, Tab wraps at both ends.

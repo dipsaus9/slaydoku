@@ -1,10 +1,10 @@
 ---
 id: SLAY-7.2
 title: 'Client: fire-and-forget start/solve counting, de-duplicated per day'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 19:02'
-updated_date: '2026-09-28 19:02'
+updated_date: '2026-09-29 08:58'
 labels:
   - story
 dependencies:
@@ -44,5 +44,5 @@ Branch: SLAY-7.2/stats-client-events
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Depends on SLAY-7.1 for the real endpoint contract (request shape, URL). If SLAY-7.1 is not yet merged when this story starts, coordinate on the documented contract from its task description rather than guessing.
+Delivered via SLAY-8.4 instead: the original plan (POST to SLAY-7.1's /api/stats endpoint) is moot since that endpoint was removed in favour of PostHog. The outcome this story described -- one 'start' event and one 'solve' event per device per day, de-duplicated via a localStorage marker, fire-and-forget, no PII -- is exactly what src/game/playCounters.ts delivers, just capturing to PostHog instead of fetch()-ing a custom endpoint.
 <!-- SECTION:NOTES:END -->

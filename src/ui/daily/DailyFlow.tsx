@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { dailyId, dayStatus, observeSolve, progressStorage, readResult, recordResult, resultOf, pageClock } from '../../game/index.ts'
+import { dailyId, dayStatus, observeSolve, progressStorage, readResult, recordPuzzleSolve, recordPuzzleStart, recordResult, resultOf, pageClock } from '../../game/index.ts'
 import type { SolveRecord, StorageLike } from '../../game/index.ts'
 import { SCHEDULE_INDEX, loadMonthFile } from '../../game/daily/source.ts'
 import { themeIconsFor } from '../../content/themes/icons.ts'
@@ -90,6 +90,7 @@ export function DailyFlow({ clock: givenClock, storage: givenStorage, index = SC
   const solve = useCallback(
     (played: ScheduleDay, solved: SolveRecord) => {
       recordResult(storage, resultOf(storage, played, solved))
+      recordPuzzleSolve(storage, played.date, solved.elapsedMs)
       setVersion((v) => v + 1)
       go('/', true)
     },
@@ -139,6 +140,8 @@ function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
   // The notice sits over the bottom of the screen: the player can send it away and keep playing; the start screen offers the new puzzle anyway.
   const [noticeDismissed, setNoticeDismissed] = useState(false)
   const watched = useMemo(() => observeSolve(storage, id, day.puzzle, (record) => onSolved(day, record)), [storage, id, day, onSolved])
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => recordPuzzleStart(storage, day.date), [day.date])
   return (
     <div className="daily-play">
       <PlayScreen puzzle={day.puzzle} levelId={id} title="" themeIcons={themeIcons} portraits={day.portraits} storage={watched} firstVisitHelp resultShare={(solve) => <SharePanel result={resultOf(storage, day, solve)} meta={shareMetaOf(day)} />} />
