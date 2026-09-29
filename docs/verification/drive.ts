@@ -250,7 +250,9 @@ async function startScreen() {
   ctx.level = 'start'
   await resetStorage(PLAY_DATE, false)
   await load('')
-  check('start screen: puzzle label, UTC date, difficulty and grid size', (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date) && (await textOf('[data-date]')) === 'Saturday 21 November 2026' && /^Difficulty: Hard$/.test(await textOf('[data-tier]')) && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
+  // The byline no longer carries a second, always-English long-date segment alongside the puzzle
+  // label (SLAY-9.15): the label itself already spells the date ("Puzzle of 21 November").
+  check('start screen: puzzle label, difficulty and grid size', (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date) && /^Difficulty: Hard$/.test(await textOf('[data-tier]')) && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
   const play = await rectOf('[data-action=play]')
   check('start screen: one Play button, a big touch target', (await count('[data-action]')) === 1 && (await textOf('[data-action]')) === 'Play' && !!play && play.h >= 44 && play.w >= 44, JSON.stringify(play))
   check('start screen: no puzzle board and no how-it-works card before Play', (await count('.play-board')) === 0 && (await count('.play-modal')) === 0)
@@ -636,24 +638,50 @@ async function playDay(first: boolean, w: number, h: number) {
 
   const solvedOk = await placeAll(puzzle)
   await sleep(900)
-  check('solving goes back to the start screen (/), which shows the result', solvedOk && (await path()) === '/' && (await count('[data-result=solved]')) === 1 && (await count('.play-board')) === 0, await path())
+  // SLAY-9.13: solving no longer navigates away -- the player stays on /play, where PlayScreen's own
+  // ResultOverlay is the finish popover, with the share card (SharePanel) embedded directly inside it.
+  check('solving pops the finish overlay right on /play (no navigation away), share card embedded', solvedOk && (await path()) === '/play' && (await count('.play-board')) === 1 && (await count('[data-result=solved]')) === 1 && (await count('.play-result [data-share] [data-share-preview]')) === 1, await path())
   // The murderer is the suspect alone with the victim in the stored solution; the screens show the name of the cast.
   const murdererId = deriveMurderer(DAY.puzzle, DAY.puzzle.solution)
   const murderer = DAY.puzzle.people.find((p) => p.id === murdererId)?.label ?? String(murdererId)
-  const text = await startText()
-  check(`the result names ${murderer} alone with the victim, with time and hints`, text.includes(murderer) && /alone with the victim/.test(text) && /Time: \d+:\d\d/.test(text) && /1 hint/.test(text), JSON.stringify(text.replace(/\n/g, ' / ')))
-  check('a solved day has no Play button, and shows the countdown to the next puzzle', (await count('.daily-card [data-action]')) === 0 && (await count('[data-countdown=next]')) === 1 && /^New puzzle at 00:00 UTC/.test(await textOf('[data-until]')), await textOf('[data-until]'))
-  check('the share slot holds the share card (preview and text, checked in depth by share.ts) and the statistics slot holds the streak line and the Stats button', (await count('[data-slot=share] [data-share] [data-share-preview]')) === 1 && /^Slaydoku #\d+ · /.test(await textOf('[data-slot=share] [data-share-text]')) && (await count('[data-slot=stats] [data-stats-summary]')) === 1 && (await count('[data-slot=stats] [data-stats-open]')) === 1)
-  await shot('09-solved')
+  const overlayText = await textOf('.play-result')
+  check(`the finish overlay names ${murderer} alone with the victim, with the time (hints show on the start screen's card, not here)`, overlayText.includes(murderer) && /alone with the victim/.test(overlayText) && /Time: \d+:\d\d/.test(overlayText), JSON.stringify(overlayText.replace(/\n/g, ' / ')))
+  await shot('09-solved-overlay')
   const stored = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))) as { version: number; results: Record<string, { n: number; date: string; fp: string; elapsedMs: number; hints: number; wrongChecks: number; murdererId: string }> }
   const result = stored.results[String(DAY.n)]
   check('the result is stored per day, versioned: time, hints, wrong checks, murderer, fingerprint', stored.version === 1 && !!result && result.n === DAY.n && result.date === DAY.date && result.fp === DAY.fp && result.murdererId === murdererId && result.elapsedMs > 0 && result.hints === 1 && result.wrongChecks === 1, JSON.stringify(result))
+
+  // "View the board" dismisses the overlay; the solved board itself stays right there on /play.
+  await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
+  check('View the board dismisses the overlay; the solved board stays on /play', (await count('[data-result=solved]')) === 0 && (await path()) === '/play' && (await count('.play-board')) === 1)
+
+  // Back to the start screen: the daily card now offers "View board" instead of Play (SLAY-9.16), a
+  // reopenable Share button (SLAY-9.13 AC #4, no longer the card shown inline), and the stats slot.
+  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await sleep(500)
+  check('back from a solved day shows the start screen with the result', (await path()) === '/' && (await count('[data-result=solved]')) === 1, await path())
+  const text = await startText()
+  check(`the start screen names ${murderer} alone with the victim, with time and hints`, text.includes(murderer) && /alone with the victim/.test(text) && /Time: \d+:\d\d/.test(text) && /1 hint/.test(text), JSON.stringify(text.replace(/\n/g, ' / ')))
+  check('a solved day offers View board (not Play/Continue), and shows the countdown to the next puzzle', (await count('.daily-card [data-action=play]')) === 0 && (await count('.daily-card [data-action=continue]')) === 0 && (await textOf('.daily-card [data-action=view-board]')) === 'View board' && (await count('[data-countdown=next]')) === 1 && /^New puzzle at 00:00 UTC/.test(await textOf('[data-until]')), await textOf('[data-until]'))
+  check('the share slot holds a Share button that reopens the share card, and the statistics slot holds the streak line and the Stats button', (await count('[data-slot=share] [data-action=share]')) === 1 && (await count('[data-slot=stats] [data-stats-summary]')) === 1 && (await count('[data-slot=stats] [data-stats-open]')) === 1)
+  await tapSel('[data-slot=share] [data-action=share]')
+  check('the reopened share popover holds the share card (preview and text, checked in depth by share.ts)', (await count('.play-modal [data-share] [data-share-preview]')) === 1 && /^Slaydoku #\d+ · /.test(await textOf('.play-modal [data-share-text]')))
+  await shot('09-solved')
+  await tap(3, 3)
+  await sleep(300)
+  check('tapping outside closes the reopened share popover', (await count('.play-modal')) === 0)
+
   await reload()
   check('reload on the start screen stays solved', (await path()) === '/' && (await count('[data-result=solved]')) === 1, await path())
+  // SLAY-9.13 AC #5 (deliberate): a solved day stays playable via /play -- it reopens the board with
+  // the finish overlay back on top, rather than redirecting to the start screen.
   await load('play')
-  check('a solved day cannot be played again: /play goes back to the result', (await path()) === '/' && (await count('.play-board')) === 0 && (await count('[data-result=solved]')) === 1, await path())
+  check('a solved day can still be opened at /play: the board and the finish overlay both show', (await path()) === '/play' && (await count('.play-board')) === 1 && (await count('[data-result=solved]')) === 1, await path())
+  await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
+  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await sleep(500)
   const again = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))).results[String(DAY.n)]
-  check('the stored result did not change', JSON.stringify(again) === JSON.stringify(result))
+  check('the stored result did not change after reopening the solved day', JSON.stringify(again) === JSON.stringify(result))
 
   // The next day: a new puzzle, the result of the day before stays.
   const next = dayOn('2026-11-22')
@@ -692,7 +720,8 @@ async function rollover() {
   await shot('12-rollover-ended-day')
   await evaluate(`document.querySelector('[data-banner] button').click()`)
   await sleep(500)
-  check(`the notice button loads the new day: ${next.date}, Sunday 22 November 2026, Play`, (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && (await textOf('[data-date]')) === 'Sunday 22 November 2026' && (await count('[data-action]')) === 1 && (await count('[data-banner]')) === 0, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')}`)
+  // No `[data-date]` any more (SLAY-9.15): the puzzle label alone carries the date now.
+  check(`the notice button loads the new day: ${next.date}, Play`, (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && (await count('[data-action]')) === 1 && (await count('[data-banner]')) === 0, await textOf('[data-puzzle-number]'))
   check('the saved board of the day before is untouched', (await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)) === saved)
   await shot('13-rollover-new-day')
   await evaluate(`document.querySelector('[data-action]').click()`)
