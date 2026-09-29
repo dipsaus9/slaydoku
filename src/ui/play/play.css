@@ -629,6 +629,15 @@
   width: 100%;
 }
 
+/* The language switch (SLAY-9.4), reusing LocaleToggle's own daily__locale/daily-btn styling:
+   sits above the toggle list, so it reads as the panel's first row rather than one of the
+   boolean game options. */
+.play-options__locale {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
 .play-options {
   display: grid;
   gap: 8px;

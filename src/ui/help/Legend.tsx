@@ -1,5 +1,5 @@
 import { useId, useMemo, type ReactNode } from 'react'
-import { help } from '../../content/help/help.ts'
+import { HELP_CONTENT } from '../../content/help/help.ts'
 import type { Cell, Person, Puzzle } from '../../engine/model/index.ts'
 import { useLocale } from '../../locale/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
@@ -71,8 +71,8 @@ function firstOf(people: readonly Person[], kind: Person['kind']): Person | unde
  * glyphs of the board layers, so a letter, a cross, a portrait and the gift look the same here.
  */
 export function Legend({ puzzle, cast, tags, colors, onShow }: LegendProps) {
-  const t = help.legend
   const { locale } = useLocale()
+  const t = HELP_CONTENT[locale].legend
   const clipId = `legend-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   const legend = useMemo(() => legendOf(puzzle.scene, locale), [puzzle.scene, locale])
   const suspect = firstOf(puzzle.people, 'suspect')
