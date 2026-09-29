@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-09-29 17:10'
-updated_date: '2026-09-29 19:29'
+updated_date: '2026-09-29 19:43'
 labels:
   - story
 dependencies:
@@ -43,14 +43,14 @@ This is a genuine visual redo, not a tweak — SLAY-9.9's structural centering w
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The primary hero (icon, title, tagline, action button) has no visible card border/box around it — open background, matching Wordle's flat single-block look
-- [ ] #2 The tagline reads as a prominent line (larger, less muted) rather than small grey caption text, closer to Wordle's tagline weight
-- [ ] #3 The primary action button (Play/Continue) sits directly under the tagline as the clear next step, not buried below two lines of metadata inside a bordered box
-- [ ] #4 Locale toggle and Help link are relocated out of the primary hero's direct flow (e.g. a corner or footer position) so they don't compete with the title/tagline/button as a Wordle-style page has no equivalent row there
-- [ ] #5 Streak/stats content (and its Statistieken button) no longer sits in its own separately-bordered box competing visually with the hero — de-emphasize it (lighter weight, no visible border, or move it below a clear visual break) so the hero still reads as the one dominant block
-- [ ] #6 Difficulty/size metadata, the byline (date/site) and countdown stay present (per the existing decisions in CLAUDE.md — puzzle date and until-when must still be shown) but woven into the open layout rather than boxed
-- [ ] #7 Verified against the actual rendered screen at phone, iPad and desktop widths, in both locales, per CLAUDE.md's rule — not just code
-- [ ] #8 The start screen includes a brief intro of what the game actually is (beyond the one-line tagline) paired with a small visual example of gameplay — e.g. a short looping GIF/animation showing a clue being read and a suspect placed, similar to how other daily-puzzle sites give new visitors a glance at the mechanic before they commit to playing
+- [x] #1 The primary hero (icon, title, tagline, action button) has no visible card border/box around it — open background, matching Wordle's flat single-block look
+- [x] #2 The tagline reads as a prominent line (larger, less muted) rather than small grey caption text, closer to Wordle's tagline weight
+- [x] #3 The primary action button (Play/Continue) sits directly under the tagline as the clear next step, not buried below two lines of metadata inside a bordered box
+- [x] #4 Locale toggle and Help link are relocated out of the primary hero's direct flow (e.g. a corner or footer position) so they don't compete with the title/tagline/button as a Wordle-style page has no equivalent row there
+- [x] #5 Streak/stats content (and its Statistieken button) no longer sits in its own separately-bordered box competing visually with the hero — de-emphasize it (lighter weight, no visible border, or move it below a clear visual break) so the hero still reads as the one dominant block
+- [x] #6 Difficulty/size metadata, the byline (date/site) and countdown stay present (per the existing decisions in CLAUDE.md — puzzle date and until-when must still be shown) but woven into the open layout rather than boxed
+- [x] #7 Verified against the actual rendered screen at phone, iPad and desktop widths, in both locales, per CLAUDE.md's rule — not just code
+- [x] #8 The start screen includes a brief intro of what the game actually is (beyond the one-line tagline) paired with a small visual example of gameplay — e.g. a short looping GIF/animation showing a clue being read and a suspect placed, similar to how other daily-puzzle sites give new visitors a glance at the mechanic before they commit to playing
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -68,4 +68,6 @@ This is a genuine visual redo, not a tweak — SLAY-9.9's structural centering w
 
 <!-- SECTION:NOTES:BEGIN -->
 This depends on SLAY-9.15/9.16/9.17 only by file overlap (StartScreen.tsx/daily.css), not by design -- sequence after those land to avoid rework on markup they touch. Owner also asked (2026-09-29) for a short game-about intro + example-gameplay visual/GIF to be added to this same redesign pass, not a separate story.
+
+Rendered-screen verification (dev server, ?date override, headless Chrome over CDP): new day at 320x640, 360x740, 390x844, 844x390 (landscape phone), 768x1024, 820x1180, 1024x768 (iPad), 1280x900 (desktop), EN and NL; solved day at 320/360/844x390/1280; before-launch at 390. Probe on 390/820/1280 x EN/NL: no element in the hero (or the streak line) draws a border, Play sits 24-28px under the tagline and is on the first screen, no horizontal scroll. Loop animates in Chrome (3 distinct frames over 4 samples); prefers-reduced-motion serves the still. Help and Stats still open from the start screen. Existing drivers drive.ts/stats.ts/locale.ts show the same 16/4/2 failures on main as on this branch (stale expectations from SLAY-9.13/9.15: solving no longer returns to '/', the long UTC date line was removed) -- not caused by this story, worth a follow-up to refresh the drivers.
 <!-- SECTION:NOTES:END -->
