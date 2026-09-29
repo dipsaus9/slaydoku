@@ -158,4 +158,86 @@ describe.each(['en', 'nl'] as const)('<StartScreen/> (%s)', (locale) => {
     expect(html).toMatch(new RegExp(`aria-pressed="false"[^>]*data-locale-option="${other}"`))
     expect(strip(html)).toContain(t.puzzleLabel(day.date).split(' ')[0])
   })
+
+  // SLAY-9.18: Wordle's landing order -- mark, title, tagline, then straight to the button; the metadata under it; the
+  // language switch and Help out of that flow (a top bar before the hero); the streak line and the intro after the hero.
+  it('puts the Play button straight under the tagline, the details under it, the controls outside the hero', () => {
+    const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false }, { stats: <p className="stats-entry">Streak 3</p> })
+    const at = (needle: string) => {
+      const i = html.indexOf(needle)
+      expect(i, needle).toBeGreaterThanOrEqual(0)
+      return i
+    }
+    const hero = at('class="daily__hero"')
+    const subtitle = html.lastIndexOf('<p', at('class="daily__subtitle"'))
+    const play = html.lastIndexOf('<button', at('data-action="play"'))
+    // Nothing but the day's own wrapper (and the action row) between the tagline and the button.
+    expect(strip(html.slice(subtitle, play))).toBe(t.subtitle)
+    expect(at('class="daily-card__meta"')).toBeGreaterThan(play)
+    expect(at('class="daily-card__byline"')).toBeGreaterThan(play)
+    expect(at('data-countdown="ends"')).toBeGreaterThan(play)
+    // The language switch and Help come before the hero, in the top bar.
+    expect(at('class="daily__bar"')).toBeLessThan(hero)
+    expect(at('data-locale-option="en"')).toBeLessThan(hero)
+    expect(at('daily__help')).toBeLessThan(hero)
+    // The streak line and the intro come after the whole hero (after the day's countdown).
+    expect(at('data-slot="stats"')).toBeGreaterThan(at('data-countdown="ends"'))
+    expect(at('class="daily-intro"')).toBeGreaterThan(at('data-slot="stats"'))
+  })
+
+  it('puts View board and Share side by side under the result on a solved day', () => {
+    const html = render(
+      { kind: 'day', day, status: { kind: 'solved', result: { n: day.n, date: day.date, fp: day.fp, elapsedMs: 1000, hints: 0, wrongChecks: 0, murdererId: 'x' } }, ended: false },
+      { share: <button>Share it</button> },
+    )
+    const actions = html.slice(html.indexOf('class="daily-card__actions"'))
+    expect(actions.indexOf('data-action="view-board"')).toBeGreaterThan(0)
+    expect(actions.indexOf('data-action="share"')).toBeGreaterThan(actions.indexOf('data-action="view-board"'))
+    expect(html.indexOf('data-result="solved"')).toBeLessThan(html.indexOf('class="daily-card__actions"'))
+  })
+
+  it('says what the game is, with a recording of real play that pauses on a still frame for reduced motion', () => {
+    const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
+    const text = strip(html)
+    expect(text).toContain(t.intro.title)
+    expect(text).toContain(t.intro.text)
+    expect(text).toContain(t.intro.caption)
+    expect(html).toMatch(new RegExp(`<img[^>]*src="[^"]*gameplay-${locale}\\.webp"`))
+    expect(html).toContain(`alt="${t.intro.alt}"`)
+    expect(html).toMatch(new RegExp(`<source srcset="[^"]*gameplay-${locale}-still\\.webp" media="\\(prefers-reduced-motion: reduce\\)"`, 'i'))
+    // Lazy: it never holds up the hero or the Play button.
+    expect(html).toMatch(/<img[^>]*class="daily-intro__media"[^>]*loading="lazy"/)
+  })
+})
+
+// The rendered look lives in CSS (SLAY-9.18): the hero and the day inside it carry no box, the tagline is a prominent line,
+// and the streak line on this screen drops the bordered panel it has elsewhere.
+describe('start screen CSS (SLAY-9.18)', () => {
+  const rule = async (selector: string) => {
+    const css = (await import('node:fs')).readFileSync(new URL('./daily.css', import.meta.url), 'utf8')
+    const start = css.indexOf(`\n${selector} {`)
+    expect(start, selector).toBeGreaterThanOrEqual(0)
+    return css.slice(start, css.indexOf('}', start))
+  }
+
+  it('draws no border or fill around the hero or the day inside it', async () => {
+    for (const selector of ['.daily__hero', '.daily-card', '.daily-result', '.daily-card__details', '.daily-card__byline', '.daily-countdown']) {
+      const body = await rule(selector)
+      expect(body, selector).not.toMatch(/\bborder(-top|-bottom)?\s*:/)
+      expect(body, selector).not.toMatch(/\bbackground\s*:/)
+    }
+  })
+
+  it('sets the tagline as a large serif line in full ink, not a muted caption', async () => {
+    const body = await rule('.daily__subtitle')
+    expect(body).toContain('font-family: var(--font-display)')
+    expect(body).not.toMatch(/opacity/)
+    expect(Number(/font-size:\s*([\d.]+)rem/.exec(body)?.[1])).toBeGreaterThanOrEqual(1.5)
+  })
+
+  it('takes the border off the streak line on the start screen', async () => {
+    const body = await rule('.daily .stats-entry')
+    expect(body).toMatch(/border:\s*0/)
+    expect(body).toMatch(/background:\s*transparent/)
+  })
 })

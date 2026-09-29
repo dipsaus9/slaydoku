@@ -49,6 +49,15 @@ export interface DailyStrings {
   back: string
   backLabel: string
   slots: { share: string; stats: string }
+  /** SLAY-9.18: what the game is, for a first-time visitor, next to a short recording of real play. */
+  intro: {
+    title: string
+    text: string
+    /** Under the recording: the moves it shows. */
+    caption: string
+    /** Alt text of the recording. */
+    alt: string
+  }
 }
 
 /** English wording of the start screen and the daily flow. */
@@ -106,6 +115,12 @@ export const DAILY_EN: DailyStrings = {
   back: 'Back',
   backLabel: 'Back to the start screen',
   slots: { share: 'Share', stats: 'Statistics' },
+  intro: {
+    title: 'What is Slaydoku?',
+    text: 'A logic puzzle about a murder. Every day brings a new floor plan and a handful of suspects. Every row and every column holds exactly one person, and each card tells you where someone stood. Place everybody: whoever was alone in a room with the victim is the murderer.',
+    caption: 'Read a card, jot notes, hold a square to place someone. Stuck? Ask for a hint.',
+    alt: 'A short recording of a game: a suspect’s card is read, two notes go on the board, two suspects are placed, then a hint opens.',
+  },
 }
 
 /**
@@ -167,6 +182,12 @@ export const DAILY_NL: DailyStrings = {
   back: 'Terug',
   backLabel: 'Terug naar het startscherm',
   slots: { share: 'Delen', stats: 'Statistieken' },
+  intro: {
+    title: 'Wat is Slaydoku?',
+    text: 'Een logische puzzel over een moord. Elke dag een nieuwe plattegrond en een handvol verdachten. In elke rij en elke kolom staat precies één persoon, en elk kaartje vertelt waar iemand stond. Zet iedereen op zijn plek: wie alleen met het slachtoffer in een kamer was, is de moordenaar.',
+    caption: 'Lees een kaartje, maak notities, houd een vakje vast om iemand te plaatsen. Vast? Vraag een hint.',
+    alt: 'Een korte opname van een spel: het kaartje van een verdachte wordt gelezen, er komen twee notities op het bord, twee verdachten worden geplaatst en er opent een hint.',
+  },
 }
 
 /** Both languages of the start screen and daily flow, keyed by `Locale`. */

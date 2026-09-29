@@ -3,10 +3,10 @@ id: SLAY-9.18
 title: >-
   Start screen: redo the Wordle-style redesign, current pass still reads as a
   form/dashboard
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-09-29 17:10'
-updated_date: '2026-09-29 17:46'
+updated_date: '2026-09-29 19:29'
 labels:
   - story
 dependencies:
@@ -16,6 +16,10 @@ dependencies:
 references:
   - src/ui/daily/StartScreen.tsx
   - src/ui/daily/daily.css
+  - src/ui/daily/strings.ts
+  - src/ui/daily/daily.test.tsx
+  - src/ui/daily/intro/
+  - docs/verification/intro.ts
 parent_task_id: SLAY-9
 type: feature
 ordinal: 74000
@@ -52,7 +56,12 @@ This is a genuine visual redo, not a tweak — SLAY-9.9's structural centering w
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-Design direction is the implementer's call, but the constraint is explicit: no card border around the primary hero content, one dominant open block, button immediately after the tagline, chrome (locale/help) and secondary content (stats) visually subordinate or relocated. Re-read this story's description for the concrete before/after comparison rather than re-deriving requirements from the Wordle reference alone -- the owner does not have the original reference image available to attach here. For the gameplay example: the repo has browser-automation/GIF-recording tooling available (a real playthrough moment -- reading a clue, placing a suspect, a hint revealing something -- captured from the actual running app) which would be more authentic than a hand-illustrated mockup; fall back to a simple static illustration only if recording proves impractical. Keep the file small (this is a landing-page asset, not a huge video) and make sure it doesn't block the primary Play button from being immediately actionable.
+1. Record the gameplay example from the real app: docs/verification/intro.ts drives headless Chrome on day #1 (2026-09-27, over, no spoiler) at 800x560 -- read a clue, two notes, two placements, a hint -- and writes an animated WebP per locale plus a still frame for prefers-reduced-motion (src/ui/daily/intro/).
+2. StartScreen.tsx: top bar (Help left, locale toggle right) before the hero; hero = mark, title, tagline, then the day: action row (Play/Continue, or result + View board + Share pills), then byline, difficulty/size and countdown as small lines; after the hero a short hairline break, the streak line, the intro (title, text, picture with the loop, caption) and About.
+3. daily.css: no border/fill on hero, day, result, countdown; large serif tagline in full ink; pill buttons; stats entry unboxed on this screen (.daily .stats-entry override); hero fills the first screen (capped) with content centered.
+4. strings.ts: intro title/text/caption/alt in EN and NL.
+5. Tests: DOM order (tagline -> button -> details; controls before hero; stats/intro after), solved action row, intro media + reduced-motion source, CSS rules (no border/background, tagline size/no opacity, stats unboxed).
+6. Verify rendered screens at 320/360/390 phone, 844x390 landscape, 768x1024/820x1180/1024x768 iPad, 1280x900 desktop, both locales; new, solved, before-launch states.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
