@@ -94,7 +94,7 @@ describe('the best next move', () => {
     expect(nextStep(puzzle, s)?.placement).toEqual(nextStep(puzzle, empty())?.placement)
   })
 
-  it('guides all the way to the solution, one placement per person', () => {
+  it('guides all the way to the solution, one placement per suspect, then the victim fills in on its own', () => {
     let s = empty()
     const order: string[] = []
     for (let i = 0; i < 10 && s.status === 'playing'; i++) {
@@ -104,7 +104,8 @@ describe('the best next move', () => {
       s = follow(puzzle, s, next)
     }
     expect(s.status).toBe('solved')
-    expect([...order].sort()).toEqual(['A', 'B', 'C', 'V'])
+    expect([...order].sort()).toEqual(['A', 'B', 'C'])
+    expect(s.board.placements.V).toEqual(at.V)
   })
 
   it('returns null when everybody is right', () => {
@@ -231,17 +232,18 @@ describe('the victim label in hint text', () => {
     expect(hintFor(victimised, { step, placement: step.placed }, 1).text).toBe('Take a look at the victim in the Living Room.')
   })
 
-  it('the best-move hints about the victim start with a capital too', () => {
+  it('never offers a hint about the victim: the moment every suspect is placed, the victim fills in on its own', () => {
     const last = run(empty(), { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'B', cell: at.B }, { type: 'place', personId: 'A', cell: at.A })
-    const texts = [1, 2, 3].map((level) => getHint(victimised, last, level as 1 | 2 | 3)?.text ?? '')
-    expect(texts[0]).toBe('Take a look at the victim. With all the cards together, the victim can only stand on one square.')
-    expect(texts[1]).toBe('Look at row 1, column 1. The victim must stand there.')
-    expect(texts[2]).toMatch(/^All the cards together, with the rows and columns of the people already placed, leave only one square for the victim: row 1, column 1\. Place the victim on row 1, column 1\.$/)
+    expect(last.board.placements.V).toEqual(at.V)
+    expect(last.status).toBe('solved')
+    expect(nextStep(victimised, last)).toBeNull()
+    expect(getHint(victimised, last, 1)).toBeNull()
   })
 
   it('no hint along a whole game leaves the victim lower case at a sentence start', () => {
+    // The victim never gets a hint of their own (SLAY-9.5): every entry here is a suspect.
     const path = hintPath(victimised)
-    expect(path.length).toBeGreaterThan(3)
+    expect(path.length).toBe(3)
     for (const h of path) for (const text of [h.level1, h.level2, h.level3]) expect(text).not.toMatch(sentenceStart)
   })
 })
@@ -259,7 +261,9 @@ describe('hint texts on the demo level and a hard puzzle', () => {
     const path = hintPath(p)
 
     it('is followed to the end of the level, and no hint before the first placement is a bare crossing (the hard puzzle opens with a note)', () => {
-      expect(path.length).toBeGreaterThanOrEqual(p.people.length)
+      // At least one hint step per suspect: the victim never gets a hint step of their own (SLAY-9.5).
+      const suspectCount = p.people.filter((person) => person.kind === 'suspect').length
+      expect(path.length).toBeGreaterThanOrEqual(suspectCount)
       expect(path[0]?.placed).toBe(name === 'demo')
     })
 
