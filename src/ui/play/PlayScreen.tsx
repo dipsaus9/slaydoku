@@ -238,7 +238,14 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
           )}
           {/* Legend gets its own direct header icon (SLAY-8.2): checked often enough mid-solve
               that a second tap through the More sheet was too slow. Options and Help stay behind
-              that sheet — once-per-session actions. */}
+              that sheet on narrow viewports -- once-per-session actions, worth the extra tap where
+              header space is tight. At desktop widths there is room to spare, so the same two
+              buttons also render directly here (SLAY-9.2); CSS toggles which pair is visible, the
+              trigger and Modal below stay mounted unchanged for narrow viewports. */}
+          <div className="play-header__quick">
+            <MenuButton icon={<ToolIcon name="options" />} label={strings.tools.options} onClick={openFromMore('options')} />
+            <MenuButton icon={<ToolIcon name="help" />} label={strings.tools.help} onClick={openFromMore('help')} />
+          </div>
           <button
             type="button"
             className="play-header__legend"
