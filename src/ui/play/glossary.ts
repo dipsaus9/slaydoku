@@ -289,7 +289,7 @@ export const GLOSSARY_NL: readonly GlossaryEntry[] = [
     kinds: ['onObject'],
   },
   {
-    keyword: 'er stond een … op het vakje',
+    keyword: 'er lag een … op het vakje',
     meaning: 'Hetzelfde als "op", maar vanuit het object verteld: het object staat op het vakje van de persoon.',
     example: cardsNl({ personId: 'D', type: 'squareWithObject', args: { objectType: 'framedPainting' } }),
     kinds: ['squareWithObject'],
