@@ -4,7 +4,7 @@ title: 'Epic: go-live readiness'
 status: To Do
 assignee: []
 created_date: '2026-09-29 10:00'
-updated_date: '2026-09-29 17:45'
+updated_date: '2026-09-29 18:27'
 labels:
   - epic
 dependencies: []
@@ -23,5 +23,5 @@ Owner decision (2026-09-29): go public now, skip the trademark/name check that a
 <!-- AC:BEGIN -->
 - [ ] #1 Indexing is flipped on (site.json + vercel.json) and verified with bun tools/check-share.ts --indexable
 - [ ] #2 puzzle_start and puzzle_solve events are confirmed actually reaching PostHog end-to-end, with evidence, not assumed
-- [ ] #3 README, About and CLAUDE.md are re-read against the now-current feature set (post SLAY-9/SLAY-10) and updated where stale
+- [x] #3 README, About and CLAUDE.md are re-read against the now-current feature set (post SLAY-9/SLAY-10) and updated where stale
 <!-- AC:END -->
