@@ -62,6 +62,20 @@ export interface NextStep {
    * a placement when there is one square, else a note on the few possible squares.
    */
   focus?: Focus
+  /**
+   * For an elimination hint (no `focus`): who to name in the hint's own words -- the step's own
+   * people, minus the victim and anybody already correctly placed (AC4: a hint never names somebody
+   * the player has already solved, even when the technique's own reasoning still mentions them).
+   * Undefined for a placement (its `personId` alone is always the right, already-filtered answer).
+   */
+  subjects?: string[]
+  /**
+   * For an elimination hint: the earlier steps this one leans on, same idea as `Focus.chain` but
+   * seeded from the step's own (unfiltered) people, so it may legitimately walk back through steps
+   * about the victim or an already-placed suspect -- that is background derivation, never the
+   * hint's own target. Undefined for a placement (`focus.chain` already carries this).
+   */
+  chain?: HumanStep[]
 }
 
 /** A person with at most this many possible squares is worth a note; with more, the cards say too little. */
@@ -159,7 +173,7 @@ function deduction(
         cells: [step.placed.cell],
         cards: rankCards(puzzle, know.byCard.get(personId), personId),
         placed: known.length > 0,
-        chain: chainTo(step, result.steps.slice(0, i), personId, real.length),
+        chain: chainTo(result.steps.slice(0, i), [personId], real.length),
       }
       return { step, placement: step.placed, focus }
     }
@@ -173,7 +187,16 @@ function deduction(
         occupantAt(state.board, e.cell) === null &&
         !known.some((p) => (truth.get(p.id) as Cell).row === e.cell.row || (truth.get(p.id) as Cell).col === e.cell.col),
     )
-    if (news.length > 0 && (step.level >= HARD_LEVEL || !leaning)) return { step, eliminations: capSquares(news) }
+    if (news.length > 0 && (step.level >= HARD_LEVEL || !leaning)) {
+      // AC4: the step's own people can include the victim or somebody already correctly placed
+      // (a card's owner, a room's other sure occupant) purely as reasoning context -- never the
+      // hint's own target. AC1/AC5: the chain is seeded from the unfiltered people instead, so it
+      // may legitimately walk back through steps about them: that is exactly the derivation the
+      // step leans on, even though neither is ever named as who the player should look at.
+      const subjects = [...new Set(step.people)].filter((id) => id !== victimId && !knownIds.has(id))
+      const chain = chainTo(result.steps.slice(0, i), step.people, real.length)
+      return { step, eliminations: capSquares(news), subjects, chain }
+    }
     if (step.level >= HARD_LEVEL) leaning = true
   }
   return null
