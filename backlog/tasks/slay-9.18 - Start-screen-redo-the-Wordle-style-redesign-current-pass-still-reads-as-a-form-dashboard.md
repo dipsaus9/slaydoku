@@ -6,7 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-29 17:10'
-updated_date: '2026-09-29 17:10'
+updated_date: '2026-09-29 17:46'
 labels:
   - story
 dependencies:
@@ -46,16 +46,17 @@ This is a genuine visual redo, not a tweak — SLAY-9.9's structural centering w
 - [ ] #5 Streak/stats content (and its Statistieken button) no longer sits in its own separately-bordered box competing visually with the hero — de-emphasize it (lighter weight, no visible border, or move it below a clear visual break) so the hero still reads as the one dominant block
 - [ ] #6 Difficulty/size metadata, the byline (date/site) and countdown stay present (per the existing decisions in CLAUDE.md — puzzle date and until-when must still be shown) but woven into the open layout rather than boxed
 - [ ] #7 Verified against the actual rendered screen at phone, iPad and desktop widths, in both locales, per CLAUDE.md's rule — not just code
+- [ ] #8 The start screen includes a brief intro of what the game actually is (beyond the one-line tagline) paired with a small visual example of gameplay — e.g. a short looping GIF/animation showing a clue being read and a suspect placed, similar to how other daily-puzzle sites give new visitors a glance at the mechanic before they commit to playing
 <!-- AC:END -->
 
 ## Implementation Plan
 
 <!-- SECTION:PLAN:BEGIN -->
-Design direction is the implementer's call, but the constraint is explicit: no card border around the primary hero content, one dominant open block, button immediately after the tagline, chrome (locale/help) and secondary content (stats) visually subordinate or relocated. Re-read this story's description for the concrete before/after comparison rather than re-deriving requirements from the Wordle reference alone — the owner does not have the original reference image available to attach here.
+Design direction is the implementer's call, but the constraint is explicit: no card border around the primary hero content, one dominant open block, button immediately after the tagline, chrome (locale/help) and secondary content (stats) visually subordinate or relocated. Re-read this story's description for the concrete before/after comparison rather than re-deriving requirements from the Wordle reference alone -- the owner does not have the original reference image available to attach here. For the gameplay example: the repo has browser-automation/GIF-recording tooling available (a real playthrough moment -- reading a clue, placing a suspect, a hint revealing something -- captured from the actual running app) which would be more authentic than a hand-illustrated mockup; fall back to a simple static illustration only if recording proves impractical. Keep the file small (this is a landing-page asset, not a huge video) and make sure it doesn't block the primary Play button from being immediately actionable.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Dependencies are sequencing only (all touch StartScreen.tsx/daily.css/play.css) — no functional relationship. Sequenced last so the redesign lands on top of the text/button fixes rather than the other way around.
+This depends on SLAY-9.15/9.16/9.17 only by file overlap (StartScreen.tsx/daily.css), not by design -- sequence after those land to avoid rework on markup they touch. Owner also asked (2026-09-29) for a short game-about intro + example-gameplay visual/GIF to be added to this same redesign pass, not a separate story.
 <!-- SECTION:NOTES:END -->
