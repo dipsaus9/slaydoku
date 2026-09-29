@@ -101,16 +101,25 @@ See `backlog task SLAY-8.1 --plain` for the exact mechanism and the full list.
 
 ## Backlog state
 
-All epics SLAY-1 through SLAY-7 are Done. **SLAY-8 is the only open epic**, with one open story:
+All epics SLAY-1 through SLAY-7 are Done. **SLAY-8 is the only open epic.**
 
-- **SLAY-8.3** (hint quality) — investigated and written up, **not implemented**. Root cause:
-  `src/game/hints.ts`'s `deduction()` fallback reaches for the omniscient "advanced" solver
-  regardless of the puzzle's actual difficulty tier, and only single-candidate hints get a proper
-  derivation trail back to what the player has actually seen (`chainTo` in
-  `src/game/knowledge.ts`). Flagged **medium-to-high risk**: this touches the core solvability
-  guarantee, and `src/game/hints.test.ts` documents a deliberate existing invariant ("does not
-  depend on what the player crossed out or noted") that a real fix needs to consciously
-  reconsider, not silently break. Full diagnosis: `backlog task SLAY-8.3 --plain`.
+- **SLAY-8.3** (hint quality) — delivered on `SLAY-8.3/hint-derivation-trail`, PR open, pending
+  merge and review by the owner. Root cause was exactly as diagnosed: only single-candidate
+  placements got a derivation chain back to what the player had actually seen (`chainTo` in
+  `src/game/knowledge.ts`); every elimination hint from scan/overload/intersect/victim-room and
+  every hard/expert technique handed the player a technique's own bare, self-contained conclusion.
+  Fix: `chainTo` generalised to take several subjects (not just one placed person) and to work for
+  elimination steps too; `hints.ts`'s `deduction()` now also filters the *displayed* subject of an
+  elimination hint to drop the victim and anybody already correctly placed (the "hints about
+  someone already solved" bug report), while still letting the chain reference them as background
+  derivation. **Deliberately did not touch which technique fires, when, or in what order** — only
+  what an elimination hint's text says and who it names; `docs/solvability/README.md` gained a new
+  section reasoning through why the tier table is unaffected. The existing "does not depend on
+  what the player crossed out or noted" invariant (`hints.test.ts`) was verified to still hold
+  (the chain is built from the deterministic solve trace, never from board marks/notes) and is
+  untouched. A `bun run validate:generation` sweep across very-easy through expert on 6x6 and 9x9
+  (36 cells, `--seeds 6`) passed every gate, including the hint audit — hard/expert puzzles are
+  still fully hintable. Full diagnosis and design notes: `backlog task SLAY-8.3 --plain`.
 
 ## Exact commands once the go-public decision is made
 
