@@ -507,6 +507,27 @@
     font-size: 1.05rem;
     line-height: 1.15;
   }
+
+  /* SLAY-9.13: PlayScreen's persistent Share button (play.css's .play-header__legend, reused,
+     visible once solved and dismissed) is a 4th icon the 112px reserve above never accounted
+     for -- measured (getBoundingClientRect, headless Chrome, 360/390/430 widths) at ~249px once
+     it is on screen. Rather than always reserving that much (which would truncate this title
+     hard on every ordinary, unsolved play session, the common case, for a button that is not even
+     there yet), widen the reserve only while the button is actually in the DOM. */
+  .daily-play:has([data-action='share']) .daily-play__nav {
+    right: calc(max(8px, env(safe-area-inset-right)) + 245px);
+  }
+}
+
+/* SLAY-9.13: belt-and-suspenders for .daily-play__title -- truncates with an ellipsis instead of
+   visibly overlapping play-header's icons if a future icon addition ever outgrows the hardcoded
+   right-reserve above again (as the persistent Share button did before this fix). Harmless at
+   desktop widths, where there is always room to spare. */
+.daily-play__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Short landscape phone: the start screen keeps to the height, the bar sits to the right of the board. */
@@ -554,6 +575,12 @@
     min-width: 0;
     font-size: 1.05rem;
     line-height: 1.15;
+  }
+
+  /* SLAY-9.13: same conditional +133px reserve as the phone media query above, for the same
+     reason (only while the persistent Share button is actually in the DOM). */
+  .daily-play:has([data-action='share']) .daily-play__nav {
+    right: calc(max(12px, env(safe-area-inset-right)) + 245px);
   }
 }
 

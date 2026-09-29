@@ -198,11 +198,12 @@ describe('where the card is', () => {
   const day = days[3]!
   const solved = { kind: 'solved', result: { ...result, n: day.n, date: day.date, fp: day.fp, murdererId: day.puzzle.people.find((p) => p.kind === 'suspect')!.id } } as const
 
-  it('fills the share slot of a solved start screen', () => {
+  it('the share slot of a solved start screen holds a compact Share button, not the panel itself (SLAY-9.13: a reopenable popover instead)', () => {
     const html = renderToStaticMarkup(
       <StartScreen state={{ kind: 'day', day, status: solved, ended: false }} clock={() => Date.parse('2026-10-15T22:00:00Z')} onPlay={() => {}} share={<SharePanel result={solved.result} meta={{ tier: day.tier, size: day.size }} nav={{}} />} />,
     )
-    expect(html).toMatch(/data-slot="share"[^>]*><section class="share"/)
+    expect(html).toMatch(/data-slot="share"[^>]*><button [^>]*data-action="share"/)
+    expect(html).not.toContain('<section class="share"')
   })
 
   it('leaves the slot empty on a new day', () => {

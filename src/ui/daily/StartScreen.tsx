@@ -6,6 +6,7 @@ import type { DayStatus } from '../../game/index.ts'
 import { formatLongDate, formatDayMonth, startOfUtcDay, utcWithLocal } from '../../schedule/index.ts'
 import type { ScheduleDay } from '../../schedule/index.ts'
 import { HelpPanel, formatTime, withCastNames } from '../play/index.ts'
+import { Modal } from '../play/Modal.tsx'
 import { Link } from '../router/index.ts'
 import { Countdown } from './Countdown.tsx'
 import { LocaleToggle } from './LocaleToggle.tsx'
@@ -115,6 +116,11 @@ function BeforeLaunch({ first, clock }: { first: string; clock: () => number }) 
 export function StartScreen({ state, clock, onPlay, rollover, share, stats }: StartScreenProps) {
   const t = useDailyStrings()
   const [helpOpen, setHelpOpen] = useState(false)
+  // The solved day's share card as a reopenable popover (SLAY-9.13, AC #4), not shown inline any
+  // more: a compact button opens the same Modal-wrapped share panel PlayScreen's own persistent
+  // Share button reopens (see PlayScreen.tsx), so a player who left the play screen without
+  // sharing still finds it here.
+  const [shareOpen, setShareOpen] = useState(false)
   return (
     <main className="daily">
       {/* Wordle-style landing pattern (SLAY-9.9): a small icon mark, the wordmark and a one-line tagline, centered
@@ -161,7 +167,13 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
       ) : null}
       {state.kind === 'day' ? <PuzzleCard day={state.day} status={state.status} ended={state.ended} clock={clock} onPlay={onPlay} /> : null}
 
-      <div className="daily__slot" data-slot="share">{state.kind === 'day' && state.status.kind === 'solved' ? share : null}</div>
+      <div className="daily__slot" data-slot="share">
+        {state.kind === 'day' && state.status.kind === 'solved' && share ? (
+          <button type="button" className="daily-btn daily-btn--quiet" data-action="share" onClick={() => setShareOpen(true)}>
+            {t.slots.share}
+          </button>
+        ) : null}
+      </div>
       <div className="daily__slot" data-slot="stats">{stats}</div>
 
       <footer className="daily__footer">
@@ -170,6 +182,11 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
         </Link>
       </footer>
       {helpOpen ? <HelpPanel onClose={() => setHelpOpen(false)} /> : null}
+      {shareOpen ? (
+        <Modal title={t.slots.share} onClose={() => setShareOpen(false)}>
+          {share}
+        </Modal>
+      ) : null}
     </main>
   )
 }

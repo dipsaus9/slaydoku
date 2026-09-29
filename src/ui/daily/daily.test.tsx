@@ -73,13 +73,23 @@ describe.each(['en', 'nl'] as const)('<StartScreen/> (%s)', (locale) => {
     const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
     expect(html).toContain('data-slot="stats"')
     expect(html).toContain('data-slot="share"')
+    expect(render({ kind: 'day', day, status: { kind: 'new' }, ended: false }, { share: <button>Share it</button> })).not.toContain('Share it')
     const solved = render(
       { kind: 'day', day, status: { kind: 'solved', result: { n: day.n, date: day.date, fp: day.fp, elapsedMs: 1000, hints: 0, wrongChecks: 0, murdererId: 'x' } }, ended: false },
-      { share: <button>Share it</button>, stats: <p>Streak 3</p> },
+      { stats: <p>Streak 3</p> },
     )
-    expect(solved).toContain('Share it')
     expect(solved).toContain('Streak 3')
-    expect(render({ kind: 'day', day, status: { kind: 'new' }, ended: false }, { share: <button>Share it</button> })).not.toContain('Share it')
+  })
+
+  it('replaces the inline share panel with a compact Share button that opens a popover (SLAY-9.13, AC #4)', () => {
+    const solved = render(
+      { kind: 'day', day, status: { kind: 'solved', result: { n: day.n, date: day.date, fp: day.fp, elapsedMs: 1000, hints: 0, wrongChecks: 0, murdererId: 'x' } }, ended: false },
+      { share: <button>Share it</button> },
+    )
+    // A compact button, not the full panel: the panel's own content is not on screen until opened.
+    expect(solved).toContain('data-action="share"')
+    expect(solved).toContain(`>${t.slots.share}<`)
+    expect(solved).not.toContain('Share it')
   })
 
   it('says the puzzle starts on the launch date, with a countdown to launch, before the first day', () => {

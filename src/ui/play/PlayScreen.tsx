@@ -252,6 +252,23 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
             <MenuButton icon={<ToolIcon name="options" />} label={strings.tools.options} onClick={openFromMore('options')} />
             <MenuButton icon={<ToolIcon name="help" />} label={strings.tools.help} onClick={openFromMore('help')} />
           </div>
+          {/* Persistent Share control (SLAY-9.13, AC #3): visible once solved, once the finish
+              popover (ResultOverlay, below) has been dismissed. Reopens the very same overlay --
+              `dismissed` is only ever set to the check it matches, so clearing it is exactly
+              "undo the dismiss". Reuses the icon-button chrome already styled for Legend/More
+              (no new CSS): this story's References don't include play.css. */}
+          {solved && !showResult ? (
+            <button
+              type="button"
+              className="play-header__legend"
+              aria-label={strings.result.share}
+              title={strings.result.share}
+              onClick={() => setDismissed(null)}
+              data-action="share"
+            >
+              <span aria-hidden="true">{'↗'}</span>
+            </button>
+          ) : null}
           <button
             type="button"
             className="play-header__legend"

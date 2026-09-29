@@ -276,6 +276,32 @@ describe.each(['en', 'nl'] as const)('<ResultOverlay/> (%s)', (locale) => {
   })
 })
 
+describe('the persistent Share control on a solved board (SLAY-9.13)', () => {
+  /** A memory-backed save already solved before PlayScreen ever mounts, the way reopening an
+   * already-solved day (or the moment right after a fresh solve) looks from PlayScreen's side. */
+  const solvedStorage = () => {
+    const storage = createMemoryStorage()
+    const store = createGameStore({ levelId: 'share-persist', puzzle: named, storage, now: () => 1000 })
+    store.dispatch({ type: 'place', personId: idOf(Alice), cell: at.A })
+    store.dispatch({ type: 'place', personId: idOf(Ben), cell: at.B })
+    store.dispatch({ type: 'place', personId: idOf(Chloe), cell: at.C })
+    store.dispatch({ type: 'place', personId: 'V', cell: at.V })
+    expect(store.getState().status).toBe('solved')
+    return storage
+  }
+
+  it('shows the finish popover on a fresh mount of an already-solved save, not the persistent button (the popover has not been dismissed yet)', () => {
+    const html = renderToStaticMarkup(<PlayScreen puzzle={named} levelId="share-persist" storage={solvedStorage()} now={() => 1000} />)
+    expect(html).toContain('data-result="solved"')
+    expect(html).not.toContain('data-action="share"')
+  })
+
+  it('never shows the persistent Share button while the board is unsolved', () => {
+    const html = renderToStaticMarkup(<PlayScreen puzzle={named} levelId="test" storage={null} now={() => 0} />)
+    expect(html).not.toContain('data-action="share"')
+  })
+})
+
 /** Plays gestures against a real store, the way Board does. */
 describe('gestures drive the game store', () => {
   const setup = () => {
