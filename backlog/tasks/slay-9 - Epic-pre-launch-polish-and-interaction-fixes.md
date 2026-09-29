@@ -4,7 +4,7 @@ title: 'Epic: pre-launch polish and interaction fixes'
 status: To Do
 assignee: []
 created_date: '2026-09-29 09:55'
-updated_date: '2026-09-29 12:26'
+updated_date: '2026-09-29 14:19'
 labels:
   - epic
 dependencies: []
@@ -22,7 +22,7 @@ Alternative considered: defer the riskier hint-sequencing rework (tracked separa
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 Play-screen header shows Terug and Puzzel #N (or its replacement label) sharing consistent vertical alignment with the rest of the header row, on phone, iPad and desktop
-- [ ] #2 Player can switch language (EN/NL) from the play screen without losing board state, notes, timer or undo history
+- [x] #2 Player can switch language (EN/NL) from the play screen without losing board state, notes, timer or undo history
 - [x] #3 On desktop-width viewports, Options and Help are reachable as direct actions, not hidden behind the ... menu
 - [ ] #4 Toolbar button labels (e.g. Ongedaan) never clip or wrap awkwardly at any viewport width tested
 - [ ] #5 The victim is never a manually-placeable card and never the subject of a hint; it auto-fills the one remaining square once all suspects are placed
