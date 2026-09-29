@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import iconMark from '../../brand/icon.svg'
 import { help } from '../../content/help/help.ts'
 import type { DayStatus } from '../../game/index.ts'
 import { formatLongDate, formatDayMonth, startOfUtcDay, utcWithLocal } from '../../schedule/index.ts'
@@ -48,10 +49,6 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
   const dayEnd = startOfUtcDay(day.date) + 86_400_000
   return (
     <section className="daily-card" data-status={status.kind} data-day={day.date} aria-labelledby="daily-number">
-      <h2 id="daily-number" className="daily-card__number" data-puzzle-number={day.n}>
-        {t.puzzleLabel(day.date)}
-      </h2>
-      <p className="daily-card__date" data-date>{formatLongDate(day.date)}</p>
       <p className="daily-card__meta">
         <span className="daily-card__tier" data-tier={day.tier}>
           <span className="daily-card__tier-label">{t.difficulty}:</span> {t.tier[day.tier]}
@@ -86,6 +83,18 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
           until={(solved ? t.nextAt : t.endsAt)(utcWithLocal(dayEnd, LOCAL_CLOCK))}
         />
       )}
+
+      {/* Wordle-style byline (SLAY-9.9): the puzzle's date-based label (SLAY-10.2), the full date and the site
+          name, one small muted line under the primary action instead of the big heading the label used to be. */}
+      <p className="daily-card__byline">
+        <span id="daily-number" className="daily-card__byline-label" data-puzzle-number={day.n}>
+          {t.puzzleLabel(day.date)}
+        </span>
+        <span className="daily-card__byline-sep" aria-hidden="true">·</span>
+        <span className="daily-card__byline-date" data-date>{formatLongDate(day.date)}</span>
+        <span className="daily-card__byline-sep" aria-hidden="true">·</span>
+        <span className="daily-card__byline-site">{t.title}</span>
+      </p>
     </section>
   )
 }
@@ -108,16 +117,21 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
   const [helpOpen, setHelpOpen] = useState(false)
   return (
     <main className="daily">
-      <header className="daily__header">
-        <div className="daily__header-row">
-          <h1 className="daily__title">{t.title}</h1>
-          <LocaleToggle />
-        </div>
+      {/* Wordle-style landing pattern (SLAY-9.9): a small icon mark, the wordmark and a one-line tagline, centered
+          above everything else -- there is exactly one primary action below (Play/Continue), no Login or
+          subscription button (Slaydoku has no accounts or leaderboard at launch, CLAUDE.md). */}
+      <div className="daily__hero">
+        <img className="daily__mark" src={iconMark} width="48" height="48" alt="" />
+        <h1 className="daily__title">{t.title}</h1>
         <p className="daily__subtitle">{t.subtitle}</p>
+      </div>
+
+      <div className="daily__controls">
+        <LocaleToggle />
         <button type="button" className="daily-btn daily-btn--quiet daily__help" onClick={() => setHelpOpen(true)}>
           {help.link}
         </button>
-      </header>
+      </div>
 
       {rollover ? (
         <div className="daily-banner" role="status" data-banner="new-puzzle">
