@@ -3,10 +3,10 @@ id: SLAY-9.18
 title: >-
   Start screen: redo the Wordle-style redesign, current pass still reads as a
   form/dashboard
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-29 17:10'
-updated_date: '2026-09-29 19:43'
+updated_date: '2026-09-29 19:46'
 labels:
   - story
 dependencies:
@@ -70,4 +70,12 @@ This is a genuine visual redo, not a tweak — SLAY-9.9's structural centering w
 This depends on SLAY-9.15/9.16/9.17 only by file overlap (StartScreen.tsx/daily.css), not by design -- sequence after those land to avoid rework on markup they touch. Owner also asked (2026-09-29) for a short game-about intro + example-gameplay visual/GIF to be added to this same redesign pass, not a separate story.
 
 Rendered-screen verification (dev server, ?date override, headless Chrome over CDP): new day at 320x640, 360x740, 390x844, 844x390 (landscape phone), 768x1024, 820x1180, 1024x768 (iPad), 1280x900 (desktop), EN and NL; solved day at 320/360/844x390/1280; before-launch at 390. Probe on 390/820/1280 x EN/NL: no element in the hero (or the streak line) draws a border, Play sits 24-28px under the tagline and is on the first screen, no horizontal scroll. Loop animates in Chrome (3 distinct frames over 4 samples); prefers-reduced-motion serves the still. Help and Stats still open from the start screen. Existing drivers drive.ts/stats.ts/locale.ts show the same 16/4/2 failures on main as on this branch (stale expectations from SLAY-9.13/9.15: solving no longer returns to '/', the long UTC date line was removed) -- not caused by this story, worth a follow-up to refresh the drivers.
+
+Review gate (dipsaus-ai:story-reviewer), round 1: verdict pass, all 8 criteria met, no scope violations. Advisories: (1) error/after-schedule states not screenshotted -- after-schedule checked afterwards at 390x844 NL, reads fine unboxed inside the hero; (2) leftover headless Chrome from the crashed stats.ts driver run -- killed.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Redid the start screen as Wordle's landing composition. One open hero with no box around it: the icon mark, the title, a large serif tagline in full ink and the Play/Continue pill straight under it (once solved: the result, then View board and Share pills side by side). The byline, difficulty/size and countdown follow as small unboxed lines. Help and the EN/NL switch moved to a quiet top bar. The streak line lost its bordered panel and sits after a hairline break, followed by a new 'What is Slaydoku?' intro (EN/NL) with a looping animated WebP recorded from the real play screen by docs/verification/intro.ts on day #1, which is over. It is ~65 KB, lazy-loaded, and shows a still frame under prefers-reduced-motion. Verified on the rendered screen at 320-1280 widths (phone, landscape phone, iPad, desktop) in both locales; tests cover DOM order, the intro media and the no-border/tagline CSS rules.
+<!-- SECTION:FINAL_SUMMARY:END -->
