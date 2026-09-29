@@ -4,9 +4,12 @@ title: 'Hints: stop leaking omniscient-solver reasoning into player-facing hints
 status: To Do
 assignee: []
 created_date: '2026-09-28 22:13'
+updated_date: '2026-09-29 10:04'
 labels:
   - needs-refinement
-dependencies: []
+dependencies:
+  - SLAY-9.5
+  - SLAY-11.1
 references:
   - src/game/hints.ts
   - src/game/knowledge.ts
@@ -41,4 +44,14 @@ Risk: medium-to-high. This is the core solvability guarantee — src/game/hints.
 - [ ] #1 Every hint's explanation is expressed only in terms of steps the player has already been shown or could derive from their own placements/notes — no bare conclusion from a technique's private candidate bookkeeping
 - [ ] #2 The fix's effect on docs/solvability/README.md's tier guarantees (which techniques each tier may need) is explicitly reasoned through and documented, not assumed
 - [ ] #3 src/game/hints.test.ts's existing invariants are each explicitly kept or deliberately changed (never silently); any changed invariant is called out for review
+- [ ] #4 A hint is never issued for a person/cell the player has already correctly placed on the board
+- [ ] #5 A hint's target is only chosen when it is actually derivable from the player's current progress — never jumping ahead to a person that requires solving someone else first
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Launch blocker (owner decision, 2026-09-29): this story must ship before the repository goes public — see docs/handoff.md and the go-live epic (SLAY-12), which does not itself depend on this story but the actual visibility flip should wait for it. Depends on SLAY-9.5 (victim filtered out of hints.ts's people iteration) so this rework lands on an already victim-filtered hint pool, not a moving target.
+
+Owner report folded in (2026-09-29): 'sometimes you get hints about people that are already solved, or hints about people that can not be solved yet as you have to solve other people first' — same root cause already diagnosed (deduction()'s reach for the omniscient advanced solver regardless of difficulty tier); the two new acceptance criteria above make the already-solved and not-yet-derivable cases explicit rather than only implied by AC #1.
+<!-- SECTION:NOTES:END -->
