@@ -22,6 +22,17 @@
  */
 :root {
   --play-top-clearance: max(var(--space-5), env(safe-area-inset-top));
+  /*
+   * SLAY-9.12: the header's own rendered height, derived from the same box-model values
+   * .play-header is built from below (its 44px-min-height children, its var(--space-2) top/bottom
+   * padding, its 1px border) instead of a separately guessed pixel number. Root-scoped so the
+   * wide/landscape --board calc can read it and never drift out of sync with the header it is
+   * actually measuring -- the wide/landscape rule below used to hardcode 76px for "top clearance
+   * + header", which undercounted the real ~86px (24px clearance + 62px header) and additionally
+   * never accounted for the row-gap or bottom padding below the board, clipping the board's last
+   * row in fullscreen/wide-landscape mode.
+   */
+  --play-header-height: calc(44px + 2 * var(--space-2) + 2px);
 }
 
 .play {
@@ -86,7 +97,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: 48px;
+  min-height: var(--play-header-height);
   padding: var(--space-2) var(--space-4);
   border-radius: 14px;
   background: rgba(253, 248, 236, 0.7);
@@ -1021,7 +1032,11 @@ button.play-legend__row:focus-visible {
 
 @media (min-aspect-ratio: 1 / 1) {
   .play {
-    --board: min(calc(100dvh - 76px), 64vw);
+    /* SLAY-9.12: every term below is one of .play's own box-model values (its top clearance, the
+       header it stacks above the board, its 10px row-gap, its own bottom padding) instead of one
+       guessed number -- the old flat 76px undercounted the real total and clipped the board's last
+       row. */
+    --board: min(calc(100dvh - var(--play-top-clearance) - var(--play-header-height) - 10px - max(12px, env(safe-area-inset-bottom))), 64vw);
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
