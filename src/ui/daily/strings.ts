@@ -32,6 +32,8 @@ export interface DailyStrings {
     alone: (name: string) => string
     time: (formatted: string) => string
     hints: (n: number) => string
+    /** SLAY-9.16: reopens the board from a fresh app/tab landing on '/' after the day is already solved (PWA reopen dead end). */
+    viewBoard: string
   }
   before: {
     title: (date: string) => string
@@ -77,6 +79,7 @@ export const DAILY_EN: DailyStrings = {
     alone: (name) => `You found the murderer! ${name} was alone with ${VICTIM_TEXT.noun}.`,
     time: (formatted) => `Time: ${formatted}`,
     hints: (n) => (n === 0 ? 'No hints' : n === 1 ? '1 hint' : `${n} hints`),
+    viewBoard: 'View board',
   },
   before: {
     title: (date) => `Slaydoku starts on ${date}`,
@@ -137,6 +140,7 @@ export const DAILY_NL: DailyStrings = {
     alone: (name) => `Je hebt de moordenaar gevonden! ${name} was alleen met het slachtoffer.`,
     time: (formatted) => `Tijd: ${formatted}`,
     hints: (n) => (n === 0 ? 'Geen hints' : n === 1 ? '1 hint' : `${n} hints`),
+    viewBoard: 'Bekijk bord',
   },
   before: {
     title: (date) => `Slaydoku start op ${date}`,

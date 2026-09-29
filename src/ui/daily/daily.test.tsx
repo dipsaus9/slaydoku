@@ -73,12 +73,19 @@ describe.each(['en', 'nl'] as const)('<StartScreen/> (%s)', (locale) => {
     const html = render({ kind: 'day', day, status: { kind: 'solved', result: { n: day.n, date: day.date, fp: day.fp, elapsedMs: 754_000, hints: 2, wrongChecks: 1, murdererId: day.puzzle.people.find((p) => p.kind === 'suspect')!.id } }, ended: false })
     const text = strip(html)
     expect(html).toContain('data-result="solved"')
-    expect(html).not.toContain('data-action=')
+    expect(html).not.toContain('data-action="play"')
+    expect(html).not.toContain('data-action="continue"')
     expect(text).toContain(t.solved.title)
     expect(text).toContain(t.solved.time('12:34'))
     expect(text).toContain(t.solved.hints(2))
     expect(text).toMatch(/\w+ was alone with the victim\.|\w+ was alleen met het slachtoffer\./)
     expect(text).toContain(t.nextIn)
+  })
+
+  it('offers a View board button on a solved day, wired to the same onPlay as Play/Continue (SLAY-9.16)', () => {
+    const html = render({ kind: 'day', day, status: { kind: 'solved', result: { n: day.n, date: day.date, fp: day.fp, elapsedMs: 754_000, hints: 2, wrongChecks: 1, murdererId: day.puzzle.people.find((p) => p.kind === 'suspect')!.id } }, ended: false })
+    expect(html).toContain('data-action="view-board"')
+    expect(html).toContain(`>${t.solved.viewBoard}<`)
   })
 
   it('has the stats and share slots, empty when nothing is passed in', () => {
