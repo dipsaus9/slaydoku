@@ -3,7 +3,6 @@ import type { Tool } from './intent.ts'
 import { usePlayStrings } from './strings.ts'
 import { ToolIcon } from './toolIcons.tsx'
 import { useGesture } from './useGesture.ts'
-import { isZoomed, zoomLabel, type View } from './zoom.ts'
 
 interface ToolButtonProps {
   icon: ReactNode
@@ -99,9 +98,6 @@ export interface ToolbarProps {
   canUndo: boolean
   canRedo: boolean
   hintOpen: boolean
-  /** Zoom of the board: the button shows it, is pressed while zoomed, and toggles 1x and 2x. */
-  zoom: View
-  onZoom: () => void
   onUndo: () => void
   onRedo: () => void
   onHint: () => void
@@ -109,13 +105,15 @@ export interface ToolbarProps {
 }
 
 /**
- * The play-screen toolbar: seven controls, the same set on every viewport — Place, Note, X,
- * Erase, Undo, Hint, Zoom. Icon-only on phone widths; the text label returns next to the icon
- * wherever there is room (SLAY-8.2, play.css). Place came back as its own mode (SLAY-8.2):
- * SLAY-5.1 had removed it on the theory that its one capability, a tap that places, was already
- * reachable as the long press every mode has — but that made placing itself undiscoverable, so a
- * visible button is back. Redo lives behind a long press on Undo; Options, Help and Legend moved
- * to a small icon in the play-screen header (Legend also gets its own direct header icon).
+ * The play-screen toolbar: six controls, the same set on every viewport — Place, Note, X, Erase,
+ * Undo, Hint. Icon-only on phone widths; the text label returns next to the icon wherever there
+ * is room (SLAY-8.2, play.css). Place came back as its own mode (SLAY-8.2): SLAY-5.1 had removed
+ * it on the theory that its one capability, a tap that places, was already reachable as the long
+ * press every mode has — but that made placing itself undiscoverable, so a visible button is
+ * back. Redo lives behind a long press on Undo; Options, Help and Legend moved to a small icon in
+ * the play-screen header (Legend also gets its own direct header icon). Zoom is gone too
+ * (SLAY-9.8): pinch (touch/pen) and ctrl+wheel (mouse/trackpad) already zoom the board
+ * (useBoardZoom.ts) regardless of a button.
  */
 export function Toolbar(props: ToolbarProps) {
   const strings = usePlayStrings()
@@ -129,19 +127,6 @@ export function Toolbar(props: ToolbarProps) {
       <EraserButton active={tool === 'erase'} label={t.erase} title={strings.toolTitle.erase} onSelect={() => onTool('erase')} onClearAll={props.onClearAll} />
       <UndoButton canUndo={props.canUndo} canRedo={props.canRedo} label={t.undo} onUndo={props.onUndo} onRedo={props.onRedo} />
       <ToolButton icon={<ToolIcon name="hint" />} label={t.hint} pressed={props.hintOpen} onClick={props.onHint} />
-      <ToolButton
-        icon={
-          <>
-            <ToolIcon name={isZoomed(props.zoom) ? 'zoomOut' : 'zoomIn'} />
-            <span className="play-tool__badge">{zoomLabel(props.zoom)}</span>
-          </>
-        }
-        label={t.zoom}
-        title={strings.toolTitle.zoom}
-        pressed={isZoomed(props.zoom)}
-        onClick={props.onZoom}
-        className="play-tool--zoom"
-      />
     </div>
   )
 }

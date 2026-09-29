@@ -24,7 +24,7 @@ import { SuspectPanel } from './SuspectPanel.tsx'
 import { Toolbar } from './Toolbar.tsx'
 import { ToolIcon } from './toolIcons.tsx'
 import { selectionAfterUndoRedo } from './undoRedoSelection.ts'
-import { toggleZoom, IDENTITY, type View } from './zoom.ts'
+import { IDENTITY, type View } from './zoom.ts'
 import { useElapsed, useGameState, usePauseWhenHidden, useTelemetry } from './useGame.ts'
 
 export interface PlayScreenProps {
@@ -305,8 +305,6 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
           canUndo={!solved && state.history.past.length > 0}
           canRedo={!solved && state.history.future.length > 0}
           hintOpen={hintLevel !== 0}
-          zoom={view}
-          onZoom={() => setView(toggleZoom)}
           onUndo={() => afterUndoRedo('undo')}
           onRedo={() => afterUndoRedo('redo')}
           onHint={() => (hintLevel === 0 ? showHint(1) : setHintLevel(0))}

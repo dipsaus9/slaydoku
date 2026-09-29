@@ -286,10 +286,11 @@
   align-self: start;
 }
 
-/* Seven controls, the same set on every viewport (SLAY-8.2 brings Place back; Redo still lives
-   behind a long press on Undo; the More sheet stays gone). Base layout: a narrow column (a wide
-   screen's side rail), icon above label in each button — the phone media queries below switch to
-   a single icon-only row and hide the label. */
+/* Six controls, the same set on every viewport (SLAY-8.2 brings Place back; Redo still lives
+   behind a long press on Undo; the More sheet stays gone; SLAY-9.8 removes Zoom, covered by pinch
+   and ctrl+wheel instead). Base layout: a narrow column (a wide screen's side rail), icon above
+   label in each button — the phone media queries below switch to a single icon-only row and hide
+   the label. */
 .play-toolbar {
   display: flex;
   flex-direction: column;
@@ -344,17 +345,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.1;
-}
-
-/* the zoom level (1x, 2x) sits on the corner of the magnifier */
-.play-tool__badge {
-  position: absolute;
-  right: -13px;
-  top: -3px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
 }
 
 /* Hover only where a real pointer exists: on a touch screen it would stick after a tap. */
@@ -1081,11 +1071,11 @@ button.play-legend__row:focus-visible {
 
 /*
  * Portrait phone (CAD-10.3): one column. The board takes the full width (a cell is 34px or more from
- * 360px wide). The seven toolbar controls (Redo is a long press on Undo, More stays gone) are a
- * single 7-column grid row, 48px high, icon-only (SLAY-8.2: no room for the label here — it comes
- * back on wider viewports instead). An open hint sits right under the board (the toolbar goes below
- * it) so board and hint are on screen together. The cards are a strip you swipe sideways; it also
- * lets a vertical drag scroll the page (the page is taller than a phone).
+ * 360px wide). The six toolbar controls (Redo is a long press on Undo, More stays gone, SLAY-9.8
+ * removes Zoom) are a single 6-column grid row, 48px high, icon-only (SLAY-8.2: no room for the label
+ * here — it comes back on wider viewports instead). An open hint sits right under the board (the
+ * toolbar goes below it) so board and hint are on screen together. The cards are a strip you swipe
+ * sideways; it also lets a vertical drag scroll the page (the page is taller than a phone).
  */
 @media (max-width: 640px) and (max-aspect-ratio: 1 / 1) {
   .play {
@@ -1116,7 +1106,7 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
     padding: 0;
     border: none;
@@ -1206,9 +1196,9 @@ button.play-legend__row:focus-visible {
 /*
  * Short landscape (phones on their side, up to 500px high): the board is as high as the screen
  * allows (--play-board, also read by the back bar in levels.css) and sits on the left; the column on
- * the right holds the header row, the 7-column icon-only toolbar (SLAY-8.2: no room for the label
- * here), a hint when one is open, and the cards, which scroll. An iPad (768px high or more) never
- * matches this.
+ * the right holds the header row, the 6-column icon-only toolbar (SLAY-8.2: no room for the label
+ * here; SLAY-9.8 removes Zoom), a hint when one is open, and the cards, which scroll. An iPad
+ * (768px high or more) never matches this.
  */
 @media (orientation: landscape) and (max-height: 500px) {
   :root {
@@ -1239,7 +1229,7 @@ button.play-legend__row:focus-visible {
 
   .play-toolbar {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
     padding: 0;
     border: none;
