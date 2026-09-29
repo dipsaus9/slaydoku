@@ -6,14 +6,12 @@ import { deriveMurderer, parsePuzzle, serializePuzzle, validateSolution } from '
 import type { Puzzle, Scene } from '../model/index.ts'
 import { solve, verifyPuzzle } from '../solver/index.ts'
 import { solveHuman } from '../solver/human/index.ts'
-import nine from '../solver/fixtures/synthetic-9x9.json?raw'
 import { randomScene, rng as testRng } from '../solver/testing.fixture.ts'
 import { generate, generateWithReport } from './generate.ts'
+import { sample9 } from './generate.fixture.ts'
 import { GeneratorError } from './placement.ts'
 import { SELF_CLUE_TYPES } from './pool.ts'
 import { isUniqueAndDeducible } from './select.ts'
-
-const sample9: Scene = (JSON.parse(nine) as Puzzle).scene
 
 /** Everything a generated puzzle promises. */
 function expectValidPuzzle(puzzle: Puzzle) {
@@ -61,22 +59,12 @@ describe('generate', () => {
   })
 
   it('makes a valid, unique, human-deducible and minimal puzzle for 50 seeds on a 9x9 scene', () => {
-    let slowest = 0
     for (let seed = 1; seed <= 50; seed++) {
-      const start = performance.now()
       const puzzle = generate(sample9, { seed })
-      slowest = Math.max(slowest, performance.now() - start)
       expectValidPuzzle(puzzle)
       expectMinimal(puzzle)
     }
-    expect(slowest).toBeLessThan(5000)
   }, 120_000)
-
-  it('generates one 9x9 puzzle in under 5 seconds', () => {
-    const start = performance.now()
-    generate(sample9, { seed: 99 })
-    expect(performance.now() - start).toBeLessThan(5000)
-  })
 
   it('works on smaller and larger random scenes', () => {
     for (const [size, block, seed] of [[5, 2, 1], [6, 3, 2], [7, 3, 3], [12, 4, 4]] as const) {

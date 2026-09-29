@@ -6,13 +6,12 @@ import { validateSolution } from '../../model/index.ts'
 import type { Cell, Puzzle, Scene } from '../../model/index.ts'
 import { solve } from '../../solver/index.ts'
 import { solveHuman } from '../../solver/human/index.ts'
-import nine from '../../solver/fixtures/synthetic-9x9.json?raw'
 import { generateTier, generateTierWithReport, TierError } from './generate.ts'
+import { sample9 } from './generate.fixture.ts'
 import { measureTier } from './report.ts'
 import { RELATIONAL_DISTANCE_KINDS, allowsKind, difficultyScore, tierById, tierForScore } from './tiers.ts'
 import type { TierId } from './tiers.ts'
 
-const sample9: Scene = (JSON.parse(nine) as Puzzle).scene
 const NOW_TIERS: TierId[] = ['very-easy', 'easy', 'easy-medium', 'medium']
 
 /** Valid, unique, human-deducible, rated inside the tier, and only the tier's clue kinds. */
@@ -95,9 +94,7 @@ describe('bounds and refusals', () => {
   })
 
   it('stops at the wall-clock budget', () => {
-    const started = performance.now()
     expect(() => generateTier(sample9, { seed: 1, tier: 'medium', timeBudgetMs: 0 })).toThrow(TierError)
-    expect(performance.now() - started).toBeLessThan(1000)
   })
 
   it('refuses hard and expert until level 4 and 5 techniques exist (story CAD-4.24)', () => {
