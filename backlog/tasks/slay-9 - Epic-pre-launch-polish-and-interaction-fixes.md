@@ -4,7 +4,7 @@ title: 'Epic: pre-launch polish and interaction fixes'
 status: To Do
 assignee: []
 created_date: '2026-09-29 09:55'
-updated_date: '2026-09-29 12:26'
+updated_date: '2026-09-29 14:02'
 labels:
   - epic
 dependencies: []
@@ -28,6 +28,6 @@ Alternative considered: defer the riskier hint-sequencing rework (tracked separa
 - [ ] #5 The victim is never a manually-placeable card and never the subject of a hint; it auto-fills the one remaining square once all suspects are placed
 - [ ] #6 Legend object rows show real Dutch nouns (already-translated OBJECT_WORDS_NL) when the player's locale is Dutch
 - [ ] #7 The How it works guide and keyword glossary have real Dutch content, not English-only
-- [ ] #8 The Zoom toolbar button is removed; pinch and ctrl+wheel zoom keep working
+- [x] #8 The Zoom toolbar button is removed; pinch and ctrl+wheel zoom keep working
 - [ ] #9 The start screen is restyled as a centered Wordle-style card (icon mark, title, tagline, one action button, byline) with no accounts/login/paywall added
 <!-- AC:END -->
