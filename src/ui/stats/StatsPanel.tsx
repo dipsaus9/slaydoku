@@ -139,7 +139,6 @@ export function StatsPanel({ stats, onClose, onReset }: StatsPanelProps) {
             <Numbers stats={stats} t={t} />
             <p className="stats-note">{t.streakNote}</p>
             <Times stats={stats} t={t} />
-            <p className="stats-note stats-note--device">{t.device}</p>
             <div className="stats-actions">
               <button type="button" className="stats-btn stats-btn--quiet" data-action="reset" onClick={() => setConfirming(true)}>
                 {t.reset.button}

@@ -81,9 +81,8 @@ describe.each(['en', 'nl'] as const)('<StatsPanel/> (%s)', (locale) => {
     expect(strip(/data-stat="solve-rate".*?<\/dd>/.exec(empty)![0]!)).toContain('–')
   })
 
-  it('has a Reset button and says the data stays on the device', () => {
+  it('has a Reset button', () => {
     expect(html).toContain('data-action="reset"')
     expect(text).toContain(t.reset.button)
-    expect(text).toContain(t.device)
   })
 })
