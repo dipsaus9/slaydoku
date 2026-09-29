@@ -12,6 +12,9 @@ export const LOCAL_SITE_URL = 'http://localhost:5173'
 /** Meta tags whose `content` must be an absolute URL, keyed by their `property` or `name` attribute. */
 const ABSOLUTE_META = ['og:url', 'og:image', 'twitter:image'] as const
 
+/** Link tags whose `href` must be an absolute URL, keyed by their `rel` attribute. One static canonical for every route (SLAY-12.4). */
+const ABSOLUTE_LINKS = ['canonical'] as const
+
 /**
  * Origin of the deployed site, no trailing slash. Vercel exposes bare hosts (`slaydoku.vercel.app`), so `https://`
  * is added when a value carries no protocol. Order: production URL, then the deployment URL, then localhost.
@@ -30,28 +33,45 @@ function metaContentPattern(key: string): RegExp {
   return new RegExp(`(<meta\\s+(?:property|name)="${escaped}"\\s+content=")([^"]*)(")`)
 }
 
+function linkHrefPattern(rel: string): RegExp {
+  const escaped = rel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(<link\\s+rel="${escaped}"\\s+href=")([^"]*)("\\s*/>)`)
+}
+
 function toAbsolute(site: string, value: string): string {
   return new URL(value, `${site}/`).href
 }
 
-/** Rewrites og:url, og:image and twitter:image content to absolute URLs on `site`. Absolute values stay as they are. */
+/** Rewrites og:url, og:image, twitter:image content and the canonical link's href to absolute URLs on `site`. Absolute values stay as they are. */
 export function injectSiteUrls(html: string, site: string): string {
-  return ABSOLUTE_META.reduce(
+  const withMeta = ABSOLUTE_META.reduce(
     (out, key) =>
       out.replace(metaContentPattern(key), (_match, open: string, value: string, close: string) =>
         `${open}${toAbsolute(site, value)}${close}`,
       ),
     html,
   )
+  return ABSOLUTE_LINKS.reduce(
+    (out, rel) =>
+      out.replace(linkHrefPattern(rel), (_match, open: string, value: string, close: string) =>
+        `${open}${toAbsolute(site, value)}${close}`,
+      ),
+    withMeta,
+  )
 }
 
-/** Everything wrong with the head of a finished page: relative social URLs, missing tags, leftover placeholders. */
+/** Everything wrong with the head of a finished page: relative social/canonical URLs, missing tags, leftover placeholders. */
 export function findHtmlProblems(html: string): string[] {
   const problems: string[] = []
   for (const key of ABSOLUTE_META) {
     const value = metaContentPattern(key).exec(html)?.[2]
     if (value === undefined) problems.push(`${key} meta tag is missing`)
     else if (!/^https?:\/\//.test(value)) problems.push(`${key} is not an absolute URL: ${value}`)
+  }
+  for (const rel of ABSOLUTE_LINKS) {
+    const value = linkHrefPattern(rel).exec(html)?.[2]
+    if (value === undefined) problems.push(`<link rel="${rel}"> tag is missing`)
+    else if (!/^https?:\/\//.test(value)) problems.push(`<link rel="${rel}"> href is not an absolute URL: ${value}`)
   }
   const placeholder = /%[A-Z][A-Z0-9_]*%|\{\{[^}]*\}\}|__[A-Z][A-Z0-9_]*__|\bundefined\b/.exec(html)
   if (placeholder) problems.push(`placeholder token left in html: ${placeholder[0]}`)

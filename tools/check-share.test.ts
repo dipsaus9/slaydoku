@@ -9,6 +9,7 @@ import {
   formatChecks,
   isRevalidated,
   MANIFEST_ICON_SIZES,
+  parseCanonicalHref,
   parseManifestHref,
   parseMeta,
   parseRobots,
@@ -56,11 +57,12 @@ const HOME_SCREEN_HEAD = `<link rel="manifest" href="/manifest.webmanifest" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Slaydoku" />`
 
-const head = (origin: string, extra: { title?: string; ogImage?: string; robots?: string } = {}) => `<!doctype html><html lang="en"><head>
+const head = (origin: string, extra: { title?: string; ogImage?: string; robots?: string; canonical?: string } = {}) => `<!doctype html><html lang="en"><head>
 <title>${extra.title ?? 'Slaydoku'}</title>
 ${HOME_SCREEN_HEAD}
 <meta name="description" content="Slaydoku: a new murder mystery puzzle every day. Read the clues, place every suspect and find out who was alone with the victim." />
 <meta name="robots" content="${extra.robots ?? 'noindex,nofollow'}" />
+<link rel="canonical" href="${extra.canonical ?? `${origin}/`}" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:site_name" content="Slaydoku" />
@@ -166,6 +168,28 @@ describe('checkShare', () => {
     expect(failures(await checkShare(await serve({ image: { body: big } })))).toContain('og:image under 1 MB')
   })
 
+  describe('canonical link (SLAY-12.4: www vs apex duplicate-content risk)', () => {
+    it('fails when the canonical link is missing', async () => {
+      const url = await serve({ html: (o) => head(o).replace(/<link rel="canonical"[^>]*>\n?/, '') })
+      expect(failures(await checkShare(url))).toEqual(['canonical link'])
+    })
+
+    it('fails on a relative canonical href', async () => {
+      const url = await serve({ html: (o) => head(o, { canonical: '/' }) })
+      expect(failures(await checkShare(url))).toEqual(['canonical link is absolute'])
+    })
+
+    it('fails when the canonical host disagrees with og:url', async () => {
+      const url = await serve({ html: (o) => head(o, { canonical: 'https://other.example/' }) })
+      expect(failures(await checkShare(url))).toEqual(['canonical link has the same host as og:url'])
+    })
+
+    it('fails when the canonical path disagrees with the fetched page', async () => {
+      const url = await serve({ html: (o) => head(o, { canonical: `${o}/about` }) })
+      expect(failures(await checkShare(url))).toEqual(["canonical link matches the page's own path"])
+    })
+  })
+
   describe('home-screen app', () => {
     const withManifest = (change: (m: Record<string, unknown>) => void) => {
       const m = JSON.parse(MANIFEST) as Record<string, unknown>
@@ -259,7 +283,7 @@ describe('checkShare', () => {
     })
 
     it('fails when the deep link has other head tags than the root', async () => {
-      const url = await serve({ deepLink: { html: (o) => head(o, { title: 'Attic' }).replace(`${o}/`, `${o}/play`) } })
+      const url = await serve({ deepLink: { html: (o) => head(o, { title: 'Attic' }).replace(`og:url" content="${o}/"`, `og:url" content="${o}/play"`) } })
       const failed = (await checkShare(url)).filter((c) => !c.ok)
       expect(failed.map((c) => c.name)).toEqual(['deep link /play has the same head tags'])
       expect(failed[0]!.detail).toContain('og:url')
@@ -367,6 +391,10 @@ describe('parsers', () => {
   it('finds the manifest link whatever the attribute order', () => {
     expect(parseManifestHref('<link rel="icon" href="/a.png"><link href="/m.json" rel="manifest">')).toBe('/m.json')
     expect(parseManifestHref('<link rel="icon" href="/a.png">')).toBeUndefined()
+  })
+  it('finds the canonical link whatever the attribute order', () => {
+    expect(parseCanonicalHref('<link rel="icon" href="/a.png"><link href="https://x.test/" rel="canonical">')).toBe('https://x.test/')
+    expect(parseCanonicalHref('<link rel="icon" href="/a.png">')).toBeUndefined()
   })
   it('reads meta by property or name and ignores media-scoped tags', () => {
     const meta = parseMeta('<meta name="theme-color" media="(x)" content="#fff" /><meta property="og:title" content="A"><meta name="description" content="B" />')
@@ -487,8 +515,10 @@ describe('hosting config', () => {
       expect(header('/assets/(.*)', 'Cache-Control')).toBe('public, max-age=31536000, immutable')
     })
 
-    it('keeps og:url on the root URL for every route: the head is static', () => {
-      expect(readFileSync(join(ROOT, 'index.html'), 'utf8')).toContain('<meta property="og:url" content="/" />')
+    it('keeps og:url and the canonical link on the root URL for every route: the head is static (SLAY-12.4)', () => {
+      const index = readFileSync(join(ROOT, 'index.html'), 'utf8')
+      expect(index).toContain('<meta property="og:url" content="/" />')
+      expect(index).toContain('<link rel="canonical" href="/" />')
     })
   })
 
