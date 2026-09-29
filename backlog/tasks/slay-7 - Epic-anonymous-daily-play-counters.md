@@ -1,9 +1,10 @@
 ---
 id: SLAY-7
 title: 'Epic: anonymous daily play counters'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 19:00'
+updated_date: '2026-09-29 09:15'
 labels:
   - epic
 dependencies: []

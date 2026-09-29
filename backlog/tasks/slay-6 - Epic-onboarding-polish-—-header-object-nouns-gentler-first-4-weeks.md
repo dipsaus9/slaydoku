@@ -1,9 +1,10 @@
 ---
 id: SLAY-6
 title: 'Epic: onboarding polish — header, object nouns, gentler first 4 weeks'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-28 18:56'
+updated_date: '2026-09-29 09:15'
 labels:
   - epic
 dependencies: []
