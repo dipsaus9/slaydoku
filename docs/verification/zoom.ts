@@ -121,8 +121,12 @@ const rectOf = (sel: string, scroll = true) => evaluate(rectJs(sel, scroll)) as 
 // A toolbar control (SLAY-5.1: icon-only, found by its accessible name — aria-label — since it
 // has no visible text) or a header/sheet item that still shows a visible label (the header's
 // settings icon and Options/Help behind it, the header's own Legend icon): whichever the element has.
+// Options/Help now match twice (SLAY-9.2: a direct header copy plus the More sheet's copy, CSS
+// deciding which is visible at a given width) -- prefer whichever match is actually on screen
+// (offsetParent is null anywhere in a display:none subtree), falling back to the first match so a
+// truly-missing tool still throws below.
 const toolRect = (label: string) =>
-  evaluate(`(() => { const e = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].find(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
+  evaluate(`(() => { const matches = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].filter(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); const e = matches.find(b => b.offsetParent !== null) ?? matches[0]; if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<{ x: number; y: number; w: number; h: number } | null>
 async function tool(label: string) {
   const r = await toolRect(label)
   if (!r) throw new Error('missing tool ' + label)
@@ -142,8 +146,11 @@ const frame = () => rectOf('.play-board') as Promise<Rect>
 /** The drawn board (the svg inside the scaled pane) on screen. */
 const drawn = () => rectOf('.play-board svg', false) as Promise<Rect>
 const dataOf = () => evaluate(`JSON.stringify([...document.querySelectorAll('[data-note]')].map(n => n.getAttribute('data-note')))`).then((s) => JSON.parse(s as string) as string[])
+// minTool only counts .play-tool elements actually on screen: Options/Help now render twice
+// (SLAY-9.2, a direct header copy plus the More sheet's copy) and CSS, not the DOM, decides which
+// pair is visible at a given width -- the hidden pair sits at 0x0 and must not drag the minimum down.
 const layoutProbe = () =>
-  evaluate(`JSON.stringify({ iw: innerWidth, sw: document.documentElement.scrollWidth, minTool: Math.round(Math.min(...[...document.querySelectorAll('.play-tool')].map(b => Math.min(b.getBoundingClientRect().width, b.getBoundingClientRect().height)))) })`).then((s) => JSON.parse(s as string) as { iw: number; sw: number; minTool: number })
+  evaluate(`JSON.stringify({ iw: innerWidth, sw: document.documentElement.scrollWidth, minTool: Math.round(Math.min(...[...document.querySelectorAll('.play-tool')].filter(b => b.offsetParent !== null).map(b => Math.min(b.getBoundingClientRect().width, b.getBoundingClientRect().height)))) })`).then((s) => JSON.parse(s as string) as { iw: number; sw: number; minTool: number })
 
 /**
  * Which cell is drawn under a screen point, computed from the svg's own transformed box and the hit rects' user-unit

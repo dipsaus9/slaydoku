@@ -136,6 +136,43 @@
   outline-offset: 2px;
 }
 
+/* Options and Help as direct header actions (SLAY-9.2): hidden by default -- narrow viewports
+   keep the ... (More) trigger and its Modal (below, unchanged) as the only path to them. The
+   desktop media query further down swaps which pair is visible; both stay mounted so no JS
+   branches on viewport width. */
+.play-header__quick {
+  display: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Reuse .play-tool (shared with the toolbar and the More sheet) but flattened to match the
+   header's plain, chrome-less language (SLAY-6.1) instead of the toolbar's bordered card. */
+.play-header__quick .play-tool {
+  flex-direction: row;
+  width: auto;
+  min-height: 44px;
+  padding: 0 var(--space-2) 0 var(--space-1);
+  border: 1px solid transparent;
+  border-radius: 22px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.play-header__quick .play-tool__label {
+  font-size: 0.85rem;
+}
+
+@media (min-width: 641px) {
+  .play-header__quick {
+    display: flex;
+  }
+
+  .play-header__more {
+    display: none;
+  }
+}
+
 /* Plain at rest (SLAY-6.1), same reasoning as .play-header__more above. */
 .play-timer {
   min-width: 44px;

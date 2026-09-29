@@ -333,6 +333,15 @@
    so this overlaid bar's back+title row stays vertically aligned with .play-header's own
    title/timer/settings row -- both boxes now start at the same top offset and share the same
    48px height, instead of drifting out of sync the way two independent 8px floors would. */
+/* SLAY-9.2: with both `left` and `right` set and no explicit width, this absolutely-positioned bar
+   stretches to fill the space between them -- its box reaches well past the Back button and title
+   it actually draws, into space that is otherwise empty background. That used to be harmless (only
+   the play-header's own icon-only Legend/More lived under the reserved-right strip), but the
+   header's Options/Help buttons now sometimes reach further left than that strip (a direct header
+   copy at desktop widths, SLAY-9.2), and the bar's invisible-but-still-hit-testable box was
+   silently swallowing taps meant for them. `pointer-events: none` here (with `auto` restored on the
+   one real control below) makes the bar's empty space click-through, so its footprint no longer has
+   to be hand-tuned to match however wide the header's own controls happen to be this week. */
 .daily-play__nav {
   position: absolute;
   top: var(--play-top-clearance);
@@ -342,6 +351,7 @@
   align-items: center;
   gap: 12px;
   z-index: 2;
+  pointer-events: none;
 }
 
 /* Plain at rest (SLAY-6.1) -- matches the play-header's own chrome-less title/timer/settings
@@ -357,6 +367,8 @@
   font-size: 1.1rem;
   cursor: pointer;
   transition: background-color var(--duration-micro) var(--ease-out);
+  /* The one real control in the otherwise click-through .daily-play__nav (SLAY-9.2, above). */
+  pointer-events: auto;
 }
 
 .daily-play__back:active {

@@ -50,9 +50,9 @@ describe('<PlayScreen/>', () => {
   })
 
   it('has the seven toolbar tools, by aria-label, in English (no LocaleProvider ancestor here: useLocale() falls back to English)', () => {
-    // Seven controls (SLAY-8.2): Place is back, Redo still lives behind a long press on Undo, and
-    // Options/Help still sit behind the header's settings icon (aria-label "More"); Legend has its
-    // own direct header icon.
+    // Seven controls (SLAY-8.2): Place is back, Redo still lives behind a long press on Undo. On
+    // narrow viewports Options/Help sit behind the header's settings icon (aria-label "More");
+    // Legend has its own direct header icon (SLAY-8.2, always icon-only).
     for (const label of ['Place', 'Note', 'X', 'Erase', 'Undo', 'Hint', 'Zoom']) {
       expect(html).toContain(`aria-label="${label}"`)
     }
@@ -62,6 +62,24 @@ describe('<PlayScreen/>', () => {
     expect(html).toContain('aria-label="Legend"')
     expect(html).toContain('aria-label="More"')
     expect(html).toContain('play-header__more')
+  })
+
+  it('also renders Options and Help as direct header actions (SLAY-9.2): CSS alone decides whether the inline pair or the ... trigger is visible, so both stay mounted', () => {
+    expect(html).toContain('play-header__quick')
+    // Reused MenuButtons (icon + visible label), same as inside the More sheet -- no aria-label of
+    // their own, unlike the icon-only Legend/More.
+    expect(html).toContain('>Options<')
+    expect(html).toContain('>Help<')
+    expect(html).not.toContain('aria-label="Options"')
+    expect(html).not.toContain('aria-label="Help"')
+  })
+
+  it('gates the inline pair vs. the ... trigger purely in css, on the same breakpoint the rest of the phone layout uses (SLAY-9.2)', async () => {
+    const css = (await import('node:fs')).readFileSync(new URL('./play.css', import.meta.url), 'utf8')
+    expect(css).toMatch(/\.play-header__quick \{\s*display: none;/)
+    const wide = css.match(/@media \(min-width: 641px\) \{([^]*?)\n\}/)?.[1] ?? ''
+    expect(wide).toMatch(/\.play-header__quick \{\s*display: flex;/)
+    expect(wide).toMatch(/\.play-header__more \{\s*display: none;/)
   })
 
   it('starts at 1x: a zoom button that shows 1x, an unzoomed board (CAD-10.4)', () => {
@@ -123,13 +141,14 @@ describe.each(['en', 'nl'] as const)('<PlayScreen/> toolbar text (%s) (SLAY-3.4,
   const t = PLAY_STRINGS[locale].tools
   const html = renderToStaticMarkup(withLocale(locale, <PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />))
 
-  it('shows the six toolbar tools by aria-label in the current locale, plus the header settings icon; Options, Help and Legend are closed behind it', () => {
+  it('shows the six toolbar tools by aria-label in the current locale, Options/Help as direct header actions (SLAY-9.2, CSS decides which pair is visible per viewport), and the settings icon that still reaches them on narrow viewports; Legend stays icon-only', () => {
     for (const label of [t.note, t.x, t.erase, t.undo, t.hint, t.zoom]) {
       expect(html).toContain(`aria-label="${label}"`)
     }
     expect(html).toContain('role="toolbar"')
     expect(html).toContain(`aria-label="${t.more}"`)
-    for (const label of [t.options, t.help, t.legend]) expect(html).not.toContain(`>${label}<`)
+    for (const label of [t.options, t.help]) expect(html).toContain(`>${label}<`)
+    expect(html).not.toContain(`>${t.legend}<`)
   })
 })
 
