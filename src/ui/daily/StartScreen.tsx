@@ -59,15 +59,23 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
       </p>
 
       {solved ? (
-        <div className="daily-result" data-result="solved">
-          <p className="daily-result__title">{t.solved.title}</p>
-          <p className="daily-result__alone">{t.solved.alone(name)}</p>
-          <p className="daily-result__facts">
-            <span data-fact="time">{t.solved.time(formatTime(solved.elapsedMs))}</span>
-            <span aria-hidden="true">{' · '}</span>
-            <span data-fact="hints">{t.solved.hints(solved.hints)}</span>
-          </p>
-        </div>
+        <>
+          <div className="daily-result" data-result="solved">
+            <p className="daily-result__title">{t.solved.title}</p>
+            <p className="daily-result__alone">{t.solved.alone(name)}</p>
+            <p className="daily-result__facts">
+              <span data-fact="time">{t.solved.time(formatTime(solved.elapsedMs))}</span>
+              <span aria-hidden="true">{' · '}</span>
+              <span data-fact="hints">{t.solved.hints(solved.hints)}</span>
+            </p>
+          </div>
+          {/* SLAY-9.16: a fresh app/tab landing on '/' after the day is already solved had no way back to
+              the board (the PWA reopen dead end) -- this reuses the same onPlay wiring the unsolved
+              Play/Continue button below uses, which already resolves to the current day's /play route. */}
+          <button type="button" className="daily-btn daily-btn--primary daily-card__play" data-action="view-board" onClick={onPlay}>
+            {t.solved.viewBoard}
+          </button>
+        </>
       ) : ended ? (
         <p className="daily-card__ended" data-ended>{t.ended}</p>
       ) : (
