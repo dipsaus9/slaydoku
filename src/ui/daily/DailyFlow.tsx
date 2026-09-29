@@ -80,19 +80,32 @@ export function DailyFlow({ clock: givenClock, storage: givenStorage, index = SC
   }, [storage, day, status])
 
   const unknown = route.kind === 'unknown'
-  const playable = route.kind === 'play' && day !== null && (route.n === null || route.n === day.n) && status !== null && status.kind !== 'solved'
+  // SLAY-9.13 (AC #5, deliberate): a solved day stays playable. This covers two cases the same
+  // way, on purpose: solving *just now* (status flips to 'solved' via the version bump below,
+  // mid-session, PlayRoute never unmounts) and reopening an *already-solved* day from elsewhere
+  // (a reload, the back button, or the bare `/play` URL after leaving) -- both land back on
+  // PlayScreen, which reads the solved board straight from storage and reopens its own
+  // ResultOverlay (state.check survives a reload; PlayScreen's own `dismissed` state starts
+  // unset each mount). The alternative -- redirecting an already-solved day to the start screen,
+  // as this used to do for every solved day -- would also have to special-case "solved this
+  // session" to keep the finish popover reachable at all (AC #1), for no real benefit: replaying
+  // a solved day was already reachable via the result dialog's own "Play again", so this changes
+  // no capability, only whether the board is force-hidden first.
+  const playable = route.kind === 'play' && day !== null && (route.n === null || route.n === day.n) && status !== null
   const refused = route.kind === 'play' && lookup.kind !== 'loading' && lookup.kind !== 'error' && !playable
-  const solvedNow = route.kind === 'play' && status?.kind === 'solved'
   useEffect(() => {
-    if (unknown || refused || solvedNow) go('/', true)
-  }, [unknown, refused, solvedNow])
+    if (unknown || refused) go('/', true)
+  }, [unknown, refused])
 
   const solve = useCallback(
     (played: ScheduleDay, solved: SolveRecord) => {
       recordResult(storage, resultOf(storage, played, solved))
       recordPuzzleSolve(storage, played.date, solved.elapsedMs)
+      // No navigation here (SLAY-9.13): the player stays on the play screen, where PlayScreen's
+      // own ResultOverlay (wired below through resultShare) is the finish popover. The version
+      // bump still keeps `status`/stats in sync for whenever the player does leave (the back
+      // button in PlayRoute's nav).
       setVersion((v) => v + 1)
-      go('/', true)
     },
     [storage],
   )

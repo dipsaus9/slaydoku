@@ -64,6 +64,8 @@ export interface PlayStrings {
     again: string
     viewBoard: string
     keepGoing: string
+    /** The persistent button that reopens the solved dialog after "View the board" (SLAY-9.13). */
+    share: string
   }
 }
 
@@ -134,6 +136,7 @@ export const PLAY_EN: PlayStrings = {
     again: 'Play again',
     viewBoard: 'View the board',
     keepGoing: 'Keep going',
+    share: 'Share',
   },
 }
 
@@ -210,6 +213,7 @@ export const PLAY_NL: PlayStrings = {
     again: 'Speel opnieuw',
     viewBoard: 'Bekijk het bord',
     keepGoing: 'Ga verder',
+    share: 'Delen',
   },
 }
 
