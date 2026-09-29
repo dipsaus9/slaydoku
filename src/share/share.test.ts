@@ -156,7 +156,7 @@ describe('cardSvg', () => {
       expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true)
       expect(svg).toContain(`width="${width}" height="${height}"`)
       expect(svg).toContain(format === 'wide' ? 'viewBox="0 0 1200 630"' : 'viewBox="0 0 1080 1080"')
-      for (const part of ['Slaydoku', 'Puzzle #43', 'Monday 23 November 2026', 'Medium · 9x9', '04:12', '2 hints', 'slaydoku.vercel.app']) expect(svg).toContain(part)
+      for (const part of ['Slaydoku', 'Puzzle of 23 November', 'Monday 23 November 2026', 'Medium · 9x9', '04:12', '2 hints', 'slaydoku.vercel.app']) expect(svg).toContain(part)
       expect(svg.match(/fill="#2b7de9"/g)!.length).toBeGreaterThan(7)
       // Shapes and text only: nothing to fetch, nothing to run.
       expect(svg).not.toMatch(/<image|<script|<foreignObject|href=|url\(|@import/)
@@ -180,7 +180,7 @@ describe('cardSvg', () => {
   it('draws Dutch labels and legend when asked for Dutch', () => {
     const svg = cardSvg(result({ wrongChecks: 1 }), meta, CARD_SIZES.wide, undefined, 'nl')
     wellFormed(svg)
-    for (const part of ['Slaydoku', 'Puzzle #43', 'maandag 23 november 2026', 'Gemiddeld · 9x9', '04:12', '2 hints', 'geplaatst', 'hint', 'foute controle']) expect(svg).toContain(part)
+    for (const part of ['Slaydoku', 'Puzzel van 23 november', 'maandag 23 november 2026', 'Gemiddeld · 9x9', '04:12', '2 hints', 'geplaatst', 'hint', 'foute controle']) expect(svg).toContain(part)
   })
 
   it('escapes what it prints', () => {

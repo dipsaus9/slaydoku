@@ -2,12 +2,20 @@ import { VICTIM_TEXT } from '../../engine/clues/index.ts'
 import type { TierId } from '../../engine/generator/tiers/index.ts'
 import { useLocale } from '../../locale/index.ts'
 import type { Locale } from '../../locale/index.ts'
+import { formatDayMonth } from '../../schedule/index.ts'
+
+/** Dutch month names for `dayMonthNl` below (SLAY-10.2): a local day+month, no-year label, the same small-table pattern `src/share/format.ts`'s `dutchLongDate` already uses rather than a shared export (`src/schedule/display.ts` is deliberately English-only). */
+const MONTHS_NL = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'] as const
+
+/** `29 september`, for a `YYYY-MM-DD` date: the Dutch counterpart of `formatDayMonth` (day + month, no year, lowercase per Dutch convention). */
+const dayMonthNl = (date: string): string => `${Number(date.slice(8, 10))} ${MONTHS_NL[Number(date.slice(5, 7)) - 1]}`
 
 /** Shape shared by every language of the start screen and the daily flow. */
 export interface DailyStrings {
   title: string
   subtitle: string
-  puzzleNumber: (n: number) => string
+  /** `Puzzle of 29 September` (`Puzzel van 29 september`): the puzzle's date-based label (SLAY-10.2). The puzzle number itself stays internal only (storage keys, stats dedup — never shown). */
+  puzzleLabel: (date: string) => string
   tier: Record<TierId, string>
   difficulty: string
   size: (n: number) => string
@@ -45,7 +53,7 @@ export interface DailyStrings {
 export const DAILY_EN: DailyStrings = {
   title: 'Slaydoku',
   subtitle: 'A new murder mystery every day',
-  puzzleNumber: (n) => `Puzzle #${n}`,
+  puzzleLabel: (date) => `Puzzle of ${formatDayMonth(date)}`,
   tier: {
     'very-easy': 'Very easy',
     easy: 'Easy',
@@ -105,7 +113,7 @@ export const DAILY_EN: DailyStrings = {
 export const DAILY_NL: DailyStrings = {
   title: 'Slaydoku',
   subtitle: 'Elke dag een nieuw moordmysterie',
-  puzzleNumber: (n) => `Puzzel #${n}`,
+  puzzleLabel: (date) => `Puzzel van ${dayMonthNl(date)}`,
   tier: {
     'very-easy': 'Heel makkelijk',
     easy: 'Makkelijk',

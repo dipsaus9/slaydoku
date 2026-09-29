@@ -149,7 +149,7 @@ function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
         <button type="button" className="daily-play__back" aria-label={t.backLabel} onClick={onBack}>
           <span aria-hidden="true">{'‹'}</span> {t.back}
         </button>
-        <span className="daily-play__title" data-play-title>{t.puzzleNumber(day.n)}</span>
+        <span className="daily-play__title" data-play-title>{t.puzzleLabel(day.date)}</span>
       </nav>
       {banner && !noticeDismissed ? (
         <div className="daily-banner daily-banner--play" role="status" data-banner="new-puzzle">

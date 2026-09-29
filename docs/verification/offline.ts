@@ -18,6 +18,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { help } from '../../src/content/help/help.ts'
 import { LOCALE_KEY } from '../../src/locale/storage.ts'
+import { DAILY_STRINGS } from '../../src/ui/daily/strings.ts'
 import { DATE_KEY, INDEX, PLAY_DATE, RESULTS_KEY, dayOn } from './daily.ts'
 
 const HERE = import.meta.dir
@@ -131,7 +132,7 @@ await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { localStorag
 try {
   // ---- 1. first visit ------------------------------------------------------------------------
   await goto(`/?date=${PLAY_DATE}`) // the dev-only date override (localhost only), copied into localStorage
-  check('first visit: the start screen shows today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === `Puzzle #${DAY.n}`)
+  check('first visit: the start screen shows today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date))
   const chunks = (await evaluate(`performance.getEntriesByType('resource').map(e => new URL(e.name).pathname).filter(p => /\\/assets\\/\\d{4}-\\d{2}-/.test(p)).join(',')`)) as string
   check('first visit: the page itself fetched only the month file that holds today (lazy chunk)', chunks.split(',').filter(Boolean).length === 1 && chunks.includes('/assets/2026-11-'), chunks || 'none')
   check('first visit: no update notice on a fresh install', (await count('[data-update-notice]')) === 0)
@@ -158,7 +159,7 @@ try {
   check('offline mode is real: a file outside the build cannot be fetched', outside === 'blocked', outside)
 
   await goto('/')
-  check('offline reload on /: the start screen opens with today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === `Puzzle #${DAY.n}` && (await count('[data-action]')) === 1, await text('[data-puzzle-number]'))
+  check('offline reload on /: the start screen opens with today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date) && (await count('[data-action]')) === 1, await text('[data-puzzle-number]'))
   check('offline / has a live countdown', (await until(`/^\\d\\d:\\d\\d:\\d\\d$/.test(document.querySelector('[data-countdown] time')?.textContent ?? '')`)) === true)
   await evaluate("document.querySelector('[data-stats-open]')?.click()")
   check('offline: the streak line shows and the Stats button opens the card (no network needed)', /^Streak \d+ · Best \d+$/.test(await text('[data-stats-summary]')) && (await until("document.querySelector('.stats-panel [data-stat=played]') !== null")) === true, await text('[data-stats-summary]'))

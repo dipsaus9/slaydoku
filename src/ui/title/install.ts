@@ -1,6 +1,6 @@
 import { pageClock } from '../../game/index.ts'
 import { SCHEDULE_INDEX } from '../../game/daily/source.ts'
-import { phaseOf, puzzleNumberOf, utcDateOf } from '../../schedule/index.ts'
+import { phaseOf, utcDateOf } from '../../schedule/index.ts'
 import type { ScheduleIndex } from '../../schedule/index.ts'
 import { getRouter } from '../router/index.ts'
 import type { Router } from '../router/index.ts'
@@ -28,8 +28,8 @@ export function installScreenTitles(options: ScreenTitleOptions = {}): () => voi
 
   const update = (): void => {
     const date = utcDateOf((options.clock ?? pageClock())())
-    const puzzleNumber = phaseOf(date, index) === 'scheduled' ? puzzleNumberOf(date, index.launch) : null
-    doc.title = screenTitle(router.path(), { puzzleNumber })
+    const puzzleDate = phaseOf(date, index) === 'scheduled' ? date : null
+    doc.title = screenTitle(router.path(), { puzzleDate })
   }
 
   const unsubscribe = router.subscribe(update)

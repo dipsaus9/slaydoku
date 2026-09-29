@@ -187,7 +187,7 @@ describe.each(['en', 'nl'] as const)('<SharePanel/> (%s)', (locale: Locale) => {
     const html = render({})
     const src = /src="(data:[^"]+)"/.exec(html)![1]!.replaceAll('&#x27;', "'").replaceAll('&amp;', '&')
     const svg = decodeURIComponent(src.slice(src.indexOf(',') + 1))
-    expect(svg).toContain('Puzzle #43')
+    expect(svg).toContain(locale === 'nl' ? 'Puzzel van 23 november' : 'Puzzle of 23 November')
     expect(svg).toContain('04:12')
     expect(svgDataUrl(svg)).toBe(src)
   })

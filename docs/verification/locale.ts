@@ -33,6 +33,7 @@ import { getHint, initialState } from '../../src/game/index.ts'
 import type { ObjectType } from '../../src/engine/model/index.ts'
 import type { ThemeId } from '../../src/content/themes/index.ts'
 import { bareRoomName } from '../../src/render/scene/labels.ts'
+import { DAILY_STRINGS } from '../../src/ui/daily/strings.ts'
 import { DAYS, PLAY_DATE, RESULTS_KEY, dayOn, seedStorage } from './daily.ts'
 
 /** Independent of `OBJECT_WORDS_NL`: pinned here so a regression in the dictionary this driver is
@@ -205,12 +206,12 @@ check(
 await tapSel('[data-locale-option=nl]')
 check('switching the toggle persists the choice (localStorage)', (await localeKeyValue()) === 'nl', await localeKeyValue())
 check(
-  'start screen reads in Dutch after the switch: puzzle number, difficulty, size, Play button',
-  (await textOf('[data-puzzle-number]')) === `Puzzel #${DAY.n}` &&
+  'start screen reads in Dutch after the switch: puzzle label, difficulty, size, Play button',
+  (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.nl.puzzleLabel(DAY.date) &&
     (await textOf('[data-tier]')) === 'Moeilijkheid: Moeilijk' &&
     (await textOf('[data-size]')) === `${DAY.size} × ${DAY.size} raster` &&
     (await textOf('[data-action=play]')) === 'Spelen',
-  `#${await textOf('[data-puzzle-number]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')} | ${await textOf('[data-action=play]')}`,
+  `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')} | ${await textOf('[data-action=play]')}`,
 )
 check(
   'no leftover English on the switched start screen',

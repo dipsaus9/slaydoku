@@ -49,7 +49,7 @@ function PuzzleCard({ day, status, ended, clock, onPlay }: { day: ScheduleDay; s
   return (
     <section className="daily-card" data-status={status.kind} data-day={day.date} aria-labelledby="daily-number">
       <h2 id="daily-number" className="daily-card__number" data-puzzle-number={day.n}>
-        {t.puzzleNumber(day.n)}
+        {t.puzzleLabel(day.date)}
       </h2>
       <p className="daily-card__date" data-date>{formatLongDate(day.date)}</p>
       <p className="daily-card__meta">
