@@ -1,5 +1,6 @@
 import { VICTIM_TEXT, renderClue } from '../../engine/clues/index.ts'
 import type { CatalogClue, RenderContext } from '../../engine/clues/index.ts'
+import type { Locale } from '../../locale/index.ts'
 
 export type ClueKind = CatalogClue['type']
 
@@ -16,7 +17,10 @@ export interface GlossaryEntry {
 
 /**
  * The people and rooms the sample sentences are about: letters stand in for the names on the cards.
- * The scene has no objects, so an object is named by its engine noun ("a table").
+ * The scene has no objects, so an object is named by its engine noun ("a table"). Room names are the
+ * real English theme names (`src/content/themes/home.ts`) so the Dutch renderer can look up their
+ * Dutch equivalents ("Keuken", "Hal", "Woonkamer", "Garage") via `roomNameNlOf` — the same context
+ * works for both locales, only the `locale` argument to `renderClue` changes.
  */
 const SAMPLE: RenderContext = {
   scene: {
@@ -33,15 +37,22 @@ const SAMPLE: RenderContext = {
   ],
 }
 
+/** The card text of each sample clue in one locale, joined by " / ": what the engine would print on a card. */
+const cardsFor =
+  (locale: Locale) =>
+  (...clues: CatalogClue[]): string =>
+    clues.map((clue) => renderClue(clue, SAMPLE, locale)).join(' / ')
+
 /** The card text of each sample clue, joined by " / ": what the engine would print on a card. */
-const cards = (...clues: CatalogClue[]): string => clues.map((clue) => renderClue(clue, SAMPLE)).join(' / ')
+const cards = cardsFor('en')
+const cardsNl = cardsFor('nl')
 
 /**
  * The keyword help of the play screen: every clue kind of the catalog is explained by exactly
  * one entry (glossary.test.ts keeps it complete). The keywords quote the cards, and the examples ARE cards:
  * they are rendered by the engine, so the glossary can never drift from the wording of the game.
  */
-export const GLOSSARY: readonly GlossaryEntry[] = [
+export const GLOSSARY_EN: readonly GlossaryEntry[] = [
   {
     keyword: 'in the Kitchen (a room or area)',
     meaning: 'Any enclosed part of the map: a room, but also a garden or a terrace. Walls and colored floors show the borders.',
@@ -250,10 +261,251 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   },
 ]
 
+/**
+ * Dutch translation of `GLOSSARY_EN` (SLAY-9.7). Keyword and meaning are hand-written, matching the
+ * vocabulary the engine already uses for the same clue kind (`src/engine/clues/nl.ts`): "naast",
+ * "alleen (met)", "in een hoek", "diagonaal", "verder naar het noorden/zuiden/oosten/westen dan",
+ * "rij"/"kolom", "kamer". The example sentences are never hand-translated: `cardsNl` renders the
+ * exact same sample clues through the engine with `locale: 'nl'`, so an example can never drift
+ * from the wording a real Dutch card shows.
+ */
+export const GLOSSARY_NL: readonly GlossaryEntry[] = [
+  {
+    keyword: 'in de Keuken (een kamer of ruimte)',
+    meaning: 'Elk afgesloten deel van de plattegrond: een kamer, maar ook een tuin of een terras. Muren en gekleurde vloeren tonen de grenzen.',
+    example: cardsNl({ personId: 'A', type: 'inRoom', args: { roomId: 'kitchen' } }),
+    kinds: ['inRoom'],
+  },
+  {
+    keyword: 'of (twee ruimtes)',
+    meaning: 'De persoon was in de ene ruimte of in de andere.',
+    example: cardsNl({ personId: 'B', type: 'inRoomOr', args: { roomIds: ['hall', 'kitchen'] } }),
+    kinds: ['inRoomOr'],
+  },
+  {
+    keyword: 'op / in',
+    meaning: 'Op hetzelfde vakje als het object. Grote objecten zoals een bed of een auto bedekken meerdere vakjes; de persoon staat op een daarvan.',
+    example: cardsNl({ personId: 'C', type: 'onObject', args: { objectType: 'bed' } }),
+    kinds: ['onObject'],
+  },
+  {
+    keyword: 'er stond een … op het vakje',
+    meaning: 'Hetzelfde als "op", maar vanuit het object verteld: het object staat op het vakje van de persoon.',
+    example: cardsNl({ personId: 'D', type: 'squareWithObject', args: { objectType: 'framedPainting' } }),
+    kinds: ['squareWithObject'],
+  },
+  {
+    keyword: 'de enige persoon op / in',
+    meaning: "De persoon staat op zo'n object en niemand anders staat op een object van dat soort.",
+    example: cardsNl({ personId: 'E', type: 'onlyOnObject', args: { objectType: 'sofa' } }),
+    kinds: ['onlyOnObject'],
+  },
+  {
+    keyword: 'naast',
+    meaning:
+      'Links, rechts, boven of onder een vakje van het object (niet diagonaal), in dezelfde ruimte. Bij een groot object (bed, trap, bank) telt elk vakje ervan; erop staan is niet naast staan. Naast meerdere objecten staan mag, tenzij het kaartje "precies één" zegt.',
+    example: cardsNl(
+      { personId: 'A', type: 'besideObject', args: { objectType: 'table' } },
+      { personId: 'B', type: 'besideObject', args: { objectType: 'plant', exactlyOne: true } },
+    ),
+    kinds: ['besideObject'],
+  },
+  {
+    keyword: 'stond niet naast',
+    meaning:
+      'De persoon staat niet naast een object van dat soort (naast = links, rechts, boven of onder een van de vakjes ervan, in dezelfde ruimte). Naast een vakje van een groot object telt ook als naast.',
+    example: cardsNl({ personId: 'F', type: 'notBesideObject', args: { objectType: 'plant' } }),
+    kinds: ['notBesideObject'],
+  },
+  {
+    keyword: 'op het vakje direct boven / onder / links van / rechts van',
+    meaning:
+      'Precies op het vakje naast een vakje van het object, aan die kant (boven is noord, onder is zuid), in de ruimte van het object. Bij een groot object mag het naast elk vakje van de rand liggen. Dit gaat over de plattegrond: "onder" is niet ónder het object, en "boven" is geen verdieping erboven.',
+    example: cardsNl({ personId: 'G', type: 'directlyNextToObject', args: { side: 'north', objectType: 'table' } }),
+    kinds: ['directlyNextToObject'],
+  },
+  {
+    keyword: 'in een hoek',
+    meaning: 'Waar twee of drie muren van een ruimte samenkomen. Met een ruimte genoemd: een hoek van die ruimte.',
+    example: cardsNl(
+      { personId: 'B', type: 'inCorner', args: {} },
+      { personId: 'B', type: 'inCorner', args: { roomId: 'living' } },
+    ),
+    kinds: ['inCorner'],
+  },
+  {
+    keyword: 'naast een raam / naast een deur',
+    meaning: 'Op een vakje dat het raam of de deur raakt. Een raam of deur op de lijn tussen twee vakjes telt voor beide kanten.',
+    example: cardsNl({ personId: 'C', type: 'besideFeature', args: { feature: 'window' } }),
+    kinds: ['besideFeature'],
+  },
+  {
+    keyword: 'voor een deur',
+    meaning: 'Op een vakje dat een deur raakt: precies voor de deuropening.',
+    example: cardsNl({ personId: 'D', type: 'inFrontOfDoor', args: {} }),
+    kinds: ['inFrontOfDoor'],
+  },
+  {
+    keyword: 'alleen',
+    meaning: 'Niemand anders in die ruimte, het slachtoffer inbegrepen.',
+    example: cardsNl({ personId: 'A', type: 'alone', args: { roomId: 'kitchen' } }),
+    kinds: ['alone'],
+  },
+  {
+    keyword: 'samen met',
+    meaning: 'In dezelfde ruimte als die persoon (of het slachtoffer). Anderen mogen er ook zijn.',
+    example: cardsNl(
+      { personId: 'B', type: 'withPerson', args: { otherId: 'C' } },
+      { personId: 'B', type: 'sameRoom', args: { otherId: 'C' } },
+    ),
+    kinds: ['withPerson', 'sameRoom'],
+  },
+  {
+    keyword: 'alleen met',
+    meaning: 'Alleen deze twee mensen waren in die ruimte. Een van hen kan het slachtoffer zijn.',
+    example: cardsNl({ personId: 'A', type: 'aloneWith', args: { otherId: 'B' } }),
+    kinds: ['aloneWith'],
+  },
+  {
+    keyword: 'minstens één vrouw / man in de kamer',
+    meaning: 'Naast de persoon was er minstens één vrouw (of man) in dezelfde ruimte. Anderen mogen er ook zijn. De persoon zelf telt niet mee.',
+    example: cardsNl({ personId: 'A', type: 'roomHasGender', args: { gender: 'woman' } }),
+    kinds: ['roomHasGender'],
+  },
+  {
+    keyword: 'alleen met een vrouw / man',
+    meaning: 'Precies twee mensen waren in die ruimte: deze persoon en één vrouw (of man). Niemand anders, het slachtoffer inbegrepen.',
+    example: cardsNl({ personId: 'A', type: 'aloneWithGender', args: { gender: 'woman' } }),
+    kinds: ['aloneWithGender'],
+  },
+  {
+    keyword: 'niet samen met / in een andere kamer',
+    meaning: 'Niet in dezelfde ruimte als die persoon.',
+    example: cardsNl(
+      { personId: 'C', type: 'notWith', args: { otherId: 'D' } },
+      { personId: 'C', type: 'differentRoom', args: { otherId: 'D' } },
+    ),
+    kinds: ['notWith', 'differentRoom'],
+  },
+  {
+    keyword: 'er was niemand in',
+    meaning: 'Niemand was in die ruimte, het slachtoffer inbegrepen.',
+    example: cardsNl({ personId: 'A', type: 'emptyRoom', args: { roomId: 'garage' } }),
+    kinds: ['emptyRoom'],
+  },
+  {
+    keyword: 'rij / kolom',
+    meaning:
+      'Een rij loopt van links naar rechts, een kolom van boven naar onder. Rij 3 is de derde vanaf boven, kolom 3 de derde vanaf links. Elke rij en kolom heeft precies één persoon. De plattegrond toont R1, R2 (rijen) links en C1, C2 (kolommen) erboven, geteld vanaf boven en vanaf links.',
+    example: cardsNl(
+      { personId: 'A', type: 'inRow', args: { index: 2 } },
+      { personId: 'B', type: 'inColumn', args: { index: 1 } },
+    ),
+    kinds: ['inRow', 'inColumn'],
+  },
+  {
+    keyword: 'bovenste / onderste / middelste rij, meest linkse / meest rechtse / middelste kolom',
+    meaning: 'De buitenste of middelste rij of kolom van de hele plattegrond.',
+    example: cardsNl(
+      { personId: 'C', type: 'onLine', args: { axis: 'row', position: 'first' } },
+      { personId: 'D', type: 'onLine', args: { axis: 'column', position: 'last' } },
+    ),
+    kinds: ['onLine'],
+  },
+  {
+    keyword: 'bovenste rij / meest rechtse kolom van de kamer',
+    meaning:
+      'De buitenste rij of kolom van één ruimte, niet van de hele plattegrond. De bovenste rij van een ruimte is de hoogste rij waarin die ruimte een vakje heeft; bij een onregelmatige vorm (een L) kan dat een enkel vakje zijn. Zonder genoemde ruimte is het de ruimte waarin de persoon staat.',
+    example: cardsNl(
+      { personId: 'A', type: 'inRoomEdge', args: { roomId: 'kitchen', edge: 'north' } },
+      { personId: 'B', type: 'inRoomEdge', args: { edge: 'east' } },
+    ),
+    kinds: ['inRoomEdge'],
+  },
+  {
+    keyword: 'twee delen verbonden door "en"',
+    meaning:
+      'Één kaartje met twee feiten over dezelfde persoon. Beide moeten waar zijn: het kaartje laat alleen de vakjes over waar beide delen kloppen. De naam van de persoon staat er één keer op.',
+    example: cardsNl({
+      personId: 'A',
+      type: 'both',
+      args: { a: { type: 'besideObject', args: { objectType: 'table' } }, b: { type: 'roomHasGender', args: { gender: 'woman' } } },
+    }),
+    kinds: ['both'],
+  },
+  {
+    keyword: 'verder naar het noorden / zuiden / oosten / westen dan',
+    meaning:
+      'Noord is boven, zuid is onder, oost is rechts, west is links. Strikt een rij hoger of lager (of een kolom rechts of links) dan de ander, in elke ruimte tenzij er een genoemd is. Dezelfde rij of kolom telt niet. Bij een groot object telt het hele object: verder naar het noorden dan een bed is boven het hele bed (boven de bovenste rij ervan), verder naar het westen dan een trap is links van de hele trap. Bij meerdere objecten van dat soort is één genoeg.',
+    example: cardsNl(
+      { personId: 'A', type: 'directionOf', args: { side: 'north', otherId: 'B' } },
+      { personId: 'C', type: 'directionOfObject', args: { side: 'west', objectType: 'table' } },
+      { personId: 'D', type: 'directionOfObject', args: { side: 'north', objectType: 'bed' } },
+    ),
+    kinds: ['directionOf', 'directionOfObject'],
+  },
+  {
+    keyword: 'precies N rijen / kolommen',
+    meaning:
+      'Precies zoveel rijen boven of onder de andere persoon, of precies zoveel kolommen rechts of links van hen. Hoe ver de persoon in de andere richting is, maakt niet uit.',
+    example: cardsNl(
+      { personId: 'A', type: 'exactDistance', args: { side: 'south', count: 2, otherId: 'B' } },
+      { personId: 'C', type: 'exactDistance', args: { side: 'west', count: 3, otherId: 'D' } },
+    ),
+    kinds: ['exactDistance'],
+  },
+  {
+    keyword: 'diagonaal',
+    meaning:
+      'Op een lijn van 45 graden met de andere persoon, op elke afstand. Met een richting, alleen die kant; met "precies N vakjes", op precies die afstand.',
+    example: cardsNl(
+      { personId: 'B', type: 'diagonal', args: { otherId: 'C' } },
+      { personId: 'B', type: 'diagonal', args: { otherId: 'C', direction: 'northwest', steps: 1 } },
+    ),
+    kinds: ['diagonal'],
+  },
+  {
+    keyword: 'ergens ten noordwesten / noordoosten / zuidwesten / zuidoosten van',
+    meaning: 'Ergens linksboven, rechtsboven, linksonder of rechtsonder van de andere persoon: in een rij en kolom die daar precies bij passen.',
+    example: cardsNl({ personId: 'D', type: 'quadrant', args: { direction: 'southeast', otherId: 'A' } }),
+    kinds: ['quadrant'],
+  },
+  {
+    keyword: 'Het slachtoffer was alleen met de moordenaar',
+    meaning: 'Het kaartje van het slachtoffer. Precies één verdachte was alleen met het slachtoffer in hun ruimte: dat is de moordenaar die je zoekt.',
+    example: cardsNl({ personId: 'V', type: 'aloneWithMurderer', args: {} }),
+    kinds: ['aloneWithMurderer'],
+  },
+]
+
+/** Both languages of the clue-keyword glossary, keyed by `Locale`. Read through `useLocale()`. */
+export const GLOSSARY_CONTENT: Record<Locale, readonly GlossaryEntry[]> = { en: GLOSSARY_EN, nl: GLOSSARY_NL }
+
+/**
+ * The English glossary, kept as a plain export: `glossary.test.ts` pins its English wording
+ * verbatim, out of SLAY-9.7's References. New reads should go through `GLOSSARY_CONTENT` and
+ * `useLocale()` instead, as `Glossary.tsx` now does.
+ */
+export const GLOSSARY: readonly GlossaryEntry[] = GLOSSARY_EN
+
 /** Words that show up in clues without being a clue kind of their own. */
-export const EXTRA_TERMS: readonly { keyword: string; meaning: string }[] = [
+export const EXTRA_TERMS_EN: readonly { keyword: string; meaning: string }[] = [
   { keyword: 'suspect', meaning: 'Everybody except the victim.' },
   { keyword: 'the victim', meaning: 'The person the case is about: you look for the suspect who was alone with the victim.' },
   { keyword: 'somebody / a person', meaning: 'The victim counts too. Think about where everybody stood.' },
   { keyword: 'the cards are always right', meaning: 'Every clue is true and there is exactly one solution without guessing. Portraits are only decoration.' },
 ]
+
+/** Dutch translation of `EXTRA_TERMS_EN` (SLAY-9.7), matching `PLAY_NL`'s "verdachte(n)" and "aanwijzingen". */
+export const EXTRA_TERMS_NL: readonly { keyword: string; meaning: string }[] = [
+  { keyword: 'verdachte', meaning: 'Iedereen behalve het slachtoffer.' },
+  { keyword: 'het slachtoffer', meaning: 'De persoon om wie de zaak draait: je zoekt de verdachte die alleen was met het slachtoffer.' },
+  { keyword: 'iemand / een persoon', meaning: 'Het slachtoffer telt ook mee. Denk aan waar iedereen stond.' },
+  { keyword: 'de kaartjes hebben altijd gelijk', meaning: 'Elke aanwijzing is waar en er is precies één oplossing zonder te raden. Portretten zijn puur decoratie.' },
+]
+
+/** Both languages of the extra-terms list, keyed by `Locale`. Read through `useLocale()`. */
+export const EXTRA_TERMS_CONTENT: Record<Locale, readonly { keyword: string; meaning: string }[]> = { en: EXTRA_TERMS_EN, nl: EXTRA_TERMS_NL }
+
+/** The English extra-terms list, kept as a plain export for the same reason as `GLOSSARY` above. */
+export const EXTRA_TERMS: readonly { keyword: string; meaning: string }[] = EXTRA_TERMS_EN

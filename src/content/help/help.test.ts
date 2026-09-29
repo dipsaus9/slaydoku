@@ -1,10 +1,29 @@
 import { describe, expect, it } from 'vitest'
-import { help } from './help.ts'
+import type { Locale } from '../../locale/index.ts'
+import { HELP_CONTENT } from './help.ts'
 
 const ICONS = ['pick', 'note', 'place', 'hint']
 const sentences = (text: string) => text.split(/(?<=[.!?])\s+/).filter(Boolean)
 
-describe('help content', () => {
+/** The English rule-coverage words and their Dutch equivalents (`src/engine/clues/nl.ts`, `src/ui/play/strings.ts`). */
+const RULE_WORDS: Record<Locale, { board: RegExp; row: RegExp; column: RegExp; cards: RegExp; victim: RegExp; murderer: RegExp }> = {
+  en: { board: /board/, row: /row/, column: /column/, cards: /cards/, victim: /victim/, murderer: /murderer/ },
+  nl: { board: /plattegrond/, row: /rij/, column: /kolom/, cards: /kaartjes/, victim: /slachtoffer/, murderer: /moordenaar/ },
+}
+
+const LEGEND_LABEL: Record<Locale, { canOccupy: string; blocked: string }> = {
+  en: { canOccupy: 'Can be occupied', blocked: 'Blocked' },
+  nl: { canOccupy: 'Kan bezet worden', blocked: 'Geblokkeerd' },
+}
+
+const RULE_MATCH: Record<Locale, { victim: RegExp; alone: RegExp; room: RegExp; exactlyOne: RegExp }> = {
+  en: { victim: /victim/, alone: /alone/, room: /room/, exactlyOne: /exactly one person/ },
+  nl: { victim: /slachtoffer/, alone: /alleen/, room: /kamer/, exactlyOne: /precies één persoon/ },
+}
+
+describe.each(['en', 'nl'] as const)('help content (%s)', (locale) => {
+  const help = HELP_CONTENT[locale]
+
   it('has a positive integer version and no empty labels', () => {
     expect(Number.isInteger(help.version)).toBe(true)
     expect(help.version).toBeGreaterThanOrEqual(1)
@@ -27,12 +46,13 @@ describe('help content', () => {
 
   it('explains the rules: board, one per row and column, the cards, the victim and the murderer', () => {
     const goal = help.goal.join(' ')
-    expect(goal).toMatch(/board/)
-    expect(goal).toMatch(/row/)
-    expect(goal).toMatch(/column/)
-    expect(goal).toMatch(/cards/)
-    expect(goal).toMatch(/victim/)
-    expect(goal).toMatch(/murderer/)
+    const words = RULE_WORDS[locale]
+    expect(goal).toMatch(words.board)
+    expect(goal).toMatch(words.row)
+    expect(goal).toMatch(words.column)
+    expect(goal).toMatch(words.cards)
+    expect(goal).toMatch(words.victim)
+    expect(goal).toMatch(words.murderer)
   })
 
   it('has 3 or 4 steps with a known icon and short text', () => {
@@ -56,7 +76,7 @@ describe('help content', () => {
     }
   })
 
-  it('has short English wording for the Legend (CAD-10.9)', () => {
+  it('has short wording for the Legend (CAD-10.9)', () => {
     const t = help.legend
     const texts = [t.button, t.title, t.intro, t.objectsTitle, t.canOccupy, t.blocked, t.also, t.tapHint, t.peek, t.edgesTitle, t.roomsTitle, t.marksTitle, t.ruleTitle, t.rule, t.close]
     for (const text of texts) {
@@ -69,11 +89,21 @@ describe('help content', () => {
       expect(item.text.trim()).not.toBe('')
       expect(item.text.length).toBeLessThanOrEqual(90)
     }
-    expect(t.canOccupy).toBe('Can be occupied')
-    expect(t.blocked).toBe('Blocked')
-    expect(t.rule).toMatch(/victim/)
-    expect(t.rule).toMatch(/alone/)
-    expect(t.rule).toMatch(/room/)
-    expect(t.rule).toMatch(/exactly one person/)
+    const label = LEGEND_LABEL[locale]
+    expect(t.canOccupy).toBe(label.canOccupy)
+    expect(t.blocked).toBe(label.blocked)
+    const rule = RULE_MATCH[locale]
+    expect(t.rule).toMatch(rule.victim)
+    expect(t.rule).toMatch(rule.alone)
+    expect(t.rule).toMatch(rule.room)
+    expect(t.rule).toMatch(rule.exactlyOne)
+  })
+})
+
+describe('help content across locales', () => {
+  it('keeps the same step icons, step count and extra-list length in every locale', () => {
+    const [en, nl] = [HELP_CONTENT.en, HELP_CONTENT.nl]
+    expect(nl.steps.map((step) => step.icon)).toEqual(en.steps.map((step) => step.icon))
+    expect(nl.more.items.length).toBe(en.more.items.length)
   })
 })

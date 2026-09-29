@@ -1,5 +1,6 @@
-import { help } from '../../content/help/help.ts'
+import { HELP_CONTENT } from '../../content/help/help.ts'
 import type { HelpIcon } from '../../content/help/help.ts'
+import { useLocale } from '../../locale/index.ts'
 import { CAST, VictimIcon } from '../../render/cards/index.ts'
 import { ToolIcon } from '../play/toolIcons.tsx'
 
@@ -18,6 +19,8 @@ function StepArt({ icon }: { icon: HelpIcon }) {
 
 /** The goal in a few short sentences, then the how-to steps, each with a toolbar icon. */
 export function HowItWorks() {
+  const { locale } = useLocale()
+  const help = HELP_CONTENT[locale]
   return (
     <div className="play-help">
       <div className="play-help__goal">

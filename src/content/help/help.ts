@@ -1,7 +1,12 @@
 /**
- * Everything the "How it works" card and the Help panel say, in English. This is the one file to edit
- * to change the wording; see README.md. `bun run test` guards the lengths.
+ * Everything the "How it works" card and the Help panel say, in English and Dutch. This is the one
+ * file to edit to change the wording; see README.md. `bun run test` guards the lengths, for every
+ * locale. Dutch wording follows the vocabulary already shipped in the clue-sentence templates
+ * (`src/engine/clues/nl.ts`, SLAY-3.2) and the play-screen chrome (`src/ui/play/strings.ts`, SLAY-3.4):
+ * "plattegrond" for the board, "kaartje(s)" for the clue cards, "verdachte" for a suspect,
+ * "het slachtoffer" for the victim, "moordenaar" for the murderer, "rij"/"kolom" for row/column.
  */
+import type { Locale } from '../../locale/index.ts'
 
 /** Which drawing a step gets (portraits from src/render/cards, with a toolbar icon where a button is meant). */
 export type HelpIcon = 'pick' | 'note' | 'place' | 'hint'
@@ -75,7 +80,8 @@ export interface HelpContent {
   link: string
 }
 
-export const help: HelpContent = {
+/** English wording of the help card and panel. */
+export const HELP_EN: HelpContent = {
   version: 2,
   title: 'How it works',
   goal: [
@@ -135,3 +141,83 @@ export const help: HelpContent = {
   close: 'Start playing',
   link: 'How it works',
 }
+
+/**
+ * Dutch wording of the help card and panel (SLAY-9.7). "Board" is "plattegrond" (matches
+ * `src/ui/play/strings.ts`'s `PLAY_NL.board` and `ABOUT_NL.how`), clue cards are "kaartje(s)"
+ * (matches `src/game/hintText.nl.ts`), and the keyword phrases mirror the exact Dutch wording the
+ * engine renders for the same clue kind in `src/engine/clues/nl.ts` (e.g. "naast", "alleen met",
+ * "in een hoek", "diagonaal") so a player never sees two different Dutch words for one concept.
+ */
+export const HELP_NL: HelpContent = {
+  version: 2,
+  title: 'Hoe het werkt',
+  goal: [
+    'Iedereen staat ergens op de plattegrond.',
+    'Elke rij en elke kolom heeft precies één persoon.',
+    'De kaartjes zeggen waar iedereen stond.',
+    'Het slachtoffer was alleen in een kamer met precies één persoon.',
+    'Die persoon is de moordenaar.',
+  ],
+  stepsTitle: 'Zo speel je',
+  steps: [
+    { icon: 'pick', title: 'Kies een persoon', text: 'Tik op een foto naast de plattegrond.' },
+    { icon: 'note', title: 'Tik voor een notitie', text: 'Tik op een vakje: deze persoon zou hier kunnen staan.' },
+    { icon: 'place', title: 'Houd vast om te plaatsen', text: 'Houd een vakje ingedrukt: de persoon staat hier echt.' },
+    { icon: 'hint', title: 'Vastgelopen? Vraag een hint', text: 'Tik op Hint voor hulp in kleine stapjes.' },
+  ],
+  more: {
+    title: 'Meer over de knoppen',
+    items: [
+      ['Slepen', 'Sleep over vakjes om er meteen meerdere te vullen of te wissen.'],
+      ['X', 'Sluit vakjes uit voor de gekozen persoon.'],
+      ['Wissen', 'Tik op een vakje om het te wissen. Houd de knop ingedrukt om alles te wissen.'],
+      ['Ongedaan maken en opnieuw', 'Maak je laatste zet ongedaan, of doe hem opnieuw.'],
+    ],
+  },
+  keywords: {
+    button: 'Sleutelwoorden',
+    title: 'Sleutelwoorden op de kaartjes',
+    otherTitle: 'Goed om te weten',
+    example: 'Voorbeeld',
+    back: 'Terug naar de uitleg',
+  },
+  legend: {
+    button: 'Legenda',
+    title: 'Legenda',
+    intro: 'Dit staat er op deze plattegrond.',
+    objectsTitle: 'Voorwerpen',
+    canOccupy: 'Kan bezet worden',
+    blocked: 'Geblokkeerd',
+    also: 'ook',
+    tapHint: 'Tik op een rij om te zien waar die is.',
+    peek: 'Tik om terug te gaan naar de legenda',
+    edgesTitle: 'Deuren en ramen',
+    door: { noun: 'Deur', text: 'Een opening in de muur.' },
+    window: { noun: 'Raam', text: 'Een raam in de muur. Kaartjes kunnen zeggen: naast een raam.' },
+    roomsTitle: 'Kamers',
+    roomLabel: { noun: 'Kamernaam', text: 'Elke kamer heeft een naam. Kaartjes gebruiken die naam.' },
+    marksTitle: 'Op de plattegrond',
+    note: { noun: 'Notitie', text: 'Een letter in een vakje: deze persoon zou hier kunnen staan.' },
+    cross: { noun: 'Kruisje', text: 'Deze persoon kan hier niet staan.' },
+    person: { noun: 'Persoon', text: 'Een portret: deze persoon staat hier echt.' },
+    gift: { noun: 'Het slachtoffer', text: 'Staat ook ergens op de plattegrond.' },
+    ruleTitle: 'De regel',
+    rule: 'Het slachtoffer is alleen in een kamer met precies één persoon.',
+    close: 'Sluiten',
+  },
+  close: 'Begin met spelen',
+  link: 'Hoe het werkt',
+}
+
+/** Both languages of the help card and panel, keyed by `Locale`. Read through `useLocale()`. */
+export const HELP_CONTENT: Record<Locale, HelpContent> = { en: HELP_EN, nl: HELP_NL }
+
+/**
+ * The English content, kept as a plain export for the consumers of `help.ts` not yet switched to
+ * locale-aware content (`src/ui/help/Legend.tsx`, `src/ui/play/LegendPanel.tsx`,
+ * `src/ui/play/PlayScreen.tsx`, `src/ui/daily/StartScreen.tsx`, `src/ui/help/firstVisit.ts`) — out
+ * of SLAY-9.7's References. New reads of this file's content should go through `HELP_CONTENT` and
+ * `useLocale()` instead, as `HowItWorks.tsx`, `Glossary.tsx` and `HelpPanel.tsx` now do.
+ */
+export const help: HelpContent = HELP_EN
