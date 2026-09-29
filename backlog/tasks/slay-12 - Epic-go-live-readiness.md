@@ -4,7 +4,7 @@ title: 'Epic: go-live readiness'
 status: To Do
 assignee: []
 created_date: '2026-09-29 10:00'
-updated_date: '2026-09-29 18:27'
+updated_date: '2026-09-29 19:56'
 labels:
   - epic
 dependencies: []
@@ -21,7 +21,13 @@ Owner decision (2026-09-29): go public now, skip the trademark/name check that a
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Indexing is flipped on (site.json + vercel.json) and verified with bun tools/check-share.ts --indexable
+- [x] #1 Indexing is flipped on (site.json + vercel.json) and verified with bun tools/check-share.ts --indexable
 - [ ] #2 puzzle_start and puzzle_solve events are confirmed actually reaching PostHog end-to-end, with evidence, not assumed
 - [x] #3 README, About and CLAUDE.md are re-read against the now-current feature set (post SLAY-9/SLAY-10) and updated where stale
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+AC1 confirmed 2026-09-29: bun tools/check-share.ts https://slaydoku.nl --indexable passes all 70 checks against the live deployed production site (indexing, canonical tag, share tags, sitemap, robots.txt all correct). AC2 (PostHog events confirmed in the Activity/Live Events dashboard) still needs the owner's own PostHog account access — SLAY-12.2 already confirmed the network-level delivery (correct events, correct host, no extra data), only the dashboard-side visual confirmation is outstanding. Epic stays open until the owner confirms AC2.
+<!-- SECTION:NOTES:END -->
