@@ -192,7 +192,7 @@ Only when steps 1 to 10 are done. This cannot be undone by a script: once public
 
 - **Every month:** open the top-up pull request, skim the diff for `fallbackFrom` days (a planned 12x12 that fell back to 9x9), check that Vercel has a Ready production deployment of the latest main.
 - **Every deploy:** `bun tools/check-share.ts https://<site>` (plus `--indexable` once open). After a deploy, open players see "A new version is available"; that is the update notice (offline worker), nothing to do.
-- **Issues and contact:** read the contact address or issues weekly for the first month; a report of a wrong puzzle means playing that day on the date override and checking its data (`bun run verify <file>`, docs/authoring/README.md); if it is real, fix it forward (a published day only changes on purpose: see "Extending the schedule safely" in docs/authoring/schedule.md).
+- **Issues:** the About page's contact section was dropped rather than filled in (step 3), so there is no contact address to read; check the repository's issue tracker weekly for the first month once it is public. A report of a wrong puzzle means playing that day on the date override and checking its data (`bun run verify <file>`, docs/authoring/README.md); if it is real, fix it forward (a published day only changes on purpose: see "Extending the schedule safely" in docs/authoring/schedule.md).
 
 ## Reference: the indexing switch
 
