@@ -27,8 +27,19 @@ const committed = dayLines(join(SCHEDULE_DIR, '2026-09.json'))
  * to decide, not done automatically here. Until then, the generator legitimately produces a
  * different day 2 than what is committed; both comparisons below exclude just that one day so
  * the rest of the window still guards real determinism.
+ *
+ * 2026-09-30 (n=4) diverges for a different, structural reason (SLAY-10.1): its immediate
+ * predecessor, 2026-09-29 (n=3), was surgically regenerated (grounded on the REAL committed
+ * 2026-09-28, not on a from-scratch chain rebuild — see src/schedule/cast.ts and SLAY-6.3's
+ * precedent, both chosen specifically so an unrelated date's cast never ripples). 2026-09-30
+ * itself was NOT regenerated (its own plan does not change), so its committed cast still avoids
+ * the NAMES OF THE OLD 2026-09-29 cast, not the new one. This is deliberate and harmless (no
+ * shared names, no repeated size/tier/theme, `scheduleProblems` and `dayProblems` are clean),
+ * but a fresh from-scratch rebuild of this window naturally computes 2026-09-30's cast from the
+ * NEW 2026-09-29 instead, giving a different (also valid) result. Excluded here for the same
+ * reason 2026-09-28 is.
  */
-const KNOWN_DIVERGED_DAYS = new Set(['2026-09-28'])
+const KNOWN_DIVERGED_DAYS = new Set(['2026-09-28', '2026-09-30'])
 const withoutKnownDiverged = (lines: string[]): string[] => lines.filter((l) => !KNOWN_DIVERGED_DAYS.has(JSON.parse(bare(l)).date))
 
 describe('bun run schedule', () => {
