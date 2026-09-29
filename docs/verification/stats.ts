@@ -199,13 +199,21 @@ async function placeAll(puzzle: PuzzleJson) {
   return true
 }
 
-/** Opens the day on screen and solves it. The date override decides which day it is. */
+/** Opens the day on screen and solves it. The date override decides which day it is.
+ * SLAY-9.13: solving no longer navigates away -- the finish popover (ResultOverlay) shows right on
+ * /play. Dismiss it ("View the board") and leave the play screen (the back button) so the rest of
+ * this scenario, which reads the day's status from the start screen, finds it there. */
 async function solveDay(day: ScheduleDay): Promise<boolean> {
   await setDate(day.date)
   await load('play')
   if ((await count('.play-board')) !== 1) return false
   const ok = await placeAll(day.puzzle as unknown as PuzzleJson)
-  return ok && (await path()) === '/' && (await count('[data-result=solved]')) === 1
+  await sleep(500)
+  if (!ok || (await count('[data-result=solved]')) !== 1) return false
+  await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
+  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await sleep(500)
+  return (await path()) === '/'
 }
 
 // --- the card --------------------------------------------------------------------------------

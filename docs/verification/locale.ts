@@ -56,16 +56,20 @@ function objectTypesOf(clue: CatalogClue): ObjectType[] {
   return typeof type === 'string' ? [type as ObjectType] : []
 }
 
-/** The first scheduled day of `theme` that has at least one object-bearing clue, and one such type on it. */
+/** The first scheduled day of `theme` that has a clue naming an object type this driver can actually
+ * check in Dutch (present in `EXPECT_NL`). A handful of Dutch words spell the same as their English
+ * counterpart ("bed", "plant", "tv") and are deliberately left out of that dictionary (see its own
+ * comment): a day whose first object-bearing clue happens to name one of those is skipped, since "no
+ * leftover English" cannot be verified for a word that isn't different between the two languages. */
 function firstObjectDay(theme: ThemeId): { date: string; type: ObjectType } {
   for (const day of DAYS) {
     if (day.theme !== theme) continue
     for (const clue of day.puzzle.clues) {
       const [type] = objectTypesOf(clue as CatalogClue)
-      if (type) return { date: day.date, type }
+      if (type && EXPECT_NL[type]) return { date: day.date, type }
     }
   }
-  throw new Error(`no scheduled ${theme} day has an object-bearing clue`)
+  throw new Error(`no scheduled ${theme} day has a clue naming a checkable (non-identical) Dutch object noun`)
 }
 
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -314,8 +318,12 @@ await evaluate(
 )
 await load('')
 check('the seeded day shows as solved, in Dutch ("Opgelost!")', (await count('[data-result=solved]')) === 1 && (await evaluate(`document.querySelector('[data-result=solved]')?.textContent?.includes('Opgelost!')`)) === true)
+// SLAY-9.13: the share card is no longer shown inline on a solved day's card -- a "Delen" (Share)
+// button reopens it in a popover (the same Modal as Help/Options/Stats).
+check('the solved day\'s card offers a Delen (Share) button in Dutch, not English', (await textOf('[data-slot=share] [data-action=share]')) === 'Delen')
+await tapSel('[data-slot=share] [data-action=share]')
 check(
-  'the Share panel reads in Dutch: title, the fallback buttons (no navigator.share in headless Chrome), the privacy note',
+  'the reopened Share panel reads in Dutch: title, the fallback buttons (no navigator.share in headless Chrome), the privacy note',
   (await textOf('.share__title')) === 'Deel je resultaat' &&
     (await textOf('[data-action=copy]')) === 'Tekst kopiëren' &&
     (await textOf('[data-action=download]')) === 'Afbeelding downloaden' &&
