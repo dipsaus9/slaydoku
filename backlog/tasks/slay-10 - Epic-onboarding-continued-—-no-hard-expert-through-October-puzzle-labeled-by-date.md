@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-09-29 09:59'
+updated_date: '2026-09-29 13:09'
 labels:
   - epic
 dependencies: []
@@ -22,6 +23,6 @@ Alternative considered (discussed with the owner): keep the existing SLAY-6.3 'a
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 No date from LAUNCH_DATE through 2026-10-31 draws 'hard' or 'expert'
+- [x] #1 No date from LAUNCH_DATE through 2026-10-31 draws 'hard' or 'expert'
 - [ ] #2 Puzzle #N is replaced everywhere a player sees it (header, start screen, tab title, share card) with a date-based label, in both locales
 <!-- AC:END -->
