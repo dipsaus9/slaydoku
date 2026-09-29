@@ -8,6 +8,7 @@ import {
   isBlocked,
   isPlaced,
   occupantAt,
+  withAutoVictim,
   withMark,
   withNote,
   withoutCellMarkings,
@@ -106,6 +107,11 @@ function settle(puzzle: Puzzle, state: GameState, at: number | undefined): GameS
 type EditAction = Exclude<GameAction, { type: 'undo' | 'redo' | 'setOption' | 'pause' | 'resume' | 'restart' }>
 
 function edit(puzzle: Puzzle, state: GameState, board: Board, action: EditAction): Board {
+  return withAutoVictim(puzzle, editBoard(puzzle, state, board, action))
+}
+
+/** The edit itself, before the victim's own square is filled in (see `withAutoVictim`). */
+function editBoard(puzzle: Puzzle, state: GameState, board: Board, action: EditAction): Board {
   const { people, scene } = puzzle
   const known = (id: string) => people.some((p) => p.id === id)
   switch (action.type) {

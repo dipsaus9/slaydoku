@@ -1,6 +1,7 @@
 import { useId, useMemo, type ReactNode } from 'react'
 import { help } from '../../content/help/help.ts'
 import type { Cell, Person, Puzzle } from '../../engine/model/index.ts'
+import { useLocale } from '../../locale/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import { EdgeFeatureIcon } from '../../render/icons/index.ts'
 import { U } from '../../render/icons/art/tokens.ts'
@@ -71,8 +72,9 @@ function firstOf(people: readonly Person[], kind: Person['kind']): Person | unde
  */
 export function Legend({ puzzle, cast, tags, colors, onShow }: LegendProps) {
   const t = help.legend
+  const { locale } = useLocale()
   const clipId = `legend-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
-  const legend = useMemo(() => legendOf(puzzle.scene), [puzzle.scene])
+  const legend = useMemo(() => legendOf(puzzle.scene, locale), [puzzle.scene, locale])
   const suspect = firstOf(puzzle.people, 'suspect')
   const gift = firstOf(puzzle.people, 'victim')
   // The shortest room name as the sample, so the pill fits its box whole.
