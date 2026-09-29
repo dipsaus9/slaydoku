@@ -3,10 +3,10 @@ id: SLAY-9.17
 title: >-
   Stats popover: unreadable Sluiten/Close button, remove device-only privacy
   line
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-29 17:09'
-updated_date: '2026-09-29 17:49'
+updated_date: '2026-09-29 17:51'
 labels:
   - story
 dependencies: []
@@ -57,3 +57,9 @@ AC #2 search: grepped every *-btn--primary/*-btn--danger definition (play-btn, s
 
 AC #4 (round 2, after reviewer block): added two computed-style checks to docs/verification/stats.ts (WCAG contrast ratio between getComputedStyle(...).color and .backgroundColor, read from the live cascade in headless Chrome, not the CSS source) -- one for the stats popover's Close button, one for HelpPanel's primary button opened from the start screen (AC #2's named case). Verified as a real regression test with a negative control: temporarily restored the pre-fix stats.css/play.css (git show 9e7d640:...), rebuilt, reran -- both new checks correctly FAIL (color rgb(42,42,54) dark ink on rgb(179,65,62) red); restored the fix and reran -- both PASS (color rgb(253,248,236)/rgb(255,255,255) on the same red). The driver's later solve-through-the-UI steps fail in this sandbox both before and after this story's changes (confirmed against unmodified origin/main too) -- pre-existing, unrelated to this fix.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Fixed the stats popover's unreadable Close/Reset button contrast and the analogous bug in HelpPanel's primary buttons (both lose their white text when opened from the start screen, outside .play, to daily.css's higher-specificity '.daily button { color: inherit }' reset). Scoped the white/paper-text override to the shared Modal wrapper class (.play-modal__panel) in stats.css and play.css, so it holds regardless of which screen mounts the popover -- fixing the stats popover and HelpPanel's start-screen entry point without special-casing either one. Also removed the redundant 'stays only on this device' line from the stats popover (StatsPanel.tsx, strings.ts), since the About page's Privacy section already covers it. Verified against the live rendered cascade, not just the CSS diff: new computed-style WCAG contrast checks in docs/verification/stats.ts, confirmed as real regression tests via a negative control (fail against the pre-fix CSS, pass against the fix). Reviewed and passed in 2 rounds; round 1 blocked only on AC #4 evidence, resolved by adding the rendered-screen checks.
+<!-- SECTION:FINAL_SUMMARY:END -->
