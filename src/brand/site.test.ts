@@ -18,6 +18,10 @@ function meta(html: string, key: string): string | undefined {
   return new RegExp(`<meta\\s+(?:property|name)="${key}"\\s+content="([^"]*)"`).exec(html)?.[1]
 }
 
+function linkHref(html: string, rel: string): string | undefined {
+  return new RegExp(`<link\\s+rel="${rel}"\\s+href="([^"]*)"`).exec(html)?.[1]
+}
+
 describe('resolveSiteUrl', () => {
   it('prefers VERCEL_PROJECT_PRODUCTION_URL', () => {
     expect(
@@ -52,12 +56,14 @@ describe('siteMetaPlugin on the real index.html', () => {
     expect(meta(html, 'og:url')).toBe(`${origin}/`)
     expect(meta(html, 'og:image')).toBe(`${origin}/og-image.png`)
     expect(meta(html, 'twitter:image')).toBe(`${origin}/og-image.png`)
+    expect(linkHref(html, 'canonical')).toBe(`${origin}/`)
     expect(findHtmlProblems(html)).toEqual([])
   })
 
-  it('leaves no relative og:image and no placeholder tokens', () => {
+  it('leaves no relative og:image, canonical link or placeholder tokens', () => {
     const html = transform({ VERCEL_URL: 'preview.example.app' })
     expect(html).not.toContain('content="/og-image.png"')
+    expect(html).not.toContain('href="/"')
     expect(html).not.toMatch(/%[A-Z_]+%|\{\{|__[A-Z_]+__|undefined/)
   })
 
@@ -74,12 +80,21 @@ describe('siteMetaPlugin on the real index.html', () => {
   it('throws when a social tag is missing', () => {
     expect(() => transform({}, INDEX.replace(/<meta property="og:image" [^>]*>/, ''))).toThrow(/og:image meta tag is missing/)
   })
+
+  it('throws when the canonical link is missing', () => {
+    expect(() => transform({}, INDEX.replace(/<link rel="canonical" [^>]*>\n\s*/, ''))).toThrow(/<link rel="canonical"> tag is missing/)
+  })
 })
 
 describe('injectSiteUrls', () => {
   it('keeps already absolute URLs', () => {
-    const html = '<meta property="og:image" content="https://cdn.test/a.png" />'
+    const html = '<meta property="og:image" content="https://cdn.test/a.png" /><link rel="canonical" href="https://cdn.test/a" />'
     expect(injectSiteUrls(html, 'https://x.test')).toBe(html)
+  })
+
+  it('rewrites the canonical link href absolute', () => {
+    const html = '<link rel="canonical" href="/" />'
+    expect(injectSiteUrls(html, 'https://x.test')).toBe('<link rel="canonical" href="https://x.test/" />')
   })
 })
 
@@ -105,6 +120,11 @@ describe('index.html head', () => {
       expect(meta(INDEX, key), key).toBeTruthy()
     }
     expect(meta(INDEX, 'twitter:card')).toBe('summary_large_image')
+  })
+
+  it('declares a canonical link, same relative target as og:url (SLAY-12.4: www vs apex duplicate-content risk)', () => {
+    expect(linkHref(INDEX, 'canonical')).toBe('/')
+    expect(linkHref(INDEX, 'canonical')).toBe(meta(INDEX, 'og:url'))
   })
 
   it('links the favicon and apple-touch-icon', () => {

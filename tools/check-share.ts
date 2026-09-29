@@ -91,14 +91,24 @@ export function parseMeta(html: string): Meta {
   return meta
 }
 
-/** href of the `<link rel="manifest">` tag, or undefined when the page has none. */
-export function parseManifestHref(html: string): string | undefined {
+/** href of the first `<link>` tag whose `rel` includes `wantedRel`, or undefined when the page has none. */
+function linkHref(html: string, wantedRel: string): string | undefined {
   for (const tag of html.matchAll(/<link\s[^>]*>/gi)) {
     const attrs = new Map<string, string>()
     for (const a of tag[0].matchAll(/([a-zA-Z:-]+)\s*=\s*"([^"]*)"/g)) attrs.set(a[1]!.toLowerCase(), a[2]!)
-    if (attrs.get('rel')?.toLowerCase().split(/\s+/).includes('manifest')) return attrs.get('href')
+    if (attrs.get('rel')?.toLowerCase().split(/\s+/).includes(wantedRel)) return attrs.get('href')
   }
   return undefined
+}
+
+/** href of the `<link rel="manifest">` tag, or undefined when the page has none. */
+export function parseManifestHref(html: string): string | undefined {
+  return linkHref(html, 'manifest')
+}
+
+/** href of the `<link rel="canonical">` tag, or undefined when the page has none (SLAY-12.4). */
+export function parseCanonicalHref(html: string): string | undefined {
+  return linkHref(html, 'canonical')
 }
 
 export function parseTitle(html: string): string | undefined {
@@ -378,6 +388,23 @@ export async function checkShare(url: string, options: CheckOptions = {}): Promi
     if (value) checks.push(check(`${key} is absolute`, /^https?:\/\//.test(value), value))
   }
   checks.push(check('twitter:card summary_large_image', meta.get('twitter:card') === 'summary_large_image', meta.get('twitter:card') ?? 'missing'))
+
+  // Canonical link (SLAY-12.4): fixes the www vs apex duplicate-content risk. Same host as og:url, and (checked
+  // against the site root, the only way this tool is actually run) the same path as the page it was fetched from.
+  const canonical = parseCanonicalHref(html)
+  if (canonical === undefined) {
+    checks.push(fail('canonical link', 'no <link rel="canonical"> in the page'))
+  } else {
+    const canonicalAbsolute = /^https?:\/\//.test(canonical)
+    checks.push(check('canonical link is absolute', canonicalAbsolute, canonical))
+    if (canonicalAbsolute) {
+      const ogUrl = meta.get('og:url')
+      if (ogUrl && /^https?:\/\//.test(ogUrl)) {
+        checks.push(check('canonical link has the same host as og:url', new URL(canonical).host === new URL(ogUrl).host, `${canonical} vs ${ogUrl}`))
+      }
+      checks.push(check("canonical link matches the page's own path", new URL(canonical).pathname === new URL(url).pathname, `${canonical} vs ${url}`))
+    }
+  }
 
   const titles: [string, string | undefined][] = [
     ['<title>', parseTitle(html)],
