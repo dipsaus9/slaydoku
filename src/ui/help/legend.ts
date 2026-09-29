@@ -1,8 +1,11 @@
 import { cellKey, cellsBesideFeature, isOccupiableType, OBJECT_TYPES } from '../../engine/model/index.ts'
 import type { Cell, EdgeFeatureKind, ObjectType, PlacedObject, Scene } from '../../engine/model/index.ts'
 import { OBJECT_WORDS } from '../../engine/clues/en.ts'
+import { OBJECT_WORDS_NL } from '../../engine/clues/nl.ts'
 import { drawnKinds, specificNoun, themeObjectOf } from '../../content/themes/drawn.ts'
+import type { DrawnKind } from '../../content/themes/drawn.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
+import type { Locale } from '../../locale/index.ts'
 
 /**
  * The rows of the Legend card (CAD-10.9), built from the scene of the level that is open and
@@ -53,21 +56,34 @@ function uniqueCells(cells: readonly Cell[]): Cell[] {
   return [...seen.values()].sort(reading)
 }
 
-/** What the legend says about this scene. */
-export function legendOf(scene: Scene): Legend {
+/**
+ * The noun (and, for English, the "also" siblings) the Legend shows for one drawn group of a
+ * type. English distinguishes the specific theme kind a room drew ("garden chair" vs "poof")
+ * because every theme kind's own name is real English (`specificNoun`); Dutch never does — no
+ * theme kind has a Dutch name yet (see `nl.ts`'s file header, SLAY-6.2) — so a Dutch row always
+ * uses the type's one generic Dutch noun, and there is nothing left to list as "also".
+ */
+function objectRowWords(locale: Locale, type: ObjectType, group: DrawnKind): { noun: string; alsoNouns: string[] } {
+  if (locale === 'nl') return { noun: OBJECT_WORDS_NL[type].noun, alsoNouns: [] }
+  const noun = specificNoun(group) ?? OBJECT_WORDS[type].noun
+  return { noun, alsoNouns: group.nouns.filter((n) => n !== noun) }
+}
+
+/** What the legend says about this scene, in `locale`'s nouns (no hardcoded English word table). */
+export function legendOf(scene: Scene, locale: Locale): Legend {
   const rows: LegendObjectRow[] = []
   for (const type of OBJECT_TYPES) {
     for (const group of drawnKinds(scene.objects, type)) {
       const members = scene.objects.filter(
         (o) => o.type === type && (themeObjectOf(o)?.themeIcon ?? 'engine') === group.icon,
       )
-      const noun = specificNoun(group) ?? OBJECT_WORDS[type].noun
+      const { noun, alsoNouns } = objectRowWords(locale, type, group)
       rows.push({
         key: `${type}:${group.icon}`,
         type,
         themeIcon: group.icon === 'engine' ? undefined : (group.icon as ThemeIconId),
         noun,
-        alsoNouns: group.nouns.filter((n) => n !== noun),
+        alsoNouns,
         occupiable: isOccupiableType(type),
         sample: members[0]!,
         cells: uniqueCells(members.flatMap((o) => o.cells)),
