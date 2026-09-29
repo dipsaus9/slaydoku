@@ -4,7 +4,7 @@ title: Fix docs/verification/drive.ts for the auto-placed victim
 status: Done
 assignee: []
 created_date: '2026-09-29 12:59'
-updated_date: '2026-09-29 14:28'
+updated_date: '2026-09-29 14:32'
 labels:
   - story
 dependencies: []
@@ -46,6 +46,8 @@ Root cause (found while delivering SLAY-9.2, confirmed on a clean origin/main ba
 Widened References to include stats.ts and share.ts: baselined bun run verify:phone (SUITES=drive,stats,share VIEWPORTS=844x390) against a clean build BEFORE any change and confirmed both stats.ts and share.ts have the identical placeAll()/selectedName() victim-selection assumption as drive.ts (data-victim-selected is dead CSS since SLAY-9.5) and fail the same way (2 and 1 failures respectively). AC #3 requires 'bun run verify:phone passes cleanly', which runs all suites, so fixing drive.ts alone cannot satisfy it; widening scope to fix all three placeAll() implementations consistently.
 
 Two real bugs found beyond the described root cause, both fixed: (1) drive.ts's wrong-board scenario (placeAll(puzzle, true)) swapped puzzle.solution[0]/[1], but solution[0] is the victim's own entry -- swapping it with a suspect broke withAutoVictim's leftover-cell derivation. Fixed to swap two SUSPECT solution entries only. (2) The advance order (order.ts / nextUnplaced in PlayScreen.tsx) still walks through the victim's own slot and can select it before every suspect is placed (observed after the file's existing clear-all/undo dance leaves one suspect, Anna, unplaced while the wrap reaches the victim's turn first); since the victim is never rendered as selected post-SLAY-9.5, selectedName() then reports NONE. placeAll() now recovers by tapping the still-unplaced suspect's own card (scrollIntoView + tap) instead of trusting the advance order blindly. (3) A correctly-solved board navigates back to '/' on its own (DailyFlow.tsx's solvedNow effect, no button click) as soon as it is solved -- checking the board's data-victim-placed/data-person after that races the navigation and always loses. Removed the internal board assertion for the correct-solve path in all three files; the callers' existing 'solved, path is /, data-result=solved' checks already prove the victim square filled in correctly (a wrong board could never reach that state). Kept a direct .play-cards[data-victim-placed] assertion only for drive.ts's wrong-board path, where the board stays on screen. Verified with: bun run lint/typecheck/test (140 files, 3013 tests green), then bun run verify:phone (SKIP_BUILD after bun run build) across all 6 viewports and all 7 suites: 2814 checks, 0 failures.
+
+Independent review (dipsaus-ai:story-reviewer): verdict pass, all 3 acceptance criteria met, no scope violations. Advisory (non-blocking): could optionally add a direct data-victim-placed-style check to stats.ts/share.ts's happy path too, instead of relying solely on the existing data-result=solved check; not required, the existing check already depends on the auto-filled victim cell satisfying the puzzle.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
