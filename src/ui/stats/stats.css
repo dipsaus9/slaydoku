@@ -74,6 +74,15 @@
   text-decoration: underline;
 }
 
+/* After ".daily button { color: inherit }" (daily.css), which has higher specificity than a plain
+   class and would otherwise win when this card opens over the start screen (SLAY-9.17: the Close
+   button rendered dark ink on red there). Scoped to the shared Modal wrapper rather than to .daily,
+   so it stays correct if this card is ever opened from a different screen too. */
+.play-modal__panel .stats-btn--primary,
+.play-modal__panel .stats-btn--danger {
+  color: var(--paper);
+}
+
 /* ---- the card ---------------------------------------------------------------------- */
 
 .stats-panel {

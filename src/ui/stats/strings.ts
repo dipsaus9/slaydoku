@@ -5,7 +5,6 @@ interface StatsStrings {
   open: string
   summary: (current: number, best: number) => string
   title: string
-  device: string
   numbers: {
     played: string
     solved: string
@@ -45,7 +44,6 @@ export const STATS_EN: StatsStrings = {
   open: 'Stats',
   summary: (current, best) => `Streak ${current} · Best ${best}`,
   title: 'Your statistics',
-  device: 'Kept on this device only. Nothing is sent anywhere.',
   numbers: {
     played: 'Played',
     solved: 'Solved',
@@ -92,7 +90,6 @@ export const STATS_NL: StatsStrings = {
   open: 'Statistieken',
   summary: (current, best) => `Reeks ${current} · Beste ${best}`,
   title: 'Jouw statistieken',
-  device: 'Blijft alleen op dit apparaat. Er wordt niets verstuurd.',
   numbers: {
     played: 'Gespeeld',
     solved: 'Opgelost',

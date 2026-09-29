@@ -478,9 +478,15 @@
   background: #c0392b;
 }
 
-/* After ".play button { color: inherit }", which would win over a plain class. */
+/* After ".play button { color: inherit }" / ".daily button { color: inherit }" (daily.css), each of
+   which has higher specificity than a plain class. The .play scope covers buttons in the persistent
+   play UI (e.g. HintBar's "more hints"); the .play-modal__panel scope covers every Modal-rendered
+   instance regardless of which screen opened it (SLAY-9.17: HelpPanel's buttons rendered dark ink on
+   red when "How it works" was opened from the start screen, outside .play). */
 .play .play-btn--primary,
-.play .play-btn--danger {
+.play .play-btn--danger,
+.play-modal__panel .play-btn--primary,
+.play-modal__panel .play-btn--danger {
   color: #ffffff;
 }
 
