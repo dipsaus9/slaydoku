@@ -23,7 +23,9 @@
     <meta name="apple-mobile-web-app-title" content="Slaydoku" />
 
     <!-- og:url, og:image, twitter:image and the canonical link are made absolute at build time by siteMetaPlugin (src/brand/site.ts). -->
-    <!-- One static canonical for every route (same host as og:url): slaydoku.nl and www.slaydoku.nl both serve this build, so this is the SLAY-12.4 fix for the www vs apex duplicate-content risk. -->
+    <!-- SLAY-12.4: fixes the www vs apex duplicate-content risk (slaydoku.nl and www.slaydoku.nl both serve this build).
+         The root path is the safe pre-hydration default; installCanonicalLink (src/ui/canonical/) corrects it to the
+         current route (e.g. /about) once JS runs, since the server sends this same static index.html for every route. -->
     <link rel="canonical" href="/" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
