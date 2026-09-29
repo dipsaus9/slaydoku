@@ -1,5 +1,7 @@
 # Slaydoku: notes for Claude
 
+**Read [docs/handoff.md](docs/handoff.md) first** — open decisions, what changed last session, and what a new session needs to know that isn't obvious from git history alone. Keep it updated as things resolve.
+
 Slaydoku is a public, Wordle-style daily murder-grid puzzle (Murdoku-like), in English: everybody gets the same puzzle each UTC day, solves it, and shares time and hints on a card. The code started from an earlier private prototype; all personal content was removed before the first commit.
 
 ## Decisions (change only after asking the owner)
