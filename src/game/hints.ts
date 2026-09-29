@@ -72,36 +72,42 @@ export const MAX_CROSSED_SQUARES = 12
 
 /**
  * The most useful next move from the player's current position. All the cards apply together and the
- * people the player put on their true cell count as known (wrong placements are ignored, so the answer
- * always follows the puzzle's real solution):
+ * suspects the player put on their true cell count as known (wrong placements are ignored, so the answer
+ * always follows the puzzle's real solution). The victim is never the subject: they are never placed by
+ * the player (see `withAutoVictim` in board.ts), so a hint never asks for them either.
  *
  * 1. somebody has exactly one possible square: place them;
  * 2. else the person with the fewest possible squares (at most six): note those squares;
  * 3. else, or once that note is made, the solver's next deduction with a technique beyond the cards
  *    (rows and columns, pairs, rectangles, chains): place who it settles, or cross out what it rules out.
  *
- * Null when everybody is right already or the solver has nothing (a puzzle it cannot do without guessing).
+ * Null when every suspect is right already (the victim then fills in on their own) or the solver has
+ * nothing (a puzzle it cannot do without guessing).
  */
 export function nextStep(puzzle: Puzzle, state: GameState, locale: Locale = 'en'): NextStep | null {
+  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+  const victimId = puzzle.people.find((p) => p.kind === 'victim')?.id
   const truth = new Map(puzzle.solution.map((p) => [p.personId, p.cell]))
-  const known = puzzle.people.filter((p) => {
+  const known = suspects.filter((p) => {
     const at = state.board.placements[p.id]
     const cell = truth.get(p.id)
     return at !== undefined && cell !== undefined && sameCell(at, cell)
   })
-  if (known.length === puzzle.people.length) return null
+  if (known.length === suspects.length) return null
 
   const know = knowledge(puzzle, known, truth)
-  if (know.placement) return { step: know.placement.step, placement: know.placement.step.placed, focus: know.placement.focus }
-  return noteStep(puzzle, state, known, know) ?? deduction(puzzle, state, known, truth, know, locale)
+  if (know.placement && know.placement.focus.personId !== victimId) {
+    return { step: know.placement.step, placement: know.placement.step.placed, focus: know.placement.focus }
+  }
+  return noteStep(puzzle, state, known, know) ?? deduction(puzzle, state, known, truth, know, locale, victimId)
 }
 
-/** The person with the fewest possible squares, when few enough and the player has not made the note yet. */
+/** The suspect with the fewest possible squares, when few enough and the player has not made the note yet. */
 function noteStep(puzzle: Puzzle, state: GameState, known: readonly Person[], know: Knowledge): NextStep | null {
   const knownIds = new Set(known.map((p) => p.id))
   let fewest: { personId: string; cells: Cell[] } | null = null
   for (const p of puzzle.people) {
-    if (knownIds.has(p.id)) continue
+    if (p.kind !== 'suspect' || knownIds.has(p.id)) continue
     const cells = know.possible.get(p.id) ?? []
     if (cells.length > 0 && (fewest === null || cells.length < fewest.cells.length)) fewest = { personId: p.id, cells }
   }
@@ -118,7 +124,9 @@ function noteStep(puzzle: Puzzle, state: GameState, known: readonly Person[], kn
 /**
  * The solver's next step beyond what the cards say, with the whole technique catalog (basic first, then
  * the hard and expert ones). Steps that only repeat what the player already crossed out, or what a placed
- * person's row, column or cell already rules out, are skipped.
+ * person's row, column or cell already rules out, are skipped. The victim never surfaces as the subject
+ * (see `nextStep`): the full person list still goes to the solver itself (the victim-room technique needs
+ * it), only the steps offered back to the player are filtered.
  */
 function deduction(
   puzzle: Puzzle,
@@ -127,6 +135,7 @@ function deduction(
   truth: ReadonlyMap<string, Cell>,
   know: Knowledge,
   locale: Locale = 'en',
+  victimId?: string,
 ): NextStep | null {
   const real = puzzle.clues as CatalogClue[]
   const knownIds = new Set(known.map((p) => p.id))
@@ -143,7 +152,7 @@ function deduction(
   for (const [i, step] of result.steps.entries()) {
     if (step.clueIndex !== undefined && step.clueIndex >= real.length) continue // our own bookkeeping
     if (step.placed) {
-      if (knownIds.has(step.placed.personId)) continue
+      if (knownIds.has(step.placed.personId) || step.placed.personId === victimId) continue
       const personId = step.placed.personId
       const focus: Focus = {
         personId,
@@ -157,6 +166,7 @@ function deduction(
     // News for the player: a person still to find, on a square the cards did not rule out already.
     const news = step.eliminated.filter(
       (e) =>
+        e.personId !== victimId &&
         !knownIds.has(e.personId) &&
         stillPossible(e.personId, e.cell) &&
         !hasMark(state.board, e.personId, e.cell) &&
