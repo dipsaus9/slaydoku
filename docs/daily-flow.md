@@ -6,7 +6,7 @@ What a player sees, where it lives in the code and what it stores. Story SLAY-1.
 
 | URL | Screen |
 |---|---|
-| `/` | Start screen: `Puzzle #N`, the UTC date, difficulty (Very easy, Easy, Easy-medium, Medium, Hard, Expert), grid size, **Play** (or **Continue** when a board is saved), and a live countdown to 00:00 UTC with the local time (`Ends at 00:00 UTC (02:00 Amsterdam time)`). A solved day shows its result (time, hints, the murderer) instead of Play, and `Next puzzle in ...`. Before the launch date: `Slaydoku starts on 27 September` with a countdown. After the last scheduled day: `New puzzles are coming soon`. |
+| `/` | Start screen: `Puzzle of 27 September` (a date-based label, SLAY-10.2 — the puzzle number itself is internal only, see below), the UTC date, difficulty (Very easy, Easy, Easy-medium, Medium, Hard, Expert), grid size, **Play** (or **Continue** when a board is saved), and a live countdown to 00:00 UTC with the local time (`Ends at 00:00 UTC (02:00 Amsterdam time)`). A solved day shows its result (time, hints, the murderer) instead of Play, and `Next puzzle in ...`. Before the launch date: `Slaydoku starts on 27 September` with a countdown. After the last scheduled day: `New puzzles are coming soon`. |
 | `/play`, `/play/<n>` | The puzzle of the day on the existing play screen (hints, zoom, legend). `/play/<n>` only works for the day on screen (no archive). The How it works card opens by itself on the first Play. A solved day, an unscheduled day or another number goes back to `/`. |
 | `/about` | About page, linked from the start screen footer. |
 | anything else, old `/level/...` | Replaced by `/`. |
@@ -25,7 +25,7 @@ The app trusts the device clock in UTC: no clock check, no server time. `src/sch
 
 | Key | What |
 |---|---|
-| `slaydoku:game:daily-<n>` | Board, notes and clock of puzzle number `n`, with the puzzle fingerprint (a save of another puzzle is ignored). |
+| `slaydoku:game:daily-<n>` | Board, notes and clock of puzzle number `n`, with the puzzle fingerprint (a save of another puzzle is ignored). The number `n` is internal only (SLAY-10.2): it keys storage and dedups stats/results, but a player never sees it — the screens show the date-based label instead. |
 | `slaydoku:daily-results` | `{ "version": 1, "results": { "<n>": DailyResult } }`. |
 | `slaydoku:telemetry` | Local play sessions (hints and failed checks are summed from it when a day is solved). |
 | `slaydoku:help-seen`, `slaydoku:game-options` | The help card and the options, global. |
@@ -80,7 +80,7 @@ Slaydoku #43 · Medium · 9x9
 slaydoku.vercel.app
 ```
 
-Time is `mm:ss` (`h:mm:ss` from an hour), hints read `no hints`, `1 hint`, `2 hints`. The **strip** has one square per suspect (6 to 12): blue for a person placed on your own, yellow for each hint opened, red for each time a full board was checked and was not right, in that order (blue first; more than the board holds are cut off, hints first). It says how the solve went and nothing about the puzzle: it depends only on the board size and the two counts, never on the solution, the names or the clues (the order in which people were placed is not stored, so a per-move strip is not possible). The card carries the same facts (wordmark, puzzle number, date, difficulty pill, big time, hints, the strip with a small legend, the site) in the brand colours.
+Time is `mm:ss` (`h:mm:ss` from an hour), hints read `no hints`, `1 hint`, `2 hints`. The **strip** has one square per suspect (6 to 12): blue for a person placed on your own, yellow for each hint opened, red for each time a full board was checked and was not right, in that order (blue first; more than the board holds are cut off, hints first). It says how the solve went and nothing about the puzzle: it depends only on the board size and the two counts, never on the solution, the names or the clues (the order in which people were placed is not stored, so a per-move strip is not possible). The card carries the same facts (wordmark, the date-based puzzle label, date, difficulty pill, big time, hints, the strip with a small legend, the site) in the brand colours.
 
 **No spoilers.** Both builders take a `DailyResult` and the tier and size of the day and never see the puzzle. `src/share/share.test.ts` scans the text and both cards of a spread of scheduled days for every suspect name, every rendered clue text, the fingerprint and every solution cell.
 

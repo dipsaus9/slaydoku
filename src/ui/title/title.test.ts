@@ -10,26 +10,26 @@ const at = (iso: string) => () => Date.parse(iso)
 
 describe('screenTitle', () => {
   it('is the site name on the start screen', () => {
-    for (const path of ['', '/', '/play/x', '/play/0']) expect(screenTitle(path, { puzzleNumber: 4 })).toBe(SITE_TITLE)
+    for (const path of ['', '/', '/play/x', '/play/0']) expect(screenTitle(path, { puzzleDate: '2026-10-15' })).toBe(SITE_TITLE)
   })
 
-  it('names the puzzle while playing', () => {
-    expect(screenTitle('/play', { puzzleNumber: 4 })).toBe('Puzzle #4 – Slaydoku')
-    expect(screenTitle('/play/3', { puzzleNumber: 4 })).toBe(`${TITLE_EN.puzzle(3)} – Slaydoku`)
+  it('names the puzzle while playing, from the context date — an explicit /play/<n> in the URL is not resolved to a date (no archive)', () => {
+    expect(screenTitle('/play', { puzzleDate: '2026-10-15' })).toBe('Puzzle of 15 October – Slaydoku')
+    expect(screenTitle('/play/3', { puzzleDate: '2026-10-15' })).toBe(`${TITLE_EN.puzzle('2026-10-15')} – Slaydoku`)
   })
 
   it('is the site name on the puzzle route when nothing is scheduled', () => {
-    expect(screenTitle('/play', { puzzleNumber: null })).toBe(SITE_TITLE)
+    expect(screenTitle('/play', { puzzleDate: null })).toBe(SITE_TITLE)
   })
 
   it('names the About page', () => {
-    expect(screenTitle('/about', { puzzleNumber: 4 })).toBe('About – Slaydoku')
-    expect(screenTitle('/about/', { puzzleNumber: null })).toBe(`${TITLE_EN.about} – Slaydoku`)
+    expect(screenTitle('/about', { puzzleDate: '2026-10-15' })).toBe('About – Slaydoku')
+    expect(screenTitle('/about/', { puzzleDate: null })).toBe(`${TITLE_EN.about} – Slaydoku`)
   })
 
   it('falls back to the site name for unknown routes, the old level paths and /lab included', () => {
     for (const path of ['/lab', '/lab/puzzle', '/nonsense', 'random', '/level/demo', '/level/demo/solved']) {
-      expect(screenTitle(path, { puzzleNumber: 4 })).toBe(SITE_TITLE)
+      expect(screenTitle(path, { puzzleDate: '2026-10-15' })).toBe(SITE_TITLE)
     }
   })
 })
@@ -46,7 +46,7 @@ describe('installScreenTitles', () => {
     installScreenTitles({ router, doc, index, clock: at('2026-10-15T10:00:00Z') })
     expect(doc.title).toBe('Slaydoku')
     router.navigate('/play')
-    expect(doc.title).toBe('Puzzle #4 – Slaydoku')
+    expect(doc.title).toBe('Puzzle of 15 October – Slaydoku')
     router.navigate('/about')
     expect(doc.title).toBe('About – Slaydoku')
     router.navigate('/lab')

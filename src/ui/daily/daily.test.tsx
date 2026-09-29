@@ -32,7 +32,7 @@ describe.each(['en', 'nl'] as const)('<StartScreen/> (%s)', (locale) => {
   it('shows the number, the date, the difficulty, the size and a Play button for a new day', () => {
     const html = render({ kind: 'day', day, status: { kind: 'new' }, ended: false })
     const text = strip(html)
-    expect(text).toContain(t.puzzleNumber(day.n))
+    expect(text).toContain(t.puzzleLabel(day.date))
     // The date itself is formatted by src/schedule (out of this story's References) and stays English in every locale.
     expect(text).toContain('Wednesday 30 September 2026')
     expect(text).toContain(t.tier[day.tier])
@@ -127,6 +127,6 @@ describe.each(['en', 'nl'] as const)('<StartScreen/> (%s)', (locale) => {
     expect(html).toMatch(new RegExp(`aria-pressed="true"[^>]*data-locale-option="${locale}"`))
     const other = locale === 'en' ? 'nl' : 'en'
     expect(html).toMatch(new RegExp(`aria-pressed="false"[^>]*data-locale-option="${other}"`))
-    expect(strip(html)).toContain(t.puzzleNumber(day.n).split(' ')[0])
+    expect(strip(html)).toContain(t.puzzleLabel(day.date).split(' ')[0])
   })
 })

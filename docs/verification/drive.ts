@@ -17,6 +17,7 @@ import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { deriveMurderer } from '../../src/engine/model/index.ts'
+import { DAILY_STRINGS } from '../../src/ui/daily/strings.ts'
 import { AFTER_DATE, DATE_KEY, PLAY_DATE, PRELAUNCH_DATE, RESULTS_KEY, dayOn, seedStorage } from './daily.ts'
 
 const HERE = import.meta.dir
@@ -217,7 +218,7 @@ async function startScreen() {
   ctx.level = 'start'
   await resetStorage(PLAY_DATE, false)
   await load('')
-  check('start screen: puzzle number, UTC date, difficulty and grid size', (await textOf('[data-puzzle-number]')) === `Puzzle #${DAY.n}` && (await textOf('[data-date]')) === 'Saturday 21 November 2026' && /^Difficulty: Hard$/.test(await textOf('[data-tier]')) && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `#${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
+  check('start screen: puzzle label, UTC date, difficulty and grid size', (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date) && (await textOf('[data-date]')) === 'Saturday 21 November 2026' && /^Difficulty: Hard$/.test(await textOf('[data-tier]')) && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
   const play = await rectOf('[data-action=play]')
   check('start screen: one Play button, a big touch target', (await count('[data-action]')) === 1 && (await textOf('[data-action]')) === 'Play' && !!play && play.h >= 44 && play.w >= 44, JSON.stringify(play))
   check('start screen: no puzzle board and no how-it-works card before Play', (await count('.play-board')) === 0 && (await count('.play-modal')) === 0)
@@ -283,7 +284,7 @@ async function routing() {
   await evaluate(`document.querySelector('[data-action]').click()`)
   await sleep(800)
   check('Play opens /play with the puzzle', (await path()) === '/play' && (await count('.play-board')) === 1, await path())
-  check('the tab title names the puzzle', (await evaluate('document.title')) === `Puzzle #${DAY.n} \u2013 Slaydoku`, String(await evaluate('document.title')))
+  check('the tab title names the puzzle', (await evaluate('document.title')) === `${DAILY_STRINGS.en.puzzleLabel(DAY.date)} \u2013 Slaydoku`, String(await evaluate('document.title')))
   await shot('02-clean-url-play')
   await reload()
   check('reload on /play shows the puzzle', (await path()) === '/play' && (await count('.play-board')) === 1, await path())
@@ -630,7 +631,7 @@ async function playDay(first: boolean, w: number, h: number) {
   const next = dayOn('2026-11-22')
   await evaluate(`localStorage.setItem(${JSON.stringify(DATE_KEY)}, '2026-11-22')`)
   await load('')
-  check(`the next day shows a new puzzle (#${next.n}), not solved`, (await textOf('[data-puzzle-number]')) === `Puzzle #${next.n}` && (await count('[data-action]')) === 1 && (await count('[data-result=solved]')) === 0, await textOf('[data-puzzle-number]'))
+  check(`the next day shows a new puzzle (${next.date}), not solved`, (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && (await count('[data-action]')) === 1 && (await count('[data-result=solved]')) === 0, await textOf('[data-puzzle-number]'))
   const kept = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))).results[String(DAY.n)]
   check('the result of the day before is still stored', JSON.stringify(kept) === JSON.stringify(result))
   await shot('10-next-day')
@@ -650,7 +651,7 @@ async function rollover() {
   const noticed = await until(`document.querySelector('[data-banner=new-puzzle]') !== null`, 15000)
   check('the clock passes 00:00 UTC while the puzzle is open: "New puzzle available" appears', noticed, await textOf('[data-banner]'))
   const spot2 = puzzle.solution[3]!.cell
-  check('the player is not switched away: still /play, same board, same title', (await path()) === '/play' && (await count('.play-board')) === 1 && (await count('[data-note]')) === 1 && (await textOf('[data-play-title]')) === `Puzzle #${DAY.n}`, `${await path()} ${await textOf('[data-play-title]')}`)
+  check('the player is not switched away: still /play, same board, same title', (await path()) === '/play' && (await count('.play-board')) === 1 && (await count('[data-note]')) === 1 && (await textOf('[data-play-title]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date), `${await path()} ${await textOf('[data-play-title]')}`)
   check('the notice names the new puzzle and its button is a big target', (await textOf('[data-banner] button')) === `Show puzzle #${next.n}` && ((await rectOf('[data-banner] button'))?.h ?? 0) >= 44, await textOf('[data-banner]'))
   await shot('11-rollover-mid-puzzle')
   await tapSel(cellSel(spot2.row, spot2.col))
@@ -663,12 +664,12 @@ async function rollover() {
   await shot('12-rollover-ended-day')
   await evaluate(`document.querySelector('[data-banner] button').click()`)
   await sleep(500)
-  check(`the notice button loads the new day: puzzle #${next.n}, Sunday 22 November 2026, Play`, (await textOf('[data-puzzle-number]')) === `Puzzle #${next.n}` && (await textOf('[data-date]')) === 'Sunday 22 November 2026' && (await count('[data-action]')) === 1 && (await count('[data-banner]')) === 0, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')}`)
+  check(`the notice button loads the new day: ${next.date}, Sunday 22 November 2026, Play`, (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && (await textOf('[data-date]')) === 'Sunday 22 November 2026' && (await count('[data-action]')) === 1 && (await count('[data-banner]')) === 0, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-date]')}`)
   check('the saved board of the day before is untouched', (await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)) === saved)
   await shot('13-rollover-new-day')
   await evaluate(`document.querySelector('[data-action]').click()`)
   await sleep(800)
-  check('Play now opens the new puzzle', (await path()) === '/play' && (await textOf('[data-play-title]')) === `Puzzle #${next.n}` && (await count('[data-note]')) === 0)
+  check('Play now opens the new puzzle', (await path()) === '/play' && (await textOf('[data-play-title]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && (await count('[data-note]')) === 0)
 
   // (2) On the start screen with a solved day: the result stays, the notice loads the new day.
   await resetStorage('2026-11-21T23:59:55', true)
@@ -680,7 +681,7 @@ async function rollover() {
   await evaluate(`document.querySelector('[data-banner] button').click()`)
   await sleep(500)
   const results = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))).results
-  check('the new day loads without losing the result of the day before', (await textOf('[data-puzzle-number]')) === `Puzzle #${next.n}` && !!results[String(DAY.n)] && results[String(DAY.n)].elapsedMs === 754000, JSON.stringify(Object.keys(results)))
+  check('the new day loads without losing the result of the day before', (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && !!results[String(DAY.n)] && results[String(DAY.n)].elapsedMs === 754000, JSON.stringify(Object.keys(results)))
 }
 
 const failedRows = () => rows.filter((r) => !r.ok)

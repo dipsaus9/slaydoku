@@ -1,10 +1,24 @@
 import type { DailyResult } from '../game/daily/results.ts'
 import type { Locale } from '../locale/index.ts'
+import { formatDayMonth } from '../schedule/index.ts'
 import { cardDescription, stripCells } from './emoji.ts'
 import type { StripCell } from './emoji.ts'
 import { capitalize, dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel } from './format.ts'
 import { siteLabel } from './site.ts'
 import type { ShareMeta } from './types.ts'
+
+/**
+ * Dutch month names for `dayMonthNl` below (SLAY-10.2), the same small local table `src/ui/daily/strings.ts` keeps for its puzzle
+ * label: `dateLabel` (./format.ts) formats the full weekday + year for the card's date line, not the short day+month the number
+ * line now needs, so it is not reused here.
+ */
+const MONTHS_NL = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'] as const
+
+/** `29 september`, for a `YYYY-MM-DD` date: the Dutch counterpart of `formatDayMonth` (day + month, no year). */
+const dayMonthNl = (date: string): string => `${Number(date.slice(8, 10))} ${MONTHS_NL[Number(date.slice(5, 7)) - 1]}`
+
+/** `Puzzle of 29 September` (`Puzzel van 29 september`): the card's date-based number-line label (SLAY-10.2). */
+const puzzleLabel = (date: string, locale: Locale): string => (locale === 'nl' ? `Puzzel van ${dayMonthNl(date)}` : `Puzzle of ${formatDayMonth(date)}`)
 
 /**
  * Brand colours. INK/PAPER/PANEL/LINE are the warm evidence-board surface tones (src/brand/tokens.css's
@@ -195,7 +209,7 @@ function square(p: Parts, headlineFont: string, words: Record<StripCell, string>
 }
 
 /**
- * The share card as an SVG document: wordmark, puzzle number, date, difficulty pill, the time big, the hints, a strip of one square per
+ * The share card as an SVG document: wordmark, the date-based puzzle label, date, difficulty pill, the time big, the hints, a strip of one square per
  * person (see `stripCells`) and the site. Two designs: a landscape one (1200x630 units) and a square one (1080x1080); `width` and
  * `height` set the size of the picture, which scales the design. Shapes and text only: no images, no script, nothing fetched by the SVG
  * itself — `headline` (default: the plain system stack) is the one already-resolved choice from `loadDisplayFont`, embedded inline when
@@ -205,7 +219,7 @@ function square(p: Parts, headlineFont: string, words: Record<StripCell, string>
 export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }: { width: number; height: number }, headline: HeadlineFont = SYSTEM_HEADLINE, locale: Locale = 'en'): string {
   const isWide = width / height > 1.2
   const parts: Parts = {
-    number: `Puzzle #${result.n}`,
+    number: puzzleLabel(result.date, locale),
     date: dateLabel(result.date, locale),
     tier: `${tierLabel(meta.tier, locale)} · ${sizeLabel(meta.size)}`,
     time: formatDuration(result.elapsedMs),
