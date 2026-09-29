@@ -164,21 +164,43 @@ interface PuzzleJson {
 }
 const selectedName = () =>
   evaluate(`(document.querySelector('.play-cards[data-victim-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
+// A suspect's own card, scrolled into view first: used only to recover the selection (see
+// placeAll below), since a normal placement follows whichever card the app already advanced to.
+const cardRect = (label: string) =>
+  evaluate(
+    `(() => { const e = [...document.querySelectorAll('.polaroid')].find(b => b.querySelector('.polaroid__name')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`,
+  ) as Promise<{ x: number; y: number } | null>
 
-/** Long-press each person (as the card selection advances) onto its solution cell. */
+/** Long-press each suspect (as the card selection advances) onto its solution cell. The victim is
+ * never itself selectable or click-placed (SLAY-9.5): its square fills in on its own once every
+ * suspect has a placement. Solving navigates back to "/" on its own as soon as the board is
+ * complete and correct (DailyFlow.tsx), so the caller's own "solved" check is what proves the
+ * victim's square filled in right -- there is no board left here to assert against afterwards. */
 async function placeAll(puzzle: PuzzleJson) {
-  const idByName = new Map(puzzle.people.filter((p) => p.kind === 'suspect').map((p) => [p.label, p.id]))
-  const victimId = puzzle.people.find((p) => p.kind === 'victim')!.id
+  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+  const idByName = new Map(suspects.map((p) => [p.label, p.id]))
   const cellOf = new Map(puzzle.solution.map((s) => [s.personId, s.cell]))
-  for (let i = 0; i < puzzle.people.length; i++) {
+  const remaining = new Set(suspects.map((p) => p.id))
+  for (let i = 0; i < suspects.length; i++) {
     const name = (await selectedName()).trim()
-    const pid = idByName.get(name) ?? (/victim/i.test(name) ? victimId : undefined)
-    if (!pid) return false
+    let pid = idByName.get(name)
+    if (!pid || !remaining.has(pid)) {
+      // The advance order can point at the victim's own (never rendered as selected) slot before
+      // every suspect is placed -- recover by tapping the card of whichever suspect is still unplaced.
+      const next = suspects.find((p) => remaining.has(p.id))
+      if (!next) return false
+      const card = await cardRect(next.label)
+      if (!card) return false
+      await tap(card.x, card.y)
+      await sleep(250)
+      pid = next.id
+    }
     const cell = cellOf.get(pid)!
     const r = await rectOf(cellSel(cell.row, cell.col))
     if (!r) return false
     await hold(r.x, r.y, 650)
     await sleep(200)
+    remaining.delete(pid)
   }
   await sleep(900)
   return true

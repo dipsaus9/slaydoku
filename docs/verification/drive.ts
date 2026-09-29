@@ -166,27 +166,59 @@ const puzzle = DAY.puzzle as unknown as PuzzleJson
 
 const selectedName = () =>
   evaluate(`(document.querySelector('.play-cards[data-victim-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
+// A suspect's own card, scrolled into view first (the cards column can be a small touch-scrolled
+// area): used only to recover the selection (see placeAll below), since a normal placement follows
+// whichever card the app already auto-advanced to.
+const cardRect = (label: string) =>
+  evaluate(
+    `(() => { const e = [...document.querySelectorAll('.polaroid')].find(b => b.querySelector('.polaroid__name')?.textContent.trim() === ${JSON.stringify(label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`,
+  ) as Promise<{ x: number; y: number } | null>
 
-/** Long-press each person (as the card selection advances) onto its solution cell. */
+/** Long-press each suspect (as the card selection advances) onto its solution cell. The victim is
+ * never itself selectable or click-placed (SLAY-9.5): its square fills in on its own once every
+ * suspect has a placement (`withAutoVictim` in board.ts). That is asserted directly for a wrong
+ * (swapped) board, which stays on screen; a correctly solved board navigates back to "/" on its
+ * own (DailyFlow.tsx) as soon as it is solved, so the caller's own "the result shows" check is
+ * what proves the victim's square filled in right there -- there is no board left here to assert
+ * against by the time this function returns. */
 async function placeAll(puzzle: PuzzleJson, swap = false, limit = Infinity) {
-  const idByName = new Map(puzzle.people.filter((p) => p.kind === 'suspect').map((p) => [p.label, p.id]))
-  const victimId = puzzle.people.find((p) => p.kind === 'victim')!.id
+  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+  const idByName = new Map(suspects.map((p) => [p.label, p.id]))
   const cellOf = new Map(puzzle.solution.map((s) => [s.personId, s.cell]))
-  const swapped = swap ? [puzzle.solution[0]!.personId, puzzle.solution[1]!.personId] : []
+  // Two swapped suspects (never the victim, which is no longer placed by this loop at all):
+  // puzzle.solution[0] is the victim's own entry, so pick from the suspects' solution entries.
+  const suspectIds = new Set(suspects.map((p) => p.id))
+  const suspectSolution = puzzle.solution.filter((s) => suspectIds.has(s.personId))
+  const swapped = swap ? [suspectSolution[0]!.personId, suspectSolution[1]!.personId] : []
+  const remaining = new Set(suspects.map((p) => p.id))
   let placed = 0
-  for (let i = 0; i < puzzle.people.length && placed < limit; i++) {
+  for (let i = 0; i < suspects.length && placed < limit; i++) {
     const name = (await selectedName()).trim()
-    const pid = idByName.get(name) ?? (/victim/i.test(name) ? victimId : undefined)
-    if (!pid) return false
+    let pid = idByName.get(name)
+    if (!pid || !remaining.has(pid)) {
+      // The advance order still walks through the victim's own slot (order.ts keeps it last), and
+      // can land there before every suspect is placed -- e.g. a suspect left unplaced by an earlier
+      // undo/redo/clear-all. The victim is never itself rendered as selected, so nothing shows as
+      // selected then. Recover by tapping the card of whichever suspect is still unplaced.
+      const next = suspects.find((p) => remaining.has(p.id))
+      if (!next) return false
+      const card = await cardRect(next.label)
+      if (!card) return false
+      await tap(card.x, card.y)
+      await sleep(250)
+      pid = next.id
+    }
     const target = swapped.includes(pid) ? swapped.find((s) => s !== pid)! : pid
     const cell = cellOf.get(target)!
     const r = await rectOf(cellSel(cell.row, cell.col))
     if (!r) return false
     await hold(r.x, r.y, 650)
     await sleep(200)
+    remaining.delete(pid)
     placed++
   }
   await sleep(700)
+  if (swap && placed === suspects.length && (await count('.play-cards[data-victim-placed]')) !== 1) return false
   return true
 }
 
@@ -495,7 +527,8 @@ async function playDay(first: boolean, w: number, h: number) {
   await tapSel('.play-hint__actions .play-btn:not(.play-btn--primary)')
   check('hint closes', (await count('.play-hint')) === 0)
 
-  // Card panel scrolls by touch: reach the gift card (last), tap it, then scroll back and pick suspect 2 again.
+  // Card panel scrolls by touch: reach the gift card (last). It is informational only, never
+  // tappable (SLAY-9.5: the victim is never itself selectable), so this only checks the scroll.
   const portrait = vh > vw
   const inView = () =>
     evaluate(`(() => { const e = document.querySelector('.polaroid--victim .polaroid__photo'); if (!e) return false; const r = e.getBoundingClientRect(); const side = e.closest('.play-side'); const c = side && getComputedStyle(side).overflowY !== 'visible' ? side.getBoundingClientRect() : { left: 0, right: innerWidth, top: 0, bottom: innerHeight }; const x = r.left + r.width / 2, y = r.top + r.height / 2; return r.width > 0 && x >= Math.max(0, c.left) && x <= Math.min(innerWidth, c.right) && y >= Math.max(0, c.top) && y <= Math.min(innerHeight, c.bottom) })()`) as Promise<boolean>
@@ -518,12 +551,7 @@ async function playDay(first: boolean, w: number, h: number) {
   }
   for (let i = 0; i < 10 && !(await inView()); i++) await swipe(false)
   const giftVisible = await inView()
-  if (giftVisible) {
-    const g = (await rectOf('.polaroid--victim .polaroid__photo'))!
-    await tap(g.x, g.y)
-    await sleep(250)
-  }
-  check('card panel scrolls by touch and the gift card can be selected', giftVisible && (await count('.play-cards[data-victim-selected]')) === 1, `gift in view=${giftVisible}`)
+  check('card panel scrolls by touch to reveal the gift card', giftVisible, `gift in view=${giftVisible}`)
   await shot('03b-gift-card')
   for (let i = 0; i < 10; i++) await swipe(true)
   const firstCard = await rectOf('.play-cards li:nth-child(2) .polaroid')
