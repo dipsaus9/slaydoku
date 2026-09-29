@@ -18,7 +18,6 @@ export interface PlayStrings {
     options: string
     help: string
     legend: string
-    zoom: string
     more: string
   }
   toolTitle: {
@@ -27,7 +26,6 @@ export interface PlayStrings {
     x: string
     erase: string
     legend: string
-    zoom: string
   }
   pickSuspect: string
   timerShow: string
@@ -85,7 +83,6 @@ export const PLAY_EN: PlayStrings = {
     options: 'Options',
     help: 'Help',
     legend: 'Legend',
-    zoom: 'Zoom',
     more: 'More',
   },
   toolTitle: {
@@ -94,7 +91,6 @@ export const PLAY_EN: PlayStrings = {
     x: 'Tap a square to rule it out. Drag to cross several squares.',
     erase: 'Tap a square to clear it. Hold this button to clear everything.',
     legend: 'What do the objects and marks on this board mean?',
-    zoom: 'Enlarge the board (2x), tap again for 1x. With two fingers you can also pinch and pan.',
   },
   pickSuspect: 'Pick a suspect first.',
   timerShow: 'Show the time',
@@ -163,7 +159,6 @@ export const PLAY_NL: PlayStrings = {
     options: 'Opties',
     help: 'Help',
     legend: 'Legenda',
-    zoom: 'Zoom',
     more: 'Meer',
   },
   toolTitle: {
@@ -172,7 +167,6 @@ export const PLAY_NL: PlayStrings = {
     x: 'Tik op een vakje om het uit te sluiten. Sleep om meerdere vakjes te kruisen.',
     erase: 'Tik op een vakje om het te wissen. Houd deze knop ingedrukt om alles te wissen.',
     legend: 'Wat betekenen de objecten en tekens op dit bord?',
-    zoom: 'Vergroot het bord (2x), tik nogmaals voor 1x. Met twee vingers kun je ook knijpen en slepen.',
   },
   pickSuspect: 'Kies eerst een verdachte.',
   timerShow: 'Toon de tijd',
