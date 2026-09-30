@@ -551,6 +551,30 @@
  */
 .daily-play {
   position: relative;
+  /* SLAY-9.20: the phone/landscape rules below reserve this much width on the right of the
+     overlaid title bar so it ends before play.css's real icon row starts underneath (the bar's
+     `right` is otherwise just a guessed round number, which is exactly how this bug happened --
+     see the media queries for the full story). Built from play.css's own box-model constants
+     instead of a fresh guess, the same approach SLAY-9.12 used for --play-header-height:
+       --daily-play-icon        one icon button's min-width (.play-header__legend/__more, .play-timer)
+       --daily-play-icon-gap    the gap between .play-header__actions children
+       --daily-play-header-pad  .play-header's own right padding, inside its right border
+       --daily-play-timer-room  .play-timer's rendered width budget -- it shows elapsed time
+                                 (people.ts's formatTime), not a fixed string, so this has to cover
+                                 real running times, not just a fresh "0:03": measured
+                                 (getBoundingClientRect, headless Chrome, 360/390px) at ~68px
+                                 fresh, ~78px at "59:59", ~90px at "1:59:59"; 104px keeps a real
+                                 margin through a multi-hour session, with the existing title
+                                 ellipsis (below) as the fallback past that.
+     3-icon row (timer, legend, more) = timer-room + gap + icon + gap + icon; the 4-icon row (the
+     persistent Share button, SLAY-9.13) adds one more icon + gap on top. */
+  --daily-play-icon: 44px;
+  --daily-play-icon-gap: var(--space-2);
+  --daily-play-header-pad: var(--space-4);
+  --daily-play-timer-room: 104px;
+  --daily-play-icon-row: calc(var(--daily-play-timer-room) + var(--daily-play-icon-gap) + var(--daily-play-icon) + var(--daily-play-icon-gap) + var(--daily-play-icon));
+  --daily-play-reserve: calc(var(--daily-play-header-pad) + var(--daily-play-icon-row));
+  --daily-play-reserve-with-share: calc(var(--daily-play-reserve) + var(--daily-play-icon-gap) + var(--daily-play-icon));
 }
 
 /* SLAY-6.1: top reads the same --play-top-clearance custom property play.css defines (24px floor)
@@ -664,7 +688,12 @@
 
   .daily-play__nav {
     left: max(8px, env(safe-area-inset-left));
-    right: calc(max(8px, env(safe-area-inset-right)) + 112px);
+    /* SLAY-9.20: was a flat, too-small 112px -- confirmed by measurement (getBoundingClientRect,
+       headless Chrome, 360/390px, a real scheduled puzzle) to sit ~75-90px short of where
+       play.css's real icon row actually starts, so this bar's title routinely overlapped it even
+       with a fresh timer and a short title. --daily-play-reserve (above) is the same 3-icon budget,
+       now built from the icon row's own box-model constants instead of a guessed round number. */
+    right: calc(max(8px, env(safe-area-inset-right)) + var(--daily-play-reserve));
     gap: 8px;
   }
 
@@ -680,14 +709,13 @@
     line-height: 1.15;
   }
 
-  /* SLAY-9.13: PlayScreen's persistent Share button (play.css's .play-header__legend, reused,
-     visible once solved and dismissed) is a 4th icon the 112px reserve above never accounted
-     for -- measured (getBoundingClientRect, headless Chrome, 360/390/430 widths) at ~249px once
-     it is on screen. Rather than always reserving that much (which would truncate this title
-     hard on every ordinary, unsolved play session, the common case, for a button that is not even
-     there yet), widen the reserve only while the button is actually in the DOM. */
+  /* SLAY-9.13/9.20: PlayScreen's persistent Share button (play.css's .play-header__legend, reused,
+     visible once solved and dismissed) is a 4th icon the reserve above doesn't budget for --
+     widen it only while the button is actually in the DOM, rather than always reserving that much
+     (which would truncate this title hard on every ordinary, unsolved play session, the common
+     case, for a button that is not even there yet). */
   .daily-play:has([data-action='share']) .daily-play__nav {
-    right: calc(max(8px, env(safe-area-inset-right)) + 245px);
+    right: calc(max(8px, env(safe-area-inset-right)) + var(--daily-play-reserve-with-share));
   }
 }
 
@@ -737,7 +765,8 @@
 
   .daily-play__nav {
     left: calc(max(12px, env(safe-area-inset-left)) + var(--play-board) + 12px);
-    right: calc(max(12px, env(safe-area-inset-right)) + 112px);
+    /* SLAY-9.20: same derived reserve as the phone media query above, for the same reason. */
+    right: calc(max(12px, env(safe-area-inset-right)) + var(--daily-play-reserve));
     gap: 8px;
   }
 
@@ -753,10 +782,10 @@
     line-height: 1.15;
   }
 
-  /* SLAY-9.13: same conditional +133px reserve as the phone media query above, for the same
-     reason (only while the persistent Share button is actually in the DOM). */
+  /* SLAY-9.13/9.20: same conditional Share-icon reserve as the phone media query above, for the
+     same reason (only while the persistent Share button is actually in the DOM). */
   .daily-play:has([data-action='share']) .daily-play__nav {
-    right: calc(max(12px, env(safe-area-inset-right)) + 245px);
+    right: calc(max(12px, env(safe-area-inset-right)) + var(--daily-play-reserve-with-share));
   }
 }
 
