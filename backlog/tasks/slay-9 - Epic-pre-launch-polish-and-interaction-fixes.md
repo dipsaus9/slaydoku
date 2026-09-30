@@ -1,10 +1,10 @@
 ---
 id: SLAY-9
 title: 'Epic: pre-launch polish and interaction fixes'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-29 09:55'
-updated_date: '2026-09-30 09:58'
+updated_date: '2026-09-30 17:38'
 labels:
   - epic
 dependencies: []
@@ -25,12 +25,18 @@ Alternative considered: defer the riskier hint-sequencing rework (tracked separa
 - [x] #2 Player can switch language (EN/NL) from the play screen without losing board state, notes, timer or undo history
 - [x] #3 On desktop-width viewports, Options and Help are reachable as direct actions, not hidden behind the ... menu
 - [x] #4 Toolbar button labels (e.g. Ongedaan) never clip or wrap awkwardly at any viewport width tested
-- [x] #5 The victim is never a manually-placeable card and never the subject of a hint; it auto-fills the one remaining square once all suspects are placed
-- [x] #6 Legend object rows show real Dutch nouns (already-translated OBJECT_WORDS_NL) when the player's locale is Dutch
-- [x] #7 The How it works guide and keyword glossary have real Dutch content, not English-only
-- [x] #8 The Zoom toolbar button is removed; pinch and ctrl+wheel zoom keep working
-- [x] #9 The start screen is restyled as a centered Wordle-style card (icon mark, title, tagline, one action button, byline) with no accounts/login/paywall added
+- [x] #5 Legend object rows show real Dutch nouns (already-translated OBJECT_WORDS_NL) when the player's locale is Dutch
+- [x] #6 The How it works guide and keyword glossary have real Dutch content, not English-only
+- [x] #7 The Zoom toolbar button is removed; pinch and ctrl+wheel zoom keep working
+- [x] #8 The start screen is restyled as a centered Wordle-style card (icon mark, title, tagline, one action button, byline) with no accounts/login/paywall added
+- [x] #9 The victim is never a manually-placeable card and never the subject of a hint (SLAY-9.5); the player places their own final square themselves once every suspect is placed, instead of it auto-filling (reversed by SLAY-9.24, 2026-09-30, per owner request)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Delivered as SLAY-9.1 through SLAY-9.25. The nine epic acceptance criteria (header alignment, mid-puzzle language switch, desktop header density, toolbar clipping, victim placement, Dutch legend/help content, Zoom removal, the Wordle-style start screen) were satisfied by 9.1-9.19; 9.20-9.25 are pre-launch follow-ups delivered afterward. One reversal worth noting: 9.5 originally made the victim auto-fill the last square; the owner asked for that reverted (2026-09-30) so the player makes that final placement themselves -- delivered as 9.24, which also fixed a real regression it introduced in src/validation/walk.ts (the hint-completability audit stalled since no hint ever names the victim). 9.23 added an install prompt for iOS/Android (PWA). 9.25 replaced the fragile two-layer header overlay (PlayScreen's own header plus a separately-positioned daily.css overlay) with one unified flex header, after 9.20's calc()-based patch proved insufficient.
+<!-- SECTION:NOTES:END -->
 
 ## Final Summary
 
