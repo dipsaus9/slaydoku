@@ -38,8 +38,16 @@ const committed = dayLines(join(SCHEDULE_DIR, '2026-09.json'))
  * but a fresh from-scratch rebuild of this window naturally computes 2026-09-30's cast from the
  * NEW 2026-09-29 instead, giving a different (also valid) result. Excluded here for the same
  * reason 2026-09-28 is.
+ *
+ * 2026-09-29 (n=3, 9x9 easy) diverges for a third reason (SLAY-13.2): `SOLVABLE_TIERS`' ladder
+ * caps became size-banded, and the {9,12} band's easy cap loosened (maxSquaresFromCards 6->8,
+ * lastSquaresFromCards 3->4, maxChain 2->3). The same seed still samples the same solution and
+ * needs the same one attempt (seed, attempts and title are all unchanged), but `planLadder`'s
+ * greedy search now accepts a different, still-valid clue set under the looser cap (11 clues
+ * instead of 12) -- not a bug, the day just predates the size-banding this story adds. Excluded
+ * for the same already-played reason as the two days above.
  */
-const KNOWN_DIVERGED_DAYS = new Set(['2026-09-28', '2026-09-30'])
+const KNOWN_DIVERGED_DAYS = new Set(['2026-09-28', '2026-09-29', '2026-09-30'])
 const withoutKnownDiverged = (lines: string[]): string[] => lines.filter((l) => !KNOWN_DIVERGED_DAYS.has(JSON.parse(bare(l)).date))
 
 describe('bun run schedule', () => {
