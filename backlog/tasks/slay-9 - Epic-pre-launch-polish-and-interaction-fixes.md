@@ -1,10 +1,10 @@
 ---
 id: SLAY-9
 title: 'Epic: pre-launch polish and interaction fixes'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-29 09:55'
-updated_date: '2026-09-29 21:03'
+updated_date: '2026-09-30 06:34'
 labels:
   - epic
 dependencies: []
