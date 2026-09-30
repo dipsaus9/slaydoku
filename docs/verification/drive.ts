@@ -228,6 +228,24 @@ async function placeAll(puzzle: PuzzleJson, swap = false, limit = Infinity) {
 const layoutProbe = () =>
   evaluate(`JSON.stringify({ iw: innerWidth, ih: innerHeight, sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight, board: (() => { const r = document.querySelector('.play-board')?.getBoundingClientRect(); return r ? { l: Math.round(r.left), r: Math.round(r.right), t: Math.round(r.top), b: Math.round(r.bottom) } : null })(), cell: (() => { const r = document.querySelector('[data-cell]')?.getBoundingClientRect(); return r ? Math.round(Math.min(r.width, r.height)) : 0 })(), minTool: Math.round(Math.min(...[...document.querySelectorAll('.play-tool')].filter(b => b.offsetParent !== null).map(b => Math.min(b.getBoundingClientRect().width, b.getBoundingClientRect().height)))) })`).then((s: string) => JSON.parse(s) as { iw: number; ih: number; sw: number; sh: number; board: { l: number; r: number; t: number; b: number } | null; cell: number; minTool: number })
 
+// SLAY-9.25: the header's own layout, checked directly at whatever real width this driver runs at
+// (360x640/390x844 among phone.ts's default VIEWPORTS) -- not inferred from a guessed reserve, the
+// way the header used to be verified (or not) before the redesign. .play-header__lead (back + title)
+// is the header's one flexible child; .play-header__actions never shrinks, so the two are expected to
+// never overlap and the header is expected to never force the page to scroll sideways, in every icon
+// state. moreLabel is read whenever the "..." trigger (not the desktop quick pair) is the one on
+// screen: AC #3 wants it to carry a visible word, not just the bare dots.
+const headerProbe = () =>
+  evaluate(
+    `JSON.stringify({ lead: (() => { const e = document.querySelector('.play-header__lead'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), actions: (() => { const e = document.querySelector('.play-header__actions'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), sw: document.documentElement.scrollWidth, iw: innerWidth, moreVisible: !!document.querySelector('.play-header__more')?.offsetParent, moreLabel: document.querySelector('.play-header__more-label')?.textContent ?? null })`,
+  ).then((s: string) => JSON.parse(s) as { lead: { l: number; r: number } | null; actions: { l: number; r: number } | null; sw: number; iw: number; moreVisible: boolean; moreLabel: string | null })
+async function checkHeaderLayout(label: string) {
+  const h = await headerProbe()
+  const overlap = !!h.lead && !!h.actions && h.lead.r > h.actions.l + 0.5
+  check(`${label}: .play-header__lead and .play-header__actions never overlap, no page-level horizontal scroll`, !overlap && h.sw <= h.iw + 1, JSON.stringify(h))
+  if (h.moreVisible) check(`${label}: the More trigger carries a visible label, not a bare "..." icon`, !!h.moreLabel && h.moreLabel.trim().length > 0, JSON.stringify(h.moreLabel))
+}
+
 // --- scenarios -------------------------------------------------------------------------------
 const startText = () => evaluate(`document.querySelector('.daily')?.innerText ?? ''`) as Promise<string>
 const textOf = (sel: string) => evaluate(`document.querySelector(${JSON.stringify(sel)})?.textContent?.trim() ?? ''`) as Promise<string>
@@ -490,6 +508,7 @@ async function playDay(first: boolean, w: number, h: number) {
   const minCell = vw <= 640 && vh > vw ? 34 : 30 // portrait phone: 34px
   check(`layout: touch targets (cell >= ${minCell}px, toolbar >= 44px)`, lay.cell >= minCell && lay.minTool >= 44, `cell=${lay.cell}px minTool=${lay.minTool}px`)
   check('layout: page height vs viewport (info)', true, `scrollHeight=${lay.sh} innerHeight=${lay.ih}${lay.sh > lay.ih ? ' (page scrolls vertically)' : ' (fits)'}`)
+  await checkHeaderLayout('unsolved (3-icon: timer, Legend, More)')
   await shot('01-fresh')
   check('screenshot fresh board', true)
 
@@ -670,6 +689,8 @@ async function playDay(first: boolean, w: number, h: number) {
   // "View the board" dismisses the overlay; the solved board itself stays right there on /play.
   await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
   check('View the board dismisses the overlay; the solved board stays on /play', (await count('[data-result=solved]')) === 0 && (await path()) === '/play' && (await count('.play-board')) === 1)
+  check('the persistent Share icon joins the header once the overlay is dismissed', (await count('[data-action=share]')) === 1)
+  await checkHeaderLayout('solved + dismissed (4-icon: timer, Share, Legend, More)')
 
   // Back to the start screen: the daily card now offers "View board" instead of Play (SLAY-9.16), a
   // reopenable Share button (SLAY-9.13 AC #4, no longer the card shown inline), and the stats slot.

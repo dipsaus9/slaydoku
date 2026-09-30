@@ -228,17 +228,6 @@
   outline-offset: 2px;
 }
 
-/* SLAY-9.25: once the persistent Share icon joins the row (solved and dismissed, SLAY-9.13), the
-   row is at its fullest -- back, title, timer, Legend, Share and More all competing for the same
-   360-390px. Dropping back to an icon-only More here (same 44px target, no label) hands that width
-   straight to the title instead, which needs it more once the header can no longer grow. This is a
-   content-driven rule (":has" observes the actual DOM, the same technique the old
-   `.daily-play:has([data-action='share'])` reserve used), not a guessed pixel budget -- it holds
-   however the row's icon set changes later, without needing its own future fix. */
-.play-header__actions:has([data-action='share']) .play-header__more-label {
-  display: none;
-}
-
 /* Options and Help as direct header actions (SLAY-9.2): hidden by default -- narrow viewports
    keep the ... (More) trigger and its Modal (below, unchanged) as the only path to them. The
    desktop media query further down swaps which pair is visible; both stay mounted so no JS
