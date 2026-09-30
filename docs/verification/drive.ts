@@ -270,6 +270,14 @@ async function startScreen() {
   const lay = await layoutProbe()
   check('start screen fits the viewport, no sideways scroll', lay.sw <= lay.iw, `scrollWidth=${lay.sw} innerWidth=${lay.iw}`)
   check('start screen keeps the About link and the Help link', (await evaluate(`document.querySelector('.daily__about')?.getAttribute('href')`)) === '/about' && (await count('.daily__help')) === 1)
+  // SLAY-9.22: a quiet Support link next to About, same class (same weight), pointing at GitHub Sponsors, opening in a new tab.
+  check(
+    'start screen footer: a Support Slaydoku link next to About, quiet (same class), opens GitHub Sponsors in a new tab',
+    (await textOf('a[href="https://github.com/sponsors/dipsaus9"]')) === 'Support Slaydoku' &&
+      (await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.className`)) === 'daily__about' &&
+      (await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.getAttribute('target')`)) === '_blank' &&
+      ((await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.getAttribute('rel')`)) as string)?.includes('noopener'),
+  )
   await shot('00-start-new')
   // Every other state of the start screen.
   await resetStorage(PRELAUNCH_DATE)
@@ -353,16 +361,24 @@ async function routing() {
   await evaluate(`document.querySelector('.daily__about').click()`)
   await sleep(500)
   check('the About link opens /about and its back link returns to /', (await path()) === '/about' && (await count('.about')) === 1)
-  // The About page (SLAY-1.10): its four sections, the credit, the privacy line, the licence, and it fits the screen.
+  // The About page (SLAY-1.10): its five sections (a Support section since SLAY-9.22), the credit, the privacy line, the licence, and it fits the screen.
   const aboutText = (await evaluate(`document.querySelector('.about').innerText`)) as string
   check(
-    'About page: title, tagline and the sections How it works, Credit, Privacy and Open source',
-    ['About Slaydoku', 'A new murder mystery puzzle every day', 'How it works', 'Credit', 'Privacy', 'Open source'].every((t) => aboutText.includes(t)) &&
-      (await count('.about__section')) === 4,
+    'About page: title, tagline and the sections How it works, Credit, Privacy, Open source and Support',
+    ['About Slaydoku', 'A new murder mystery puzzle every day', 'How it works', 'Credit', 'Privacy', 'Open source', 'Support Slaydoku'].every((t) => aboutText.includes(t)) &&
+      (await count('.about__section')) === 5,
   )
   check(
     'About page: credits Murdoku by Manuel Garand, states the anonymous-counting privacy line, names the MIT license',
     aboutText.includes('Inspired by Murdoku by Manuel Garand.') && aboutText.includes('No accounts, no per-player identifier, no cookie.') && aboutText.includes('MIT license'),
+  )
+  // SLAY-9.22: the About page's own Support section, quiet (not styled as a call-to-action, no button class), same GitHub Sponsors URL as the footer link.
+  check(
+    'About page: the Support section links to GitHub Sponsors, quietly (no button class), opening in a new tab',
+    (await textOf('a[href="https://github.com/sponsors/dipsaus9"]')) === 'GitHub Sponsors' &&
+      (await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.className`)) === 'about__link' &&
+      (await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.getAttribute('target')`)) === '_blank' &&
+      ((await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.getAttribute('rel')`)) as string)?.includes('noopener'),
   )
   const aboutBox = (await evaluate(
     `(() => { const b = document.querySelector('.about__back').getBoundingClientRect(); return { sw: document.documentElement.scrollWidth, iw: innerWidth, backH: b.height } })()`,
