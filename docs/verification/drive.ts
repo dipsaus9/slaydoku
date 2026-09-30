@@ -228,6 +228,24 @@ async function placeAll(puzzle: PuzzleJson, swap = false, limit = Infinity) {
 const layoutProbe = () =>
   evaluate(`JSON.stringify({ iw: innerWidth, ih: innerHeight, sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight, board: (() => { const r = document.querySelector('.play-board')?.getBoundingClientRect(); return r ? { l: Math.round(r.left), r: Math.round(r.right), t: Math.round(r.top), b: Math.round(r.bottom) } : null })(), cell: (() => { const r = document.querySelector('[data-cell]')?.getBoundingClientRect(); return r ? Math.round(Math.min(r.width, r.height)) : 0 })(), minTool: Math.round(Math.min(...[...document.querySelectorAll('.play-tool')].filter(b => b.offsetParent !== null).map(b => Math.min(b.getBoundingClientRect().width, b.getBoundingClientRect().height)))) })`).then((s: string) => JSON.parse(s) as { iw: number; ih: number; sw: number; sh: number; board: { l: number; r: number; t: number; b: number } | null; cell: number; minTool: number })
 
+// SLAY-9.25: the header's own layout, checked directly at whatever real width this driver runs at
+// (360x640/390x844 among phone.ts's default VIEWPORTS) -- not inferred from a guessed reserve, the
+// way the header used to be verified (or not) before the redesign. .play-header__lead (back + title)
+// is the header's one flexible child; .play-header__actions never shrinks, so the two are expected to
+// never overlap and the header is expected to never force the page to scroll sideways, in every icon
+// state. moreLabel is read whenever the "..." trigger (not the desktop quick pair) is the one on
+// screen: AC #3 wants it to carry a visible word, not just the bare dots.
+const headerProbe = () =>
+  evaluate(
+    `JSON.stringify({ lead: (() => { const e = document.querySelector('.play-header__lead'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), actions: (() => { const e = document.querySelector('.play-header__actions'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), sw: document.documentElement.scrollWidth, iw: innerWidth, moreVisible: !!document.querySelector('.play-header__more')?.offsetParent, moreLabel: document.querySelector('.play-header__more-label')?.textContent ?? null })`,
+  ).then((s: string) => JSON.parse(s) as { lead: { l: number; r: number } | null; actions: { l: number; r: number } | null; sw: number; iw: number; moreVisible: boolean; moreLabel: string | null })
+async function checkHeaderLayout(label: string) {
+  const h = await headerProbe()
+  const overlap = !!h.lead && !!h.actions && h.lead.r > h.actions.l + 0.5
+  check(`${label}: .play-header__lead and .play-header__actions never overlap, no page-level horizontal scroll`, !overlap && h.sw <= h.iw + 1, JSON.stringify(h))
+  if (h.moreVisible) check(`${label}: the More trigger carries a visible label, not a bare "..." icon`, !!h.moreLabel && h.moreLabel.trim().length > 0, JSON.stringify(h.moreLabel))
+}
+
 // --- scenarios -------------------------------------------------------------------------------
 const startText = () => evaluate(`document.querySelector('.daily')?.innerText ?? ''`) as Promise<string>
 const textOf = (sel: string) => evaluate(`document.querySelector(${JSON.stringify(sel)})?.textContent?.trim() ?? ''`) as Promise<string>
@@ -438,7 +456,7 @@ async function firstVisit() {
   check('play is not blocked afterwards: a tap writes a note', (await count('[data-note]')) === 1)
   await tool('Undo')
   check('help-seen is remembered in localStorage, versioned', /"version":\d+/.test(String(await evaluate(`localStorage.getItem('slaydoku:help-seen')`))), String(await evaluate(`localStorage.getItem('slaydoku:help-seen')`)))
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   check('the start screen offers Continue now that a board is saved', (await textOf('[data-action]')) === 'Continue' && (await evaluate(`document.querySelector('.daily-card').dataset.status`)) === 'inProgress', await textOf('[data-action]'))
   await shot('05-start-continue')
@@ -465,7 +483,7 @@ async function firstVisit() {
   await tool('Help')
   check('a reopen after leaving on the glossary starts on the goal', (await panelProbe())?.title === 'How it works' && (await panelProbe())?.glossary === 0)
   await tapModalBtn('Start playing')
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   await tapSel('.daily__help')
   const link = await panelProbe()
@@ -490,6 +508,7 @@ async function playDay(first: boolean, w: number, h: number) {
   const minCell = vw <= 640 && vh > vw ? 34 : 30 // portrait phone: 34px
   check(`layout: touch targets (cell >= ${minCell}px, toolbar >= 44px)`, lay.cell >= minCell && lay.minTool >= 44, `cell=${lay.cell}px minTool=${lay.minTool}px`)
   check('layout: page height vs viewport (info)', true, `scrollHeight=${lay.sh} innerHeight=${lay.ih}${lay.sh > lay.ih ? ' (page scrolls vertically)' : ' (fits)'}`)
+  await checkHeaderLayout('unsolved (3-icon: timer, Legend, More)')
   await shot('01-fresh')
   check('screenshot fresh board', true)
 
@@ -670,10 +689,12 @@ async function playDay(first: boolean, w: number, h: number) {
   // "View the board" dismisses the overlay; the solved board itself stays right there on /play.
   await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
   check('View the board dismisses the overlay; the solved board stays on /play', (await count('[data-result=solved]')) === 0 && (await path()) === '/play' && (await count('.play-board')) === 1)
+  check('the persistent Share icon joins the header once the overlay is dismissed', (await count('[data-action=share]')) === 1)
+  await checkHeaderLayout('solved + dismissed (4-icon: timer, Share, Legend, More)')
 
   // Back to the start screen: the daily card now offers "View board" instead of Play (SLAY-9.16), a
   // reopenable Share button (SLAY-9.13 AC #4, no longer the card shown inline), and the stats slot.
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   check('back from a solved day shows the start screen with the result', (await path()) === '/' && (await count('[data-result=solved]')) === 1, await path())
   const text = await startText()
@@ -694,7 +715,7 @@ async function playDay(first: boolean, w: number, h: number) {
   await load('play')
   check('a solved day can still be opened at /play: the board and the finish overlay both show', (await path()) === '/play' && (await count('.play-board')) === 1 && (await count('[data-result=solved]')) === 1, await path())
   await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   const again = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))).results[String(DAY.n)]
   check('the stored result did not change after reopening the solved day', JSON.stringify(again) === JSON.stringify(result))
@@ -730,7 +751,7 @@ async function rollover() {
   check('they can keep playing the old puzzle after midnight', (await count('[data-note]')) === 2)
   check('the notice can be hidden while playing (it sits over the bottom of the screen), the puzzle stays', (await rectOf('.daily-banner__dismiss'))!.w >= 44 && (await (async () => { await tapSel('.daily-banner__dismiss'); return (await count('[data-banner]')) === 0 && (await count('.play-board')) === 1 && (await path()) === '/play' })()))
   const saved = await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(600)
   check('leaving the puzzle shows the ended day with the notice, no Play and no countdown', (await path()) === '/' && (await count('[data-ended]')) === 1 && (await count('[data-banner=new-puzzle]')) === 1 && (await count('[data-action]')) === 0 && (await count('[role=timer]')) === 0, JSON.stringify((await startText()).replace(/\n+/g, ' / ')))
   await shot('12-rollover-ended-day')

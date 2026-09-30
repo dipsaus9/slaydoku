@@ -30,6 +30,9 @@ import { deriveMurderer } from '../../src/engine/model/index.ts'
 import type { CatalogClue, RenderContext } from '../../src/engine/clues/index.ts'
 import { OBJECT_WORDS, bothParts, isBothClue, renderClue } from '../../src/engine/clues/index.ts'
 import { getHint, initialState } from '../../src/game/index.ts'
+import { dailyId } from '../../src/game/daily/ids.ts'
+import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
+import { SAVE_VERSION, saveKey } from '../../src/game/persistence.ts'
 import type { ObjectType } from '../../src/engine/model/index.ts'
 import type { ThemeId } from '../../src/content/themes/index.ts'
 import { bareRoomName } from '../../src/render/scene/labels.ts'
@@ -162,6 +165,23 @@ const count = (sel: string) => evaluate(`document.querySelectorAll(${JSON.string
 const textOf = (sel: string) => evaluate(`document.querySelector(${JSON.stringify(sel)})?.textContent?.trim() ?? ''`) as Promise<string>
 const localeKeyValue = () => evaluate(`localStorage.getItem('slaydoku:locale')`) as Promise<string | null>
 
+// SLAY-9.25: the header's own layout -- checked here too, in Dutch (drive.ts's English suite checks
+// the same thing at more widths): .play-header__lead (back + title) is the header's one flexible
+// child, .play-header__actions never shrinks, so the two are expected to never overlap and the
+// header is expected to never force the page to scroll sideways, in both icon states. moreLabel is
+// read whenever the "..." trigger (not the desktop quick pair) is the one on screen: AC #3 wants a
+// visible word there, not just the bare dots.
+const headerProbe = () =>
+  evaluate(
+    `JSON.stringify({ lead: (() => { const e = document.querySelector('.play-header__lead'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), actions: (() => { const e = document.querySelector('.play-header__actions'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), sw: document.documentElement.scrollWidth, iw: innerWidth, moreVisible: !!document.querySelector('.play-header__more')?.offsetParent, moreLabel: document.querySelector('.play-header__more-label')?.textContent ?? null })`,
+  ).then((s: string) => JSON.parse(s) as { lead: { l: number; r: number } | null; actions: { l: number; r: number } | null; sw: number; iw: number; moreVisible: boolean; moreLabel: string | null })
+async function checkHeaderLayout(label: string) {
+  const h = await headerProbe()
+  const overlap = !!h.lead && !!h.actions && h.lead.r > h.actions.l + 0.5
+  check(`${label}: .play-header__lead and .play-header__actions never overlap, no page-level horizontal scroll`, !overlap && h.sw <= h.iw + 1, JSON.stringify(h))
+  if (h.moreVisible) check(`${label}: the More trigger carries a visible label, not a bare "..." icon`, !!h.moreLabel && h.moreLabel.trim().length > 0, JSON.stringify(h.moreLabel))
+}
+
 // --- logging ---------------------------------------------------------------------------------
 interface Row { scenario: string; ok: boolean; detail: string }
 const rows: Row[] = []
@@ -290,11 +310,31 @@ check(
 await tapSel('.play-hint__actions .play-btn:not(.play-btn--primary)')
 check('the hint bar closes', (await count('.play-hint')) === 0)
 
+// SLAY-9.25: the unsolved header (timer, Legend, More), in Dutch.
+await checkHeaderLayout('unsolved (3-icon), Dutch')
+
 await tool('Meer')
 const moreLabels = (await evaluate(`JSON.stringify([...document.querySelectorAll('.play-more .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string))) as string[]
 check("the header's settings sheet reads in Dutch: Opties, Help (Legenda has its own header icon, SLAY-8.2)", JSON.stringify(moreLabels) === JSON.stringify(['Opties', 'Help']), moreLabels.join())
 await tap(3, 3)
 await sleep(300)
+
+// SLAY-9.25: the header's 4-icon state (once solved and dismissed, the persistent Share icon joins
+// timer/Legend/More), in Dutch -- reached by seeding a fully-correct saved board directly
+// (src/game/persistence.ts's own schema + puzzleFingerprint), the same shortcut this file already
+// uses below for the start screen's solved state, rather than a full interactive solve (drive.ts's
+// job, in English).
+const solvedId = dailyId(DAY.n)
+const solvedFp = puzzleFingerprint(DAY.puzzle)
+const solvedPlacements: Record<string, { row: number; col: number }> = {}
+for (const s of DAY.puzzle.solution) solvedPlacements[s.personId] = s.cell
+const solvedSave = JSON.stringify({ version: SAVE_VERSION, levelId: solvedId, fp: solvedFp, board: { placements: solvedPlacements, notes: {}, marks: {} }, elapsedMs: 754000 })
+await evaluate(`localStorage.setItem(${JSON.stringify(saveKey(solvedId))}, ${JSON.stringify(solvedSave)})`)
+await load('play')
+check('the seeded board opens already solved, in Dutch ("Opgelost!")', (await count('[data-result=solved]')) === 1 && (await textOf('.play-modal__title')) === 'Opgelost!')
+await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
+check('View the board (Bekijk het bord) dismisses the overlay; the persistent Share icon joins the header', (await count('[data-result=solved]')) === 0 && (await count('[data-action=share]')) === 1)
+await checkHeaderLayout('solved + dismissed (4-icon), Dutch')
 
 // 3. Stats (reachable without solving anything; StatsPanel uses the same Modal as Legend/Help/Options).
 await load('')

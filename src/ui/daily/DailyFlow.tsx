@@ -144,6 +144,14 @@ interface PlayRouteProps {
 /**
  * One day's puzzle plus a back button. PlayScreen has no "solved" callback, so it is given a storage that reports a solved save
  * (`observeSolve`); the play screen itself stays untouched. The help card opens by itself on the first visit of this browser.
+ *
+ * SLAY-9.25: the back button and the puzzle's date-based title used to render in a second bar
+ * (`.daily-play__nav`) absolutely positioned on top of PlayScreen's own header, with a right-hand
+ * width reserved by daily.css so the two never overlapped -- a calc() guess that SLAY-9.20 had to
+ * fix once already and that stayed fragile to any later change in the header's own icon count or
+ * label length. Both now go through PlayScreen's `title`/`back` props instead, so they render
+ * inside its one real `.play-header` flex row (src/ui/play/play.css), which lets the browser -- not
+ * a hand-tuned pixel budget -- decide how much room the title gets.
  */
 function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
   const t = useDailyStrings()
@@ -157,13 +165,17 @@ function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
   useEffect(() => recordPuzzleStart(storage, day.date), [day.date])
   return (
     <div className="daily-play">
-      <PlayScreen puzzle={day.puzzle} levelId={id} title="" themeIcons={themeIcons} portraits={day.portraits} storage={watched} firstVisitHelp resultShare={(solve) => <SharePanel result={resultOf(storage, day, solve)} meta={shareMetaOf(day)} />} />
-      <nav className="daily-play__nav">
-        <button type="button" className="daily-play__back" aria-label={t.backLabel} onClick={onBack}>
-          <span aria-hidden="true">{'‹'}</span> {t.back}
-        </button>
-        <span className="daily-play__title" data-play-title>{t.puzzleLabel(day.date)}</span>
-      </nav>
+      <PlayScreen
+        puzzle={day.puzzle}
+        levelId={id}
+        title={t.puzzleLabel(day.date)}
+        back={{ label: t.back, ariaLabel: t.backLabel, onClick: onBack }}
+        themeIcons={themeIcons}
+        portraits={day.portraits}
+        storage={watched}
+        firstVisitHelp
+        resultShare={(solve) => <SharePanel result={resultOf(storage, day, solve)} meta={shareMetaOf(day)} />}
+      />
       {banner && !noticeDismissed ? (
         <div className="daily-banner daily-banner--play" role="status" data-banner="new-puzzle">
           <span className="daily-banner__text">{t.rollover.banner}</span>
