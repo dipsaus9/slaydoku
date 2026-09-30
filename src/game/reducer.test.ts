@@ -279,41 +279,61 @@ describe('timer', () => {
   })
 })
 
-describe('the victim fills in on its own (SLAY-9.5)', () => {
+describe('the victim: the player places them, like anybody else (SLAY-9.24)', () => {
   it('is not placed while a suspect is still missing', () => {
     const s = run(fresh(), { type: 'place', personId: 'A', cell: at.A }, { type: 'place', personId: 'C', cell: at.C })
     expect(isPlaced(s.board, 'V')).toBe(false)
   })
 
-  it('fills the one square left the moment every suspect has a placement, whatever order they land in', () => {
+  it('is NOT auto-filled the instant every suspect has a placement, whatever order they land in', () => {
     const s = run(fresh(), { type: 'place', personId: 'B', cell: at.B }, { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'A', cell: at.A })
+    expect(isPlaced(s.board, 'V')).toBe(false)
+    expect(s.status).toBe('playing')
+  })
+
+  it('is placed once an explicit place action names them, on the one square left over', () => {
+    const suspectsDone = run(fresh(), { type: 'place', personId: 'B', cell: at.B }, { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'A', cell: at.A })
+    const s = run(suspectsDone, { type: 'place', personId: 'V', cell: at.V })
+    expect(s.board.placements.V).toEqual(at.V)
+    expect(s.status).toBe('solved')
+  })
+
+  it('is placed on whichever square is left over, even when a suspect stands on the wrong one', () => {
+    // A and C swapped: still every suspect placed, so the one cell nobody stands on is the victim's.
+    const suspectsDone = run(fresh(), { type: 'place', personId: 'A', cell: at.C }, { type: 'place', personId: 'C', cell: at.A }, { type: 'place', personId: 'B', cell: at.B })
+    const s = run(suspectsDone, { type: 'place', personId: 'V', cell: at.V })
     expect(s.board.placements.V).toEqual(at.V)
   })
 
-  it('fills in even when a suspect stands on the wrong square: whichever square is left over', () => {
-    // A and C swapped: still every suspect placed, so the victim takes the one cell nobody stands on.
-    const s = run(fresh(), { type: 'place', personId: 'A', cell: at.C }, { type: 'place', personId: 'C', cell: at.A }, { type: 'place', personId: 'B', cell: at.B })
-    expect(s.board.placements.V).toEqual(at.V)
-  })
-
-  it('keeps its own square when a suspect is lifted and placed again, no re-fill needed', () => {
-    // A and C swapped: every suspect is still placed and the victim fills in, but two are wrong,
-    // so the level stays open (a solved level locks the grid, see check.test.ts) and can be edited.
-    const filled = run(fresh(), { type: 'place', personId: 'A', cell: at.C }, { type: 'place', personId: 'C', cell: at.A }, { type: 'place', personId: 'B', cell: at.B })
+  it('is removable and re-placeable, like any other person', () => {
+    // A and C swapped, as above: the grid stays open (a solved level locks it, see check.test.ts)
+    // so remove/place on the victim actually reach the board instead of being no-ops.
+    const filled = run(
+      fresh(),
+      { type: 'place', personId: 'A', cell: at.C },
+      { type: 'place', personId: 'C', cell: at.A },
+      { type: 'place', personId: 'B', cell: at.B },
+      { type: 'place', personId: 'V', cell: at.V },
+    )
     expect(filled.board.placements.V).toEqual(at.V)
     expect(filled.status).toBe('playing')
-    const lifted = run(filled, { type: 'remove', personId: 'C' })
-    expect(lifted.board.placements.V).toEqual(at.V)
-    expect(isPlaced(lifted.board, 'C')).toBe(false)
-    const back = run(lifted, { type: 'place', personId: 'C', cell: at.A })
+    const lifted = run(filled, { type: 'remove', personId: 'V' })
+    expect(isPlaced(lifted.board, 'V')).toBe(false)
+    const back = run(lifted, { type: 'place', personId: 'V', cell: at.V })
     expect(back.board.placements.V).toEqual(at.V)
   })
 
-  it('erasing the victim off the grid is undone at once: the only empty square is theirs again', () => {
+  it('erasing the victim off the grid leaves that square empty, like any other person', () => {
     // A and C swapped, as above, so the grid stays open and the eraser actually reaches the cell.
-    const filled = run(fresh(), { type: 'place', personId: 'A', cell: at.C }, { type: 'place', personId: 'C', cell: at.A }, { type: 'place', personId: 'B', cell: at.B })
+    const filled = run(
+      fresh(),
+      { type: 'place', personId: 'A', cell: at.C },
+      { type: 'place', personId: 'C', cell: at.A },
+      { type: 'place', personId: 'B', cell: at.B },
+      { type: 'place', personId: 'V', cell: at.V },
+    )
     expect(filled.status).toBe('playing')
     const erased = run(filled, { type: 'eraseCell', cell: at.V })
-    expect(erased.board.placements.V).toEqual(at.V)
+    expect(isPlaced(erased.board, 'V')).toBe(false)
   })
 })

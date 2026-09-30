@@ -56,9 +56,14 @@ describe('round trip', () => {
   })
 
   it('restores a solved level as solved, with the frozen time', () => {
-    // played() already placed A; C then B completes every suspect, so the victim fills in on its
-    // own (SLAY-9.5) and this is the placement that solves the level.
-    const solved = run(played(), { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'B', cell: at.B, at: 9000 })
+    // played() already placed A; C then B completes every suspect, and the player's own final
+    // placement of the victim (SLAY-9.24: no more auto-fill) is what solves the level.
+    const solved = run(
+      played(),
+      { type: 'place', personId: 'C', cell: at.C },
+      { type: 'place', personId: 'B', cell: at.B },
+      { type: 'place', personId: 'V', cell: at.V, at: 9000 },
+    )
     expect(solved.status).toBe('solved')
     const storage = memory()
     saveGame(storage, 'lvl-1', fp, solved, 20000)
