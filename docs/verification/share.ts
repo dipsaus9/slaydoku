@@ -206,13 +206,21 @@ async function placeAll(puzzle: PuzzleJson) {
   return true
 }
 
-/** Opens the day on screen and solves it. The date override decides which day it is. */
+/** Opens the day on screen and solves it. The date override decides which day it is.
+ * SLAY-9.13: solving no longer navigates away -- the finish popover (ResultOverlay) shows right on
+ * /play. Dismiss it ("View the board") and leave the play screen (the back button) so the rest of
+ * this scenario, which reads the day's status from the start screen, finds it there. */
 async function solveDay(day: ScheduleDay): Promise<boolean> {
   await setDate(day.date)
   await load('play')
   if ((await count('.play-board')) !== 1) return false
   const ok = await placeAll(day.puzzle as unknown as PuzzleJson)
-  return ok && (await path()) === '/' && (await count('[data-result=solved]')) === 1
+  await sleep(500)
+  if (!ok || (await count('[data-result=solved]')) !== 1) return false
+  await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
+  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await sleep(500)
+  return (await path()) === '/'
 }
 
 // --- what the page recorded ------------------------------------------------------------------
@@ -255,6 +263,12 @@ async function scenario(w: number, h: number) {
   check('before solving: the share slot is empty', (await count('[data-slot=share] [data-share]')) === 0)
   check(`day #${DAY.n} (${DAY.date}, ${DAY.size}x${DAY.size}, ${DAY.tier}) is solved through the UI`, await solveDay(DAY))
 
+  // SLAY-9.13 (AC #4): the solved day's share card is a reopenable popover on the start screen, no
+  // longer shown inline -- open it with its own button before every check/interaction below. The
+  // opener and the panel's own Share button share `data-action="share"`, so once the popover is
+  // open the panel's button is reached with the `.play-modal`-scoped selector, never the bare one.
+  await tapSel('[data-slot=share] [data-action=share]')
+
   // The card on the start screen.
   const solved = (await evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(RESULTS_KEY)})).results[${DAY.n}]`)) as { n: number; date: string; elapsedMs: number; hints: number; wrongChecks: number }
   const expected = expectedLines(DAY, solved)
@@ -268,11 +282,12 @@ async function scenario(w: number, h: number) {
   // Share sheet that takes files.
   await setMode('files')
   await load('')
+  await tapSel('[data-slot=share] [data-action=share]')
   await sleep(700)
   const filesUi = await panelProbe()
   check('share sheet with files: Share is there, Copy and Download are not', !!filesUi && filesUi.buttons.includes('share') && !filesUi.buttons.includes('copy') && !filesUi.buttons.includes('download'), JSON.stringify(filesUi?.buttons))
   check('all buttons are at least 44px wide and 48px high', !!filesUi && filesUi.small === 0, String(filesUi?.small))
-  await tapSel('[data-action=share]')
+  await tapSel('.play-modal [data-action=share]')
   const wide = await sharedInfo(0)
   check('Share (wide): the share sheet gets the PNG and the text', !!wide && wide.files.length === 1 && wide.files[0]!.name === `slaydoku-${DAY.n}.png` && wide.files[0]!.type === 'image/png' && textMatches(wide.text, expected) && wide.title === `Slaydoku #${DAY.n}`, JSON.stringify(wide))
   const widePng = await probeBlob('window.__log.shared[0].files[0]')
@@ -284,17 +299,25 @@ async function scenario(w: number, h: number) {
   await tapSel('[data-format=square]')
   await sleep(900)
   check('the square shape is chosen and the preview is square', (await evaluate(`document.querySelector('[data-format=square]').getAttribute('aria-pressed')`)) === 'true' && ((await panelProbe())?.imgW ?? 0) === ((await panelProbe())?.imgH ?? -1))
-  await tapSel('[data-action=share]')
+  await tapSel('.play-modal [data-action=share]')
   const square = await sharedInfo(1)
   const squarePng = await probeBlob('window.__log.shared[1].files[0]')
   check('Share (square): the PNG is named slaydoku-<n>-square.png and is 1080x1080, really drawn', !!square && square.files[0]?.name === `slaydoku-${DAY.n}-square.png` && !!squarePng && squarePng.w === 1080 && squarePng.h === 1080 && squarePng.blue > 2000 && squarePng.white > 100000, JSON.stringify({ name: square?.files[0]?.name, squarePng }))
   await shot('03-shared-square')
   if (squarePng) await Bun.write(join(CARDS, `${viewport}-square.png`), Buffer.from(await blobBase64('window.__log.shared[1].files[0]'), 'base64'))
 
-  // Keyboard: Tab to Share, Enter.
+  // Keyboard: Tab to the opener, Enter opens the popover; Tab again to the panel's own Share
+  // button (the two share the same data-action, one behind the other), Enter shares.
   await load('')
   await sleep(700)
   let focused = ''
+  for (let i = 0; i < 25 && focused !== 'share'; i++) {
+    await press('Tab', 'Tab', 9)
+    focused = (await evaluate(`document.activeElement?.getAttribute('data-action') ?? ''`)) as string
+  }
+  await press('Enter', 'Enter', 13, '\r')
+  await sleep(400)
+  focused = ''
   for (let i = 0; i < 25 && focused !== 'share'; i++) {
     await press('Tab', 'Tab', 9)
     focused = (await evaluate(`document.activeElement?.getAttribute('data-action') ?? ''`)) as string
@@ -305,24 +328,28 @@ async function scenario(w: number, h: number) {
   // Text only.
   await setMode('text')
   await load('')
-  await tapSel('[data-action=share]')
+  await tapSel('[data-slot=share] [data-action=share]')
+  await tapSel('.play-modal [data-action=share]')
   const textOnly = await sharedInfo(0)
   check('share sheet without files: the text is shared alone', !!textOnly && textOnly.files.length === 0 && textMatches(textOnly.text, expected), JSON.stringify(textOnly))
 
   // The user closes the sheet; a sheet that fails.
   await setMode('abort')
   await load('')
-  await tapSel('[data-action=share]')
+  await tapSel('[data-slot=share] [data-action=share]')
+  await tapSel('.play-modal [data-action=share]')
   check('closing the share sheet is not an error (no message, no fallback buttons)', (await status()) === '' && (await count('[data-action=copy]')) === 0)
   await setMode('fail')
   await load('')
-  await tapSel('[data-action=share]')
+  await tapSel('[data-slot=share] [data-action=share]')
+  await tapSel('.play-modal [data-action=share]')
   check('a failing share sheet says so and offers Copy text and Download image', /did not work/.test(await status()) && (await count('[data-action=copy]')) === 1 && (await count('[data-action=download]')) === 1, await status())
   await shot('04-share-failed')
 
   // No share sheet: copy and download.
   await setMode('none')
   await load('')
+  await tapSel('[data-slot=share] [data-action=share]')
   await sleep(700)
   const none = await panelProbe()
   check('no share sheet: Copy text and Download image instead of Share', !!none && !none.buttons.includes('share') && none.buttons.includes('copy') && none.buttons.includes('download'), JSON.stringify(none?.buttons))
@@ -356,6 +383,7 @@ async function scenario(w: number, h: number) {
   // No clipboard API either: the textarea fallback.
   await setMode('noclip')
   await load('')
+  await tapSel('[data-slot=share] [data-action=share]')
   await tapSel('[data-action=copy]')
   const exec = (await evaluate('window.__log.execCopied[0] ?? null')) as { cmd: string; value: string } | null
   check('no clipboard API: Copy text falls back to a textarea and execCommand("copy")', !!exec && exec.cmd === 'copy' && textMatches(exec.value, expected) && /Copied/.test(await status()), JSON.stringify(exec))
@@ -367,6 +395,7 @@ async function scenario(w: number, h: number) {
   )
   await setDate(SEEDED.date)
   await load('')
+  await tapSel('[data-slot=share] [data-action=share]')
   const seededExpected = expectedLines(SEEDED, { n: SEEDED.n, date: SEEDED.date, elapsedMs: 252_000, hints: 2, wrongChecks: 1 })
   const seededText = await shareText()
   check('a result with 2 hints and 1 wrong check: "04:12 · 2 hints" and yellow and red squares', textMatches(seededText, seededExpected) && seededText.includes('⏱ 04:12 · 💡 2 hints') && seededText.split('\n')[2] === '🟦'.repeat(SEEDED.size - 3) + '🟨🟨🟥', JSON.stringify(seededText))

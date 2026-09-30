@@ -4,6 +4,7 @@ title: Fix docs/verification/share.ts for post-SLAY-9.13 behavior
 status: To Do
 assignee: []
 created_date: '2026-09-29 21:02'
+updated_date: '2026-09-30 05:58'
 labels:
   - story
 dependencies: []
@@ -26,12 +27,14 @@ Found while delivering SLAY-9.19 (confirmed pre-existing on a clean main build, 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 bun run verify:phone's share.ts suite passes cleanly (0 failures) across all viewports
-- [ ] #2 The fix follows the same approach SLAY-9.19 already used for drive.ts/stats.ts (check the finish overlay on /play, dismiss via 'View the board', reach the start screen via the nav back button) rather than reinventing it
+- [x] #1 bun run verify:phone's share.ts suite passes cleanly (0 failures) across all viewports
+- [x] #2 The fix follows the same approach SLAY-9.19 already used for drive.ts/stats.ts (check the finish overlay on /play, dismiss via 'View the board', reach the start screen via the nav back button) rather than reinventing it
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Same class of issue as SLAY-9.10/9.11/9.19. Read SLAY-9.19's diff to drive.ts/stats.ts first — the fix shape is already established there.
+
+bun run verify:phone SUITES=share: 162 checks, 0 failures across all 6 viewports (360x640, 390x844, 430x932, 844x390, 1024x768, 768x1024). Root cause and solveDay() fix matched SLAY-9.19's established shape (solve on /play, check the finish overlay embedded there via resultShare, dismiss with 'View the board', nav back button to start). Additionally: SLAY-9.13 also turned the start screen's share card into a reopenable popover (a Share button next to View board), not shown inline -- share.ts's own deep panel checks (preview, text, formats, Share/Copy/Download, keyboard, offline) needed the same popover-open step before each interaction, plus a .play-modal-scoped selector for the panel's own Share button (it shares data-action=share with the popover's opener button). lint, typecheck and test --maxWorkers=1 (142 files / 3052 tests) all green.
 <!-- SECTION:NOTES:END -->
