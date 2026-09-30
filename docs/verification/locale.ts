@@ -197,6 +197,11 @@ await sleep(1500)
 await evaluate(`localStorage.clear(); ${seedStorage(PLAY_DATE, true, 'en')}`)
 await load('')
 check('baseline: start screen loads in English', (await textOf('[data-action=play]')) === 'Play' && (await textOf('[data-tier]')) === 'Difficulty: Hard')
+// SLAY-9.22: the footer's About and Support links, English baseline (the Dutch switch is checked further down).
+check(
+  'baseline footer: About Slaydoku and Support Slaydoku, in English',
+  (await textOf('.daily__about')) === 'About Slaydoku' && (await textOf('a[href="https://github.com/sponsors/dipsaus9"]')) === 'Support Slaydoku',
+)
 check(
   'the language toggle is reachable: EN and NL options, EN pressed to start',
   (await count('[data-locale-option=en]')) === 1 &&
@@ -220,6 +225,13 @@ check(
 check(
   'no leftover English on the switched start screen',
   (await textOf('[data-tier]')) !== 'Difficulty: Hard' && (await textOf('[data-action=play]')) !== 'Play',
+)
+// SLAY-9.22: the footer reads in Dutch after the switch too, same quiet weight (same class), same GitHub Sponsors URL.
+check(
+  'the footer reads in Dutch after the switch: Over Slaydoku · Steun Slaydoku, same class as About (quiet weight)',
+  (await textOf('.daily__about')) === 'Over Slaydoku' &&
+    (await textOf('a[href="https://github.com/sponsors/dipsaus9"]')) === 'Steun Slaydoku' &&
+    (await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.className`)) === 'daily__about',
 )
 check(
   'the toggle stays reachable and correctly labeled after switching: NL now pressed, both options still shown',
@@ -306,10 +318,21 @@ await load('about')
 const aboutText = (await evaluate(`document.querySelector('.about')?.innerText ?? ''`)) as string
 check(
   'About reads in Dutch: title, tagline, every section title',
-  ['Over Slaydoku', 'Elke dag een nieuwe moordmysteriepuzzel', 'Hoe het werkt', 'Met dank aan', 'Privacy', 'Open source'].every((t) => aboutText.includes(t)),
+  ['Over Slaydoku', 'Elke dag een nieuwe moordmysteriepuzzel', 'Hoe het werkt', 'Met dank aan', 'Privacy', 'Open source', 'Steun Slaydoku'].every((t) => aboutText.includes(t)),
   aboutText.slice(0, 200),
 )
-check('About has no leftover English title or tagline', !aboutText.includes('About Slaydoku') && !aboutText.includes('A new murder mystery puzzle every day'))
+check(
+  'About has no leftover English title, tagline or Support wording',
+  !aboutText.includes('About Slaydoku') && !aboutText.includes('A new murder mystery puzzle every day') && !aboutText.includes('Support Slaydoku'),
+)
+// SLAY-9.22: the Dutch About page's own Support section links to the same GitHub Sponsors URL, quietly (no button class), opening in a new tab.
+check(
+  'About page (nl): the Steun Slaydoku section links to GitHub Sponsors, quietly, opening in a new tab',
+  (await textOf('a[href="https://github.com/sponsors/dipsaus9"]')) === 'GitHub Sponsors' &&
+    (await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.className`)) === 'about__link' &&
+    (await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.getAttribute('target')`)) === '_blank' &&
+    ((await evaluate(`document.querySelector('a[href="https://github.com/sponsors/dipsaus9"]')?.getAttribute('rel')`)) as string)?.includes('noopener'),
+)
 
 // 5. Share, on a solved day (result seeded directly, the same shortcut drive.ts uses for its own solved-start-screen state; playing the day end to end is drive.ts's job, in English). Headless Chrome has no
 // navigator.share, so the SharePanel renders its fallback Copy/Download buttons (share.ts's own 'none' mode), never the Share button (share.supported is false) — the same on every locale.

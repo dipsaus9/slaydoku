@@ -276,9 +276,13 @@
 }
 
 .daily__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  column-gap: 6px;
   width: 100%;
   margin-top: 16px;
-  text-align: center;
 }
 
 .daily__about {
@@ -288,6 +292,12 @@
   padding: 0 12px;
   color: inherit;
   opacity: 0.75;
+}
+
+/* Same quiet dot pattern as the byline/meta separators (SLAY-9.22): the footer's About and
+   Support links read as one quiet row, neither styled as a primary action. */
+.daily__footer-sep {
+  opacity: 0.5;
 }
 
 /* ---- buttons ------------------------------------------------------------------------ */

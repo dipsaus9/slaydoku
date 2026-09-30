@@ -48,6 +48,14 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
     expect(html).toContain(t.openSource.text)
   })
 
+  it('links to GitHub Sponsors, quietly and opening in a new tab (SLAY-9.22)', () => {
+    expect(html).toContain(t.support.title)
+    expect(html).toContain(t.support.text)
+    expect(html).toMatch(
+      /<a[^>]*href="https:\/\/github\.com\/sponsors\/dipsaus9"[^>]*class="about__link"[^>]*target="_blank"[^>]*rel="noopener noreferrer"/,
+    )
+  })
+
   it('links back to the puzzles with a real href, and shows the tagline', () => {
     expect(html).toMatch(/<a[^>]*href="\/"[^>]*class="about__back"|<a[^>]*class="about__back"[^>]*href="\/"/)
     expect(html).toContain(t.tagline)
@@ -56,7 +64,7 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
   it('has one h1, one main landmark and labelled sections', () => {
     expect(html.match(/<h1/g)).toHaveLength(1)
     expect(html.match(/<main/g)).toHaveLength(1)
-    expect(html.match(/<section[^>]*aria-labelledby=/g)).toHaveLength(4)
+    expect(html.match(/<section[^>]*aria-labelledby=/g)).toHaveLength(5)
   })
 
   it('shows every section title and the back link text', () => {
@@ -66,6 +74,7 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
     expect(text).toContain(t.credit.title)
     expect(text).toContain(t.privacy.title)
     expect(text).toContain(t.openSource.title)
+    expect(text).toContain(t.support.title)
     expect(text).toContain(t.back)
   })
 })

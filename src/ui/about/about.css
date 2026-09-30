@@ -79,3 +79,10 @@
 .about__steps li {
   margin-bottom: 6px;
 }
+
+/* Sponsors link (SLAY-9.22): inline in a body sentence, not a button -- quiet like every other
+   link on this page (about__back), never styled as a primary call-to-action. */
+.about__link {
+  color: inherit;
+  text-decoration: underline;
+}

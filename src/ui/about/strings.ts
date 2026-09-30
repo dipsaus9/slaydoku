@@ -8,6 +8,8 @@ interface AboutStrings {
   credit: { title: string; inspired: string; original: string }
   privacy: { title: string; text: string }
   openSource: { title: string; text: string }
+  /** Quiet GitHub Sponsors section, near the open-source one (SLAY-9.22). */
+  support: { title: string; text: string; link: string }
 }
 
 /** Everything the About page says, in English. The one file to edit to change its wording. */
@@ -37,6 +39,11 @@ export const ABOUT_EN: AboutStrings = {
     title: 'Open source',
     text: 'Slaydoku is open source, released under the MIT license.',
   },
+  support: {
+    title: 'Support Slaydoku',
+    text: 'Enjoying the puzzle? Slaydoku has no ads and no accounts — if you’d like to support its development, you can do so on',
+    link: 'GitHub Sponsors',
+  },
 }
 
 /** Dutch wording of the About page. 'Slaydoku' is a brand name and stays unchanged. */
@@ -65,6 +72,11 @@ export const ABOUT_NL: AboutStrings = {
   openSource: {
     title: 'Open source',
     text: 'Slaydoku is open source, uitgebracht onder de MIT-licentie.',
+  },
+  support: {
+    title: 'Steun Slaydoku',
+    text: 'Vind je de puzzel leuk? Slaydoku heeft geen advertenties en geen accounts — als je de ontwikkeling wilt steunen, kan dat via',
+    link: 'GitHub Sponsors',
   },
 }
 
