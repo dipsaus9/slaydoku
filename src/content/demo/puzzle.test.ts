@@ -6,7 +6,7 @@ import { auditObjectNames } from '../../engine/clues/objectNames.ts'
 import { deriveMurderer, parsePuzzle, validateSolution } from '../../engine/model/index.ts'
 import { solveHuman } from '../../engine/solver/human/index.ts'
 import { verifyPuzzle } from '../../engine/solver/index.ts'
-import { SOLVABLE_TIERS, ladderCheck, ladderMeetsTier, ladderOptions, tierFor } from '../../engine/solvable/index.ts'
+import { SOLVABLE_TIERS, ladderCapsFor, ladderCheck, ladderMeetsTier, ladderOptions, tierFor } from '../../engine/solvable/index.ts'
 import { auditClues, auditHints, walkHints } from '../../validation/index.ts'
 import { castProblems } from '../cast/index.ts'
 import { ladderCast } from '../../engine/generator/ladder/index.ts'
@@ -48,13 +48,14 @@ describe('the demo level (ladder tier easy, seed 2, victim on the sofa)', () => 
 
   it('is on the easy tier of the human-solvability scale, and on no easier one', () => {
     expect(tierFor(puzzle)).toBe('easy')
-    const ladder = ladderCheck(puzzle, ladderOptions(rule))
+    const caps = ladderCapsFor(rule, puzzle.scene.width)
+    const ladder = ladderCheck(puzzle, ladderOptions(rule, puzzle.scene.width))
     expect(ladder.ok).toBe(true)
     expect(ladderMeetsTier(puzzle, ladder, rule)).toBe(true)
     const withCards = ladder.steps.filter((s) => s.clues.length > 0)
     expect(withCards.length).toBe(puzzle.people.length - 1)
-    for (const step of withCards) expect(step.squaresFromCards, label(step.personId)).toBeLessThanOrEqual(rule.maxSquaresFromCards)
-    expect(ladder.chainLength).toBeLessThanOrEqual(rule.maxChain)
+    for (const step of withCards) expect(step.squaresFromCards, label(step.personId)).toBeLessThanOrEqual(caps.maxSquaresFromCards)
+    expect(ladder.chainLength).toBeLessThanOrEqual(caps.maxChain)
   })
 
   it('needs no more hint requests than 1.3 x the number of people, and the first hint places somebody', () => {

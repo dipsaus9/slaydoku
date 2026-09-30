@@ -10,8 +10,8 @@ import { verifyPuzzle } from '../../engine/solver/index.ts'
 import { auditClues, auditHints } from '../../validation/index.ts'
 import { solveAdvanced } from '../../engine/solver/advanced/index.ts'
 import type { HumanResult } from '../../engine/solver/human/index.ts'
-import { scoreBandProblem } from '../../engine/difficulty/index.ts'
-import { SOLVABLE_TIERS, assessTier, ladderCheck, ladderMeetsTier, ladderOptions } from '../../engine/solvable/index.ts'
+import { puzzleScoreV2, scoreBandProblem } from '../../engine/difficulty/index.ts'
+import { SOLVABLE_TIERS, assessTier, ladderCapsFor, ladderCheck, ladderMeetsTier, ladderOptions } from '../../engine/solvable/index.ts'
 import { castProblems } from '../cast/index.ts'
 import { VICTIM_LABEL, packId } from './ids.ts'
 import type { PackEntry, PackRating } from './types.ts'
@@ -136,17 +136,20 @@ export function entryProblems(entry: PackEntry): string[] {
   if (isLadderTier(entry.tier)) {
     // Very easy to medium are defined by the human-solvability ladder, not by bands of the old score (CAD-8.5); the score v2 band is checked below for every tier.
     const rule = SOLVABLE_TIERS.find((t) => t.id === entry.tier)!
-    const ladder = ladderCheck(puzzle, ladderOptions(rule))
+    const ladder = ladderCheck(puzzle, ladderOptions(rule, size))
     if (!ladderMeetsTier(puzzle, ladder, rule)) {
+      const caps = ladderCapsFor(rule, size)
       at(
         `ladderCheck: not solvable on the ${entry.tier} ladder (${rule.maxCards} card(s) per placement, person references ${rule.references ? 'on' : 'off'}, ` +
-          `cards leave at most ${rule.maxSquaresFromCards} squares (${rule.lastSquaresFromCards} in the last placements), chain of at most ${rule.maxChain})`,
+          `cards leave at most ${caps.maxSquaresFromCards} squares (${caps.lastSquaresFromCards} in the last placements), chain of at most ${caps.maxChain})`,
       )
     }
   } else {
     if (rating.level < tier.minTechniqueLevel || rating.level > tier.maxTechniqueLevel) at(`technique level ${rating.level} outside ${tier.id}`)
   }
-  const measured = assessTier(puzzle).tier
+  // SLAY-13.2: hard/expert are classified from the same score v2 the band check below already needs, size-banded
+  // (SOLVABLE_TIERS[].scoreBandBySize), so assessTier's verdict and the band check agree on one number.
+  const measured = assessTier(puzzle, puzzleScoreV2(puzzle).score).tier
   if (measured !== entry.tier) at(`tierFor gives ${measured}, not ${entry.tier}`)
   // Score v2 (CAD-5.6): inside the tier's band of the one table (SOLVABLE_TIERS), unless the puzzle is a documented exception.
   const bandProblem = scoreBandProblem(puzzle, entry.tier, entry.id)

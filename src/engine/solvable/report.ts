@@ -1,6 +1,6 @@
 import type { Puzzle } from '../model/index.ts'
 import { assessTier, SOLVABLE_TIERS } from './tiers.ts'
-import type { SolvableTierId } from './tiers.ts'
+import type { SizeBandId, SolvableTierId } from './tiers.ts'
 import { precision } from './precision.ts'
 import { readingsBeforeFirstPlacement } from './readings.ts'
 
@@ -61,9 +61,8 @@ export interface SolvabilityReport {
     references: boolean
     maxTopShare: number
     minPlaceableAlone: number
-    maxSquaresFromCards: number
-    lastSquaresFromCards: number
-    maxChain: number
+    /** The CAD-8.7 caps per size band (SLAY-13.1): `small` is {6,7}, `large` is {9,12}. */
+    bySize: Record<SizeBandId, { maxSquaresFromCards: number; lastSquaresFromCards: number; maxChain: number }>
     method: string
   }[]
   houseLevels: ReportRow[]
@@ -119,15 +118,13 @@ export function buildSolvabilityReport(input: { houseLevels: NamedPuzzle[]; pack
   }
   return {
     version: 1,
-    tiers: SOLVABLE_TIERS.map(({ id, maxCards, references, maxTopShare, minPlaceableAlone, maxSquaresFromCards, lastSquaresFromCards, maxChain, method }) => ({
+    tiers: SOLVABLE_TIERS.map(({ id, maxCards, references, maxTopShare, minPlaceableAlone, bySize, method }) => ({
       id,
       maxCards,
       references,
       maxTopShare: Math.round(maxTopShare * 1000) / 1000,
       minPlaceableAlone,
-      maxSquaresFromCards,
-      lastSquaresFromCards,
-      maxChain,
+      bySize,
       method,
     })),
     houseLevels,

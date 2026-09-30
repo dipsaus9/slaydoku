@@ -10,7 +10,7 @@ import { cardsOf } from '../../solvable/cards.ts'
 import type { Card } from '../../solvable/cards.ts'
 import { ladderCheck } from '../../solvable/ladder.ts'
 import type { LadderResult } from '../../solvable/ladder.ts'
-import { SOLVABLE_TIERS, assessTier, ladderMeetsTier, ladderOptions } from '../../solvable/tiers.ts'
+import { SOLVABLE_TIERS, assessTier, ladderCapsFor, ladderMeetsTier, ladderOptions } from '../../solvable/tiers.ts'
 import type { SolvableTier, SolvableTierId } from '../../solvable/tiers.ts'
 import { makePeople } from '../generate.ts'
 import { GeneratorError, samplePlacement } from '../placement.ts'
@@ -215,6 +215,7 @@ export function generateLadder(scene: Scene, tier: LadderTierId, seed: number, o
   if (scene.width < 3 || scene.width > 27) return fail('unsupported', `Unsupported grid size ${scene.width}: use 3 to 27.`)
 
   const rule = tierRule(tier)
+  const caps = ladderCapsFor(rule, scene.width)
   const exact = options.exact ?? true
   const budgetMs = options.budgetMs ?? DEFAULT_BUDGET_MS
   const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS
@@ -242,7 +243,7 @@ export function generateLadder(scene: Scene, tier: LadderTierId, seed: number, o
         // One card per placement is only possible where the people stand right: choose the cells along the path.
         sampled = guidedSolution(scene, stateFreeTable(scene, tier, allowed), rng, {
           victimCell: options.victimCell, entries: rule.minPlaceableAlone, lineCap, nodeBudget: 800,
-          maxSquares: rule.maxSquaresFromCards, lastSquares: rule.lastSquaresFromCards,
+          maxSquares: caps.maxSquaresFromCards, lastSquares: caps.lastSquaresFromCards,
         })
         if (!sampled) {
           rejections['no-path']++
@@ -268,9 +269,9 @@ export function generateLadder(scene: Scene, tier: LadderTierId, seed: number, o
         references: rule.references,
         maxTopSteps: rule.maxTopShare < 1 ? Math.floor(people.length * rule.maxTopShare + 1e-9) : Infinity,
         minPlaceableAlone: rule.minPlaceableAlone,
-        maxSquares: rule.maxSquaresFromCards,
-        lastSquares: rule.lastSquaresFromCards,
-        maxChain: rule.maxChain,
+        maxSquares: caps.maxSquaresFromCards,
+        lastSquares: caps.lastSquaresFromCards,
+        maxChain: caps.maxChain,
         lineCap,
         schedule: scheduleFor(rule, people.length, rng, exact),
       }
@@ -307,7 +308,7 @@ export function generateLadder(scene: Scene, tier: LadderTierId, seed: number, o
       ]
       return {
         ok: true, puzzle, tier, assessed: rejected.assessed, order: steps.map((s) => s.personId), steps,
-        ladder: ladderCheck(puzzle, ladderOptions(rule)), seed, attempts,
+        ladder: ladderCheck(puzzle, ladderOptions(rule, scene.width)), seed, attempts,
         elapsedMs: elapsed(), rejections,
       }
     }
@@ -323,7 +324,7 @@ function judge(puzzle: Puzzle, rule: SolvableTier, tier: LadderTierId, exact: bo
   // The clue audit of the pack gate (readable one-sentence cards, no card said twice, kinds the tier allows, enough direct cards).
   // Judged with cast names: the audit counts the "en" of a combined card and strips the names first, and a letter label (A, B ...) would eat letters of the text.
   if (auditClues(withCastLabels(puzzle), tier).length > 0) return { reason: 'audit' }
-  const ladder = ladderCheck(puzzle, ladderOptions(rule))
+  const ladder = ladderCheck(puzzle, ladderOptions(rule, puzzle.scene.width))
   if (!ladderMeetsTier(puzzle, ladder, rule)) return { reason: 'ladder' }
   const assessed = assessTier(puzzle).tier
   if (exact && assessed !== tier) return { reason: 'tier' }
