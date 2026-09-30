@@ -94,9 +94,9 @@ What this means:
 - **Variety is the real cap.** A cell with 20 puzzles is 20 boards of one theme and size; whether a player finds them different is a matter of taste that
   the numbers cannot answer. Regenerate a sample and look at it before raising the count a lot.
 - **The weak cells** are very-easy at 16 (`variety` rejects a very-easy puzzle with too few kinds of card, or one kind used too often -- see "Known
-  findings") and easy at 9 (`score-band`). Very-easy at 9 recovered with the size-banding epic (SLAY-13.2/13.3): it now measures 37% at 200 seeds
-  (`school` theme), comfortably clear of the floor, so it is no longer counted among the weak cells. If a cell has to give many puzzles, that is where a
-  generator change pays off most.
+  findings") and easy at 9 (`score-band`). Very-easy at 9 recovered with the size-banding epic (SLAY-13.2/13.3): a newer, wider, single-theme sample
+  (200 seeds, `school`, distinct from the mixed-theme table above) now measures 37%, comfortably clear of the floor, so it is no longer counted among
+  the weak cells. If a cell has to give many puzzles, that is where a generator change pays off most.
 - The pack tool builds cells in parallel too: 300 puzzles took 6 to 8 minutes at `--jobs 12`, so `--count 10` (about 1500 puzzles) is a matter of an hour or two,
   dominated by the 16x16 hard and expert files.
 
