@@ -4,7 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
-import { UpdateNotice, updater } from './pwa/index.ts'
+import { InstallNotice, UpdateNotice, installStore, updater } from './pwa/index.ts'
 import { installCanonicalLink } from './ui/canonical/index.ts'
 import { getRouter } from './ui/router/index.ts'
 import { installScreenTitles } from './ui/title/index.ts'
@@ -18,6 +18,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
     <UpdateNotice updater={updater} />
+    <InstallNotice store={installStore} />
     {/* Vercel Web Analytics and Speed Insights: page views and Core Web Vitals, aggregate only, no cookie.
         Both no-op with a console notice until the corresponding toggle is switched on for this project
         in the Vercel dashboard (Analytics / Speed Insights tabs) — an owner-only step, see docs/launch.md. */}

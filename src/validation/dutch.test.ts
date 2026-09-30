@@ -20,7 +20,8 @@ import { DUTCH_RE, DUTCH_WORDS, wordMatcher } from './dutch.ts'
  * interface text under src/ui and src/pwa are English since SLAY-1.2 — except the deliberate exceptions below: the
  * `*_NL` translation objects of the `strings.ts` files the language toggle covers (`ui/daily/`, `ui/play/` since
  * SLAY-3.4; `ui/about/`, `ui/stats/`, `ui/share/`, `pwa/` since SLAY-3.5; `content/help/help.ts`'s `HELP_NL` and
- * `ui/play/glossary.ts`'s `GLOSSARY_NL`/`EXTRA_TERMS_NL` since SLAY-9.7), which are blanked out before scanning so
+ * `ui/play/glossary.ts`'s `GLOSSARY_NL`/`EXTRA_TERMS_NL` since SLAY-9.7; `pwa/strings.ts`'s second exception
+ * `INSTALL_NL` since SLAY-9.23), which are blanked out before scanning so
  * their Dutch is not flagged as a leak, while the `_EN` objects right next to them stay fully guarded.
  */
 const SCANNED = ['../engine/', '../game/', '../validation/', '../content/', '../ui/', '../pwa/', '../brand/', '../App.tsx', '../main.tsx']
@@ -137,7 +138,7 @@ const NL_EXCEPTIONS: Record<string, readonly string[]> = {
   '/ui/about/strings.ts': ['ABOUT_NL'],
   '/ui/stats/strings.ts': ['STATS_NL'],
   '/ui/share/strings.ts': ['SHARE_NL'],
-  '/pwa/strings.ts': ['UPDATE_NL'],
+  '/pwa/strings.ts': ['UPDATE_NL', 'INSTALL_NL'],
   '/content/help/help.ts': ['HELP_NL'],
   '/ui/play/glossary.ts': ['GLOSSARY_NL', 'EXTRA_TERMS_NL'],
 }
