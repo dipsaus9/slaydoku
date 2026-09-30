@@ -33,6 +33,17 @@ export interface PlayScreenProps {
   levelId: string
   /** Heading in the top bar. */
   title?: string
+  /**
+   * A back control at the header's left edge, before the title (SLAY-9.25). The daily flow passes
+   * one (back to the start screen); the lab harness (src/ui/lab/LabPlay.tsx) brings its own bar
+   * instead and leaves this unset. Living inside `.play-header` itself -- one flex row, the title
+   * shrinking with `min-width: 0` and an ellipsis fallback -- replaces what used to be a second,
+   * separately-overlaid bar (`daily.css`'s old `.daily-play__nav`) whose right-hand reserve had to
+   * be hand-calculated against this header's own icon row and drifted out of sync with it whenever
+   * that row's icon count or label length changed (SLAY-9.20 patched one such drift; this unifies
+   * the two layers instead of patching the next one).
+   */
+  back?: { label: string; ariaLabel: string; onClick: () => void }
   /** Floor pattern per room id (the house levels bring their own). */
   roomStyles?: Partial<Record<string, FloorPattern>>
   /** Own theme art per object id, for random themed boards (see SceneObjectIcons). */
@@ -86,7 +97,7 @@ function nextUnplaced(order: readonly string[], from: string, placed: (id: strin
  * through the game store (src/game), so it is undoable, saved per level and auto-checked.
  * Built for iPad Safari in landscape and portrait (see play.css).
  */
-export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false, resultShare }: PlayScreenProps) {
+export function PlayScreen({ puzzle: given, levelId, title: givenTitle, back, roomStyles, themeIcons, portraits, storage, now, castSeed, firstVisitHelp = false, resultShare }: PlayScreenProps) {
   const strings = usePlayStrings()
   const { locale } = useLocale()
   // The "peek" chip's own text (below) used to import the English-only `help` fallback constant
@@ -221,7 +232,20 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
   return (
     <div className="play" data-status={state.status} data-hint={hintLevel !== 0 ? '' : undefined}>
       <header className="play-header">
-        <h1 className="play-header__title">{title}</h1>
+        <div className="play-header__lead">
+          {/* SLAY-9.25: the visible "Back"/"Terug" text is its own span, not a bare text node, so
+              the phone-width rules in play.css can drop it (keeping just the "‹") when the header
+              is tight -- real phone widths (360-390px) rarely have room for a labeled back button,
+              a real title and the icon row's worst case (4 icons, a running timer) all at once. The
+              aria-label keeps the full "back to the start screen" wording either way. */}
+          {back ? (
+            <button type="button" className="play-header__back" aria-label={back.ariaLabel} onClick={back.onClick}>
+              <span aria-hidden="true">{'‹'}</span>
+              <span className="play-header__back-label">{back.label}</span>
+            </button>
+          ) : null}
+          <h1 className="play-header__title" data-play-title>{title}</h1>
+        </div>
         <div className="play-header__actions">
           {state.options.showTimer ? (
             <button
@@ -278,14 +302,20 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, roomStyl
           >
             <ToolIcon name="legend" />
           </button>
+          {/* SLAY-9.25: a visible label next to the dots -- a bare "..." icon read as unclear on
+              its own (the owner's report). aria-label stays: it matches the visible text exactly
+              (WCAG 2.5.3), so it changes nothing for a screen reader, only guards against the label
+              text ever drifting from what the button actually opens. */}
           <button
             type="button"
             className="play-header__more"
             aria-label={strings.tools.more}
-            aria-pressed={moreOpen}
+            aria-haspopup="dialog"
+            aria-expanded={moreOpen}
             onClick={() => setMoreOpen(true)}
           >
             <ToolIcon name="more" />
+            <span className="play-header__more-label" aria-hidden="true">{strings.tools.more}</span>
           </button>
         </div>
       </header>

@@ -15,7 +15,7 @@ const base: DifficultyMetrics = {
   ladderSolved: true,
   cardsPerPlacement: 1.5,
   referenceShare: 0.2,
-  squaresFromCards: 3,
+  squaresFromCards: 1.73,
   ladderChain: 1,
   placeableAloneShare: 0.2,
 }
@@ -76,6 +76,16 @@ describe('scoreV2', () => {
     const small = scoreV2({ ...base, people: 6, steps: 12 }).parts.steps
     const big = scoreV2({ ...base, people: 12, steps: 24 }).parts.steps
     expect(big).toBe(small)
+  })
+
+  it('scores squares by grid size: a small and a large grid with equivalent relative openness score the same (SLAY-13.3), where a raw count would have scored the large grid harder just from its size', () => {
+    const small = scoreV2({ ...base, people: 6, squaresFromCards: 1.2 }).parts.squares
+    const big = scoreV2({ ...base, people: 12, squaresFromCards: 2.4 }).parts.squares
+    expect(big).toBe(small)
+    // Same absolute squaresFromCards on the two sizes is NOT equivalent openness: the smaller grid reads harder.
+    const smallSameRaw = scoreV2({ ...base, people: 6, squaresFromCards: 1.8 }).parts.squares
+    const bigSameRaw = scoreV2({ ...base, people: 12, squaresFromCards: 1.8 }).parts.squares
+    expect(smallSameRaw).toBeGreaterThan(bigSameRaw)
   })
 
   it('takes weights: only the level part when all other weights are 0', () => {

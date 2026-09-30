@@ -25,15 +25,37 @@ It returns `ok`, the ordered `steps` and, when it gets stuck, who is left and ho
 
 ## The tiers (`SOLVABLE_TIERS` in `src/engine/solvable/tiers.ts`)
 
-| Tier | Cards per placement | Person references | Squares left by a placement's own cards | Chain |
-|---|---|---|---|---|
-| very-easy | 1 | no | at most 4 (3 in the last placements); at least 2 people placeable from their own card alone | at most 2 |
-| easy | 1 or 2 (at most a third use 2) | no | at most 6 (3) | at most 2 |
-| easy-medium | at most 2 | no | at most 9 (3) | at most 3 |
-| medium | at most 3 | yes, once the referent is placed | at most 14 (3) | at most 3 |
-| hard, expert | needs the hint solver's advanced techniques | | | |
+`maxCards`, person references and `maxTopShare` are flat across every grid size: a calibration spike (SLAY-13.1) found no evidence a small
+grid needs a different cards-per-placement cap. The squares-per-card and chain caps ARE size-banded: `sizeBandOf(size)` puts {6,7} in the
+`'small'` band and {9,12} in the `'large'` band, and each ladder tier's `bySize` gives that band its own numbers -- tighter on `'small'`
+(a flat cap is organically easier to clear on a 6x6 than a 12x12), looser on `'large'` (the same flat cap sat closer to binding there).
+`ladderOptions(tier, size)` resolves the right band for a given grid before `ladderCheck` runs.
 
-`tierFor(puzzle)` gives the easiest tier whose rules the puzzle meets; `assessTier` gives the verdict per ladder tier.
+| Tier | Cards per placement | Person references | Squares left by a placement's own cards ({6,7} / {9,12}) | Chain ({6,7} / {9,12}) |
+|---|---|---|---|---|
+| very-easy | 1 | no | at most 4 (3 in the last placements) / at most 4 (3); at least 2 people placeable from their own card alone | at most 2 / at most 3 |
+| easy | 1 or 2 (at most a third use 2) | no | at most 5 (3) / at most 8 (4) | at most 2 / at most 3 |
+| easy-medium | at most 2 | no | at most 6 (3) / at most 10 (4) | at most 2 / at most 4 |
+| medium | at most 3 | yes, once the referent is placed | at most 8 (3) / at most 16 (4) | at most 3 / at most 4 |
+| hard, expert | needs the hint solver's advanced techniques (see below for the size-banded threshold) | | | |
+
+`tierFor(puzzle)` gives the easiest tier whose rules the puzzle meets; `assessTier` gives the verdict per ladder tier, resolving every
+ladder tier's caps from the puzzle's own grid size.
+
+### hard and expert (SLAY-13.2)
+
+Hard and expert have no ladder caps to band (`method: 'advanced'`, `bySize` is 0-filled): what decides them is the hint solver's hardest
+technique level (`level < 5` is a hard candidate, else expert) and, secondarily, where the puzzle's score v2 (`src/engine/difficulty`) falls
+in `SOLVABLE_TIERS[].scoreBandBySize`. `assessTier(puzzle, scoreV2?)` keeps the technique level as the coarse guard and, when a caller
+supplies the puzzle's score v2, refines hard vs. expert by the size-banded band instead -- the same band `scoreBandProblem` (the generation
+gate) already checks downstream, so classification and the gate agree. `scoreV2` is threaded in rather than computed inside `assessTier`
+on purpose: computing it calls `computeMetrics`, which itself calls `assessTier` (`src/engine/difficulty/metrics.ts`'s `ladderMetrics`), so
+computing it from inside `assessTier` would recurse without end.
+
+Today both size bands carry the identical hard (51-87) and expert (88-100) score v2 bands: the `'large'` numbers are measured (the spike
+found the {9,12} gap within sampling noise), but no `'small'` hard/expert puzzle is ever generated today (`ADVANCED_SIZES` in
+`src/schedule/pick.ts` keeps hard/expert to {9,12} by product decision), so the `'small'` band mirrors `'large'` as an unvalidated
+placeholder, ready for the mechanism but not calibrated against a real population.
 
 ## Every card informative on its own
 

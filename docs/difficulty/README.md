@@ -33,7 +33,7 @@ Eleven parts, each a number from 0 to 1 (`scoreParts`, ranges in `PART_RANGES`);
 | candidates | open squares per step, as a share of the grid | a more open board |
 | cards | mean cards per placement on the ladder | more cards per placement |
 | references | share of placements using a card about another person | more |
-| squares | mean squares a placement's own cards leave | more |
+| squares | mean squares a placement's own cards leave, per person | more |
 | ladderChain | mean chain of dependent placements on the ladder | longer |
 | scarcity | 1 minus the share of people placeable from their own card alone | fewer such people |
 
@@ -46,3 +46,5 @@ The weights and the tier bands are fitted, not guessed: `src/engine/difficulty/c
 `tierFor`), searches whole-number weights that sum to 100 (every part keeping at least 2), and cuts the 0-100 score into one band per tier with the
 fewest misplaced puzzles. It can also take telemetry (`slaydoku:telemetry`) and the lab's judgements (`slaydoku:lab-judgements`) into account. The
 command line for it was dropped together with the committed puzzle data it once measured (from an earlier prototype); rebuild it around the puzzles you keep.
+
+SLAY-13.3 re-fit `PART_RANGES.squares` and the `squares`/`cards` split of `DEFAULT_WEIGHTS` by hand against the committed schedule (`src/content/schedule/`, the only real puzzle population currently available), after normalizing `squares` by grid size: the search checked every committed day's score v2 against its tier's `scoreBand` and minimised how many fell outside it. One puzzle could not be brought back in band without moving `SOLVABLE_TIERS[].scoreBand` itself (`src/engine/solvable/tiers.ts`, outside this change) and is listed in `BAND_EXCEPTIONS` (`src/engine/difficulty/exceptions.ts`) instead.
