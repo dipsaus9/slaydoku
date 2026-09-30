@@ -1,5 +1,6 @@
-import type { Puzzle } from '../engine/model/index.ts'
-import { hasMark, hasNote } from '../game/board.ts'
+import { deriveVictimCell } from '../engine/model/index.ts'
+import type { Cell, Puzzle } from '../engine/model/index.ts'
+import { hasMark, hasNote, isPlaced } from '../game/board.ts'
 import { hintFor, nextStep } from '../game/hints.ts'
 import type { Hint1, Hint2, Hint3, NextStep } from '../game/hints.ts'
 import { initialState, reduce } from '../game/reducer.ts'
@@ -55,6 +56,23 @@ export function walkHints(puzzle: Puzzle): HintWalk {
             .filter((e) => !hasMark(before.board, e.personId, e.cell))
             .map((e): GameAction => ({ type: 'toggleMark', personId: e.personId, cell: e.cell }))
       state = actions.reduce((acc, action) => reduce(puzzle, acc, action), state)
+    }
+  }
+  // The victim is never a hint subject (by design, since SLAY-9.5/SLAY-9.24): once hints run dry
+  // with every suspect placed, a real player's next move needs no hint -- it is the one square
+  // their rows and columns leave free. That final placement is the walk's own bookkeeping, not a
+  // hint step: it is applied at most once, after the loop above is truly done, not recorded as a
+  // WalkStep (no hint fired for it).
+  if (state.status !== 'solved') {
+    const victim = puzzle.people.find((p) => p.kind === 'victim')
+    const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+    if (victim && !isPlaced(state.board, victim.id) && suspects.every((p) => isPlaced(state.board, p.id))) {
+      const cell = deriveVictimCell(
+        puzzle.scene,
+        suspects.map((p) => state.board.placements[p.id] as Cell),
+      )
+      // reduce()'s place() already no-ops on a blocked or occupied cell, so no extra guard is needed here.
+      if (cell) state = reduce(puzzle, state, { type: 'place', personId: victim.id, cell })
     }
   }
   return { steps, solved: state.status === 'solved', unplaced: puzzle.people.length - Object.keys(state.board.placements).length }
