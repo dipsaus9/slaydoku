@@ -231,7 +231,7 @@ async function openLevel() {
   await sleep(300)
 }
 async function leaveLevel() {
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(600)
 }
 

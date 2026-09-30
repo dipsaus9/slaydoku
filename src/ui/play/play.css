@@ -90,12 +90,19 @@
  * a bordered settings circle -- the same "no button chrome, just a touch target" language as
  * src/ui/about/about.css's .about__back. Padding/gaps sit on the shared spacing scale
  * (src/brand/tokens.css) rather than the old off-scale 6px/12px values.
+ *
+ * SLAY-9.25: the daily flow's back button and title now render *inside* this row (.play-header__lead,
+ * below) instead of a second, separately-overlaid bar (the old daily.css .daily-play__nav) laid on
+ * top of it with a hand-calculated right-hand reserve. One flex row means the browser -- not a
+ * guessed pixel budget -- decides how much room the title gets: .play-header__lead grows to fill
+ * whatever .play-header__actions (flex: none, never shrinks) leaves behind, and the title itself
+ * truncates with an ellipsis (min-width: 0 + overflow: hidden below) if it still runs out of room,
+ * rather than ever overlapping the actions.
  */
 .play-header {
   grid-area: header;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
   min-height: var(--play-header-height);
   padding: var(--space-2) var(--space-4);
@@ -104,24 +111,76 @@
   border: 1px solid var(--line);
 }
 
+/* The header's one flexible child: the back button (when there is one) plus the title. Everything
+   else in the header (.play-header__actions) is a fixed-size, never-shrinking group, so this is the
+   only place free width is ever taken from. */
+.play-header__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .play-header__title {
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
   font-family: var(--font-display);
   font-size: 1.5rem;
   line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
+/* Same chrome-less-at-rest language as .play-header__legend/.play-timer below (SLAY-6.1), and the
+   same "icon plus a small negative margin so it lines up with the header's own edge" shape as
+   src/ui/about/about.css's .about__back. */
+.play-header__back {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-left: calc(-1 * var(--space-2));
+  padding: 0 var(--space-2) 0 var(--space-1);
+  border: 1px solid transparent;
+  border-radius: 22px;
+  background: transparent;
+  color: inherit;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--duration-micro) var(--ease-out);
+}
+
+.play-header__back:active {
+  background: rgba(42, 42, 54, 0.08);
+}
+
+.play-header__back:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.play-header__back-label {
+  margin-left: 2px;
+}
+
+/* flex: none -- this group never shrinks; the title above gives up room to it first (see the
+   comment on .play-header above). */
 .play-header__actions {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-2);
 }
 
-/* Legend (its own direct icon, SLAY-8.2) and Options/Help (behind the More sheet, SLAY-5.1): two
-   icons next to the timer. Plain at rest (SLAY-6.1) -- a resting border would double up on the
-   outer .play-header's own border; :active/:focus-visible still give them a clear affordance. */
-.play-header__legend,
-.play-header__more {
+/* Legend: its own direct icon (SLAY-8.2), icon-only. Plain at rest (SLAY-6.1) -- a resting border
+   would double up on the outer .play-header's own border; :active/:focus-visible still give it a
+   clear affordance. */
+.play-header__legend {
   min-width: 44px;
   min-height: 44px;
   padding: 0;
@@ -136,6 +195,28 @@
   transition: background-color var(--duration-micro) var(--ease-out);
 }
 
+/* The More trigger (SLAY-9.25): carries its own visible label next to the dots, not a bare "..."
+   icon -- the owner's report named that ambiguous on its own. Same chrome-less-at-rest language
+   and touch target as Legend above, just wide enough for the label. */
+.play-header__more {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--space-2) 0 var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--duration-micro) var(--ease-out);
+}
+
 .play-header__legend:active,
 .play-header__more:active {
   background: rgba(42, 42, 54, 0.08);
@@ -145,6 +226,17 @@
 .play-header__more:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* SLAY-9.25: once the persistent Share icon joins the row (solved and dismissed, SLAY-9.13), the
+   row is at its fullest -- back, title, timer, Legend, Share and More all competing for the same
+   360-390px. Dropping back to an icon-only More here (same 44px target, no label) hands that width
+   straight to the title instead, which needs it more once the header can no longer grow. This is a
+   content-driven rule (":has" observes the actual DOM, the same technique the old
+   `.daily-play:has([data-action='share'])` reserve used), not a guessed pixel budget -- it holds
+   however the row's icon set changes later, without needing its own future fix. */
+.play-header__actions:has([data-action='share']) .play-header__more-label {
+  display: none;
 }
 
 /* Options and Help as direct header actions (SLAY-9.2): hidden by default -- narrow viewports
@@ -610,16 +702,55 @@
   width: min(760px, 100%);
 }
 
-/* The More sheet (SLAY-4.2): a small panel, not the full dialog width the other panels use. */
+/* The More sheet (SLAY-4.2): a small panel, not the full dialog width the other panels use.
+   SLAY-9.25: widened from 320 to 360px -- the sheet's Options/Help entries are now full-width rows
+   (below), not small square tiles, so the panel wants a bit more room to read comfortably. */
 .play-modal__panel--more {
-  width: min(320px, 100%);
+  width: min(360px, 100%);
 }
 
+/* SLAY-9.25: Options and Help as a settings list -- one full-width row each, icon left, label,
+   trailing chevron -- instead of two small square tiles centered in the sheet (the owner's report
+   named those "not clear", easy to mistake for decorative icons or for each other). Same row
+   language as OptionsPanel's own .play-switch list and the Legend's .play-legend__row, so a settings
+   sheet reads the same way everywhere in the app. */
 .play-more {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.play-more .play-tool {
+  flex-direction: row;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 var(--space-3);
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.play-more .play-tool__icon {
+  flex: none;
+}
+
+.play-more .play-tool__label {
+  flex: 1;
+  overflow: visible;
+  font-size: 1rem;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+/* The chevron: a plain affordance that the row opens something. Generated content on .play-tool
+   itself (the row), not on .play-tool__label -- it becomes a third flex item after icon and label,
+   flush at the row's trailing edge, and never changes the label's own text content
+   (docs/verification/legend.ts reads .play-more .play-tool__label's textContent to check the sheet
+   holds exactly Options and Help). */
+.play-more .play-tool::after {
+  content: '\203A';
+  flex: none;
+  font-size: 1.3em;
+  opacity: 0.45;
 }
 
 .play-modal__title {
@@ -1127,6 +1258,50 @@ button.play-legend__row:focus-visible {
       'cards';
   }
 
+  /* SLAY-9.25: every real-phone width the header now has to fit is narrow enough (360-390px) that
+     the header's own horizontal padding and inter-control gaps are worth trimming too -- every
+     pixel here is a pixel the title (.play-header__lead, flex: 1 1 auto) gets to keep before its
+     ellipsis fallback kicks in. */
+  .play-header {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .play-header__title {
+    font-size: 1rem;
+  }
+
+  /* SLAY-9.25: icon-only here -- at 360-390px, a real title, a running timer and (once solved)
+     the persistent Share icon leave no room to also spell out "Back"/"Terug" next to the "‹".
+     "‹" alone is a standard, unambiguous back affordance in that leftmost spot; the aria-label
+     (back.ariaLabel, "Back to the start screen") still carries the full wording for a screen
+     reader regardless of what is visible. */
+  .play-header__back {
+    margin-left: calc(-1 * var(--space-2));
+    padding: 0;
+    font-size: 1.1rem;
+  }
+
+  .play-header__back-label {
+    display: none;
+  }
+
+  .play-header__actions {
+    gap: var(--space-1);
+  }
+
+  .play-header__more {
+    gap: 1px;
+    padding: 0 3px 0 2px;
+    font-size: 0.72rem;
+  }
+
+  /* Same chrome-less button, tighter side padding -- every extra pixel here goes straight to the
+     title's ellipsis budget (SLAY-9.25). */
+  .play-timer {
+    padding: 0 6px;
+  }
+
   .play[data-hint] {
     grid-template-areas:
       'header'
@@ -1262,6 +1437,43 @@ button.play-legend__row:focus-visible {
       'board tools'
       'board hint'
       'board cards';
+  }
+
+  /* SLAY-9.25: the header's column here is the same narrow budget as the portrait-phone rule above
+     (the board takes the rest), so the same tightened padding/gaps/font-sizes apply. */
+  .play-header {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .play-header__title {
+    font-size: 1rem;
+  }
+
+  .play-header__back {
+    margin-left: calc(-1 * var(--space-2));
+    padding: 0;
+    font-size: 1.1rem;
+  }
+
+  .play-header__back-label {
+    display: none;
+  }
+
+  .play-header__actions {
+    gap: var(--space-1);
+  }
+
+  .play-header__more {
+    gap: 1px;
+    padding: 0 3px 0 2px;
+    font-size: 0.72rem;
+  }
+
+  /* Same chrome-less button, tighter side padding -- every extra pixel here goes straight to the
+     title's ellipsis budget (SLAY-9.25). */
+  .play-timer {
+    padding: 0 6px;
   }
 
   .play-toolbar {

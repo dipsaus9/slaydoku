@@ -218,7 +218,7 @@ async function solveDay(day: ScheduleDay): Promise<boolean> {
   await sleep(500)
   if (!ok || (await count('[data-result=solved]')) !== 1) return false
   await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   return (await path()) === '/'
 }

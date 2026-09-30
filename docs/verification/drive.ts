@@ -438,7 +438,7 @@ async function firstVisit() {
   check('play is not blocked afterwards: a tap writes a note', (await count('[data-note]')) === 1)
   await tool('Undo')
   check('help-seen is remembered in localStorage, versioned', /"version":\d+/.test(String(await evaluate(`localStorage.getItem('slaydoku:help-seen')`))), String(await evaluate(`localStorage.getItem('slaydoku:help-seen')`)))
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   check('the start screen offers Continue now that a board is saved', (await textOf('[data-action]')) === 'Continue' && (await evaluate(`document.querySelector('.daily-card').dataset.status`)) === 'inProgress', await textOf('[data-action]'))
   await shot('05-start-continue')
@@ -465,7 +465,7 @@ async function firstVisit() {
   await tool('Help')
   check('a reopen after leaving on the glossary starts on the goal', (await panelProbe())?.title === 'How it works' && (await panelProbe())?.glossary === 0)
   await tapModalBtn('Start playing')
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   await tapSel('.daily__help')
   const link = await panelProbe()
@@ -673,7 +673,7 @@ async function playDay(first: boolean, w: number, h: number) {
 
   // Back to the start screen: the daily card now offers "View board" instead of Play (SLAY-9.16), a
   // reopenable Share button (SLAY-9.13 AC #4, no longer the card shown inline), and the stats slot.
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   check('back from a solved day shows the start screen with the result', (await path()) === '/' && (await count('[data-result=solved]')) === 1, await path())
   const text = await startText()
@@ -694,7 +694,7 @@ async function playDay(first: boolean, w: number, h: number) {
   await load('play')
   check('a solved day can still be opened at /play: the board and the finish overlay both show', (await path()) === '/play' && (await count('.play-board')) === 1 && (await count('[data-result=solved]')) === 1, await path())
   await tapSel('.play-result--solved .play-btn:not(.play-btn--primary)')
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(500)
   const again = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))).results[String(DAY.n)]
   check('the stored result did not change after reopening the solved day', JSON.stringify(again) === JSON.stringify(result))
@@ -730,7 +730,7 @@ async function rollover() {
   check('they can keep playing the old puzzle after midnight', (await count('[data-note]')) === 2)
   check('the notice can be hidden while playing (it sits over the bottom of the screen), the puzzle stays', (await rectOf('.daily-banner__dismiss'))!.w >= 44 && (await (async () => { await tapSel('.daily-banner__dismiss'); return (await count('[data-banner]')) === 0 && (await count('.play-board')) === 1 && (await path()) === '/play' })()))
   const saved = await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)
-  await evaluate(`document.querySelector('.daily-play__back').click()`)
+  await evaluate(`document.querySelector('.play-header__back').click()`)
   await sleep(600)
   check('leaving the puzzle shows the ended day with the notice, no Play and no countdown', (await path()) === '/' && (await count('[data-ended]')) === 1 && (await count('[data-banner=new-puzzle]')) === 1 && (await count('[data-action]')) === 0 && (await count('[role=timer]')) === 0, JSON.stringify((await startText()).replace(/\n+/g, ' / ')))
   await shot('12-rollover-ended-day')
