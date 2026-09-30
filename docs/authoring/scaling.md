@@ -66,9 +66,15 @@ workers on a 14-core laptop, so the big-board seconds are inflated by contention
 | 7 | 70% | 86% | 92% | 92% | 82% | 100% (2 seeds) |
 | 9 | 44% | 64% | 88% | 80% | 78% | 100% (2 seeds) |
 | 12 | 50% | 100% | 88% | 88% | 100% | 100% (2 seeds) |
-| 16 | 25% | 88% | 75% | 75% | 88% | 100% (2 seeds) |
+| 16 | 21%* | 88% | 75% | 75% | 88% | 100% (2 seeds) |
 
 Success rate (share of seeds that give a puzzle passing every gate). Read it as a rough level, the 12, 16 and expert cells have very few seeds.
+
+\* 16x16 very-easy: 21% at 100 fresh seeds (`--sizes 16 --tiers very-easy --themes home --seeds 100`, SLAY-13.5), replacing the 25% this table first
+showed (4 seeds only). It is below this page's usual 25% success-rate floor (see `--min-success` above) and, unlike every other cell, a real
+regression: it measured 26% at 100 seeds on the commit before SLAY-13.2/13.3 (size-banded `SOLVABLE_TIERS`, normalized score v2), so the
+size-banding epic cost it a few points. See "Known findings" below for the cause and why it is left as is: 16x16 is not part of any committed
+schedule or pack today (CLAUDE.md: "never 16x16"), so no player-facing puzzle is affected.
 
 | size | seconds per seed, ladder tiers | seconds per seed, hard | seconds per seed, expert | usable puzzles per core-hour, ladder tiers | hard | expert |
 |---|---|---|---|---|---|---|
@@ -82,12 +88,15 @@ What this means:
 - **Seeds are not the limit.** The random scene generator gives a different board for nearly every seed: the sweep saw no duplicate board or puzzle
   inside any cell, and no clash with the committed pack. Time is the limit, and even the slowest cells (16x16) give more than 100 puzzles per core-hour.
 - **The seed window is.** `buildCell` searches `SEED_WINDOW` = 100 seeds per (size, tier, theme) and throws when it runs out before `--count` puzzles.
-  With success rates of 25% to 90% one window holds roughly 25 to 90 puzzles per cell; take **20 per cell** as the safe ceiling for `--count` today
-  (very-easy 16x16, the weakest cell, has 25%; `--count 20` needs about 80 seeds there). More than that needs a wider window (see below).
+  With success rates of 21% to 90% one window holds roughly 20 to 90 puzzles per cell; take **20 per cell** as the safe ceiling for `--count` today
+  (very-easy 16x16, the weakest cell, is 21%; `--count 20` needs about 95 seeds there, close to the whole window). More than that needs a wider window
+  (see below).
 - **Variety is the real cap.** A cell with 20 puzzles is 20 boards of one theme and size; whether a player finds them different is a matter of taste that
   the numbers cannot answer. Regenerate a sample and look at it before raising the count a lot.
-- **The weak cells** are very-easy at 9 and 16 (`variety` rejects a very easy puzzle with too few kinds of card) and easy at 9 (`score-band`). If a cell has
-  to give many puzzles, that is where a generator change pays off most.
+- **The weak cells** are very-easy at 16 (`variety` rejects a very-easy puzzle with too few kinds of card, or one kind used too often -- see "Known
+  findings") and easy at 9 (`score-band`). Very-easy at 9 recovered with the size-banding epic (SLAY-13.2/13.3): a newer, wider, single-theme sample
+  (200 seeds, `school`, distinct from the mixed-theme table above) now measures 37%, comfortably clear of the floor, so it is no longer counted among
+  the weak cells. If a cell has to give many puzzles, that is where a generator change pays off most.
 - The pack tool builds cells in parallel too: 300 puzzles took 6 to 8 minutes at `--jobs 12`, so `--count 10` (about 1500 puzzles) is a matter of an hour or two,
   dominated by the 16x16 hard and expert files.
 
@@ -131,3 +140,16 @@ and run the full sweep on your own machine. The pull-request workflow (`.github/
 - `16-hard-home-10003` (found while writing this page): the hint audit rejects the hints of a 16x16 hard puzzle because a hint spells a count of 13
   squares as a number instead of saying "the marked squares". The pack filter drops such a candidate; the wording in the hint generator is worth a
   look (`src/validation/hints.ts` says what it wants).
+- **16x16 very-easy's 21% (SLAY-13.5).** A wide-sample A/B (100 seeds, `home` theme) across the size-banding epic found 26% on the commit before
+  SLAY-13.2 and 21% after -- a real decline, not sampling noise at this sample size, and the one cell size-banding made worse rather than better (9x9
+  very-easy went from 33% to 37% over the same commits, comfortably clear of the floor). The `variety` gate itself (`varietyProblem` in
+  `src/content/packs/gates.ts`) did not change; what changed is `SOLVABLE_TIERS['very-easy'].bySize.large.maxChain` (`src/engine/solvable/tiers.ts`),
+  raised from 2 to 3 for every size above 7 (SLAY-13.1/13.2, calibrated against the real 9x9/12x12 schedule population). Reverting just that one
+  number to 2 for a local test brought 16x16 very-easy back to 28% at 100 seeds, confirming the cause: the looser chain cap lets the ladder planner
+  accept more placements that lean on one easy-to-narrow card kind (`directlyNextToObject` on a 16x16 board, in the samples looked at), at the
+  expense of the kind variety the pack gate wants. `maxChain` is banded by `sizeBandOf` into only two bands, `'small'` ({6,7}) and `'large'`
+  ({9, 12, 16}); 16x16 shares the `'large'` number with 9x9 and 12x12 even though it is the one size in that band nothing ever schedules or packs
+  (`SIZE_WEIGHTS` in `src/schedule/pick.ts`; CLAUDE.md: "never 16x16") and so had no real population for SLAY-13.1's calibration to weigh. Left as a
+  known, accepted generator-health finding rather than fixed here: a real fix is a third, 16x16-only size band with its own calibrated `maxChain`,
+  which means recalibrating `SOLVABLE_TIERS` (out of this page's and this finding's scope) against a 16x16 population that does not exist yet. Until
+  then, `--count` for a 16x16 very-easy pack should plan for ~21%, not 25% (see "What this means" above).
