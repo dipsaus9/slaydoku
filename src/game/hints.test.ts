@@ -3,7 +3,7 @@ import { demoPuzzle } from '../content/demo/puzzle.ts'
 import type { Puzzle } from '../engine/model/index.ts'
 import { defaultRegistry, solveHuman } from '../engine/solver/human/index.ts'
 import { uniquePuzzle } from '../engine/solver/testing.fixture.ts'
-import { hasMark, hasNote } from './board.ts'
+import { hasMark, hasNote, isPlaced } from './board.ts'
 import { at, puzzle } from './fixture.ts'
 import { expertPuzzle, hardPuzzle, hintPath } from './hints.fixture.ts'
 import { getHint, hintFor, nextStep } from './hints.ts'
@@ -14,6 +14,19 @@ import type { GameAction, GameState } from './types.ts'
 const marking = { autoXOnPlace: true, preventXOnBlocked: true, showTimer: true }
 const run = (state: GameState, ...actions: GameAction[]) => actions.reduce((s, a) => reduce(puzzle, s, a), state)
 const empty = () => initialState(marking)
+
+/**
+ * Once every suspect stands right, hints run dry (the victim is never a hint subject) -- a real
+ * player's next move needs no hint: it is the one square the suspects leave free. Test support for
+ * the raw hint-follow loops below, which otherwise stall at "every suspect placed, victim still
+ * empty" now that the victim is no longer auto-filled (SLAY-9.24).
+ */
+function finishVictim(p: Puzzle, s: GameState): GameState {
+  if (s.status === 'solved') return s
+  const victim = p.people.find((person) => person.kind === 'victim')
+  const cell = victim && p.solution.find((sol) => sol.personId === victim.id)?.cell
+  return victim && cell && !isPlaced(s.board, victim.id) ? reduce(p, s, { type: 'place', personId: victim.id, cell }) : s
+}
 
 /** Does what the hint asks for: puts the person down, makes the notes, or crosses the squares out. */
 function follow(p: Puzzle, s: GameState, next: NextStep): GameState {
@@ -94,18 +107,23 @@ describe('the best next move', () => {
     expect(nextStep(puzzle, s)?.placement).toEqual(nextStep(puzzle, empty())?.placement)
   })
 
-  it('guides all the way to the solution, one placement per suspect, then the victim fills in on its own', () => {
+  it('guides to placing every suspect; the player then places the victim to finish (SLAY-9.24)', () => {
     let s = empty()
     const order: string[] = []
     for (let i = 0; i < 10 && s.status === 'playing'; i++) {
       const next = nextStep(puzzle, s)
-      if (!next?.placement) throw new Error('expected a placement')
+      if (!next?.placement) break
       order.push(next.placement.personId)
       s = follow(puzzle, s, next)
     }
-    expect(s.status).toBe('solved')
     expect([...order].sort()).toEqual(['A', 'B', 'C'])
-    expect(s.board.placements.V).toEqual(at.V)
+    // Every suspect is right, but the victim is never a hint subject, so the solver has nothing
+    // left and the level is not auto-completed: the player makes the last placement themselves.
+    expect(s.status).toBe('playing')
+    expect(isPlaced(s.board, 'V')).toBe(false)
+    expect(nextStep(puzzle, s)).toBeNull()
+    s = run(s, { type: 'place', personId: 'V', cell: at.V })
+    expect(s.status).toBe('solved')
   })
 
   it('returns null when everybody is right', () => {
@@ -165,6 +183,7 @@ describe('when nobody has one possible square', () => {
       if (next.eliminations) expect(new Set(next.eliminations.map((e) => `${e.cell.row},${e.cell.col}`)).size).toBeLessThanOrEqual(12)
       s = follow(hard, s, next)
     }
+    s = finishVictim(hard, s)
     expect(s.status).toBe('solved')
   })
 
@@ -194,6 +213,13 @@ describe('hints on generated puzzles', () => {
           expect(next.placement.cell).toEqual(truth?.cell)
         }
         s = follow(generated, s, next)
+      }
+      // The victim is never a hint subject (SLAY-9.24): once every suspect is right, the solver
+      // has nothing left, so the player makes the last placement themselves.
+      if (s.status === 'playing') {
+        const victim = people.find((p) => p.kind === 'victim')
+        const victimCell = victim && solution.find((p) => p.personId === victim.id)?.cell
+        if (victim && victimCell) s = reduce(generated, s, { type: 'place', personId: victim.id, cell: victimCell })
       }
       expect(s.status).toBe('solved')
     }
@@ -274,6 +300,7 @@ describe('hint explanations are grounded in what the player has already been sho
       }
       s = follow(p, s, next)
     }
+    s = finishVictim(p, s)
     expect(s.status).toBe('solved')
   })
 })
@@ -309,12 +336,16 @@ describe('the victim label in hint text', () => {
     expect(hintFor(victimised, { step, placement: step.placed }, 1).text).toBe('Take a look at the victim in the Living Room.')
   })
 
-  it('never offers a hint about the victim: the moment every suspect is placed, the victim fills in on its own', () => {
-    const last = run(empty(), { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'B', cell: at.B }, { type: 'place', personId: 'A', cell: at.A })
-    expect(last.board.placements.V).toEqual(at.V)
-    expect(last.status).toBe('solved')
-    expect(nextStep(victimised, last)).toBeNull()
-    expect(getHint(victimised, last, 1)).toBeNull()
+  it('never offers a hint about the victim, even once every suspect is placed and only the victim is left (SLAY-9.24)', () => {
+    const suspectsDone = run(empty(), { type: 'place', personId: 'C', cell: at.C }, { type: 'place', personId: 'B', cell: at.B }, { type: 'place', personId: 'A', cell: at.A })
+    expect(isPlaced(suspectsDone.board, 'V')).toBe(false)
+    expect(suspectsDone.status).toBe('playing')
+    expect(nextStep(victimised, suspectsDone)).toBeNull()
+    expect(getHint(victimised, suspectsDone, 1)).toBeNull()
+    const solved = run(suspectsDone, { type: 'place', personId: 'V', cell: at.V })
+    expect(solved.status).toBe('solved')
+    expect(nextStep(victimised, solved)).toBeNull()
+    expect(getHint(victimised, solved, 1)).toBeNull()
   })
 
   it('no hint along a whole game leaves the victim lower case at a sentence start', () => {
@@ -372,6 +403,7 @@ describe('hint texts on the demo level and a hard puzzle', () => {
         else expect(hint).not.toHaveProperty('placement')
         s = follow(p, s, next)
       }
+      s = finishVictim(p, s)
       expect(s.status).toBe('solved')
     })
   })

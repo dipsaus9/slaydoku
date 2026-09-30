@@ -28,7 +28,7 @@ export interface CardGridProps {
  */
 export function CardGrid({ people, clues, scene, selectedId, placedIds = [], onSelect, lookFor, className, locale = 'en' }: CardGridProps) {
   const context = { scene, people }
-  const hasVictim = people.some((p) => p.kind === 'victim')
+  const victim = people.find((p) => p.kind === 'victim')
   return (
     <ul className={['card-grid', className].filter(Boolean).join(' ')}>
       {people
@@ -49,9 +49,13 @@ export function CardGrid({ people, clues, scene, selectedId, placedIds = [], onS
             </li>
           )
         })}
-      {hasVictim ? (
+      {victim ? (
         <li>
-          <VictimCard locale={locale} />
+          {/* The victim's card is never tappable (no onSelect) -- it stays out of the normal pick
+              list -- but it does show the same "your turn" selected state a suspect card gets
+              once selectedId reaches the victim (SLAY-9.24 AC #3), which PlayScreen's order/
+              nextUnplaced already does the instant every suspect is placed. */}
+          <VictimCard locale={locale} selected={victim.id === selectedId} />
         </li>
       ) : null}
     </ul>

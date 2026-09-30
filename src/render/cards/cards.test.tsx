@@ -80,6 +80,18 @@ describe('VictimCard', () => {
     expect(strip(html)).toContain('The victim Was alone with the murderer.')
   })
 
+  it('is never a button: no card tap ever selects the victim (SLAY-9.24)', () => {
+    expect(html).not.toContain('<button')
+    const selectedHtml = renderToStaticMarkup(<VictimCard selected />)
+    expect(selectedHtml).not.toContain('<button')
+  })
+
+  it('shows the same selected ("your turn") styling a suspect card gets, default none', () => {
+    expect(html).not.toContain('data-selected')
+    const selectedHtml = renderToStaticMarkup(<VictimCard selected />)
+    expect(selectedHtml).toContain('data-selected="true"')
+  })
+
   it('keeps the wording in en.ts: no card component spells out the victim rule itself', () => {
     const dir = new URL('./', import.meta.url)
     const sources = readdirSync(dir).filter((f) => /\.(tsx?|css)$/.test(f) && !/\.test\./.test(f))
@@ -131,5 +143,15 @@ describe('CardGrid', () => {
   it('leaves out the victim card when the puzzle has no victim', () => {
     const none = renderToStaticMarkup(<CardGrid people={[alice]} clues={[]} scene={scene} />)
     expect(none).not.toContain('Het cadeau')
+  })
+
+  it("shows the victim's own card as selected once selectedId is theirs, still with no onSelect wiring (SLAY-9.24 AC #3)", () => {
+    const victimTurn = renderToStaticMarkup(
+      <CardGrid people={people} clues={clues} scene={scene} selectedId="V" placedIds={names} />,
+    )
+    // Every suspect placed and selectedId on the victim: only the victim's card is selected now.
+    expect(victimTurn.match(/data-selected="true"/g)).toHaveLength(1)
+    expect(victimTurn.match(/data-placed="true"/g)).toHaveLength(8)
+    expect(victimTurn).not.toContain('<button')
   })
 })

@@ -16,9 +16,11 @@ export interface SuspectPanelProps {
 /**
  * The polaroid cards: pick who you are working with. CardGrid makes the suspects tappable and
  * passes the cast's `lookFor`, so the extra suspects of big boards get their generated portraits.
- * The victim card is informational only: it is never tappable (in CardGrid or here), since the
- * victim is never placed by the player — their square fills in on its own once every suspect has
- * a placement (see `withAutoVictim` in board.ts).
+ * The victim card is never tappable (in CardGrid or here) — it stays out of the normal pick list —
+ * but it does show a "your turn" selected state once `selectedId` reaches the victim, which
+ * happens on its own the moment every suspect is placed (PlayScreen's `order`/`nextUnplaced`). The
+ * player then places the victim with a normal board tap, exactly like a suspect (SLAY-9.24: the
+ * last remaining square is no longer auto-filled).
  */
 export function SuspectPanel({ puzzle, cast, selectedId, placedIds, onSelect }: SuspectPanelProps) {
   const { locale } = useLocale()
