@@ -48,6 +48,20 @@ export function AboutScreen() {
         <h2 id="about-open-source">{t.openSource.title}</h2>
         <p>{t.openSource.text}</p>
       </section>
+
+      {/* Quiet GitHub Sponsors section (SLAY-9.22), near open-source: the sponsors link is itself
+          a GitHub/open-source-adjacent feature. Not a call-to-action banner -- a short paragraph
+          matching every other section's weight. */}
+      <section className="about__section" aria-labelledby="about-support">
+        <h2 id="about-support">{t.support.title}</h2>
+        <p>
+          {t.support.text}{' '}
+          <a href="https://github.com/sponsors/dipsaus9" className="about__link" target="_blank" rel="noopener noreferrer">
+            {t.support.link}
+          </a>
+          .
+        </p>
+      </section>
     </main>
   )
 }

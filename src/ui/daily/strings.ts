@@ -46,6 +46,8 @@ export interface DailyStrings {
   loading: string
   error: { title: string; text: string; retry: string }
   about: string
+  /** Quiet footer link to GitHub Sponsors, next to the About link (SLAY-9.22). */
+  support: string
   back: string
   backLabel: string
   slots: { share: string; stats: string }
@@ -112,6 +114,7 @@ export const DAILY_EN: DailyStrings = {
     retry: 'Try again',
   },
   about: 'About Slaydoku',
+  support: 'Support Slaydoku',
   back: 'Back',
   backLabel: 'Back to the start screen',
   slots: { share: 'Share', stats: 'Statistics' },
@@ -179,6 +182,7 @@ export const DAILY_NL: DailyStrings = {
     retry: 'Opnieuw proberen',
   },
   about: 'Over Slaydoku',
+  support: 'Steun Slaydoku',
   back: 'Terug',
   backLabel: 'Terug naar het startscherm',
   slots: { share: 'Delen', stats: 'Statistieken' },

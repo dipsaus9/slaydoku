@@ -253,6 +253,13 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
           <Link href="/about" className="daily__about">
             {t.about}
           </Link>
+          <span className="daily__footer-sep" aria-hidden="true">·</span>
+          {/* Quiet GitHub Sponsors link (SLAY-9.22), same weight as the About link: not a primary
+              call-to-action, next to it rather than in the hero. Leaves the app, so it opens in a
+              new tab with rel=noopener. */}
+          <a href="https://github.com/sponsors/dipsaus9" className="daily__about" target="_blank" rel="noopener noreferrer">
+            {t.support}
+          </a>
         </footer>
       </div>
 
