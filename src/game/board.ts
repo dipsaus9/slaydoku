@@ -1,4 +1,4 @@
-import { cellKey, deriveVictimCell, inBounds, isOccupiable, sameCell } from '../engine/model/index.ts'
+import { cellKey, inBounds, isOccupiable, sameCell } from '../engine/model/index.ts'
 import type { Cell, Person, Puzzle } from '../engine/model/index.ts'
 import type { Board, GameOptions } from './types.ts'
 
@@ -99,21 +99,4 @@ export function withoutCellMarkings(b: Board, cell: Cell): Board {
   delete notes[key]
   delete marks[key]
   return { ...b, notes, marks }
-}
-
-/**
- * The victim is never placed by the player: the moment every suspect has a placement, their rows
- * and columns leave exactly one square uncrossed (`deriveVictimCell`, the same crossing a solver
- * or generator would use), and that square is the victim's. A no-op (same board back) once the
- * victim already stands somewhere, while a suspect is still unplaced, on a puzzle with no victim,
- * or if the derived square is not itself occupiable (a malformed puzzle: nothing is written).
- */
-export function withAutoVictim(puzzle: Puzzle, board: Board): Board {
-  const victim = puzzle.people.find((p) => p.kind === 'victim')
-  if (!victim || isPlaced(board, victim.id)) return board
-  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
-  if (suspects.length === 0 || !suspects.every((p) => isPlaced(board, p.id))) return board
-  const cell = deriveVictimCell(puzzle.scene, suspects.map((p) => board.placements[p.id] as Cell))
-  if (!cell || !isOccupiable(puzzle.scene, cell) || occupantAt(board, cell) !== null) return board
-  return { ...board, placements: { ...board.placements, [victim.id]: cell } }
 }

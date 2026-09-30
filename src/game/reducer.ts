@@ -8,7 +8,6 @@ import {
   isBlocked,
   isPlaced,
   occupantAt,
-  withAutoVictim,
   withMark,
   withNote,
   withoutCellMarkings,
@@ -106,12 +105,13 @@ function settle(puzzle: Puzzle, state: GameState, at: number | undefined): GameS
 
 type EditAction = Exclude<GameAction, { type: 'undo' | 'redo' | 'setOption' | 'pause' | 'resume' | 'restart' }>
 
+/**
+ * The edit itself: place/remove/notes/marks/eraseCell/clearAll. The victim is just another person
+ * here -- their square is written only by an explicit `place` action naming them, exactly like a
+ * suspect's (SLAY-9.24: the last remaining square is no longer auto-filled the instant every
+ * suspect is placed; the player makes that final placement themselves).
+ */
 function edit(puzzle: Puzzle, state: GameState, board: Board, action: EditAction): Board {
-  return withAutoVictim(puzzle, editBoard(puzzle, state, board, action))
-}
-
-/** The edit itself, before the victim's own square is filled in (see `withAutoVictim`). */
-function editBoard(puzzle: Puzzle, state: GameState, board: Board, action: EditAction): Board {
   const { people, scene } = puzzle
   const known = (id: string) => people.some((p) => p.id === id)
   switch (action.type) {

@@ -28,6 +28,19 @@ describe('the hint walk of the demo puzzle', () => {
         }
         expect(walk.steps[0]?.next.placement).toBeDefined()
       })
+
+      it('places the victim itself once every suspect is right, without ever giving the victim a hint (SLAY-9.24)', () => {
+        const victim = puzzle.people.find((p) => p.kind === 'victim')
+        expect(victim).toBeDefined()
+        // The victim is never the subject of a hint step: the walk's own final placement, not a
+        // suggested one, is what completes the level once hints run dry.
+        for (const step of walk.steps) {
+          expect(step.next.placement?.personId).not.toBe(victim!.id)
+          expect(step.next.focus?.personId).not.toBe(victim!.id)
+        }
+        expect(walk.solved).toBe(true)
+        expect(walk.unplaced).toBe(0)
+      })
     })
   }
 })
