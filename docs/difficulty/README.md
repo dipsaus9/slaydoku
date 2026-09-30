@@ -33,7 +33,7 @@ Eleven parts, each a number from 0 to 1 (`scoreParts`, ranges in `PART_RANGES`);
 | candidates | open squares per step, as a share of the grid | a more open board |
 | cards | mean cards per placement on the ladder | more cards per placement |
 | references | share of placements using a card about another person | more |
-| squares | mean squares a placement's own cards leave | more |
+| squares | mean squares a placement's own cards leave, per person | more |
 | ladderChain | mean chain of dependent placements on the ladder | longer |
 | scarcity | 1 minus the share of people placeable from their own card alone | fewer such people |
 

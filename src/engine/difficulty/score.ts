@@ -11,9 +11,9 @@ export const DEFAULT_WEIGHTS: ScoreWeights = {
   cluesPerStep: 2,
   indirectClues: 2,
   candidates: 4,
-  cards: 22,
+  cards: 23,
   references: 10,
-  squares: 5,
+  squares: 4,
   ladderChain: 2,
   scarcity: 2,
 }
@@ -38,8 +38,8 @@ export const PART_RANGES = {
   cards: { from: 1, to: 2 },
   /** Share of the placements that use a card naming another person. */
   references: { from: 0, to: 0.5 },
-  /** Mean squares a placement's cards leave before the lines are crossed off. */
-  squares: { from: 1, to: 6 },
+  /** Mean squares a placement's own cards leave before the lines are crossed off, per person. */
+  squares: { from: 0.15, to: 0.9 },
   /** Mean chain of dependent placements on the ladder. */
   ladderChain: { from: 0, to: 1.5 },
   /** Share of the people placeable from their own card alone at which the scarcity part reaches 0 (it is 1 at none). */
@@ -70,7 +70,7 @@ export function scoreParts(metrics: DifficultyMetrics, cells: number = metrics.p
     candidates: scaled(metrics.candidatesPerStep / Math.max(1, cells), PART_RANGES.candidates),
     cards: onLadder(scaled(metrics.cardsPerPlacement, PART_RANGES.cards)),
     references: onLadder(scaled(metrics.referenceShare, PART_RANGES.references)),
-    squares: onLadder(scaled(metrics.squaresFromCards, PART_RANGES.squares)),
+    squares: onLadder(scaled(metrics.squaresFromCards / people, PART_RANGES.squares)),
     ladderChain: onLadder(scaled(metrics.ladderChain, PART_RANGES.ladderChain)),
     scarcity: clamp01(1 - metrics.placeableAloneShare / PART_RANGES.scarcity.to),
   }
