@@ -1,10 +1,10 @@
 ---
 id: SLAY-13
 title: 'Epic: fold board size into the ladder difficulty tiers'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-30 11:35'
-updated_date: '2026-09-30 16:35'
+updated_date: '2026-09-30 17:38'
 labels:
   - epic
 dependencies: []
@@ -39,7 +39,5 @@ Schedule impact: src/content/schedule/ is fully pre-generated and committed thro
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-SLAY-13.1, SLAY-13.2, SLAY-13.3 and SLAY-13.4 are all Done. ACs 1, 2, 3 and 5 are satisfied (measured, size-banded SOLVABLE_TIERS across all six tiers from SLAY-13.1/13.2; score v2's squares part normalized by SLAY-13.3; docs/solvability/README.md and docs/difficulty/README.md updated by 13.2/13.3) and checked off.
-
-AC4 is left UNCHECKED and this epic is left OPEN rather than closed, deliberately, per "an epic never closes on a technicality": AC4 requires the regenerated schedule to "re-pass every existing gate (entryProblems, scheduleProblems, validate:generation)". entryProblems and scheduleProblems both pass cleanly on the regenerated 2026-10-01..2027-01-24 range (SLAY-13.4). validate:generation's default sweep, however, still exits 1: one cell, 16-very-easy-home, shows a real (if modest, 26%->21% on a 100-seed sample) decline after this epic's changes. It is not a schedule-content problem (the schedule never generates size 16 at all -- CLAUDE.md, "never 16x16" -- and no committed day is affected), and it was already the sweep's documented weakest cell before this epic (docs/authoring/scaling.md), but the literal AC text is not met today. Filed as SLAY-13.5 ("Raise or document the very-easy variety-gate tolerance for 9x9 and 16x16"), a new child of this epic, to close that gap. Once SLAY-13.5 lands, AC4 can be checked and this epic closed.
+Delivered as SLAY-13.1 through SLAY-13.5. AC #4 stays unchecked deliberately: bun run validate:generation's default sweep still flags 16-very-easy-home below its 25% floor (21%, down from 26% pre-epic) -- a real but modest consequence of SLAY-13.2's size-banded maxChain calibration, on a grid size the live schedule never generates (CLAUDE.md: never 16x16). SLAY-13.5 investigated (confirmed root cause: maxChain 2->3 for the shared 'large' band, calibrated against a 9x9/12x12 population that has no 16x16 member) and chose to document the real measured rate in docs/authoring/scaling.md rather than speculatively recalibrate a size the product never ships, rather than leave the docs stating a floor that no longer holds. Owner accepted this as a closed, documented, non-blocking gap (2026-09-30) rather than a further story.
 <!-- SECTION:NOTES:END -->
