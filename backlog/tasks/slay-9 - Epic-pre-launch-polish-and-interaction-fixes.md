@@ -1,10 +1,10 @@
 ---
 id: SLAY-9
 title: 'Epic: pre-launch polish and interaction fixes'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-09-29 09:55'
-updated_date: '2026-09-30 06:40'
+updated_date: '2026-09-30 07:17'
 labels:
   - epic
 dependencies: []
@@ -35,5 +35,5 @@ Alternative considered: defer the riskier hint-sequencing rework (tracked separa
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Pre-launch polish and interaction fixes, delivered as SLAY-9.1 to SLAY-9.19: play-screen header alignment (9.1), inline desktop Options/Help (9.2), toolbar sizing and style (9.3, 9.14), a language switch on the play screen (9.4), an auto-placed victim (9.5), Dutch legend nouns and a Dutch help/glossary (9.6, 9.7), removing the Zoom button (9.8) and fixing its drivers (9.10, 9.11), fixing the clipped board in wide landscape (9.12), keeping the board visible after solving with share as a popover (9.13), start-screen i18n and byline fixes (9.15), a way back to the board once solved (9.16), stats popover fixes (9.17), the Wordle-style start screen (9.9, redone in 9.18 with an open hero and a gameplay intro), and finally fixing the manual browser-verification drivers (drive.ts, stats.ts, locale.ts) that SLAY-9.13/9.15's own intentional behavior changes had left stale (9.19), including drift beyond those two changes (the share popover, the solved-day-stays-playable reopen flow, the View board button, an untranslatable object type in the Dutch sweep). bun run verify:phone confirms drive/stats/locale all green; share.ts's own identical staleness was found but left for a follow-up story since it isn't in SLAY-9.19's References.
+Pre-launch polish and interaction fixes, delivered as SLAY-9.1 to SLAY-9.22: play-screen header alignment (9.1), inline desktop Options/Help (9.2), toolbar sizing and style (9.3, 9.14), a language switch on the play screen (9.4), an auto-placed victim (9.5), Dutch legend nouns and a Dutch help/glossary (9.6, 9.7), removing the Zoom button (9.8) and fixing its drivers (9.10, 9.11), fixing the clipped board in wide landscape (9.12), keeping the board visible after solving with share as a popover (9.13), start-screen i18n and byline fixes (9.15), a way back to the board once solved (9.16), stats popover fixes (9.17), the Wordle-style start screen (9.9, redone in 9.18), fixing the manual browser-verification drivers left stale by 9.13/9.15 (9.19), a header/timer overlap fix on narrow phones (9.20), fixing docs/verification/share.ts for post-9.13 behavior (9.21), and a quiet GitHub Sponsors support link on the start screen and About page (9.22). All nine epic acceptance criteria (header alignment, mid-puzzle language switch, desktop header density, toolbar clipping, victim auto-placement, Dutch legend/help content, Zoom removal, the Wordle-style start screen) were satisfied by 9.1-9.19; 9.20-9.22 are pre-launch follow-ups delivered afterward, none of which reopen or contradict any of the nine criteria.
 <!-- SECTION:FINAL_SUMMARY:END -->
