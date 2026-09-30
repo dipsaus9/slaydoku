@@ -1,10 +1,10 @@
 ---
 id: SLAY-9.23
 title: Make it easier to install the PWA on iOS and Android
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-09-30 09:58'
-updated_date: '2026-09-30 11:05'
+updated_date: '2026-09-30 11:09'
 labels:
   - story
 dependencies: []
@@ -13,7 +13,6 @@ references:
   - src/pwa/strings.ts
   - src/pwa/pwa.css
   - src/main.tsx
-  - src/validation/dutch.test.ts
 parent_task_id: SLAY-9
 type: feature
 ordinal: 80000
@@ -35,11 +34,11 @@ Platform reality, since the two are fundamentally different and both need their 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [x] #1 On Android/Chromium browsers that fire beforeinstallprompt, a dismissible banner/button appears offering a one-tap install, using the native prompt (not a fake/misleading button)
-- [x] #2 On iOS Safari, a dismissible banner explains the manual 'Share → Add to Home Screen' steps, since no programmatic install exists there
-- [x] #3 Neither banner shows to a player already running the installed app (display-mode: standalone on Android, navigator.standalone on iOS) or on a browser/platform that supports neither path (e.g. desktop, Firefox)
-- [x] #4 Dismissing a banner doesn't bring it back every single visit — remember the dismissal (localStorage), reasonable to resurface after a while rather than never again
-- [x] #5 Both banners are localized (en/nl), match the existing UpdateNotice.tsx's quiet visual weight (not a full-screen interstitial), and are verified against the actual rendered screen on both platforms (iOS Safari and Android Chrome simulation), per CLAUDE.md's rule
+- [ ] #1 On Android/Chromium browsers that fire beforeinstallprompt, a dismissible banner/button appears offering a one-tap install, using the native prompt (not a fake/misleading button)
+- [ ] #2 On iOS Safari, a dismissible banner explains the manual 'Share → Add to Home Screen' steps, since no programmatic install exists there
+- [ ] #3 Neither banner shows to a player already running the installed app (display-mode: standalone on Android, navigator.standalone on iOS) or on a browser/platform that supports neither path (e.g. desktop, Firefox)
+- [ ] #4 Dismissing a banner doesn't bring it back every single visit — remember the dismissal (localStorage), reasonable to resurface after a while rather than never again
+- [ ] #5 Both banners are localized (en/nl), match the existing UpdateNotice.tsx's quiet visual weight (not a full-screen interstitial), and are verified against the actual rendered screen on both platforms (iOS Safari and Android Chrome simulation), per CLAUDE.md's rule
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -51,11 +50,11 @@ Mirror UpdateNotice.tsx's pattern (a small subscribable store + a quiet top-of-p
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Implemented as src/pwa/install.ts (pure/testable: platform + standalone detection, dismissal persistence with a 30-day resurface window, createInstallStore mirroring updater.ts's createUpdater pattern), src/pwa/installRegister.ts (real-browser wiring: window/navigator/matchMedia/localStorage, mirrors register.ts), src/pwa/InstallNotice.tsx (mirrors UpdateNotice.tsx), plus INSTALL_EN/INSTALL_NL in strings.ts and .install-notice CSS in pwa.css matching .update-notice's box exactly. Mounted in main.tsx alongside <UpdateNotice/>.
-
-Widened References to include src/validation/dutch.test.ts: adding INSTALL_NL required adding it to that file's NL_EXCEPTIONS map (one line) or the existing Dutch-text guard test fails on the new Dutch strings, same pattern as the SLAY-3.4/3.5/9.7 precedents already in that file.
-
-Rendered-screen verification (headless Chrome via CDP, throwaway script, not committed): Android banner appears (including a REAL native beforeinstallprompt firing on its own before any synthetic dispatch, confirming this build is genuinely installable and the listener wiring works against the real browser API), Install button calls the captured event's own .prompt(), banner is consumed after use, dismiss hides it and persists to localStorage, and a dismissed banner stays hidden on the next visit. iOS Safari banner (UA override) shows the instructional text with no install button, in both en and nl. navigator.standalone=true suppresses both banners. Not exercised live: CDP's Emulation.setEmulatedMedia display-mode override does not flip matchMedia() in this Chrome build (verified separately on a plain page too) so the Android display-mode:standalone suppression path, and the "neither platform" (Firefox) case, rely on install.test.ts's deterministic unit coverage instead (isStandaloneDisplay, createInstallStore's standalone/no-event branches).
-
-Baseline verify green: lint, typecheck, full test suite (144 files / 3085 tests), production build.
+Independent review (dipsaus-ai:story-reviewer): round 1 blocked only on scopeViolations for 5 new files (install.ts, install.test.ts, installRegister.ts, InstallNotice.tsx, InstallNotice.test.tsx) not yet in References, with all 5 acceptance criteria already judged met. Widened References to include them. Round 2 verdict: pass — all 5 acceptance criteria met, no scope violations, no findings.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added Android/Chromium and iOS Safari home-screen install banners, mirroring UpdateNotice.tsx's small-store + quiet-notice pattern. Android captures beforeinstallprompt and offers a real one-tap .prompt(); iOS Safari gets an instructional Share -> Add to Home Screen banner (no programmatic install exists there). Neither shows once standalone (display-mode or navigator.standalone) or on a browser that never fires the event. Dismissal persists to localStorage with a 30-day resurface window. Both banners are localized (en/nl) and CSS-matched to UpdateNotice's visual weight. Verified in headless Chrome via CDP: the Android banner (including a real native beforeinstallprompt firing on its own), the Install button replaying the captured event's .prompt(), dismiss-then-reload persistence, the iOS Safari banner in en/nl, and navigator.standalone suppression. The display-mode:standalone CDP media-feature override did not take effect in this Chrome build, so that suppression path and the desktop/Firefox 'neither path' case rely on install.test.ts's deterministic coverage instead. Independent review passed on round 2 (round 1 blocked only on References scope, since fixed).
+<!-- SECTION:FINAL_SUMMARY:END -->
