@@ -38,6 +38,8 @@ Branch: SLAY-14.6/push-worker-sender
 
 <!-- SECTION:NOTES:BEGIN -->
 Cron needs a frequent trigger (e.g. */5 * * * *) so chunks continue; wrangler.toml, VAPID secrets (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY base64url, VAPID_SUBJECT) belong to SLAY-14.7. Progress cursor key run:<date>:<hour> in KV.
+
+Review: pass. Advisory: cron every few minutes needed (14.7); chunk re-send on mid-chunk crash is at-least-once, Topic collapses.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
