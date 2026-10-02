@@ -232,40 +232,37 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, back, ro
   return (
     <div className="play" data-status={state.status} data-hint={hintLevel !== 0 ? '' : undefined}>
       <header className="play-header">
-        <div className="play-header__lead">
-          {/* SLAY-9.25: the visible "Back"/"Terug" text is its own span, not a bare text node, so
-              the phone-width rules in play.css can drop it (keeping just the "‹") when the header
-              is tight -- real phone widths (360-390px) rarely have room for a labeled back button,
-              a real title and the icon row's worst case (4 icons, a running timer) all at once. The
-              aria-label keeps the full "back to the start screen" wording either way. */}
-          {back ? (
-            <button type="button" className="play-header__back" aria-label={back.ariaLabel} onClick={back.onClick}>
-              <span aria-hidden="true">{'‹'}</span>
-              <span className="play-header__back-label">{back.label}</span>
-            </button>
-          ) : null}
-          <h1 className="play-header__title" data-play-title>{title}</h1>
-        </div>
+        {/* SLAY-9.25: the visible "Back"/"Terug" text is its own span, not a bare text node, so
+            the landscape column rule in play.css can drop it (keeping just the "‹") there. On a
+            portrait phone the back button sits alone on row 1 with the icon group (SLAY-14.4),
+            so the label fits. */}
+        {back ? (
+          <button type="button" className="play-header__back" aria-label={back.ariaLabel} onClick={back.onClick}>
+            <span aria-hidden="true">{'‹'}</span>
+            <span className="play-header__back-label">{back.label}</span>
+          </button>
+        ) : null}
+        <h1 className="play-header__title" data-play-title>{title}</h1>
+        {state.options.showTimer ? (
+          <button
+            type="button"
+            className="play-timer"
+            aria-label={strings.timerHide}
+            onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: false })}
+          >
+            <span aria-hidden="true">{'⏱'}</span> {formatTime(elapsed)}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="play-timer play-timer--off"
+            aria-label={strings.timerShow}
+            onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: true })}
+          >
+            <span aria-hidden="true">{'⏱'}</span>
+          </button>
+        )}
         <div className="play-header__actions">
-          {state.options.showTimer ? (
-            <button
-              type="button"
-              className="play-timer"
-              aria-label={strings.timerHide}
-              onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: false })}
-            >
-              <span aria-hidden="true">{'⏱'}</span> {formatTime(elapsed)}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="play-timer play-timer--off"
-              aria-label={strings.timerShow}
-              onClick={() => store.dispatch({ type: 'setOption', option: 'showTimer', value: true })}
-            >
-              <span aria-hidden="true">{'⏱'}</span>
-            </button>
-          )}
           {/* Legend gets its own direct header icon (SLAY-8.2): checked often enough mid-solve
               that a second tap through the More sheet was too slow. Options and Help stay behind
               that sheet on narrow viewports -- once-per-session actions, worth the extra tap where
@@ -301,6 +298,7 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, back, ro
             onClick={() => setDialog('legend')}
           >
             <ToolIcon name="legend" />
+            <span className="play-header__legend-label" aria-hidden="true">{strings.tools.legend}</span>
           </button>
           {/* SLAY-9.25: a visible label next to the dots -- a bare "..." icon read as unclear on
               its own (the owner's report). aria-label stays: it matches the visible text exactly

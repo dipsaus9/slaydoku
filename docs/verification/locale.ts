@@ -173,13 +173,51 @@ const localeKeyValue = () => evaluate(`localStorage.getItem('slaydoku:locale')`)
 // visible word there, not just the bare dots.
 const headerProbe = () =>
   evaluate(
-    `JSON.stringify({ lead: (() => { const e = document.querySelector('.play-header__lead'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), actions: (() => { const e = document.querySelector('.play-header__actions'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right } })(), sw: document.documentElement.scrollWidth, iw: innerWidth, moreVisible: !!document.querySelector('.play-header__more')?.offsetParent, moreLabel: document.querySelector('.play-header__more-label')?.textContent ?? null })`,
-  ).then((s: string) => JSON.parse(s) as { lead: { l: number; r: number } | null; actions: { l: number; r: number } | null; sw: number; iw: number; moreVisible: boolean; moreLabel: string | null })
+    `JSON.stringify((() => {
+      const vis = (e) => !!e && e.offsetParent !== null
+      const rect = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom } }
+      const hdr = document.querySelector('.play-header')
+      const parts = {}
+      if (hdr) {
+        const back = hdr.querySelector('.play-header__back'); if (vis(back)) parts.back = rect(back)
+        const title = hdr.querySelector('.play-header__title'); if (vis(title)) parts.title = rect(title)
+        const timer = hdr.querySelector('.play-timer'); if (vis(timer)) parts.timer = rect(timer)
+        ;[...hdr.querySelectorAll('.play-header__actions button')].filter(vis).forEach((b, i) => { parts['action' + i + ':' + (b.getAttribute('aria-label') || '')] = rect(b) })
+      }
+      const title = document.querySelector('.play-header__title')
+      const legend = document.querySelector('.play-header__legend[aria-label]:not([data-action])')
+      const legendLabel = legend?.querySelector('.play-header__legend-label')
+      return {
+        parts, iw: innerWidth, ih: innerHeight, sw: document.documentElement.scrollWidth,
+        titleCut: title ? title.scrollWidth > title.clientWidth + 1 : false,
+        titleWrap: title ? title.getBoundingClientRect().height > parseFloat(getComputedStyle(title).lineHeight) * 1.5 : false,
+        moreVisible: vis(document.querySelector('.play-header__more')),
+        moreLabel: document.querySelector('.play-header__more-label')?.textContent ?? null,
+        legendLabelVisible: vis(legendLabel), legendLabelText: legendLabel?.textContent ?? null, legendAria: legend?.getAttribute('aria-label') ?? null,
+      }
+    })())`,
+  ).then((s: string) => JSON.parse(s) as { parts: Record<string, { l: number; r: number; t: number; b: number }>; sw: number; iw: number; ih: number; titleCut: boolean; titleWrap: boolean; moreVisible: boolean; moreLabel: string | null; legendLabelVisible: boolean; legendLabelText: string | null; legendAria: string | null })
 async function checkHeaderLayout(label: string) {
   const h = await headerProbe()
-  const overlap = !!h.lead && !!h.actions && h.lead.r > h.actions.l + 0.5
-  check(`${label}: .play-header__lead and .play-header__actions never overlap, no page-level horizontal scroll`, !overlap && h.sw <= h.iw + 1, JSON.stringify(h))
+  const names = Object.keys(h.parts)
+  // Pairwise: no two visible header controls overlap (SLAY-14.4, measured at the true viewport width).
+  const overlaps: string[] = []
+  for (let i = 0; i < names.length; i++)
+    for (let j = i + 1; j < names.length; j++) {
+      const a = h.parts[names[i]], b = h.parts[names[j]]
+      if (a.l < b.r - 0.5 && b.l < a.r - 0.5 && a.t < b.b - 0.5 && b.t < a.b - 0.5) overlaps.push(names[i] + '/' + names[j])
+    }
+  const offscreen = names.filter((n) => h.parts[n].l < -0.5 || h.parts[n].r > h.iw + 0.5)
+  check(`${label}: no header control overlaps another or leaves the screen, no page-level horizontal scroll`, overlaps.length === 0 && offscreen.length === 0 && h.sw <= h.iw + 1, JSON.stringify({ overlaps, offscreen, sw: h.sw, iw: h.iw }))
+  check(`${label}: the title is not wrapped and not cut off`, !h.titleWrap && !h.titleCut, JSON.stringify({ wrap: h.titleWrap, cut: h.titleCut }))
+  const { back, title, timer } = h.parts
+  const act0 = names.find((n) => n.startsWith('action'))
+  if (back && title && timer && act0) {
+    if (h.iw <= 640 && h.ih > h.iw) check(`${label}: phone layout is two rows (back + icons above, title + timer below)`, title.t >= back.b - 1 && timer.t >= h.parts[act0].b - 1, JSON.stringify(h.parts))
+    else if (h.iw >= 641) check(`${label}: desktop layout is one row`, Math.abs((title.t + title.b) / 2 - (back.t + back.b) / 2) < 8 && Math.abs((timer.t + timer.b) / 2 - (back.t + back.b) / 2) < 8, JSON.stringify(h.parts))
+  }
   if (h.moreVisible) check(`${label}: the More trigger carries a visible label, not a bare "..." icon`, !!h.moreLabel && h.moreLabel.trim().length > 0, JSON.stringify(h.moreLabel))
+  if (h.iw >= 641) check(`${label}: the Legend button shows a visible label equal to its aria-label`, h.legendLabelVisible && h.legendLabelText === h.legendAria, JSON.stringify([h.legendLabelText, h.legendAria]))
 }
 
 // --- logging ---------------------------------------------------------------------------------

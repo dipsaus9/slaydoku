@@ -111,19 +111,12 @@
   border: 1px solid var(--line);
 }
 
-/* The header's one flexible child: the back button (when there is one) plus the title. Everything
-   else in the header (.play-header__actions) is a fixed-size, never-shrinking group, so this is the
-   only place free width is ever taken from. */
-.play-header__lead {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
+/* SLAY-14.4: the header is a flat row of four children (back, title, timer, actions). Desktop and
+   landscape: one flex row, the title is the one flexible child. Portrait phone: a two-row grid (see
+   the max-width: 640px block below): row 1 back + icon group, row 2 title + timer pill. */
 .play-header__title {
   margin: 0;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   font-family: var(--font-display);
@@ -166,6 +159,15 @@
 
 .play-header__back-label {
   margin-left: 2px;
+}
+
+/* Legend's visible word: desktop only (>= 641px); phones keep the icon alone to leave room for
+   Share and More. aria-label carries the same text, so the visible label matches it (WCAG 2.5.3). */
+.play-header__legend-label {
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* flex: none -- this group never shrinks; the title above gives up room to it first (see the
@@ -262,6 +264,21 @@
 
   .play-header__more {
     display: none;
+  }
+
+  .play-header__legend {
+    gap: 4px;
+    padding: 0 var(--space-2) 0 var(--space-1);
+  }
+
+  .play-header__legend-label {
+    display: inline;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .play-header__title {
+    font-size: 1.1rem;
   }
 }
 
@@ -1247,48 +1264,48 @@ button.play-legend__row:focus-visible {
       'cards';
   }
 
-  /* SLAY-9.25: every real-phone width the header now has to fit is narrow enough (360-390px) that
-     the header's own horizontal padding and inter-control gaps are worth trimming too -- every
-     pixel here is a pixel the title (.play-header__lead, flex: 1 1 auto) gets to keep before its
-     ellipsis fallback kicks in. */
+  /* SLAY-14.4: two rows. Row 1 = back + the icon group (Legend, Share when solved, More); row 2 =
+     the puzzle title with the timer as a prominent pill. Neither row shares width with the other,
+     so a long Dutch title and the 4-icon solved state no longer compete; the title keeps an
+     ellipsis only as a deliberate fallback for a title longer than a whole row. */
   .play-header {
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-2);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 var(--space-2);
+    padding: var(--space-1) var(--space-3) var(--space-2);
   }
 
-  .play-header__title {
-    font-size: 1rem;
-  }
-
-  /* SLAY-9.25: icon-only here -- at 360-390px, a real title, a running timer and (once solved)
-     the persistent Share icon leave no room to also spell out "Back"/"Terug" next to the "‹".
-     "‹" alone is a standard, unambiguous back affordance in that leftmost spot; the aria-label
-     (back.ariaLabel, "Back to the start screen") still carries the full wording for a screen
-     reader regardless of what is visible. */
+  /* Row 1: back at the left, the icon group at the right, in the same full-width row (own
+     content width each, so they never overlap); row 2: title (flexible) + timer (own column). */
   .play-header__back {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: start;
     margin-left: calc(-1 * var(--space-2));
-    padding: 0;
-    font-size: 1.1rem;
-  }
-
-  .play-header__back-label {
-    display: none;
   }
 
   .play-header__actions {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: end;
     gap: var(--space-1);
   }
 
-  .play-header__more {
-    gap: 1px;
-    padding: 0 3px 0 2px;
-    font-size: 0.72rem;
+  .play-header__title {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 1.15rem;
   }
 
-  /* Same chrome-less button, tighter side padding -- every extra pixel here goes straight to the
-     title's ellipsis budget (SLAY-9.25). */
   .play-timer {
-    padding: 0 6px;
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 40px;
+    padding: 0 var(--space-3);
+    border-color: var(--line);
+    background: rgba(255, 255, 255, 0.6);
+    font-size: 1.3rem;
   }
 
   .play[data-hint] {
@@ -1428,41 +1445,43 @@ button.play-legend__row:focus-visible {
       'board cards';
   }
 
-  /* SLAY-9.25: the header's column here is the same narrow budget as the portrait-phone rule above
-     (the board takes the rest), so the same tightened padding/gaps/font-sizes apply. */
+  /* SLAY-14.4: this column is as narrow as a portrait phone, so the header uses the same two rows
+     (back + icons, then title + timer) instead of squeezing the title next to six controls. */
   .play-header {
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-2);
-  }
-
-  .play-header__title {
-    font-size: 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 var(--space-2);
+    padding: var(--space-1) var(--space-2) var(--space-2);
   }
 
   .play-header__back {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: start;
     margin-left: calc(-1 * var(--space-2));
-    padding: 0;
-    font-size: 1.1rem;
-  }
-
-  .play-header__back-label {
-    display: none;
   }
 
   .play-header__actions {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: end;
     gap: var(--space-1);
   }
 
-  .play-header__more {
-    gap: 1px;
-    padding: 0 3px 0 2px;
-    font-size: 0.72rem;
+  .play-header__title {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 1.1rem;
   }
 
-  /* Same chrome-less button, tighter side padding -- every extra pixel here goes straight to the
-     title's ellipsis budget (SLAY-9.25). */
   .play-timer {
-    padding: 0 6px;
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 36px;
+    padding: 0 var(--space-2);
+    border-color: var(--line);
+    background: rgba(255, 255, 255, 0.6);
   }
 
   .play-toolbar {
