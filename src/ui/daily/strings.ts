@@ -22,7 +22,6 @@ export interface DailyStrings {
   play: string
   continue: string
   endsIn: string
-  endsAt: (when: string) => string
   nextIn: string
   nextAt: (when: string) => string
   ended: string
@@ -80,7 +79,6 @@ export const DAILY_EN: DailyStrings = {
   play: 'Play',
   continue: 'Continue',
   endsIn: 'Ends in',
-  endsAt: (when) => `Ends at ${when}`,
   nextIn: 'Next puzzle in',
   nextAt: (when) => `New puzzle at ${when}`,
   ended: 'This puzzle has ended.',
@@ -148,7 +146,6 @@ export const DAILY_NL: DailyStrings = {
   play: 'Spelen',
   continue: 'Verder',
   endsIn: 'Eindigt over',
-  endsAt: (when) => `Eindigt om ${when}`,
   nextIn: 'Volgende puzzel over',
   nextAt: (when) => `Nieuwe puzzel om ${when}`,
   ended: 'Deze puzzel is afgelopen.',

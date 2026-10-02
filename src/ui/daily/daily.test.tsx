@@ -66,7 +66,8 @@ describe.each(['en', 'nl'] as const)('<StartScreen/> (%s)', (locale) => {
     expect(html).toContain(`aria-label="${t.countdownLabel('2 hours')}"`)
     expect(html).toContain('>02:00:00<')
     expect(strip(html)).toMatch(new RegExp(`${t.endsIn} 02:00:00`))
-    expect(strip(html)).toContain(t.endsAt('00:00 UTC'))
+    expect(html).not.toContain('data-until')
+    expect(strip(html)).not.toMatch(/Ends at|Eindigt om/)
   })
 
   it('shows the result of a solved day instead of Play: time, hints and the murderer', () => {
