@@ -132,7 +132,7 @@ function PuzzleCard({ day, status, ended, clock, onPlay, onShare }: { day: Sched
             target={dayEnd}
             kind={solved ? 'next' : 'ends'}
             label={solved ? t.nextIn : t.endsIn}
-            until={(solved ? t.nextAt : t.endsAt)(utcWithLocal(dayEnd, LOCAL_CLOCK))}
+            until={solved ? t.nextAt(utcWithLocal(dayEnd, LOCAL_CLOCK)) : undefined}
           />
         )}
       </div>

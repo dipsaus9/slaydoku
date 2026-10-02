@@ -8,8 +8,8 @@ export interface CountdownProps {
   target: number
   /** Text before the time: "Ends in". */
   label: string
-  /** Line under it: "Ends at 00:00 UTC (02:00 your time)". */
-  until: string
+  /** Optional line under it: "Next puzzle at 00:00 UTC (02:00 ...)". */
+  until?: string
   /** Which block this is, for tests and drivers. */
   kind: 'ends' | 'next' | 'starts'
 }
@@ -30,7 +30,7 @@ export function Countdown({ clock, target, label, until, kind }: CountdownProps)
           {formatCountdown(left)}
         </time>
       </p>
-      <p className="daily-countdown__until" data-until>{until}</p>
+      {until ? <p className="daily-countdown__until" data-until>{until}</p> : null}
     </div>
   )
 }
