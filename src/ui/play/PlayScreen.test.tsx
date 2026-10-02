@@ -83,6 +83,20 @@ describe('<PlayScreen/>', () => {
     expect(wide).toMatch(/\.play-header__more \{\s*display: none;/)
   })
 
+  it('lays the header out as two rows on a portrait phone and one row at desktop widths, with Legend labelled only at desktop (SLAY-14.4)', async () => {
+    const css = (await import('node:fs')).readFileSync(new URL('./play.css', import.meta.url), 'utf8')
+    const phone = css.match(/@media \(max-width: 640px\) and \(max-aspect-ratio: 1 \/ 1\) \{([^]*?)\n\}/)?.[1] ?? ''
+    expect(phone).toMatch(/\.play-header \{\s*display: grid;/)
+    expect(phone).toMatch(/\.play-header__back \{[^}]*grid-row: 1;/)
+    expect(phone).toMatch(/\.play-header__title \{[^}]*grid-row: 2;/)
+    expect(phone).toMatch(/\.play-timer \{[^}]*grid-row: 2;/)
+    expect(css).toMatch(/\.play-header__legend-label \{\s*display: none;/)
+    const wide = css.match(/@media \(min-width: 641px\) \{([^]*?)\n\}/)?.[1] ?? ''
+    expect(wide).toMatch(/\.play-header__legend-label \{\s*display: inline;/)
+    // The visible Legend text is the aria-label, word for word.
+    expect(html).toMatch(/aria-label="Legend"[^>]*>[^]*?<span class="play-header__legend-label" aria-hidden="true">Legend<\/span>/)
+  })
+
   it('starts at 1x: an unzoomed board, no button needed \u2014 pinch and ctrl+wheel drive zoom (CAD-10.4, SLAY-9.8)', () => {
     expect(html).not.toContain('play-tool--zoom')
     expect(html).toContain('data-zoom="1.00"')
@@ -141,14 +155,16 @@ describe.each(['en', 'nl'] as const)('<PlayScreen/> toolbar text (%s) (SLAY-3.4,
   const t = PLAY_STRINGS[locale].tools
   const html = renderToStaticMarkup(withLocale(locale, <PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />))
 
-  it('shows the toolbar tools by aria-label in the current locale, Options/Help as direct header actions (SLAY-9.2, CSS decides which pair is visible per viewport), and the settings icon that still reaches them on narrow viewports; Legend stays icon-only', () => {
+  it('shows the toolbar tools by aria-label in the current locale, Options/Help as direct header actions (SLAY-9.2, CSS decides which pair is visible per viewport), and the settings icon that still reaches them on narrow viewports; Legend has a visible label that matches its aria-label', () => {
     for (const label of [t.note, t.x, t.erase, t.undo, t.hint]) {
       expect(html).toContain(`aria-label="${label}"`)
     }
     expect(html).toContain('role="toolbar"')
     expect(html).toContain(`aria-label="${t.more}"`)
     for (const label of [t.options, t.help]) expect(html).toContain(`>${label}<`)
-    expect(html).not.toContain(`>${t.legend}<`)
+    // SLAY-14.4: Legend carries a visible text label (shown at desktop widths via CSS) matching its aria-label.
+    expect(html).toContain(`aria-label="${t.legend}"`)
+    expect(html).toContain(`>${t.legend}<`)
   })
 })
 
