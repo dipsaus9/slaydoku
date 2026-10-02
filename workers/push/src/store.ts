@@ -43,13 +43,44 @@ export async function removeSubscription(kv: KvLike, endpoint: string): Promise<
   await kv.delete(subKey(hash))
 }
 
-/** For the sender: every subscription chosen for one Amsterdam hour. */
+export interface HourPage {
+  hashes: string[]
+  /** Present while more pages follow. */
+  cursor?: string
+}
+
+/** One page of the hour index (hashes only, no record reads); pass the returned cursor to continue. */
+export async function listHourPage(
+  kv: KvLike,
+  hour: number,
+  opts: { cursor?: string; limit?: number } = {},
+): Promise<HourPage> {
+  const prefix = hourPrefix(hour)
+  const res = await kv.list({
+    prefix,
+    ...(opts.cursor === undefined ? {} : { cursor: opts.cursor }),
+    ...(opts.limit === undefined ? {} : { limit: opts.limit }),
+  })
+  const hashes = res.keys.map((k) => k.name.slice(prefix.length))
+  return res.list_complete === false && res.cursor !== undefined ? { hashes, cursor: res.cursor } : { hashes }
+}
+
+export async function getSubscription(kv: KvLike, hash: string): Promise<StoredSubscription | null> {
+  const raw = await kv.get(subKey(hash))
+  return raw ? (JSON.parse(raw) as StoredSubscription) : null
+}
+
+/** Every subscription chosen for one Amsterdam hour, following the KV list cursor across pages. */
 export async function listHour(kv: KvLike, hour: number): Promise<StoredSubscription[]> {
-  const { keys } = await kv.list({ prefix: hourPrefix(hour) })
   const out: StoredSubscription[] = []
-  for (const { name } of keys) {
-    const raw = await kv.get(subKey(name.slice(hourPrefix(hour).length)))
-    if (raw) out.push(JSON.parse(raw) as StoredSubscription)
-  }
+  let cursor: string | undefined
+  do {
+    const page = await listHourPage(kv, hour, cursor === undefined ? {} : { cursor })
+    for (const hash of page.hashes) {
+      const sub = await getSubscription(kv, hash)
+      if (sub) out.push(sub)
+    }
+    cursor = page.cursor
+  } while (cursor !== undefined)
   return out
 }
