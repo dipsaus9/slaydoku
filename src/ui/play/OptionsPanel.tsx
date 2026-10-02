@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { GameOptions } from '../../game/index.ts'
 import { LocaleToggle } from '../daily/LocaleToggle.tsx'
+import { ReminderDialog, ReminderOptionsEntry } from '../reminder/index.ts'
 import { Modal } from './Modal.tsx'
 import { usePlayStrings } from './strings.ts'
 
@@ -22,6 +23,7 @@ export interface OptionsPanelProps {
 export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, onClearAll, onRestart, onClose }: OptionsPanelProps) {
   const t = usePlayStrings().options
   const [confirmRestart, setConfirmRestart] = useState(false)
+  const [reminderOpen, setReminderOpen] = useState(false)
   const game = (key: keyof GameOptions, label: string, help: string) => ({
     key,
     label,
@@ -35,6 +37,8 @@ export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, 
     game('showTimer', t.timer, t.timerHelp),
     { key: 'axisLabels', label: t.axisLabels, help: t.axisLabelsHelp, on: showAxisLabels, toggle: () => onAxisLabels(!showAxisLabels) },
   ]
+  // The reminder dialog takes this panel's place (one Escape closes one dialog) and returns to it.
+  if (reminderOpen) return <ReminderDialog onClose={() => setReminderOpen(false)} />
   return (
     <Modal title={t.title} onClose={onClose}>
       <div className="play-options__locale">
@@ -58,6 +62,9 @@ export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, 
             </button>
           </li>
         ))}
+        <li>
+          <ReminderOptionsEntry onOpen={() => setReminderOpen(true)} />
+        </li>
       </ul>
       <div className="play-modal__actions">
         <button type="button" className="play-btn" onClick={() => { onClearAll(); onClose() }}>

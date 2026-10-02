@@ -140,6 +140,7 @@ const NL_EXCEPTIONS: Record<string, readonly string[]> = {
   '/ui/share/strings.ts': ['SHARE_NL'],
   '/pwa/strings.ts': ['UPDATE_NL', 'INSTALL_NL'],
   '/pwa/notify.ts': ['NOTIFY_NL'], // SLAY-14.8: the push reminder text
+  '/ui/reminder/strings.ts': ['REMINDER_NL'], // SLAY-14.10: the reminder dialog, row and Options entry
   '/content/help/help.ts': ['HELP_NL'],
   '/ui/play/glossary.ts': ['GLOSSARY_NL', 'EXTRA_TERMS_NL'],
 }
@@ -157,7 +158,7 @@ describe('no Dutch text is left in the game code', () => {
     expect(files.some(([path]) => path.endsWith('/content/themes/home.ts'))).toBe(true)
     expect(files.some(([path]) => path.endsWith('/content/demo/puzzle.json'))).toBe(true)
     // interface text (SLAY-1.2); the localized strings.ts files carry their NL exception (see NL_EXCEPTIONS below)
-    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/daily/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/ui/play/Toolbar.tsx', '/ui/about/strings.ts', '/ui/stats/strings.ts', '/ui/share/strings.ts', '/pwa/strings.ts']) {
+    for (const end of ['/content/help/help.ts', '/ui/play/strings.ts', '/ui/daily/strings.ts', '/ui/lab/strings.ts', '/ui/play/glossary.ts', '/ui/play/Toolbar.tsx', '/ui/about/strings.ts', '/ui/stats/strings.ts', '/ui/share/strings.ts', '/pwa/strings.ts', '/ui/reminder/strings.ts']) {
       expect(files.some(([path]) => path.endsWith(end)), end).toBe(true)
     }
   })

@@ -49,6 +49,8 @@ export interface StartScreenProps {
   share?: ReactNode
   /** Room for the statistics of the player (SLAY-1.6). */
   stats?: ReactNode
+  /** The daily reminder row (SLAY-14.10); the daily flow passes it only once the player has solved a puzzle. */
+  reminder?: ReactNode
 }
 
 /**
@@ -176,7 +178,7 @@ function Intro() {
 }
 
 /** The start screen (`/`): the puzzle of today with how to play it, until when it runs, and the result once solved. */
-export function StartScreen({ state, clock, onPlay, rollover, share, stats }: StartScreenProps) {
+export function StartScreen({ state, clock, onPlay, rollover, share, stats, reminder }: StartScreenProps) {
   const t = useDailyStrings()
   const { locale } = useLocale()
   const help = HELP_CONTENT[locale]
@@ -248,6 +250,11 @@ export function StartScreen({ state, clock, onPlay, rollover, share, stats }: St
         <div className="daily__slot" data-slot="stats">
           {stats}
         </div>
+        {reminder ? (
+          <div className="daily__slot" data-slot="reminder">
+            {reminder}
+          </div>
+        ) : null}
         <Intro />
         <footer className="daily__footer">
           <Link href="/about" className="daily__about">
