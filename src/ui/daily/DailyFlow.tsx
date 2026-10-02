@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { dailyId, dayStatus, observeSolve, progressStorage, readResult, recordPuzzleSolve, recordPuzzleStart, recordResult, resultOf, pageClock } from '../../game/index.ts'
 import type { SolveRecord, StorageLike } from '../../game/index.ts'
+import { readStats } from '../../game/stats/index.ts'
 import { SCHEDULE_INDEX, loadMonthFile } from '../../game/daily/source.ts'
 import { themeIconsFor } from '../../content/themes/icons.ts'
 import { phaseOf, puzzleNumberOf } from '../../schedule/index.ts'
@@ -9,6 +10,7 @@ import type { MonthFile, ScheduleDay, ScheduleIndex } from '../../schedule/index
 import { PlayScreen } from '../play/index.ts'
 import { navigate, usePath } from '../router/index.ts'
 import { SharePanel } from '../share/index.ts'
+import { ReminderRow } from '../reminder/index.ts'
 import { StatsEntry } from '../stats/index.ts'
 import { shareMetaOf } from '../../share/index.ts'
 import { parseRoute, routePath } from './route.ts'
@@ -74,6 +76,10 @@ export function DailyFlow({ clock: givenClock, storage: givenStorage, index = SC
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   const status = useMemo(() => (day ? dayStatus(storage, day) : null), [storage, day, version, path])
 
+  // The reminder row waits for the first solve ever (stats count every solved day), not just today's.
+  // oxlint-disable-next-line react-hooks/exhaustive-deps
+  const solvedBefore = useMemo(() => readStats(storage, today).solved > 0, [storage, today, version, path])
+
   // A solved board whose result was never written (the write failed) is recorded now.
   useEffect(() => {
     if (day && status?.kind === 'solved' && readResult(storage, day.n, day.fp) === null) recordResult(storage, status.result)
@@ -129,7 +135,7 @@ export function DailyFlow({ clock: givenClock, storage: givenStorage, index = SC
   else state = { kind: 'error', onRetry: retry }
   const shareCard = share ?? (day && status?.kind === 'solved' ? <SharePanel result={status.result} meta={shareMetaOf(day)} /> : null)
   const statsEntry = stats ?? <StatsEntry storage={storage} today={today} version={version} onReset={() => setVersion((v) => v + 1)} />
-  return <StartScreen state={state} clock={clock} rollover={rollover} share={shareCard} stats={statsEntry} onPlay={() => go(routePath({ kind: 'play', n: null }))} />
+  return <StartScreen state={state} clock={clock} rollover={rollover} share={shareCard} stats={statsEntry} reminder={solvedBefore ? <ReminderRow /> : null} onPlay={() => go(routePath({ kind: 'play', n: null }))} />
 }
 
 interface PlayRouteProps {
