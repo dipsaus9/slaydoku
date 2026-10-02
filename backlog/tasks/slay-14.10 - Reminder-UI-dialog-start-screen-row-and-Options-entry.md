@@ -45,6 +45,8 @@ Branch: SLAY-14.10/reminder-ui
 
 <!-- SECTION:NOTES:BEGIN -->
 Rendered check (headless Chrome, harness with fake store, since removed): 360 and 1280 px, en and nl, start row off/on, Options entry, dialog off/blocked/error. No horizontal overflow, targets >=44px (row button 44, Save/select 48). Production stays hidden until REMINDER_CONFIG has real values.
+
+Review: pass, all 5 AC met, no scope violations. Advisory: no DailyFlow-level test for first-solve gating; dialog draft does not re-sync if store state changes while open.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
