@@ -53,6 +53,10 @@ describe.each(['en', 'nl'] as const)('<Toolbar/> icons (CAD-10.10, SLAY-8.2) (%s
     for (const label of [t.tools.redo, t.tools.more]) expect(html).not.toContain(`>${label}<`)
   })
 
+  it('has no zoom control (SLAY-14.1): no Zoom/Inzoomen label, aria-label or title', () => {
+    expect(html).not.toMatch(/zoom/i)
+  })
+
   it('gives every button an svg icon and an aria-label plus a title, in the current locale', () => {
     const labels = MAIN_ROW.map((key) => t.tools[key])
     expect(labels).toHaveLength(6)

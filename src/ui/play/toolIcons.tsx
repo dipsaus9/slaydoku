@@ -13,8 +13,6 @@ export type ToolIconName =
   | 'undo'
   | 'hint'
   | 'autoX'
-  | 'zoomIn'
-  | 'zoomOut'
   | 'options'
   | 'help'
   | 'legend'
@@ -62,18 +60,6 @@ const SHAPES: Record<ToolIconName, ReactNode> = {
     <>
       <path d="M4.5 10.5l8 8M12.5 10.5l-8 8" />
       <path d="M18.3 3.5v5.4M15.6 6.2H21" />
-    </>
-  ),
-  zoomIn: (
-    <>
-      <circle cx="10.6" cy="10.6" r="6.6" />
-      <path d="M15.5 15.5L20.5 20.5M8 10.6h5.2M10.6 8v5.2" />
-    </>
-  ),
-  zoomOut: (
-    <>
-      <circle cx="10.6" cy="10.6" r="6.6" />
-      <path d="M15.5 15.5L20.5 20.5M8 10.6h5.2" />
     </>
   ),
   // gear: eight teeth around a hub

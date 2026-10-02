@@ -1,9 +1,10 @@
 ---
 id: SLAY-14.1
 title: Remove remaining Zoom control remnants from the play toolbar
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-02 09:54'
+updated_date: '2026-10-02 11:04'
 labels:
   - story
 dependencies: []
@@ -27,7 +28,19 @@ Branch: SLAY-14.1/remove-zoom-remnants
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 No element on the rendered play screen is labelled Zoom/Inzoomen (or has a zoom icon) at 360px and 1280px, in en and nl
-- [ ] #2 Unused zoom button strings/icons in src/ui/play/strings.ts and toolIcons.tsx are removed; pinch and ctrl+wheel zoom still work (existing zoom tests pass)
-- [ ] #3 bun run lint, bun run typecheck, bun run test --maxWorkers=1 stay green
+- [x] #1 No element on the rendered play screen is labelled Zoom/Inzoomen (or has a zoom icon) at 360px and 1280px, in en and nl
+- [x] #2 Unused zoom button strings/icons in src/ui/play/strings.ts and toolIcons.tsx are removed; pinch and ctrl+wheel zoom still work (existing zoom tests pass)
+- [x] #3 bun run lint, bun run typecheck, bun run test --maxWorkers=1 stay green
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review: pass, no findings.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Removed dead zoomIn/zoomOut icons from toolIcons.tsx (strings.ts had no zoom strings); added a Toolbar test asserting no zoom control in en/nl. Pinch/ctrl+wheel untouched.
+<!-- SECTION:FINAL_SUMMARY:END -->
