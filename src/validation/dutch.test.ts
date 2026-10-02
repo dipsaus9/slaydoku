@@ -139,6 +139,7 @@ const NL_EXCEPTIONS: Record<string, readonly string[]> = {
   '/ui/stats/strings.ts': ['STATS_NL'],
   '/ui/share/strings.ts': ['SHARE_NL'],
   '/pwa/strings.ts': ['UPDATE_NL', 'INSTALL_NL'],
+  '/pwa/notify.ts': ['NOTIFY_NL'], // SLAY-14.8: the push reminder text
   '/content/help/help.ts': ['HELP_NL'],
   '/ui/play/glossary.ts': ['GLOSSARY_NL', 'EXTRA_TERMS_NL'],
 }
