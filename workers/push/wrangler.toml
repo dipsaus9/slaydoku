@@ -1,0 +1,21 @@
+# Slaydoku push reminder Worker. Setup steps: docs/push.md.
+name = "slaydoku-push"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# Fill in the id printed by `bunx wrangler kv namespace create SUBSCRIPTIONS` (an id is not a secret).
+[[kv_namespaces]]
+binding = "SUBSCRIPTIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# The sender handles 11 subscribers per run (free-plan subrequest limit) and keeps a KV cursor per
+# Amsterdam hour, so it must run often: a large hour drains across several runs. Runs after an
+# hour is done cost one KV read. Reminders go out in the first runs of each Amsterdam hour.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Secrets are NOT stored here. Set them with `bunx wrangler secret put <NAME>`:
+#   VAPID_PUBLIC_KEY   base64url, 65-byte uncompressed P-256 point
+#   VAPID_PRIVATE_KEY  base64url, 32-byte private scalar
+#   VAPID_SUBJECT      mailto:you@example.com (or an https URL)
+# Generate the key pair with `bun tools/vapid.ts`.
