@@ -12,14 +12,8 @@ export interface ShareMeta {
   siteUrl?: string
 }
 
-/** The two card formats. */
-export type CardFormat = 'wide' | 'square'
-
-/** Pixel sizes of the two formats (an OG-style wide card and a square one for feeds). */
-export const CARD_SIZES: Record<CardFormat, { width: number; height: number }> = {
-  wide: { width: 1200, height: 630 },
-  square: { width: 1080, height: 1080 },
-}
+/** Pixel size of the share card: always square (it is drawn on 1080 units and scaled). */
+export const CARD_SIZE = { width: 1200, height: 1200 } as const
 
 /** The share meta of a scheduled day (its tier and board size). */
 export const shareMetaOf = (day: { tier: TierId; size: number }, siteUrl?: string): ShareMeta => ({ tier: day.tier, size: day.size, ...(siteUrl ? { siteUrl } : {}) })

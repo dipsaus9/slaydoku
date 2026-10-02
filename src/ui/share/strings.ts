@@ -3,7 +3,6 @@ import type { Locale } from '../../locale/index.ts'
 interface ShareStrings {
   title: string
   preview: (description: string) => string
-  formats: { label: string; wide: string; square: string }
   share: string
   copy: string
   download: string
@@ -11,6 +10,7 @@ interface ShareStrings {
   status: {
     shared: string
     copied: string
+    copiedWithImage: string
     copyFailed: string
     downloaded: string
     downloadFailed: string
@@ -24,14 +24,14 @@ interface ShareStrings {
 export const SHARE_EN: ShareStrings = {
   title: 'Share your result',
   preview: (description) => `Preview of your result card. ${description}`,
-  formats: { label: 'Card shape', wide: 'Wide', square: 'Square' },
   share: 'Share',
-  copy: 'Copy text',
+  copy: 'Copy',
   download: 'Download image',
   textLabel: 'Text that is shared',
   status: {
     shared: 'Shared.',
-    copied: 'Copied to your clipboard.',
+    copied: 'Text copied to your clipboard (this browser cannot copy the image).',
+    copiedWithImage: 'Image and text copied to your clipboard.',
     copyFailed: 'Could not copy. Select the text above and copy it by hand.',
     downloaded: 'Image saved to your device.',
     downloadFailed: 'Could not make the image.',
@@ -45,14 +45,14 @@ export const SHARE_EN: ShareStrings = {
 export const SHARE_NL: ShareStrings = {
   title: 'Deel je resultaat',
   preview: (description) => `Voorbeeld van je resultaatkaart. ${description}`,
-  formats: { label: 'Kaartvorm', wide: 'Breed', square: 'Vierkant' },
   share: 'Delen',
-  copy: 'Tekst kopiëren',
+  copy: 'Kopiëren',
   download: 'Afbeelding downloaden',
   textLabel: 'Tekst die wordt gedeeld',
   status: {
     shared: 'Gedeeld.',
-    copied: 'Gekopieerd naar je klembord.',
+    copied: 'Tekst gekopieerd naar je klembord (deze browser kan de afbeelding niet kopiëren).',
+    copiedWithImage: 'Afbeelding en tekst gekopieerd naar je klembord.',
     copyFailed: 'Kopiëren mislukt. Selecteer de tekst hierboven en kopieer die zelf.',
     downloaded: 'Afbeelding opgeslagen op je apparaat.',
     downloadFailed: 'De afbeelding kon niet worden gemaakt.',

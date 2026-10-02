@@ -9,7 +9,7 @@ import { cardSvg } from './card.ts'
 import { cardDescription, emojiStrip, emojiText, stripCells } from './emoji.ts'
 import { TIER_LABELS, dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel } from './format.ts'
 import { SITE_URL, siteLabel } from './site.ts'
-import { CARD_SIZES, shareMetaOf } from './types.ts'
+import { CARD_SIZE, shareMetaOf } from './types.ts'
 
 const { days } = readSchedule()
 const result = (over: Partial<DailyResult> = {}): DailyResult => ({ n: 43, date: '2026-11-23', tier: 'medium', fp: 'fp', elapsedMs: 252_000, hints: 2, wrongChecks: 0, murdererId: 'p1', ...over })
@@ -117,7 +117,7 @@ describe.each(['en', 'nl'] as const)('no spoilers: nothing of the puzzle but its
     it(`#${day.n} ${day.date}: no name, clue or solution cell in the text or the cards`, () => {
       const r = result({ n: day.n, date: day.date, tier: day.tier, murdererId: day.puzzle.people.find((p) => p.kind === 'suspect')!.id, hints: 1, wrongChecks: 1 })
       const m = shareMetaOf(day, 'https://slaydoku.vercel.app')
-      const outputs = [emojiText(r, m, locale), cardSvg(r, m, CARD_SIZES.wide, undefined, locale), cardSvg(r, m, CARD_SIZES.square, undefined, locale)]
+      const outputs = [emojiText(r, m, locale), cardSvg(r, m, CARD_SIZE, undefined, locale)]
       const ctx = { scene: day.puzzle.scene, people: day.puzzle.people }
       const clues = (day.puzzle.clues as CatalogClue[]).map((clue) => renderClue(clue, ctx))
       expect(clues.length).toBeGreaterThan(0)
@@ -149,13 +149,14 @@ describe('cardSvg', () => {
     expect(svg).not.toMatch(/&(?!amp;|lt;|gt;|quot;|apos;)/)
   }
 
-  for (const [format, { width, height }] of Object.entries(CARD_SIZES)) {
-    it(`${format}: well formed, sized ${width}x${height}, with number, date, difficulty, time and hints`, () => {
+  {
+    const { width, height } = CARD_SIZE
+    it(`square: well formed, sized ${width}x${height}, with number, date, difficulty, time and hints`, () => {
       const svg = cardSvg(result(), meta, { width, height })
       wellFormed(svg)
       expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(true)
       expect(svg).toContain(`width="${width}" height="${height}"`)
-      expect(svg).toContain(format === 'wide' ? 'viewBox="0 0 1200 630"' : 'viewBox="0 0 1080 1080"')
+      expect(svg).toContain('viewBox="0 0 1080 1080"')
       for (const part of ['Slaydoku', 'Puzzle of 23 November', 'Monday 23 November 2026', 'Medium · 9x9', '04:12', '2 hints', 'slaydoku.vercel.app']) expect(svg).toContain(part)
       expect(svg.match(/fill="#2b7de9"/g)!.length).toBeGreaterThan(7)
       // Shapes and text only: nothing to fetch, nothing to run.
@@ -165,26 +166,26 @@ describe('cardSvg', () => {
   }
 
   it('scales the design to any size of the same shape', () => {
-    const svg = cardSvg(result(), meta, { width: 600, height: 315 })
-    expect(svg).toContain('width="600" height="315" viewBox="0 0 1200 630"')
+    const svg = cardSvg(result(), meta, { width: 600, height: 600 })
+    expect(svg).toContain('width="600" height="600" viewBox="0 0 1080 1080"')
   })
 
   it('says no hints, shows an hour time and draws a square per person', () => {
-    const svg = cardSvg(result({ hints: 0, wrongChecks: 0, elapsedMs: 3_723_000 }), { ...meta, size: 12 }, CARD_SIZES.wide)
+    const svg = cardSvg(result({ hints: 0, wrongChecks: 0, elapsedMs: 3_723_000 }), { ...meta, size: 12 }, CARD_SIZE)
     wellFormed(svg)
     expect(svg).toContain('No hints')
     expect(svg).toContain('1:02:03')
-    expect(svg.match(/<rect x="[\d.]+" y="432"/g)?.length).toBe(12)
+    expect(svg.match(/<rect x="[\d.]+" y="828"/g)?.length).toBe(12)
   })
 
   it('draws Dutch labels and legend when asked for Dutch', () => {
-    const svg = cardSvg(result({ wrongChecks: 1 }), meta, CARD_SIZES.wide, undefined, 'nl')
+    const svg = cardSvg(result({ wrongChecks: 1 }), meta, CARD_SIZE, undefined, 'nl')
     wellFormed(svg)
     for (const part of ['Slaydoku', 'Puzzel van 23 november', 'maandag 23 november 2026', 'Gemiddeld · 9x9', '04:12', '2 hints', 'geplaatst', 'hint', 'foute controle']) expect(svg).toContain(part)
   })
 
   it('escapes what it prints', () => {
-    const svg = cardSvg(result(), { ...meta, siteUrl: 'https://a&b.example' }, CARD_SIZES.wide)
+    const svg = cardSvg(result(), { ...meta, siteUrl: 'https://a&b.example' }, CARD_SIZE)
     expect(svg).toContain('a&amp;b.example')
     wellFormed(svg)
   })

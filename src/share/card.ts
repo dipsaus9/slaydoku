@@ -124,11 +124,6 @@ function iconTile(x: number, y: number, size: number): string {
   )
 }
 
-/** The wordmark: the icon tile and the name, the card's headline (see HeadlineFont). */
-function wordmark(x: number, y: number, tile: number, size: number, font: string): string {
-  return iconTile(x, y, tile) + text('Slaydoku', { x: x + tile + tile * 0.28, y: y + tile * 0.5 + size * 0.34, size, weight: 800, font })
-}
-
 /** The difficulty pill, its width taken from the text (system fonts differ a little, so it has room to spare). */
 function pill(label: string, x: number, y: number, size: number, anchor: 'start' | 'middle' = 'start'): string {
   const height = size * 2
@@ -176,22 +171,7 @@ interface Parts {
   cells: StripCell[]
 }
 
-function wide(p: Parts, headlineFont: string, words: Record<StripCell, string>): string {
-  return (
-    `<rect width="1200" height="630" fill="${PAPER}"/><rect x="32" y="32" width="1136" height="566" rx="36" fill="${PANEL}" stroke="${LINE}" stroke-width="2"/>` +
-    wordmark(84, 72, 72, 46, headlineFont) +
-    text(p.number, { x: 84, y: 214, size: 38, weight: 700 }) +
-    text(p.date, { x: 84, y: 254, size: 26, fill: MUTED }) +
-    pill(p.tier, 84, 284, 24) +
-    text(p.time, { x: 80, y: 484, size: timeSize(p.time, 170), weight: 800 }) +
-    text(p.hints, { x: 84, y: 548, size: 36, weight: 600, fill: MUTED }) +
-    iconTile(786, 84, 280) +
-    strip(p.cells, 926, 432, 380, 44, 'middle') +
-    legend(p.cells, 926, 508, 19, 'middle', words) +
-    text(p.site, { x: 926, y: 560, size: 26, weight: 600, anchor: 'middle', fill: INK })
-  )
-}
-
+/** The square card: its design is drawn on 1080 units and scaled to the size asked for. */
 function square(p: Parts, headlineFont: string, words: Record<StripCell, string>): string {
   return (
     `<rect width="1080" height="1080" fill="${PAPER}"/><rect x="36" y="36" width="1008" height="1008" rx="44" fill="${PANEL}" stroke="${LINE}" stroke-width="2"/>` +
@@ -210,14 +190,13 @@ function square(p: Parts, headlineFont: string, words: Record<StripCell, string>
 
 /**
  * The share card as an SVG document: wordmark, the date-based puzzle label, date, difficulty pill, the time big, the hints, a strip of one square per
- * person (see `stripCells`) and the site. Two designs: a landscape one (1200x630 units) and a square one (1080x1080); `width` and
+ * person (see `stripCells`) and the site. One design, square (1080x1080 units); `width` and
  * `height` set the size of the picture, which scales the design. Shapes and text only: no images, no script, nothing fetched by the SVG
  * itself — `headline` (default: the plain system stack) is the one already-resolved choice from `loadDisplayFont`, embedded inline when
  * it carries a font. It carries the labels of the puzzle and never its solution, names or clues. `locale` (default English) picks the
  * language of every label drawn on it, including the strip's legend.
  */
 export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }: { width: number; height: number }, headline: HeadlineFont = SYSTEM_HEADLINE, locale: Locale = 'en'): string {
-  const isWide = width / height > 1.2
   const parts: Parts = {
     number: puzzleLabel(result.date, locale),
     date: dateLabel(result.date, locale),
@@ -228,12 +207,11 @@ export function cardSvg(result: DailyResult, meta: ShareMeta, { width, height }:
     cells: stripCells(result, meta.size),
   }
   const words = locale === 'nl' ? STRIP_WORDS_NL : STRIP_WORDS
-  const [vw, vh] = isWide ? [1200, 630] : [1080, 1080]
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${vw} ${vh}" role="img" aria-labelledby="card-title">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 1080 1080" role="img" aria-labelledby="card-title">` +
     `<title id="card-title">${escapeXml(cardDescription(result, meta, locale))}</title>` +
     (headline.fontFace ?? '') +
-    (isWide ? wide(parts, headline.family, words) : square(parts, headline.family, words)) +
+    square(parts, headline.family, words) +
     '</svg>'
   )
 }

@@ -1,4 +1,4 @@
-import type { CardFormat, ShareMeta } from '../../share/index.ts'
+import type { ShareMeta } from '../../share/index.ts'
 import type { DailyResult } from '../../game/daily/results.ts'
 import { useLocale } from '../../locale/index.ts'
 import type { ShareNavigator } from './actions.ts'
@@ -13,11 +13,9 @@ export interface SharePanelProps {
   nav?: ShareNavigator
 }
 
-const FORMATS: readonly CardFormat[] = ['wide', 'square']
-
 /**
- * The share card of a solved puzzle: a preview, the shape of the card, and Share (system share sheet, with the PNG where the browser
- * can share files). Where there is no share sheet, or it failed, it offers Copy text and Download image instead. The card and the
+ * The share card of a solved puzzle: a preview of the square card, and Share (system share sheet, with the PNG where the browser
+ * can share files). Where there is no share sheet, or it failed, it offers Copy (image and text together, text alone where the browser cannot) and Download image instead. The card and the
  * text hold the puzzle number, difficulty, time and hints and never the solution, the names or the clues.
  */
 export function SharePanel({ result, meta, nav }: SharePanelProps) {
@@ -28,13 +26,6 @@ export function SharePanel({ result, meta, nav }: SharePanelProps) {
     <section className="share" data-share aria-labelledby="share-title">
       <h3 id="share-title" className="share__title">{t.title}</h3>
       <img className="share__preview" data-share-preview src={share.previewSrc} width={share.size.width} height={share.size.height} alt={t.preview(share.description)} />
-      <div className="share__formats" role="group" aria-label={t.formats.label}>
-        {FORMATS.map((format) => (
-          <button key={format} type="button" className="share-btn share__format" data-format={format} aria-pressed={share.format === format} onClick={() => share.setFormat(format)}>
-            {t.formats[format]}
-          </button>
-        ))}
-      </div>
       <pre className="share__text" data-share-text aria-label={t.textLabel}>{share.text}</pre>
       <div className="share__actions">
         {share.supported ? (

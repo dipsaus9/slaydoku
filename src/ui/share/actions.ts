@@ -2,7 +2,7 @@
 export interface ShareNavigator {
   share?: (data: ShareData) => Promise<void>
   canShare?: (data?: ShareData) => boolean
-  clipboard?: { writeText: (text: string) => Promise<void> }
+  clipboard?: { writeText: (text: string) => Promise<void>; write?: (items: ClipboardItem[]) => Promise<void> }
 }
 
 /** What it needs of `document` to copy through a textarea. */
@@ -19,6 +19,11 @@ export interface DownloadEnv {
   /** Schedules the release of the object URL after the browser started the download. Default `setTimeout`. */
   later?: (run: () => void) => void
 }
+
+/** The `ClipboardItem` constructor (a subset, so a test can pass a mock); absent in browsers that cannot copy images. */
+export type ClipboardItemCtor = new (items: Record<string, Blob>) => ClipboardItem
+
+export type CopyOutcome = 'image-and-text' | 'text' | 'failed'
 
 export type ShareOutcome = { status: 'shared'; withImage: boolean } | { status: 'cancelled' } | { status: 'failed' }
 
@@ -80,6 +85,27 @@ export async function copyText(text: string, nav: ShareNavigator | undefined, do
     }
   }
   return doc ? copyThroughTextarea(text, doc) : false
+}
+
+/**
+ * Copies the card: the PNG and the text together as one clipboard item where the browser supports `ClipboardItem` (and there is an image),
+ * otherwise the text alone (`copyText`). Reports which of the two it did, so the panel can say so.
+ */
+export async function copyCard(
+  { text, file }: { text: string; file: File | null },
+  nav: ShareNavigator | undefined,
+  doc: CopyDocument | undefined,
+  Item: ClipboardItemCtor | undefined,
+): Promise<CopyOutcome> {
+  if (file && Item && typeof nav?.clipboard?.write === 'function') {
+    try {
+      await nav.clipboard.write([new Item({ 'image/png': file, 'text/plain': new Blob([text], { type: 'text/plain' }) })])
+      return 'image-and-text'
+    } catch {
+      // not allowed for this type or page: copy the text alone
+    }
+  }
+  return (await copyText(text, nav, doc)) ? 'text' : 'failed'
 }
 
 /** Saves a blob as a file through a temporary link. Returns false when the browser could not do it. */

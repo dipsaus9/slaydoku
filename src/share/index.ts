@@ -2,4 +2,4 @@ export { cardSvg, escapeXml, loadDisplayFont, type HeadlineFont } from './card.t
 export { STRIP_EMOJI, cardDescription, emojiStrip, emojiText, stripCells, type StripCell } from './emoji.ts'
 export { TIER_LABELS, capitalize, dateLabel, formatDuration, hintsLabel, sizeLabel, tierLabel } from './format.ts'
 export { SITE_URL, siteLabel } from './site.ts'
-export { CARD_SIZES, type CardFormat, type ShareMeta, shareMetaOf } from './types.ts'
+export { CARD_SIZE, type ShareMeta, shareMetaOf } from './types.ts'
