@@ -13,6 +13,7 @@
  * - fetch: see `routeRequest`.
  */
 import { SHELL_URL, SKIP_WAITING_MESSAGE, cacheName, pathOf, precacheVersion, precachedPaths, routeRequest, staleCacheNames } from './cache.ts'
+import { PLAY_PATH, pushNotification, routeNotificationClick } from './notify.ts'
 import type { PrecacheEntry } from './cache.ts'
 
 declare const __PRECACHE__: readonly PrecacheEntry[]
@@ -27,13 +28,28 @@ interface WorkerFetchEvent extends WorkerEvent {
 interface WorkerMessageEvent extends WorkerEvent {
   readonly data: unknown
 }
+interface WorkerNotificationEvent extends WorkerEvent {
+  readonly notification: { close(): void }
+}
+interface WorkerWindowClient {
+  readonly url: string
+  focus(): Promise<unknown>
+  navigate(url: string): Promise<unknown>
+}
 interface WorkerScope {
   readonly location: Location
-  readonly clients: { claim(): Promise<void> }
+  readonly registration: { showNotification(title: string, options?: object): Promise<void> }
+  readonly clients: {
+    claim(): Promise<void>
+    matchAll(options: { type: 'window'; includeUncontrolled: boolean }): Promise<readonly WorkerWindowClient[]>
+    openWindow(url: string): Promise<unknown>
+  }
   skipWaiting(): Promise<void>
   addEventListener(type: 'install' | 'activate', listener: (event: WorkerEvent) => void): void
   addEventListener(type: 'fetch', listener: (event: WorkerFetchEvent) => void): void
   addEventListener(type: 'message', listener: (event: WorkerMessageEvent) => void): void
+  addEventListener(type: 'push', listener: (event: WorkerEvent) => void): void
+  addEventListener(type: 'notificationclick', listener: (event: WorkerNotificationEvent) => void): void
 }
 
 const scope = self as unknown as WorkerScope
@@ -78,4 +94,23 @@ scope.addEventListener('fetch', (event) => {
   if (kind === 'network') return
   const key = kind === 'shell' ? SHELL_URL : pathOf(request.url)
   event.respondWith(caches.match(key, { cacheName: CURRENT }).then((hit) => hit ?? fetch(request)))
+})
+
+// Daily reminder (SLAY-14.8). The push has no payload; the text is picked from the browser language.
+scope.addEventListener('push', (event) => {
+  const { title, options } = pushNotification(navigator.language)
+  event.waitUntil(scope.registration.showNotification(title, options))
+})
+
+scope.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  event.waitUntil(
+    scope.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clients) => {
+      const action = routeNotificationClick(clients, scope.location.origin)
+      if (action.kind === 'open') return scope.clients.openWindow(PLAY_PATH)
+      const client = clients[action.index]!
+      await client.focus()
+      return client.navigate(PLAY_PATH)
+    }),
+  )
 })
