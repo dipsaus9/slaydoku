@@ -1,11 +1,11 @@
 // Verification driver for the share card (SLAY-1.7). Drives headless Chrome over the DevTools protocol with touch emulation, on the dev-only
 // date override (src/game/daily/clock.ts): it solves a scheduled day through the real UI, opens the share card on the start screen and
 // checks it in every way a browser can differ:
-//   - the preview, the emoji text (exact, from src/share), the two shapes, targets of 44px, nothing sideways;
-//   - Share with a share sheet that takes files: the PNG that arrives is 1200x630 (wide) and 1080x1080 (square), really drawn (pixels of
-//     the brand blue and the card's warm cream panel), named slaydoku-<n>[-square].png, and comes with the text;
+//   - the preview, the emoji text (exact, from src/share), the square-only card (no shape toggle), targets of 44px, nothing sideways;
+//   - Share with a share sheet that takes files: the PNG that arrives is 1200x1200, really drawn (pixels of
+//     the brand blue and the card's warm cream panel), named slaydoku-<n>-square.png, and comes with the text;
 //   - Share with a share sheet that takes text only; closing the sheet (no error); a sheet that fails (message and the fallback buttons);
-//   - no share sheet: Copy text (clipboard API, and the textarea fallback without one) and Download image (both PNG sizes);
+//   - no share sheet: Copy (image and text as one clipboard item, text only without ClipboardItem, and the textarea fallback without a clipboard) and Download image;
 //   - the keyboard (Tab to Share, Enter), a result with hints and wrong checks, nothing requested from another origin, and offline.
 // The share sheet, the clipboard and the download are replaced by recorders (a headless Chrome has none), chosen per page load through
 // localStorage `verify-share-mode`. The card PNGs of the run are saved to OUT/cards (outside the repo) to look at.
@@ -126,10 +126,10 @@ function check(scenario: string, ok: boolean, detail = '') {
 }
 
 // --- the recorders that stand in for the share sheet, the clipboard and the download ----------
-/** Runs before every page script. The mode comes from localStorage `verify-share-mode`: real | files | text | abort | fail | none | noclip. */
+/** Runs before every page script. The mode comes from localStorage `verify-share-mode`: real | files | text | abort | fail | none | textclip | noclip. */
 const RECORDERS = `(() => {
   const mode = localStorage.getItem('verify-share-mode') || 'real'
-  const log = (window.__log = { shared: [], copied: [], execCopied: [], downloads: [] })
+  const log = (window.__log = { shared: [], copied: [], items: [], execCopied: [], downloads: [] })
   const define = (obj, key, value) => Object.defineProperty(obj, key, { configurable: true, value })
   const orig = URL.createObjectURL.bind(URL)
   const blobs = {}
@@ -143,7 +143,7 @@ const RECORDERS = `(() => {
       log.shared.push({ title: d.title, text: d.text, files: d.files || [] })
     })
   }
-  if (mode === 'none' || mode === 'noclip') {
+  if (mode === 'none' || mode === 'noclip' || mode === 'textclip') {
     define(navigator, 'share', undefined)
     define(navigator, 'canShare', undefined)
   }
@@ -151,7 +151,12 @@ const RECORDERS = `(() => {
     define(navigator, 'clipboard', undefined)
     document.execCommand = (cmd) => { log.execCopied.push({ cmd, value: document.activeElement && document.activeElement.value }); return true }
   } else if (mode !== 'real') {
-    define(navigator, 'clipboard', { writeText: async (t) => { log.copied.push(t) } })
+    const clip = { writeText: async (t) => { log.copied.push(t) } }
+    if (mode !== 'textclip') {
+      define(window, 'ClipboardItem', class { constructor(items) { this.items = items } })
+      clip.write = async (list) => { for (const it of list) log.items.push({ types: Object.keys(it.items), text: it.items['text/plain'], png: it.items['image/png'] }) }
+    } else define(window, 'ClipboardItem', undefined)
+    define(navigator, 'clipboard', clip)
   }
 })()`
 await send('Page.enable')
@@ -202,6 +207,15 @@ async function placeAll(puzzle: PuzzleJson) {
     await sleep(200)
     remaining.delete(pid)
   }
+  // SLAY-9.24: the victim is no longer auto-filled; the selection has advanced to it, so the player places its square too.
+  const victim = puzzle.people.find((p) => p.kind === 'victim')
+  const victimCell = victim && puzzle.solution.find((s) => s.personId === victim.id)?.cell
+  if (victimCell) {
+    const vr = await rectOf(cellSel(victimCell.row, victimCell.col))
+    if (!vr) return false
+    await hold(vr.x, vr.y, 650)
+    await sleep(200)
+  }
   await sleep(900)
   return true
 }
@@ -238,7 +252,7 @@ const sharedInfo = (i: number) => evaluate(`(() => { const s = window.__log.shar
 const status = () => textOf('[data-share-status]')
 const shareText = () => evaluate(`document.querySelector('[data-share-text]')?.textContent ?? ''`) as Promise<string>
 const panelProbe = () =>
-  evaluate(`(() => { const p = document.querySelector('[data-share]'); if (!p) return null; const r = p.getBoundingClientRect(); const img = p.querySelector('[data-share-preview]'); const ir = img.getBoundingClientRect(); const small = [...p.querySelectorAll('button')].filter((b) => { const q = b.getBoundingClientRect(); return q.width < 44 || q.height < 48 }).length; return { l: r.left, r: r.right, iw: innerWidth, sw: document.documentElement.scrollWidth, imgW: Math.round(ir.width), imgH: Math.round(ir.height), natural: img.naturalWidth, complete: img.complete, small, buttons: [...p.querySelectorAll('button')].map((b) => b.getAttribute('data-action') || b.getAttribute('data-format')) } })()`) as Promise<{ l: number; r: number; iw: number; sw: number; imgW: number; imgH: number; natural: number; complete: boolean; small: number; buttons: string[] } | null>
+  evaluate(`(() => { const p = document.querySelector('[data-share]'); if (!p) return null; const r = p.getBoundingClientRect(); const img = p.querySelector('[data-share-preview]'); const ir = img.getBoundingClientRect(); const small = [...p.querySelectorAll('button')].filter((b) => { const q = b.getBoundingClientRect(); return q.width < 44 || q.height < 48 }).length; return { l: r.left, r: r.right, iw: innerWidth, sw: document.documentElement.scrollWidth, imgW: Math.round(ir.width), imgH: Math.round(ir.height), natural: img.naturalWidth, complete: img.complete, small, buttons: [...p.querySelectorAll('button')].map((b) => b.getAttribute('data-action')) } })()`) as Promise<{ l: number; r: number; iw: number; sw: number; imgW: number; imgH: number; natural: number; complete: boolean; small: number; buttons: string[] } | null>
 const expectedLines = (day: ScheduleDay, result: { n: number; date: string; elapsedMs: number; hints: number; wrongChecks: number }) => emojiText({ ...result, fp: day.fp, tier: day.tier, murdererId: 'x' }, shareMetaOf(day)).split('\n')
 /** The text is the expected one, whatever host the build was made for (the last line is the site). */
 const textMatches = (text: string, expected: string[]) => {
@@ -273,7 +287,7 @@ async function scenario(w: number, h: number) {
   const solved = (await evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(RESULTS_KEY)})).results[${DAY.n}]`)) as { n: number; date: string; elapsedMs: number; hints: number; wrongChecks: number }
   const expected = expectedLines(DAY, solved)
   const p = await panelProbe()
-  check('solved: the share slot holds the card with its preview, sized to the screen, nothing sideways', !!p && p.complete && p.natural === 1200 && p.l >= 0 && p.r <= p.iw && p.sw <= p.iw && p.imgW >= 250 && p.imgW <= p.iw, JSON.stringify(p))
+  check('solved: the share slot holds the card with its preview, sized to the screen, nothing sideways', !!p && p.complete && p.natural === 1200 && p.imgW === p.imgH && p.l >= 0 && p.r <= p.iw && p.sw <= p.iw && p.imgW >= 250 && p.imgW <= p.iw, JSON.stringify(p))
   check('solved: the text is number, difficulty and size; time and hints; the strip; the site', textMatches(await shareText(), expected), JSON.stringify(await shareText()))
   check('solved: the strip has one square per person, all placed (no hints, no wrong checks)', (await shareText()).split('\n')[2] === '🟦'.repeat(DAY.size), (await shareText()).split('\n')[2])
   check('solved: the Share button comes with a text status line and the note that nothing leaves the device', (await count('[data-share-status][role=status]')) === 1 && /Nothing leaves your device/.test(await textOf('.share__note')))
@@ -288,23 +302,14 @@ async function scenario(w: number, h: number) {
   check('share sheet with files: Share is there, Copy and Download are not', !!filesUi && filesUi.buttons.includes('share') && !filesUi.buttons.includes('copy') && !filesUi.buttons.includes('download'), JSON.stringify(filesUi?.buttons))
   check('all buttons are at least 44px wide and 48px high', !!filesUi && filesUi.small === 0, String(filesUi?.small))
   await tapSel('.play-modal [data-action=share]')
-  const wide = await sharedInfo(0)
-  check('Share (wide): the share sheet gets the PNG and the text', !!wide && wide.files.length === 1 && wide.files[0]!.name === `slaydoku-${DAY.n}.png` && wide.files[0]!.type === 'image/png' && textMatches(wide.text, expected) && wide.title === `Slaydoku #${DAY.n}`, JSON.stringify(wide))
-  const widePng = await probeBlob('window.__log.shared[0].files[0]')
-  check('the wide PNG is 1200x630 and really drawn (brand blue and cream-panel pixels)', !!widePng && widePng.w === 1200 && widePng.h === 630 && widePng.type === 'image/png' && widePng.blue > 2000 && widePng.white > 100000, JSON.stringify(widePng))
+  const sq = await sharedInfo(0)
+  check('Share: the share sheet gets the square PNG (slaydoku-<n>-square.png) and the text', !!sq && sq.files.length === 1 && sq.files[0]!.name === `slaydoku-${DAY.n}-square.png` && sq.files[0]!.type === 'image/png' && textMatches(sq.text, expected) && sq.title === `Slaydoku #${DAY.n}`, JSON.stringify(sq))
+  const sqPng = await probeBlob('window.__log.shared[0].files[0]')
+  check('the PNG is 1200x1200 and really drawn (brand blue and cream-panel pixels)', !!sqPng && sqPng.w === 1200 && sqPng.h === 1200 && sqPng.type === 'image/png' && sqPng.blue > 2000 && sqPng.white > 100000, JSON.stringify(sqPng))
   check('feedback: "Shared." in the status line', (await status()) === 'Shared.', await status())
+  check('no Wide/Square toggle, and the preview is square', (await count('[data-format]')) === 0 && ((await panelProbe())?.imgW ?? 0) === ((await panelProbe())?.imgH ?? -1))
   await shot('02-shared-files')
-  if (widePng) await Bun.write(join(CARDS, `${viewport}-wide.png`), Buffer.from(await blobBase64('window.__log.shared[0].files[0]'), 'base64'))
-
-  await tapSel('[data-format=square]')
-  await sleep(900)
-  check('the square shape is chosen and the preview is square', (await evaluate(`document.querySelector('[data-format=square]').getAttribute('aria-pressed')`)) === 'true' && ((await panelProbe())?.imgW ?? 0) === ((await panelProbe())?.imgH ?? -1))
-  await tapSel('.play-modal [data-action=share]')
-  const square = await sharedInfo(1)
-  const squarePng = await probeBlob('window.__log.shared[1].files[0]')
-  check('Share (square): the PNG is named slaydoku-<n>-square.png and is 1080x1080, really drawn', !!square && square.files[0]?.name === `slaydoku-${DAY.n}-square.png` && !!squarePng && squarePng.w === 1080 && squarePng.h === 1080 && squarePng.blue > 2000 && squarePng.white > 100000, JSON.stringify({ name: square?.files[0]?.name, squarePng }))
-  await shot('03-shared-square')
-  if (squarePng) await Bun.write(join(CARDS, `${viewport}-square.png`), Buffer.from(await blobBase64('window.__log.shared[1].files[0]'), 'base64'))
+  if (sqPng) await Bun.write(join(CARDS, `${viewport}-square.png`), Buffer.from(await blobBase64('window.__log.shared[0].files[0]'), 'base64'))
 
   // Keyboard: Tab to the opener, Enter opens the popover; Tab again to the panel's own Share
   // button (the two share the same data-action, one behind the other), Enter shares.
@@ -343,7 +348,7 @@ async function scenario(w: number, h: number) {
   await load('')
   await tapSel('[data-slot=share] [data-action=share]')
   await tapSel('.play-modal [data-action=share]')
-  check('a failing share sheet says so and offers Copy text and Download image', /did not work/.test(await status()) && (await count('[data-action=copy]')) === 1 && (await count('[data-action=download]')) === 1, await status())
+  check('a failing share sheet says so and offers Copy and Download image', /did not work/.test(await status()) && (await count('[data-action=copy]')) === 1 && (await count('[data-action=download]')) === 1, await status())
   await shot('04-share-failed')
 
   // No share sheet: copy and download.
@@ -352,33 +357,36 @@ async function scenario(w: number, h: number) {
   await tapSel('[data-slot=share] [data-action=share]')
   await sleep(700)
   const none = await panelProbe()
-  check('no share sheet: Copy text and Download image instead of Share', !!none && !none.buttons.includes('share') && none.buttons.includes('copy') && none.buttons.includes('download'), JSON.stringify(none?.buttons))
+  check('no share sheet: Copy and Download image instead of Share', !!none && !none.buttons.includes('share') && none.buttons.includes('copy') && none.buttons.includes('download'), JSON.stringify(none?.buttons))
   await shot('05-fallback-buttons')
   await tapSel('[data-action=copy]')
-  const copied = (await evaluate('window.__log.copied[0] ?? null')) as string | null
-  check('Copy text puts the text on the clipboard and says so', copied !== null && textMatches(copied, expected) && /Copied/.test(await status()), `${JSON.stringify(copied)} / ${await status()}`)
+  const item = (await evaluate('(window.__log.items[0] && { types: window.__log.items[0].types, text: window.__log.items[0].text instanceof Blob })')) as { types: string[]; text: boolean } | null
+  check('Copy puts image and text on the clipboard as one item and says so', !!item && item.types.includes('image/png') && item.types.includes('text/plain') && (await logOf('copied')) === 0 && /Image and text copied/.test(await status()), `${JSON.stringify(item)} / ${await status()}`)
   await tapSel('[data-action=download]', 900)
   const dl = (await evaluate(`window.__log.downloads[0]?.name ?? null`)) as string | null
   const dlPng = await probeBlob('window.__log.downloads[0]?.blob')
-  check('Download image (wide): slaydoku-<n>.png, 1200x630 PNG', dl === `slaydoku-${DAY.n}.png` && !!dlPng && dlPng.w === 1200 && dlPng.h === 630 && dlPng.blue > 2000, JSON.stringify({ dl, dlPng }))
+  check('Download image: slaydoku-<n>-square.png, 1200x1200 PNG', dl === `slaydoku-${DAY.n}-square.png` && !!dlPng && dlPng.w === 1200 && dlPng.h === 1200 && dlPng.blue > 2000, JSON.stringify({ dl, dlPng }))
   check('feedback after the download: "Image saved"', /Image saved/.test(await status()), await status())
-  await tapSel('[data-format=square]')
-  await sleep(900)
-  await tapSel('[data-action=download]', 900)
-  const dlSquare = await probeBlob('window.__log.downloads[1]?.blob')
-  check('Download image (square): slaydoku-<n>-square.png, 1080x1080 PNG', ((await evaluate(`window.__log.downloads[1]?.name ?? null`)) as string | null) === `slaydoku-${DAY.n}-square.png` && !!dlSquare && dlSquare.w === 1080 && dlSquare.h === 1080 && dlSquare.blue > 2000, JSON.stringify(dlSquare))
 
   // Offline: everything is on the device.
   await send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 })
   await tapSel('[data-action=download]', 900)
-  const offlinePng = await probeBlob('window.__log.downloads[2]?.blob')
+  const offlinePng = await probeBlob('window.__log.downloads[1]?.blob')
   await tapSel('[data-action=copy]')
-  check('offline: the card is still made and downloaded, the text still copied', !!offlinePng && offlinePng.w === 1080 && (await logOf('copied')) === 2, JSON.stringify(offlinePng))
+  check('offline: the card is still made and downloaded, image and text still copied', !!offlinePng && offlinePng.w === 1200 && (await logOf('items')) === 2, JSON.stringify(offlinePng))
   await send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 })
   // SLAY-8.4: solving a day now fires one anonymous PostHog event (src/game/playCounters.ts),
   // unrelated to the Share panel itself, which is what this check guards. Requests to PostHog
   // are allowed; anything else would mean the card or its downloads reach off the device.
   check('nothing but the anonymous play counters was requested from another origin (the share card and its downloads stay on the device)', ((await evaluate(`performance.getEntriesByType('resource').every((e) => new URL(e.name).origin === location.origin || new URL(e.name).hostname.endsWith('.posthog.com'))`)) as boolean) === true)
+
+  // No ClipboardItem: the text alone, and the status says so.
+  await setMode('textclip')
+  await load('')
+  await tapSel('[data-slot=share] [data-action=share]')
+  await tapSel('[data-action=copy]')
+  const textOnlyCopy = (await evaluate('window.__log.copied[0] ?? null')) as string | null
+  check('no ClipboardItem: Copy puts the text alone on the clipboard and says so', textOnlyCopy !== null && textMatches(textOnlyCopy, expected) && (await logOf('items')) === 0 && /Text copied/.test(await status()), `${JSON.stringify(textOnlyCopy)} / ${await status()}`)
 
   // No clipboard API either: the textarea fallback.
   await setMode('noclip')
@@ -386,7 +394,7 @@ async function scenario(w: number, h: number) {
   await tapSel('[data-slot=share] [data-action=share]')
   await tapSel('[data-action=copy]')
   const exec = (await evaluate('window.__log.execCopied[0] ?? null')) as { cmd: string; value: string } | null
-  check('no clipboard API: Copy text falls back to a textarea and execCommand("copy")', !!exec && exec.cmd === 'copy' && textMatches(exec.value, expected) && /Copied/.test(await status()), JSON.stringify(exec))
+  check('no clipboard API: Copy falls back to a textarea and execCommand("copy")', !!exec && exec.cmd === 'copy' && textMatches(exec.value, expected) && /Text copied/.test(await status()), JSON.stringify(exec))
 
   // A result with hints and wrong checks (written directly), on another day.
   await setMode('none')
@@ -402,8 +410,8 @@ async function scenario(w: number, h: number) {
   await shot('06-seeded-result')
   await tapSel('[data-action=download]', 900)
   const seededPng = await probeBlob('window.__log.downloads[0]?.blob')
-  check('that result makes a card too (1200x630, red and amber squares drawn)', !!seededPng && seededPng.w === 1200 && seededPng.h === 630, JSON.stringify(seededPng))
-  if (seededPng) await Bun.write(join(CARDS, `${viewport}-seeded-wide.png`), Buffer.from(await blobBase64('window.__log.downloads[0].blob'), 'base64'))
+  check('that result makes a card too (1200x1200, red and amber squares drawn)', !!seededPng && seededPng.w === 1200 && seededPng.h === 1200, JSON.stringify(seededPng))
+  if (seededPng) await Bun.write(join(CARDS, `${viewport}-seeded-square.png`), Buffer.from(await blobBase64('window.__log.downloads[0].blob'), 'base64'))
 }
 
 for (const [label, w, h] of VIEWPORTS) {

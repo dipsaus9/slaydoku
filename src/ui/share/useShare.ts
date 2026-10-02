@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CARD_SIZES, cardDescription, cardSvg, emojiText, loadDisplayFont } from '../../share/index.ts'
-import type { CardFormat, HeadlineFont, ShareMeta } from '../../share/index.ts'
+import { CARD_SIZE, cardDescription, cardSvg, emojiText, loadDisplayFont } from '../../share/index.ts'
+import type { HeadlineFont, ShareMeta } from '../../share/index.ts'
 import type { DailyResult } from '../../game/daily/results.ts'
 import { useLocale } from '../../locale/index.ts'
-import { canWebShare, copyText, downloadBlob, shareCard } from './actions.ts'
+import { canWebShare, copyCard, downloadBlob, shareCard } from './actions.ts'
 import type { ShareNavigator } from './actions.ts'
 import { svgDataUrl, svgToPng } from './png.ts'
 import { SHARE_STRINGS } from './strings.ts'
@@ -13,20 +13,19 @@ export type ShareStatus = { kind: 'idle' } | { kind: 'ok' | 'error'; text: strin
 const browserNavigator = (): ShareNavigator | undefined => (typeof navigator === 'undefined' ? undefined : navigator)
 
 /**
- * State and actions of the share panel: the card and the text of the result, the PNG made in advance for the chosen shape (so a tap on
+ * State and actions of the share panel: the card and the text of the result, the PNG made in advance (so a tap on
  * Share can start the share sheet at once), and what each button does. Nothing is sent anywhere by this code: only the system share
  * sheet, the clipboard and a saved file, all started by the player.
  */
 export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigator | undefined = browserNavigator()) {
   const { locale } = useLocale()
   const t = SHARE_STRINGS[locale]
-  const [format, setFormat] = useState<CardFormat>('wide')
   const [status, setStatus] = useState<ShareStatus>({ kind: 'idle' })
   const [failedShare, setFailedShare] = useState(false)
   const [png, setPng] = useState<{ svg: string; file: File } | null>(null)
   const [headline, setHeadline] = useState<HeadlineFont>()
-  const size = CARD_SIZES[format]
-  const filename = `slaydoku-${result.n}${format === 'square' ? '-square' : ''}.png`
+  const size = CARD_SIZE
+  const filename = `slaydoku-${result.n}-square.png`
   const text = useMemo(() => emojiText(result, meta, locale), [result, meta, locale])
   const svg = useMemo(() => cardSvg(result, meta, size, headline, locale), [result, meta, size, headline, locale])
   const previewSrc = useMemo(() => svgDataUrl(svg), [svg])
@@ -46,7 +45,7 @@ export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigat
     }
   }, [])
 
-  // The PNG of the shape on screen, made as soon as it is shown.
+  // The PNG of the card on screen, made as soon as it is shown.
   useEffect(() => {
     let alive = true
     svgToPng(svg, size)
@@ -70,8 +69,10 @@ export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigat
     } else say({ kind: 'idle' })
   }
   const onCopy = async () => {
-    const ok = await copyText(text, nav, typeof document === 'undefined' ? undefined : document)
-    say(ok ? { kind: 'ok', text: t.status.copied } : { kind: 'error', text: t.status.copyFailed })
+    const Item = typeof ClipboardItem === 'undefined' ? undefined : ClipboardItem
+    const outcome = await copyCard({ text, file: current }, nav, typeof document === 'undefined' ? undefined : document, Item)
+    if (outcome === 'image-and-text') say({ kind: 'ok', text: t.status.copiedWithImage })
+    else say(outcome === 'text' ? { kind: 'ok', text: t.status.copied } : { kind: 'error', text: t.status.copyFailed })
   }
   const onDownload = async () => {
     try {
@@ -83,5 +84,5 @@ export function useShare(result: DailyResult, meta: ShareMeta, nav: ShareNavigat
     }
   }
 
-  return { format, setFormat, status, text, previewSrc, description, size, supported, showFallback: !supported || failedShare, onShare, onCopy, onDownload }
+  return { status, text, previewSrc, description, size, supported, showFallback: !supported || failedShare, onShare, onCopy, onDownload }
 }

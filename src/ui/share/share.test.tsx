@@ -6,7 +6,7 @@ import type { Locale } from '../../locale/index.ts'
 import { ResultOverlay } from '../play/ResultOverlay.tsx'
 import { StartScreen } from '../daily/StartScreen.tsx'
 import { readSchedule } from '../../schedule/schedule.testing.ts'
-import { canWebShare, copyText, downloadBlob, shareCard } from './actions.ts'
+import { canWebShare, copyCard, copyText, downloadBlob, shareCard } from './actions.ts'
 import type { CopyDocument, DownloadEnv, ShareNavigator } from './actions.ts'
 import { svgDataUrl } from './png.ts'
 import { SharePanel } from './SharePanel.tsx'
@@ -69,6 +69,41 @@ function fakeDocument(copy: boolean | 'throw') {
   } satisfies CopyDocument
   return { area, body, doc }
 }
+
+describe('copyCard', () => {
+  const file = new File(['png'], 'slaydoku-1-square.png', { type: 'image/png' })
+  class FakeItem {
+    items: Record<string, Blob>
+    constructor(items: Record<string, Blob>) {
+      this.items = items
+    }
+  }
+  const Item = FakeItem as unknown as new (items: Record<string, Blob>) => ClipboardItem
+
+  it('writes image and text as one clipboard item when ClipboardItem is supported', async () => {
+    const write = vi.fn(async () => {})
+    const writeText = vi.fn(async () => {})
+    expect(await copyCard({ text: 'hi', file }, { clipboard: { write, writeText } }, undefined, Item)).toBe('image-and-text')
+    expect(write).toHaveBeenCalledOnce()
+    const item = (write.mock.calls[0] as unknown as [FakeItem[]])[0][0]!
+    expect(Object.keys(item.items).sort()).toEqual(['image/png', 'text/plain'])
+    expect(writeText).not.toHaveBeenCalled()
+  })
+
+  it('copies text only without ClipboardItem or without an image', async () => {
+    const writeText = vi.fn(async () => {})
+    expect(await copyCard({ text: 'hi', file }, { clipboard: { writeText } }, undefined, undefined)).toBe('text')
+    expect(await copyCard({ text: 'hi', file: null }, { clipboard: { write: vi.fn(async () => {}), writeText } }, undefined, Item)).toBe('text')
+    expect(writeText).toHaveBeenCalledTimes(2)
+  })
+
+  it('falls back to text when the image write is refused, and fails when nothing works', async () => {
+    const writeText = vi.fn(async () => {})
+    const write = vi.fn(async () => Promise.reject(new Error('denied')))
+    expect(await copyCard({ text: 'hi', file }, { clipboard: { write, writeText } }, undefined, Item)).toBe('text')
+    expect(await copyCard({ text: 'hi', file }, undefined, undefined, Item)).toBe('failed')
+  })
+})
 
 describe('copyText', () => {
   it('uses the clipboard API when there is one', async () => {
@@ -144,18 +179,17 @@ describe.each(['en', 'nl'] as const)('<SharePanel/> (%s)', (locale: Locale) => {
       </LocaleProvider>,
     )
 
-  it('shows the card preview, the text and the shapes', () => {
+  it('shows the card preview, the text and no shape toggle', () => {
     const html = render({ share: async () => {} })
     const text = strip(html)
     expect(html).toContain('data-share-preview')
     expect(html).toContain('src="data:image/svg+xml;charset=utf-8,')
-    expect(html).toContain('width="1200" height="630"')
+    expect(html).toContain('width="1200" height="1200"')
     expect(html).toContain(`alt="${t.preview('').trim()}`)
     expect(text).toContain(`Slaydoku #43 · ${locale === 'nl' ? 'Gemiddeld' : 'Medium'} · 9x9`)
     expect(text).toContain('⏱ 04:12 · 💡 2 hints')
     expect(text).toContain('slaydoku.vercel.app')
-    expect(html).toContain('data-format="wide" aria-pressed="true"')
-    expect(html).toContain('data-format="square" aria-pressed="false"')
+    expect(html).not.toContain('data-format')
     expect(text).toContain(t.note)
   })
 
@@ -166,7 +200,7 @@ describe.each(['en', 'nl'] as const)('<SharePanel/> (%s)', (locale: Locale) => {
     expect(html).not.toContain('data-action="download"')
   })
 
-  it('offers Copy text and Download image where there is no share sheet', () => {
+  it('offers Copy and Download image where there is no share sheet', () => {
     const html = render({})
     expect(html).not.toContain('data-action="share"')
     expect(html).toContain('data-action="copy"')

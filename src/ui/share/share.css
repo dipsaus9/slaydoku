@@ -35,15 +35,12 @@
 .share__preview {
   display: block;
   width: 100%;
+  max-width: 360px;
+  margin-inline: auto;
   height: auto;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--color-bg);
-}
-
-.share__formats {
-  display: flex;
-  gap: 8px;
 }
 
 .share-btn {
@@ -78,11 +75,6 @@
   background: var(--accent);
   color: var(--paper);
   font-weight: 700;
-}
-
-.share__format {
-  flex: 1 1 0;
-  padding: 0 12px;
 }
 
 .share__text {
