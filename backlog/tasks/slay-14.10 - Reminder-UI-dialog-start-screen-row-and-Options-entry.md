@@ -4,7 +4,7 @@ title: 'Reminder UI: dialog, start-screen row and Options entry'
 status: Done
 assignee: []
 created_date: '2026-10-02 09:55'
-updated_date: '2026-10-02 14:14'
+updated_date: '2026-10-02 14:15'
 labels:
   - story
 dependencies:
@@ -17,6 +17,8 @@ references:
   - src/ui/play/PlayScreen.tsx
   - src/ui/daily/StartScreen.tsx
   - src/ui/daily/daily.css
+  - src/ui/daily/DailyFlow.tsx
+  - src/validation/dutch.test.ts
 parent_task_id: SLAY-14
 type: feature
 ordinal: 98000
