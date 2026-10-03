@@ -39,7 +39,7 @@ export const ABOUT_EN: AboutStrings = {
   },
   reminder: {
     title: 'Daily reminder',
-    text: 'If you switch on the daily reminder, our reminder service stores two things on a server: your device\u2019s push subscription and the hour you chose. Nothing else: no name, no email, no puzzle progress, no stats. The notification itself carries no puzzle information.',
+    text: 'If you switch on the daily reminder, our reminder service stores three things on a server: your device\u2019s push subscription, the hour you chose and, for about a day, the date you last solved the puzzle, so the reminder can skip you that day. Nothing else: no name, no email, no puzzle progress, no stats. The notification itself carries no puzzle information.',
     off: 'To turn it off, open Options on the puzzle screen (or the reminder row on the start screen), switch the reminder off and save. That deletes the stored subscription. You can also block notifications for Slaydoku in your device settings.',
   },
   openSource: {
@@ -78,7 +78,7 @@ export const ABOUT_NL: AboutStrings = {
   },
   reminder: {
     title: 'Dagelijkse herinnering',
-    text: 'Zet je de dagelijkse herinnering aan, dan bewaart onze herinneringsdienst twee dingen op een server: het pushabonnement van je apparaat en het uur dat je koos. Verder niets: geen naam, geen e-mail, geen puzzelvoortgang, geen statistieken. De melding zelf bevat geen puzzelinformatie.',
+    text: 'Zet je de dagelijkse herinnering aan, dan bewaart onze herinneringsdienst drie dingen op een server: het pushabonnement van je apparaat, het uur dat je koos en, ongeveer een dag lang, de datum waarop je de puzzel voor het laatst oploste, zodat de herinnering je die dag overslaat. Verder niets: geen naam, geen e-mail, geen puzzelvoortgang, geen statistieken. De melding zelf bevat geen puzzelinformatie.',
     off: 'Uitzetten kan via Opties op het puzzelscherm (of de herinneringsrij op het startscherm): zet de herinnering uit en sla op. Dan wordt het bewaarde abonnement verwijderd. Je kunt meldingen voor Slaydoku ook blokkeren in je apparaatinstellingen.',
   },
   openSource: {

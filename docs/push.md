@@ -122,3 +122,12 @@ device-only data (see `CLAUDE.md`). The VAPID private key lives only in Worker s
 6. In the app, switch the reminder off and save. The `sub:` and `hour:` keys disappear from the KV list.
 7. At the next full hour that was chosen in step 2 (change nothing), no notification arrives.
 8. Re-subscribe, then revoke notifications for the app in the phone settings; after the next failed send the subscription is pruned from KV (a push service answering 404/410).
+
+## Live check of the skip date (SLAY-15)
+
+When the reminder is on and today's puzzle is solved, the app sends one `POST /skip` per UTC date and the sender leaves that subscription out for the day. Once after each deploy of the Worker or of the skip code:
+
+1. With the reminder on at a later Amsterdam hour than now (an hour you can wait for, so not yet passed today), solve today's puzzle in the app.
+2. From `workers/push/`, list the keys: `bunx wrangler kv key list --binding SUBSCRIPTIONS --remote`. A `skip:<hash>` key appears next to `sub:<hash>` (it carries a 36 hour TTL, so the list shows an `expiration`). Read it with `bunx wrangler kv key get "skip:<hash>" --binding SUBSCRIPTIONS --remote`: the value is today's UTC date (`YYYY-MM-DD`). Quote the key, and use `--remote` or wrangler reads a local empty store.
+3. At the chosen hour no notification arrives that day (`bunx wrangler tail` shows the run without a send for that subscription).
+4. Do not solve the next day's puzzle before the chosen hour: the notification arrives, because the stored date is no longer today. The `skip:` key expires on its own about 36 hours after it was written.

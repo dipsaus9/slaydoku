@@ -1,9 +1,10 @@
 ---
 id: SLAY-15.3
 title: Privacy copy and live-check for the skip-today date
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-03 09:16'
+updated_date: '2026-10-03 11:37'
 labels:
   - story
 dependencies:
@@ -27,8 +28,20 @@ Branch: SLAY-15.3/skip-privacy-copy
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 About (en and nl) lists the extra stored item: a skip date that expires after about a day, only when the reminder is on
-- [ ] #2 CLAUDE.md push sentence names the skip date next to endpoint, keys and chosen hour
-- [ ] #3 docs/push.md has a live check: solve today with the reminder at a later hour, confirm no notification that day and one the next day; plus how to read the skip key with wrangler
-- [ ] #4 Dutch-text guard, lint, typecheck and test --maxWorkers=1 green
+- [x] #1 About (en and nl) lists the extra stored item: a skip date that expires after about a day, only when the reminder is on
+- [x] #2 CLAUDE.md push sentence names the skip date next to endpoint, keys and chosen hour
+- [x] #3 docs/push.md has a live check: solve today with the reminder at a later hour, confirm no notification that day and one the next day; plus how to read the skip key with wrangler
+- [x] #4 Dutch-text guard, lint, typecheck and test --maxWorkers=1 green
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review: pass (advisory: TTL 36h matches Worker). Rendered About checked en/nl at 1280 and 360 (headless Chrome min width clips 360 shot; text wraps).
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+About (en, nl), CLAUDE.md push sentence and docs/push.md now name the skip date; docs/push.md gained the live check with wrangler key list/get.
+<!-- SECTION:FINAL_SUMMARY:END -->
