@@ -185,7 +185,6 @@ await send('Browser.grantPermissions', { origin: BASE, permissions: ['notificati
 // Locale pinned to English before the app's script runs (same reason as the other drivers). navigator.language stays the browser's.
 await send('Page.addScriptToEvaluateOnNewDocument', { source: `try { if (!localStorage.getItem(${JSON.stringify(LOCALE_KEY)})) localStorage.setItem(${JSON.stringify(LOCALE_KEY)}, 'en') } catch {}` })
 
-const DAY = dayOn(PLAY_DATE)
 const earlier = dayOn('2026-11-20')
 const results = { version: 1, results: { [earlier.n]: { n: earlier.n, date: earlier.date, fp: earlier.fp, elapsedMs: 60000, hints: 0, wrongChecks: 0, murdererId: 'x' } } }
 // What an installed app sees: the standalone display mode (matchMedia is the only thing the app asks).
@@ -275,7 +274,6 @@ try {
     await evaluate(`document.querySelector('[data-about-reminder]').scrollIntoView()`)
     await shot(`push-05-about-${locale}`)
   }
-  void DAY
 } catch (error) {
   failures.push(`crashed: ${error instanceof Error ? error.message : String(error)}`)
   console.error(error)
