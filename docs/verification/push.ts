@@ -12,8 +12,8 @@
 //   5. switching the reminder off sends DELETE /subscribe for the same endpoint and the row says it is off again;
 //   6. the About page states what is stored server-side and how to turn it off, in English and Dutch.
 //
-// How the fake Worker gets in: REMINDER_CONFIG (src/pwa/reminder.ts) keeps its PLACEHOLDER_ values in the source, and the guard
-// that treats placeholders as "unavailable" stays untouched. The driver replaces the two placeholder strings in a COPY of the built
+// How the fake Worker gets in: REMINDER_CONFIG (src/pwa/reminder.ts) holds the deployed Worker URL and public key, and the guard
+// that treats placeholders as "unavailable" stays untouched. The driver replaces those two strings in a COPY of the built
 // assets (never in the repo) with the fake Worker's URL and a freshly generated VAPID public key, then serves that copy.
 // The fake Worker is a Bun.serve on localhost with the CORS headers the real one sends.
 //
