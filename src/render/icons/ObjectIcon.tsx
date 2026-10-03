@@ -1,8 +1,84 @@
+import { createContext, useContext, useId, type ReactNode } from 'react'
 import type { Cell } from '../../engine/model/index.ts'
 import { U } from './art/tokens.ts'
 import type { Rotation } from './orientation.ts'
 import { resolveIcon } from './resolve.ts'
 import type { IconObjectType } from './types.ts'
+
+/**
+ * The approved depth look (owner, 2026-10-03, depth 55/100; docs/design/depth-prototype.html).
+ * Light comes from the top-left, the ground shadow falls to the bottom-right.
+ */
+// oxlint-disable-next-line react/only-export-components -- a constant shared with the tests
+export const ICON_DEPTH_FILTER = {
+  /** How far the silhouette is shifted to cut the light and shade rims out of it. */
+  bevel: 2.9,
+  rimLight: { color: '#ffffff', opacity: 0.48, blur: 0.8 },
+  innerShade: { color: '#2a1a10', opacity: 0.27, blur: 1 },
+  groundShadow: { color: '#2a1a10', opacity: 0.29, blur: 2.6, dx: 2.4, dy: 5.3 },
+  region: { x: '-25%', y: '-25%', width: '160%', height: '175%' },
+} as const
+
+const DepthFilterId = createContext<string | null>(null)
+
+/** The depth filter chain of the prototype's `filterDef`; bounding-box region, so it fits every object. */
+function IconDepthFilter({ id }: { id: string }) {
+  const { bevel, rimLight, innerShade, groundShadow, region } = ICON_DEPTH_FILTER
+  return (
+    <filter id={id} {...region} colorInterpolationFilters="sRGB">
+      <feOffset in="SourceAlpha" dx={bevel} dy={bevel} result="dr" />
+      <feComposite in="SourceAlpha" in2="dr" operator="out" result="rimTL" />
+      <feGaussianBlur in="rimTL" stdDeviation={rimLight.blur} result="rimTLb" />
+      <feFlood floodColor={rimLight.color} floodOpacity={rimLight.opacity} />
+      <feComposite in2="rimTLb" operator="in" result="hi" />
+      <feOffset in="SourceAlpha" dx={-bevel} dy={-bevel} result="ul" />
+      <feComposite in="SourceAlpha" in2="ul" operator="out" result="rimBR" />
+      <feGaussianBlur in="rimBR" stdDeviation={innerShade.blur} result="rimBRb" />
+      <feFlood floodColor={innerShade.color} floodOpacity={innerShade.opacity} />
+      <feComposite in2="rimBRb" operator="in" result="sh" />
+      <feGaussianBlur in="SourceAlpha" stdDeviation={groundShadow.blur} result="gb" />
+      <feOffset in="gb" dx={groundShadow.dx} dy={groundShadow.dy} result="go" />
+      <feFlood floodColor={groundShadow.color} floodOpacity={groundShadow.opacity} />
+      <feComposite in2="go" operator="in" result="gs" />
+      <feMerge>
+        <feMergeNode in="gs" />
+        <feMergeNode in="SourceGraphic" />
+        <feMergeNode in="hi" />
+        <feMergeNode in="sh" />
+      </feMerge>
+    </filter>
+  )
+}
+
+/**
+ * Put this once inside every rendered SVG that draws object icons (board, legend swatch, contact
+ * sheet tile): it defines the depth filter one time and every glyph below it points at it.
+ * Glyphs outside a scope draw flat.
+ */
+export function IconDepthScope({ children }: { children: ReactNode }) {
+  const id = `icon-depth-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+  return (
+    <DepthFilterId.Provider value={id}>
+      <defs>
+        <IconDepthFilter id={id} />
+      </defs>
+      {children}
+    </DepthFilterId.Provider>
+  )
+}
+
+/**
+ * The filter sits OUTSIDE the art's orientation transform, so it works in screen space: light and
+ * shadow stay top-left and bottom-right whatever the rotation or mirror.
+ */
+export function IconDepthGroup({ children }: { children: ReactNode }) {
+  const id = useContext(DepthFilterId)
+  return (
+    <g data-depth={id ? '' : undefined} filter={id ? `url(#${id})` : undefined}>
+      {children}
+    </g>
+  )
+}
 
 export interface ObjectIconProps {
   type: IconObjectType
@@ -24,9 +100,11 @@ export function ObjectIconGlyph({ type, cells, rotation, mirror }: ObjectIconPro
   if (!icon) return null
   const [a, b, c, d, e, f] = icon.matrix
   return (
-    <g data-icon={type} data-variant={icon.variant.id} transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}>
-      {icon.variant.draw()}
-    </g>
+    <IconDepthGroup>
+      <g data-icon={type} data-variant={icon.variant.id} transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}>
+        {icon.variant.draw()}
+      </g>
+    </IconDepthGroup>
   )
 }
 
@@ -49,7 +127,9 @@ export function ObjectIcon({ cellSize = 64, title, ...props }: ObjectIconSvgProp
       role="img"
       aria-label={title ?? props.type}
     >
-      <ObjectIconGlyph {...props} />
+      <IconDepthScope>
+        <ObjectIconGlyph {...props} />
+      </IconDepthScope>
     </svg>
   )
 }
