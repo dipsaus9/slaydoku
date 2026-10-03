@@ -1,13 +1,15 @@
 import type { ReactNode } from 'react'
-import { C, SW } from './tokens.ts'
+import { C, DETAIL, SW, U } from './tokens.ts'
 
 interface ShapeStyle {
   fill?: string
   stroke?: string
   sw?: number
+  /** Optional whole-shape opacity (0..1); left out of the markup when undefined. */
+  opacity?: number
 }
 
-function styleProps({ fill = 'none', stroke = C.ink, sw = SW }: ShapeStyle) {
+function styleProps({ fill = 'none', stroke = C.ink, sw = SW, opacity }: ShapeStyle) {
   const none = stroke === 'none'
   return {
     fill,
@@ -15,6 +17,7 @@ function styleProps({ fill = 'none', stroke = C.ink, sw = SW }: ShapeStyle) {
     strokeWidth: none ? 0 : sw,
     strokeLinejoin: 'round' as const,
     strokeLinecap: 'round' as const,
+    ...(opacity === undefined ? {} : { opacity }),
   }
 }
 
@@ -61,4 +64,36 @@ export function Stroke({
 /** Absolute path data only (M L H V C Q Z): the bounds test reads it. */
 export function Shape({ d, ...style }: { d: string } & ShapeStyle): ReactNode {
   return <path d={d} {...styleProps(style)} />
+}
+
+/**
+ * Four small square feet, one in each corner of a cols x rows footprint. Square feet at an equal
+ * inset make the set identical under all 8 rotations and mirrors. Draw it first so the body sits
+ * on top; only the corners peek out. Stays inside the footprint, stroke included.
+ */
+export function Feet({
+  cols,
+  rows,
+  size = 11,
+  inset = 6,
+  fill = C.woodDeep,
+}: {
+  cols: number
+  rows: number
+  size?: number
+  inset?: number
+  fill?: string
+}): ReactNode {
+  const far = (count: number) => count * U - inset - size
+  const xs = [inset, far(cols)]
+  const ys = [inset, far(rows)]
+  return (
+    <>
+      {ys.flatMap((y) =>
+        xs.map((x) => (
+          <Box key={`${x}-${y}`} x={x} y={y} w={size} h={size} r={3} fill={fill} sw={DETAIL} />
+        )),
+      )}
+    </>
+  )
 }

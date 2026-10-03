@@ -44,6 +44,13 @@ export const C = {
   pink: '#e4aab8',
   lilac: '#c1b0da',
   slick: '#3b354f',
+  // SLAY-16.2: detail-pass colours (additive; no value above changed).
+  creamDark: '#d8c9a6',
+  woodDeep: '#5b3f2b',
+  goldDark: '#a98438',
+  yellowLight: '#ecdc9a',
+  terraDark: '#8a4a36',
+  soil: '#5a3a2b',
 } as const
 
 /** Round to one decimal so path data stays short and stable. */

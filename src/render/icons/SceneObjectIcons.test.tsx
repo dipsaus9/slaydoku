@@ -50,3 +50,26 @@ describe('SceneObjectIcons', () => {
     expect(html).toContain('data-icon="cabinet"')
   })
 })
+
+describe('depth filter', () => {
+  const count = (html: string) => (html.match(/<filter /g) ?? []).length
+
+  it('defines the filter once for a whole scene, however many objects it has', () => {
+    const geometry = createGeometry(sample9x9)
+    const html = renderToStaticMarkup(
+      <svg>
+        <SceneObjectIcons objects={sample9x9.objects} geometry={geometry} />
+      </svg>,
+    )
+    expect(sample9x9.objects.length).toBeGreaterThan(1)
+    expect(count(html)).toBe(1)
+    expect((html.match(/ filter="url\(#/g) ?? []).length).toBe(sample9x9.objects.length)
+  })
+
+  it('paints the objects under the walls and the room labels', () => {
+    const html = renderToStaticMarkup(<SceneView scene={sample9x9} objectsLayer={(g) => <SceneObjectIcons objects={sample9x9.objects} geometry={g} />} />)
+    const at = (l: string) => html.indexOf(`data-layer="${l}"`)
+    expect(at('objects')).toBeLessThan(at('walls'))
+    expect(at('walls')).toBeLessThan(at('room-labels'))
+  })
+})
