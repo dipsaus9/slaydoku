@@ -44,6 +44,12 @@ export function AboutScreen() {
         <p>{t.privacy.text}</p>
       </section>
 
+      <section className="about__section" aria-labelledby="about-reminder" data-about-reminder>
+        <h2 id="about-reminder">{t.reminder.title}</h2>
+        <p>{t.reminder.text}</p>
+        <p>{t.reminder.off}</p>
+      </section>
+
       <section className="about__section" aria-labelledby="about-open-source">
         <h2 id="about-open-source">{t.openSource.title}</h2>
         <p>{t.openSource.text}</p>

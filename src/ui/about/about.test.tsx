@@ -44,6 +44,12 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
     expect(html).toContain(t.privacy.text)
   })
 
+  it('states what the reminder stores server-side and how to turn it off', () => {
+    expect(html).toContain(t.reminder.text)
+    expect(html).toContain(t.reminder.off)
+    expect(strip(html)).toContain(t.reminder.title)
+  })
+
   it('names the license', () => {
     expect(html).toContain(t.openSource.text)
   })
@@ -64,7 +70,7 @@ describe.each(['en', 'nl'] as const)('<AboutScreen/> (%s)', (locale) => {
   it('has one h1, one main landmark and labelled sections', () => {
     expect(html.match(/<h1/g)).toHaveLength(1)
     expect(html.match(/<main/g)).toHaveLength(1)
-    expect(html.match(/<section[^>]*aria-labelledby=/g)).toHaveLength(5)
+    expect(html.match(/<section[^>]*aria-labelledby=/g)).toHaveLength(6)
   })
 
   it('shows every section title and the back link text', () => {

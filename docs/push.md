@@ -109,3 +109,16 @@ device-only data (see `CLAUDE.md`). The VAPID private key lives only in Worker s
 
 `wrangler dev` serves the Worker locally; set `DEV=true` as a var (`--var DEV:true`) to let
 `http://localhost` origins through CORS.
+
+## Automated check and manual live check (SLAY-14.11)
+
+`bun docs/verification/push.ts` builds the app, points a copy of the build at a fake Worker (never the deployed one, no real secrets), and drives headless Chrome through the client flow: the POST /subscribe body, a push delivered with CDP `ServiceWorker.deliverPushMessage`, the notification, its click landing on `/play`, switching off (DELETE) and the About page. It does not reach the real Worker, a real push service delivery, or the cron. That is what this checklist covers, once after each deploy of the Worker or a change to `REMINDER_CONFIG`:
+
+1. Install the app on a real phone (Add to Home Screen on iOS, install on Android) and open it from the icon.
+2. Open the reminder row on the start screen (after a solved day), switch it on, choose the next full Amsterdam hour, save, and accept the permission prompt. The row should now say it is on.
+3. `bunx wrangler kv key list --binding SUBSCRIPTIONS --remote` (from `workers/push/`) shows a `sub:<hash>` key and an `hour:<HH>:<hash>` key for that hour.
+4. At the chosen Amsterdam hour (the cron runs every 5 minutes, so allow up to about 5 minutes), the phone shows the "Slaydoku" notification, with no puzzle information in it. `bunx wrangler tail` shows the run.
+5. Tap the notification: the app opens on the play screen.
+6. In the app, switch the reminder off and save. The `sub:` and `hour:` keys disappear from the KV list.
+7. At the next full hour that was chosen in step 2 (change nothing), no notification arrives.
+8. Re-subscribe, then revoke notifications for the app in the phone settings; after the next failed send the subscription is pruned from KV (a push service answering 404/410).
