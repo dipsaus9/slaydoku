@@ -3,12 +3,12 @@ import type { StorageLike } from './install.ts'
 
 /**
  * Where the push Worker lives and the VAPID public key it signs with (both public, non-secret).
- * The owner pastes the real values here after deploying the Worker (see the push docs from SLAY-14.7).
- * While either still holds its placeholder, the reminder store reports 'unavailable'.
+ * Set after deploying the Worker (docs/push.md). The store reports 'unavailable' while either value is empty or still a
+ * PLACEHOLDER_ string, so a fresh checkout without a deployed Worker shows no reminder option.
  */
 export const REMINDER_CONFIG = {
-  workerUrl: 'PLACEHOLDER_WORKER_URL',
-  vapidPublicKey: 'PLACEHOLDER_VAPID_PUBLIC_KEY',
+  workerUrl: 'https://slaydoku-push.dipsaus9.workers.dev',
+  vapidPublicKey: 'BKE22SiYFLPguPUas1n3eD4-Mu88iAVvULNgMQov7ZHEvsf2PKUJSWBC-rl3gcEGSAwS2DjbfZumV8bcMWr2CDw',
 } as const
 
 export const REMINDER_KEY = 'slaydoku:reminder-hour'
