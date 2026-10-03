@@ -40,8 +40,8 @@ function resolve(content: LayerContent, geometry: SceneGeometry): ReactNode {
 
 /**
  * Draws a Scene as one scalable SVG (viewBox based, fills its container's
- * width). Paint order, bottom to top: shadow, floors, grid, walls, edge features,
- * objects, room labels, marks, people, axis labels, per-cell hit rects. Room labels sit
+ * width). Paint order, bottom to top: shadow, floors, grid, objects, walls, edge features,
+ * room labels, marks, people, axis labels, per-cell hit rects. Room labels sit
  * under marks and people so a suspect placed on a label cell stays visible.
  */
 export function SceneView({
@@ -77,11 +77,11 @@ export function SceneView({
       <Shadow geometry={geometry} />
       <Floors scene={scene} geometry={geometry} styles={styles} idPrefix={idPrefix} />
       <GridLines geometry={geometry} />
-      <Walls scene={scene} geometry={geometry} />
-      <EdgeFeatures scene={scene} geometry={geometry} />
       <g data-layer="objects" pointerEvents="none">
         {objectsLayer && resolve(objectsLayer, geometry)}
       </g>
+      <Walls scene={scene} geometry={geometry} />
+      <EdgeFeatures scene={scene} geometry={geometry} />
       <RoomLabels scene={scene} geometry={geometry} locale={locale} />
       <g data-layer="marks" pointerEvents="none">
         {marksLayer && resolve(marksLayer, geometry)}
