@@ -5,6 +5,7 @@ import { useLocale } from '../../locale/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import { EdgeFeatureIcon } from '../../render/icons/index.ts'
 import { U } from '../../render/icons/art/tokens.ts'
+import { IconDepthScope } from '../../render/icons/ObjectIcon.tsx'
 import { ThemeObjectIconGlyph } from '../../render/icons/themes/ThemeObjectIcon.tsx'
 import { NoteGlyph, PersonDisc, PortraitClip, XMarkGlyph } from '../play/BoardLayers.tsx'
 import { bareRoomName } from '../../render/scene/labels.ts'
@@ -34,7 +35,9 @@ function ObjectSwatch({ row }: { row: LegendObjectRow }) {
       focusable="false"
       data-icon={row.themeIcon ?? type}
     >
-      <ThemeObjectIconGlyph object={{ engineType: type, themeIcon: row.themeIcon }} cells={cells} />
+      <IconDepthScope>
+        <ThemeObjectIconGlyph object={{ engineType: type, themeIcon: row.themeIcon }} cells={cells} />
+      </IconDepthScope>
     </svg>
   )
 }

@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react'
 import { useLocale } from '../locale/index.ts'
+import { usePath } from '../ui/router/index.ts'
 import type { InstallStore } from './install.ts'
+import { showsInstallNotice } from './installPath.ts'
 import './pwa.css'
 import { INSTALL_STRINGS } from './strings.ts'
 
@@ -13,7 +15,8 @@ export function InstallNotice({ store }: { store: InstallStore }) {
   const { locale } = useLocale()
   const t = INSTALL_STRINGS[locale]
   const platform = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot)
-  if (platform === null) return null
+  const path = usePath()
+  if (platform === null || !showsInstallNotice(path)) return null
 
   if (platform === 'android') {
     return (
