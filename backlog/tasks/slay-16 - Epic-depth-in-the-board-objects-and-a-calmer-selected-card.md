@@ -1,9 +1,10 @@
 ---
 id: SLAY-16
 title: 'Epic: depth in the board objects and a calmer selected card'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-03 09:57'
+updated_date: '2026-10-03 20:43'
 labels:
   - epic
 dependencies: []
@@ -24,6 +25,12 @@ Follow-up (not in this epic): once this is delivered and checked, the same visua
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 All stories SLAY-16.1 to SLAY-16.9 are Done
-- [ ] #2 The owner has seen the redrawn board and the new selected card on a real phone and approved them (manual check)
+- [x] #1 All stories SLAY-16.1 to SLAY-16.9 are Done
+- [x] #2 The owner has seen the redrawn board and the new selected card on a real phone and approved them (manual check)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Closed on 2026-10-03 on the owner's instruction (Sluit alles). All stories are Done and merged. The manual criteria (live reminder check / owner check on a real phone) were accepted by the owner and were NOT independently verified by the agent.
+<!-- SECTION:NOTES:END -->
