@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { LocaleProvider } from '../locale/index.ts'
 import { InstallNotice } from './InstallNotice.tsx'
+import { showsInstallNotice } from './installPath.ts'
 import type { InstallPlatform, InstallStore } from './install.ts'
 import { INSTALL_STRINGS } from './strings.ts'
 
@@ -43,5 +44,15 @@ describe.each(['en', 'nl'] as const)('InstallNotice (%s)', (locale) => {
 
   it('renders nothing when the store offers neither platform', () => {
     expect(render(null)).toBe('')
+  })
+})
+
+describe('showsInstallNotice', () => {
+  it('shows on the start screen and About, never on the puzzle', () => {
+    expect(showsInstallNotice('/')).toBe(true)
+    expect(showsInstallNotice('/about')).toBe(true)
+    expect(showsInstallNotice('/about/')).toBe(true)
+    expect(showsInstallNotice('/play')).toBe(false)
+    expect(showsInstallNotice('/play/12')).toBe(false)
   })
 })
