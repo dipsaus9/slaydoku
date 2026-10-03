@@ -16,11 +16,11 @@ export interface ReminderDialogViewProps {
   onSave: () => void
   onClose: () => void
   /** Wording of the dismiss button: Close (default) or Not now (the solve popup). */
-  closeLabelKey?: "close" | "notNow"
+  closeLabelKey?: 'close' | 'notNow'
 }
 
 /** The dialog's markup, driven entirely by props so each state can be rendered and tested without a store. */
-export function ReminderDialogView({ state, enabled, hour, onEnabled, onHour, onSave, onClose, closeLabelKey = "close" }: ReminderDialogViewProps) {
+export function ReminderDialogView({ state, enabled, hour, onEnabled, onHour, onSave, onClose, closeLabelKey = 'close' }: ReminderDialogViewProps) {
   const { locale } = useLocale()
   const t = REMINDER_STRINGS[locale]
   const busy = state.status === 'busy'
@@ -66,7 +66,7 @@ export function ReminderDialogView({ state, enabled, hour, onEnabled, onHour, on
 }
 
 /** The reminder dialog (SLAY-14.10): toggle, hour in Amsterdam time, Save. Renders nothing while the store is unavailable. */
-export function ReminderDialog({ onClose, closeLabelKey, startEnabled = false }: { onClose: () => void; closeLabelKey?: "close" | "notNow"; startEnabled?: boolean }) {
+export function ReminderDialog({ onClose, closeLabelKey, startEnabled = false }: { onClose: () => void; closeLabelKey?: 'close' | 'notNow'; startEnabled?: boolean }) {
   const { store, state } = useReminder()
   const [enabled, setEnabled] = useState(state.status === 'on' || startEnabled)
   const [hour, setHour] = useState(state.hour ?? DEFAULT_HOUR)
