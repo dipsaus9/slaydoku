@@ -21,6 +21,7 @@ import { iconFootprints } from '../../src/render/icons/resolve.ts'
 import { iconLegendGroups } from '../../src/render/icons/types.ts'
 import type { IconObjectType } from '../../src/render/icons/types.ts'
 import { ThemeIconSheet } from '../../src/render/icons/themes/ThemeIconSheet.tsx'
+import { legendOf } from '../../src/ui/help/legend.ts'
 import { LOCALE_KEY } from '../../src/locale/storage.ts'
 import type { ScheduleDay } from '../../src/schedule/types.ts'
 import { DAYS, seedStorage } from './daily.ts'
@@ -29,7 +30,7 @@ const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/M
 const PORT = Number(process.env.CDP_PORT ?? 9471)
 const BASE = process.env.BASE ?? 'http://localhost:5461/'
 const OUT = process.env.OUT ?? '/private/tmp/claude-501/w-16.9'
-const PARTS = new Set((process.env.PARTS ?? 'sheets,boards,legend,clip,about,perf').split(','))
+const PARTS = new Set((process.env.PARTS ?? 'sheets,boards,legend,clip,swatch,about,perf').split(','))
 const SHOTS = join(OUT, 'shots')
 mkdirSync(SHOTS, { recursive: true })
 
@@ -268,23 +269,70 @@ if (PARTS.has('clip')) {
   report.clipping = clipReport
 }
 
-// Zoomed look (4x) at the legend swatches as shipped. A swatch svg is exactly its footprint (Legend.tsx ObjectSwatch), so an object that
-// reaches its footprint edge has its ground shadow cut flat there: judge it on swatch-clipped-4x.png. (Lifting the svg overflow is no valid
-// comparison here: it changes the flex layout and the swatches grow.)
+// Legend swatches (SLAY-16.10): the swatch viewBox has room at the right and bottom for the ground shadow (about 6.7 units down, 4.9 right).
+// Geometric check, per swatch: the art box (without the filter) plus that reach must lie inside the viewBox as the browser maps it (meet, centred).
+// Days are picked greedily so every legend row (engine type plus icon, one-cell and multi-cell) appears at least once. Also checks no sideways scroll
+// and records the art size and every row height, so a run on main and a run on the branch can be diffed (the object must not change size).
 if (PARTS.has('swatch')) {
-  const day = subjects[0]!
-  await openPlay(day, 'en', 768, 1024)
-  const btn = await rectOf('.play-header__legend')
-  if (btn) {
-    await tap(btn)
-    await sleep(600)
-    const region = await json<{ x: number; y: number; width: number; height: number }>('(() => { const r = document.querySelector(".play-legend__icon").getBoundingClientRect(); return { x: r.left - 10, y: r.top - 10, width: 70, height: 6 * 70 } })()')
-    const rects = () => json<unknown>('[...document.querySelectorAll(".play-legend__icon")].map((s) => { const a = s.getBoundingClientRect(); const g = s.querySelector("g[data-depth]").getBoundingClientRect(); return { svg: [a.width, a.height].map(Math.round), art: [g.width, g.height].map((v) => Math.round(v * 10) / 10), vb: s.getAttribute("viewBox") } })')
-    const before = await rects()
-    await send('Page.captureScreenshot', { format: 'png', clip: { ...region, scale: 4 } }).then((r) => Bun.write(join(SHOTS, 'swatch-clipped-4x.png'), Buffer.from(r.data, 'base64')))
-    report.swatch = { before }
-    console.log(JSON.stringify(report.swatch))
+  const perDay = DAYS.map((d) => ({ d, rows: legendOf(d.puzzle.scene, 'en').objects }))
+  const wanted = new Set<string>()
+  const multiCell = new Set<string>()
+  for (const p of perDay) {
+    for (const r of p.rows) {
+      wanted.add(r.key)
+      if (r.sample.cells.length > 1) multiCell.add(r.key)
+    }
   }
+  const chosen: ScheduleDay[] = []
+  const left = new Set(wanted)
+  while (left.size) {
+    const best = perDay.map((p) => ({ p, n: p.rows.filter((r) => left.has(r.key)).length })).sort((x, y) => y.n - x.n)[0]!
+    if (!best.n) break
+    chosen.push(best.p.d)
+    for (const r of best.p.rows) left.delete(r.key)
+  }
+  console.log('swatch days', chosen.map((d) => d.date).join(','), 'rows', wanted.size, 'multi-cell rows', multiCell.size)
+  const swatchReport: unknown[] = []
+  const seen = new Set<string>()
+  const probe = `(() => {
+    const out = []
+    for (const s of document.querySelectorAll('.play-legend__icon')) {
+      const r = s.getBoundingClientRect()
+      const vb = s.getAttribute('viewBox').split(' ').map(Number)
+      const sc = Math.min(r.width / vb[2], r.height / vb[3])
+      const ox = r.left + (r.width - vb[2] * sc) / 2, oy = r.top + (r.height - vb[3] * sc) / 2
+      const g = s.querySelector('g[data-depth]').getBoundingClientRect()
+      out.push({ icon: s.getAttribute('data-icon'), vb: vb[2] + 'x' + vb[3], art: [Math.round(g.width * 100) / 100, Math.round(g.height * 100) / 100],
+        spareRight: Math.round((ox + vb[2] * sc - g.right - 4.9 * sc) * 100) / 100, spareBottom: Math.round((oy + vb[3] * sc - g.bottom - 6.7 * sc) * 100) / 100 })
+    }
+    const rows = [...document.querySelectorAll('.play-legend__row')].map((e) => Math.round(e.getBoundingClientRect().height * 10) / 10)
+    return { swatches: out, rows, sw: document.documentElement.scrollWidth, iw: window.innerWidth }
+  })()`
+  for (const day of chosen) {
+    for (const locale of LOCALES) {
+      for (const [w, h] of VIEWPORTS) {
+        await openPlay(day, locale, w, h)
+        const btn = await rectOf('.play-header__legend')
+        if (!btn) { check(`swatch ${day.date} ${locale} ${w}x${h}: opens`, false, 'no legend button'); continue }
+        await tap(btn)
+        await sleep(500)
+        const r = await json<{ swatches: { icon: string; vb: string; art: number[]; spareRight: number; spareBottom: number }[]; rows: number[]; sw: number; iw: number }>(probe)
+        const bad = r.swatches.filter((s) => s.spareRight < -0.5 || s.spareBottom < -0.5)
+        for (const s of r.swatches) seen.add(s.icon)
+        check(`swatch ${day.date} ${locale} ${w}x${h}: shadow inside viewBox (${r.swatches.length} swatches)`, bad.length === 0, JSON.stringify(bad))
+        check(`swatch ${day.date} ${locale} ${w}x${h}: no sideways scroll`, r.sw <= r.iw, `${r.sw} > ${r.iw}`)
+        swatchReport.push({ day: day.date, locale, w, h, ...r })
+        const panel = await json<{ sh: number; ch: number }>(`(() => { const p = document.querySelector('.play-modal__panel'); return { sh: p.scrollHeight, ch: p.clientHeight } })()`)
+        const steps = Math.max(1, Math.ceil(panel.sh / Math.max(1, panel.ch - 80)))
+        for (let i = 0; i < steps; i++) {
+          await evaluate(`document.querySelector('.play-modal__panel').scrollTop = ${i} * (${panel.ch} - 80)`)
+          await sleep(150)
+          await shotPng(`swatch-${day.date}-${locale}-${w}x${h}-${i + 1}of${steps}`)
+        }
+      }
+    }
+  }
+  report.swatch = { days: chosen.map((d) => d.date), icons: [...seen], multiCellRows: [...multiCell], runs: swatchReport }
 }
 
 // --- 4. About page at a true 360px and 390px in en and nl -----------------------------------------------------

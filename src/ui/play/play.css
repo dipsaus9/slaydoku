@@ -1075,9 +1075,12 @@ button.play-legend__row:focus-visible {
   height: 52px;
 }
 
+/* The viewBox has room for the ground shadow at the right and bottom (Legend.tsx); the box grows by the
+   same ratio so the object keeps its size, and the shift keeps it centred as before. */
 .play-legend__icon {
-  width: 100%;
-  height: 100%;
+  width: calc(100% * var(--swatch-grow-x, 1));
+  height: calc(100% * var(--swatch-grow-y, 1));
+  transform: translate(var(--swatch-shift-x, 0), var(--swatch-shift-y, 0));
 }
 
 .play-legend__square {
