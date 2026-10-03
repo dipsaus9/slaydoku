@@ -5,6 +5,17 @@ regenerating any schedule content. It has the open decisions and recent history 
 and the other docs alone don't make obvious. Update it (don't just append forever) whenever the
 open items here get resolved.
 
+## Depth look in the board objects (SLAY-16, checked in SLAY-16.9)
+
+Objects on the board and in the legend are drawn with a screen-space SVG depth filter (rim light, inner shade, ground shadow; approved 2026-10-03 at depth 55/100). It lives in `src/render/icons/ObjectIcon.tsx`: `ICON_DEPTH_FILTER` (the constants), `IconDepthScope` (once per SVG that draws icons) and `IconDepthGroup` (wraps the art outside its orientation transform, so light stays top-left in all 8 orientations). Constants, drawing rules (rotation-safe detail only, feet at all four corners, nothing baked in) and the check results are in `docs/design/depth.md`; the check itself is `docs/verification/depth.ts`. Screenshots of the SLAY-16.9 run are outside the repo in `/private/tmp/claude-501/w-16.9/shots/` (regenerate with the driver).
+
+Open items found by the SLAY-16.9 check, not fixed there (details in docs/design/depth.md):
+- Legend swatches clip the ground shadow at the footprint edge (`ObjectSwatch` viewBox in `src/ui/help/Legend.tsx`). Small fix: pad the viewBox right and bottom.
+- nl only, 12x12 day 2026-11-30: the room label "Speelgoedafdeling" is wider than its room and covers parts of the bookshelf (C10) and checkout counter (C12); en grazes by 1.3 px. A label-layout question (`src/render/scene/labels.ts`), not an art one.
+- Board shadow at the viewBox edge: fine (margin 12 against about 7). Performance: no task over 100 ms; the filter roughly doubles to triples raster time on software raster, see the design doc.
+- `bun run verify:phone`: the `drive` suite is stale on main (it fails at the result screen, known since SLAY-9.13/9.15); `legend`, `screens` and `zoom` pass at 360, 390, 768 and 1024; `locale` is stale too (cannot find the Dutch "Meer" tool). Both stale drivers need their own repair story.
+- When running drivers, start the preview server on a port nobody else uses: port 5231 was another worker's dev server and silently served its code.
+
 ## This session
 
 Overnight, 2026-09-28 into 2026-09-29. Claude Code, model **Claude Sonnet 5** (`claude-sonnet-5`).
