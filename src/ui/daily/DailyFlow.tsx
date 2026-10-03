@@ -10,7 +10,7 @@ import type { MonthFile, ScheduleDay, ScheduleIndex } from '../../schedule/index
 import { PlayScreen } from '../play/index.ts'
 import { navigate, usePath } from '../router/index.ts'
 import { SharePanel } from '../share/index.ts'
-import { ReminderRow } from '../reminder/index.ts'
+import { ReminderRow, SolveReminderPopup } from '../reminder/index.ts'
 import { getReminderStore } from '../../pwa/reminder.ts'
 import { StatsEntry } from '../stats/index.ts'
 import { shareMetaOf } from '../../share/index.ts'
@@ -174,7 +174,16 @@ function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
   const themeIcons = useMemo(() => themeIconsFor(day.theme, day.puzzle.scene.objects), [day])
   // The notice sits over the bottom of the screen: the player can send it away and keep playing; the start screen offers the new puzzle anyway.
   const [noticeDismissed, setNoticeDismissed] = useState(false)
-  const watched = useMemo(() => observeSolve(storage, id, day.puzzle, (record) => onSolved(day, record)), [storage, id, day, onSolved])
+  // SLAY-15.5: set by a solve in this session only (never when a solved day is reopened), which mounts the reminder popup.
+  const [solvedNow, setSolvedNow] = useState(false)
+  const watched = useMemo(
+    () =>
+      observeSolve(storage, id, day.puzzle, (record) => {
+        onSolved(day, record)
+        setSolvedNow(true)
+      }),
+    [storage, id, day, onSolved],
+  )
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => recordPuzzleStart(storage, day.date), [day.date])
   return (
@@ -190,6 +199,7 @@ function PlayRoute({ day, storage, onSolved, onBack, banner }: PlayRouteProps) {
         firstVisitHelp
         resultShare={(solve) => <SharePanel result={resultOf(storage, day, solve)} meta={shareMetaOf(day)} />}
       />
+      {solvedNow ? <SolveReminderPopup /> : null}
       {banner && !noticeDismissed ? (
         <div className="daily-banner daily-banner--play" role="status" data-banner="new-puzzle">
           <span className="daily-banner__text">{t.rollover.banner}</span>

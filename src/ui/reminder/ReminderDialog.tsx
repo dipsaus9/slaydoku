@@ -15,10 +15,12 @@ export interface ReminderDialogViewProps {
   onHour: (value: number) => void
   onSave: () => void
   onClose: () => void
+  /** Wording of the dismiss button: Close (default) or Not now (the solve popup). */
+  closeLabelKey?: 'close' | 'notNow'
 }
 
 /** The dialog's markup, driven entirely by props so each state can be rendered and tested without a store. */
-export function ReminderDialogView({ state, enabled, hour, onEnabled, onHour, onSave, onClose }: ReminderDialogViewProps) {
+export function ReminderDialogView({ state, enabled, hour, onEnabled, onHour, onSave, onClose, closeLabelKey = 'close' }: ReminderDialogViewProps) {
   const { locale } = useLocale()
   const t = REMINDER_STRINGS[locale]
   const busy = state.status === 'busy'
@@ -53,7 +55,7 @@ export function ReminderDialogView({ state, enabled, hour, onEnabled, onHour, on
       ) : null}
       <div className="play-modal__actions">
         <button type="button" className="play-btn" onClick={onClose}>
-          {t.close}
+          {t[closeLabelKey]}
         </button>
         <button type="button" className="play-btn play-btn--primary" disabled={busy} data-reminder-save onClick={onSave}>
           {busy ? t.saving : t.save}
@@ -64,9 +66,9 @@ export function ReminderDialogView({ state, enabled, hour, onEnabled, onHour, on
 }
 
 /** The reminder dialog (SLAY-14.10): toggle, hour in Amsterdam time, Save. Renders nothing while the store is unavailable. */
-export function ReminderDialog({ onClose }: { onClose: () => void }) {
+export function ReminderDialog({ onClose, closeLabelKey, startEnabled = false }: { onClose: () => void; closeLabelKey?: 'close' | 'notNow'; startEnabled?: boolean }) {
   const { store, state } = useReminder()
-  const [enabled, setEnabled] = useState(state.status === 'on')
+  const [enabled, setEnabled] = useState(state.status === 'on' || startEnabled)
   const [hour, setHour] = useState(state.hour ?? DEFAULT_HOUR)
   if (state.status === 'unavailable') return null
   const save = () => {
@@ -74,5 +76,5 @@ export function ReminderDialog({ onClose }: { onClose: () => void }) {
       if (done) onClose()
     })
   }
-  return <ReminderDialogView state={state} enabled={enabled} hour={hour} onEnabled={setEnabled} onHour={setHour} onSave={save} onClose={onClose} />
+  return <ReminderDialogView state={state} enabled={enabled} hour={hour} onEnabled={setEnabled} onHour={setHour} onSave={save} onClose={onClose} closeLabelKey={closeLabelKey} />
 }
