@@ -155,3 +155,25 @@ describe('CardGrid', () => {
     expect(victimTurn).not.toContain('<button')
   })
 })
+
+describe('Spotlight selected state (SLAY-16.8)', () => {
+  const css = readFileSync(new URL('./cards.css', import.meta.url), 'utf8')
+  const block = (selector: string) => css.slice(css.indexOf(selector), css.indexOf('}', css.indexOf(selector)))
+
+  it('has no outer ring, red glow or scale on a selected card', () => {
+    const selected = block('.polaroid[data-selected] {')
+    expect(selected).toContain('translateY(-3px)')
+    expect(selected).not.toContain('scale')
+    expect(block('.polaroid[data-selected] .polaroid__photo {')).not.toMatch(/179, 65, 62|0 0 0 3px/)
+    expect(css).not.toContain('.polaroid[data-selected] .polaroid__clue')
+  })
+
+  it('draws a 1.5px hairline 3px inside the frame and a 12px pointer above it', () => {
+    expect(block('.polaroid[data-selected] .polaroid__photo::before')).toMatch(/inset: 3px[\s\S]*1\.5px solid var\(--accent\)/)
+    expect(block('.polaroid[data-selected] .polaroid__photo::after')).toMatch(/top: -13px[\s\S]*width: 12px/)
+  })
+
+  it('steps the other unplaced cards back to 0.62 with CSS only', () => {
+    expect(block('.card-grid:has([data-selected]) .polaroid:not([data-selected]):not([data-placed])')).toContain('opacity: 0.62')
+  })
+})

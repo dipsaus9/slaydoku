@@ -521,7 +521,8 @@
      spans of off-screen cards stretch the page sideways in the swipe strip. */
   position: relative;
   --card-min: 132px;
-  padding: 10px 8px 12px;
+  /* top room for the selected card's pointer (13px above the card plus the 3px lift) */
+  padding: 20px 8px 12px;
   gap: 18px 12px;
   /* portrait: one strip you swipe sideways */
   grid-auto-flow: column;
@@ -541,13 +542,7 @@
   font-size: 0.85rem;
 }
 
-.play-cards[data-victim-selected] .polaroid--victim {
-  transform: translateY(-4px) scale(1.03);
-}
-
-.play-cards[data-victim-selected] .polaroid--victim .polaroid__photo {
-  box-shadow: 0 0 0 3px var(--accent), 0 10px 20px rgba(179, 65, 62, 0.35);
-}
+/* The victim card's "your turn" look is the shared selected state in cards.css (SLAY-16.8). */
 
 .play-cards[data-victim-placed] .polaroid--victim .polaroid__pic > svg {
   filter: grayscale(0.7);
