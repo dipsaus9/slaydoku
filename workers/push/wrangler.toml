@@ -3,10 +3,14 @@ name = "slaydoku-push"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
 
-# Fill in the id printed by `bunx wrangler kv namespace create SUBSCRIPTIONS` (an id is not a secret).
+# Served on the account's workers.dev subdomain; preview URLs are not needed.
+workers_dev = true
+preview_urls = false
+
+# The id printed by `bunx wrangler kv namespace create SUBSCRIPTIONS` (an id is not a secret).
 [[kv_namespaces]]
 binding = "SUBSCRIPTIONS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "76090c6bc2b5484499bdec0f3d4d42c6"
 
 # The sender handles 11 subscribers per run (free-plan subrequest limit) and keeps a KV cursor per
 # Amsterdam hour, so it must run often: a large hour drains across several runs. Runs after an
