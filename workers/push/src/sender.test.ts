@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { amsterdamNow } from './amsterdam.ts'
 import { fakeKv } from './fakeKv.ts'
-import { hashEndpoint, hourKey, listHour, subKey } from './store.ts'
+import { hashEndpoint, hourKey, listHour, skipKey, subKey } from './store.ts'
 import { CHUNK_SIZE, PUSH_TOPIC, PUSH_TTL_SECONDS, runScheduled, type SenderEnv } from './sender.ts'
 import { b64urlDecode, b64urlEncode } from './vapid.ts'
 
@@ -157,6 +157,68 @@ describe('chunking', () => {
     await runScheduled(envFor(kv), at('2026-10-15T06:00:00Z'), fn)
     await runScheduled(envFor(kv), at('2026-10-16T06:00:00Z'), fn)
     expect(calls).toHaveLength(2)
+  })
+})
+
+describe('skip date', () => {
+  const skipFor = async (kv: ReturnType<typeof fakeKv>, endpoint: string, date: string) =>
+    kv.put(skipKey(await hashEndpoint(endpoint)), date, { expirationTtl: 129600 })
+
+  it('leaves out a subscription skipped for today, still sends older or missing skip dates', async () => {
+    const kv = fakeKv()
+    const [today, old, none] = [1, 2, 3].map((i) => endpointFor('fcm.googleapis.com', i)) as [string, string, string]
+    for (const e of [today, old, none]) await addSub(kv, e, 8)
+    await skipFor(kv, today, '2026-10-15')
+    await skipFor(kv, old, '2026-10-14')
+    const { fn, calls } = fakeFetch()
+    const res = await runScheduled(envFor(kv), at('2026-10-15T06:00:00Z'), fn)
+    expect(calls.map((c) => c.url).sort()).toEqual([old, none])
+    expect(res).toMatchObject({ sent: 2, skipped: 1, done: true })
+  })
+
+  it('applies across chunks and stays within the subrequest cap', async () => {
+    const kv = fakeKv()
+    const total = CHUNK_SIZE * 3 + 2
+    const skipped = new Set<string>()
+    for (let i = 0; i < total; i++) {
+      const e = endpointFor('fcm.googleapis.com', i)
+      await addSub(kv, e, 8)
+      if (i % 3 === 0) {
+        skipped.add(e)
+        await skipFor(kv, e, '2026-10-15')
+      }
+    }
+    const { fn, calls } = fakeFetch()
+    for (let run = 0; run < 10; run++) {
+      const before = kv.calls.n
+      const fetched = calls.length
+      const res = await runScheduled(envFor(kv), at('2026-10-15T06:00:00Z') + run * 5 * 60_000, fn)
+      expect(kv.calls.n - before + (calls.length - fetched)).toBeLessThanOrEqual(50)
+      if (res.done) break
+    }
+    expect(calls).toHaveLength(total - skipped.size)
+    expect(calls.some((c) => skipped.has(c.url))).toBe(false)
+  })
+
+  it('a skip for today no longer applies the next UTC day', async () => {
+    const kv = fakeKv()
+    const e = endpointFor('fcm.googleapis.com', 1)
+    await addSub(kv, e, 8)
+    await skipFor(kv, e, '2026-10-15')
+    const { fn, calls } = fakeFetch()
+    await runScheduled(envFor(kv), at('2026-10-15T06:00:00Z'), fn)
+    await runScheduled(envFor(kv), at('2026-10-16T06:00:00Z'), fn)
+    expect(calls).toHaveLength(1)
+  })
+
+  it('pruning a dead subscription removes its skip entry too', async () => {
+    const kv = fakeKv()
+    const dead = endpointFor('fcm.googleapis.com', 1)
+    await addSub(kv, dead, 8)
+    await skipFor(kv, dead, '2026-10-14')
+    const { fn } = fakeFetch(() => 410)
+    await runScheduled(envFor(kv), at('2026-10-15T06:00:00Z'), fn)
+    expect([...kv.data.keys()].filter((k) => !k.startsWith('run:'))).toEqual([])
   })
 })
 
