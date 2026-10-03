@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createReminderStore, readHour, REMINDER_KEY } from './reminder.ts'
+import { createReminderStore, readHour, readSkipDate, REMINDER_KEY, shouldSendSkip, SKIP_KEY } from './reminder.ts'
 import type { PushManagerLike, PushSubscriptionLike, ReminderEnv } from './reminder.ts'
 
 const ENDPOINT = 'https://fcm.googleapis.com/fcm/send/abc'
@@ -151,3 +151,58 @@ describe('reminder store', () => {
   })
 })
 
+
+describe('shouldSendSkip', () => {
+  it('sends only when on, solved and not yet sent for that date', () => {
+    expect(shouldSendSkip('on', true, '2026-10-03', null)).toBe(true)
+    expect(shouldSendSkip('on', true, '2026-10-03', '2026-10-02')).toBe(true)
+    expect(shouldSendSkip('on', true, '2026-10-03', '2026-10-03')).toBe(false)
+    expect(shouldSendSkip('on', false, '2026-10-03', null)).toBe(false)
+    for (const status of ['off', 'unavailable', 'blocked', 'busy', 'error'] as const) {
+      expect(shouldSendSkip(status, true, '2026-10-03', null)).toBe(false)
+    }
+  })
+})
+
+describe('reminder skip', () => {
+  const skipCalls = (s: ReturnType<typeof setup>) => (s.fetchFn.mock.calls as unknown[][]).filter((c) => String(c[0]).endsWith('/skip')) as unknown as [string, RequestInit][]
+
+  it('POSTs {endpoint, date} once per date while on, and again only for a new date', async () => {
+    const s = setup()
+    await s.store.enable(8)
+    await s.store.skipToday('2026-10-03')
+    await s.store.skipToday('2026-10-03')
+    const calls = skipCalls(s)
+    expect(calls).toHaveLength(1)
+    expect(calls[0]![0]).toBe('https://push.example.dev/skip')
+    expect(calls[0]![1].method).toBe('POST')
+    expect(JSON.parse(calls[0]![1].body as string)).toEqual({ endpoint: ENDPOINT, date: '2026-10-03' })
+    expect(readSkipDate(s.storage)).toBe('2026-10-03')
+    await s.store.skipToday('2026-10-04')
+    expect(skipCalls(s)).toHaveLength(2)
+  })
+
+  it('sends nothing when off, unavailable or blocked', async () => {
+    const off = setup({ permission: 'granted' })
+    await off.store.skipToday('2026-10-03')
+    const unavailable = setup({ standalone: false })
+    await unavailable.store.skipToday('2026-10-03')
+    const blocked = setup({ permission: 'denied' })
+    await blocked.store.skipToday('2026-10-03')
+    for (const s of [off, unavailable, blocked]) expect(s.fetchFn).not.toHaveBeenCalled()
+  })
+
+  it('swallows a non-2xx answer and a network error, and retries on the next call', async () => {
+    const s = setup()
+    await s.store.enable(8)
+    s.fetchFn.mockResolvedValueOnce({ ok: false, status: 400 } as Response)
+    await expect(s.store.skipToday('2026-10-03')).resolves.toBeUndefined()
+    expect(s.data.has(SKIP_KEY)).toBe(false)
+    s.fetchFn.mockRejectedValueOnce(new TypeError('offline'))
+    await expect(s.store.skipToday('2026-10-03')).resolves.toBeUndefined()
+    expect(s.data.has(SKIP_KEY)).toBe(false)
+    await s.store.skipToday('2026-10-03')
+    expect(s.data.get(SKIP_KEY)).toBe('2026-10-03')
+    expect(s.store.getSnapshot().status).toBe('on')
+  })
+})

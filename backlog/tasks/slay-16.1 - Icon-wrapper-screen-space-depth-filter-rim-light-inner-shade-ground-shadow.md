@@ -3,9 +3,10 @@ id: SLAY-16.1
 title: >-
   Icon wrapper: screen-space depth filter (rim light, inner shade, ground
   shadow)
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-03 09:58'
+updated_date: '2026-10-03 10:28'
 labels:
   - story
 dependencies: []
@@ -17,6 +18,8 @@ references:
   - src/render/icons/ContactSheetView.tsx
   - src/render/scene/SceneView.tsx
   - src/ui/help/Legend.tsx
+  - src/render/icons/themes/ThemeObjectIcon.tsx
+  - src/render/scene/SceneView.test.tsx
 parent_task_id: SLAY-16
 type: feature
 ordinal: 107000
@@ -32,15 +35,23 @@ Branch: SLAY-16.1/icon-depth-filter
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 ObjectIconGlyph renders a filtered group around the group that carries the orientation matrix (filter outside, orientation inside); a test checks the markup order for all 8 orientations
-- [ ] #2 The filter uses the approved depth-55 values as one exported constant: bevel offset 2.9, rim highlight white opacity 0.48 blur 0.8, inner shade #2a1a10 opacity 0.27 blur 1, ground shadow #2a1a10 opacity 0.29 blur 2.6 offset dx 2.4 dy 5.3, filter region x -25% y -25% width 160% height 175%
-- [ ] #3 A scene with N objects contains exactly one filter definition (not N), also on the legend and contact sheet; a test counts the filter elements
-- [ ] #4 Walls and room labels still draw on top of the object shadows, shadows are not clipped at the board edge, and hit-testing, gestures and the hit layer are unchanged
-- [ ] #5 Existing icon and scene tests, lint, typecheck and test --maxWorkers=1 are green
+- [x] #1 ObjectIconGlyph renders a filtered group around the group that carries the orientation matrix (filter outside, orientation inside); a test checks the markup order for all 8 orientations
+- [x] #2 The filter uses the approved depth-55 values as one exported constant: bevel offset 2.9, rim highlight white opacity 0.48 blur 0.8, inner shade #2a1a10 opacity 0.27 blur 1, ground shadow #2a1a10 opacity 0.29 blur 2.6 offset dx 2.4 dy 5.3, filter region x -25% y -25% width 160% height 175%
+- [x] #3 A scene with N objects contains exactly one filter definition (not N), also on the legend and contact sheet; a test counts the filter elements
+- [x] #4 Walls and room labels still draw on top of the object shadows, shadows are not clipped at the board edge, and hit-testing, gestures and the hit layer are unchanged
+- [x] #5 Existing icon and scene tests, lint, typecheck and test --maxWorkers=1 are green
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Prototype of the filter chain: docs/design/depth-prototype.html (function filterDef). Apply the filter on an outer group so it works in screen space after the orientation transform.
+
+Review: pass (advisory: ground shadow could clip at the board viewBox edge; checked on the 9x9 sample, objects on right and bottom edges render unclipped). Objects layer now paints under walls/edge features so shadows stay below them. ThemeObjectIcon.tsx and SceneView.test.tsx added to References.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Object icons are wrapped in a screen-space SVG depth filter (approved depth-55 values in ICON_DEPTH_FILTER), outside the orientation transform, defined once per rendered SVG via IconDepthScope (board, legend swatch, contact sheet, standalone icon). Theme art gets the same group. The objects layer now paints below walls and edge features. Tests cover constants, markup order in 8 orientations, single filter per scene.
+<!-- SECTION:FINAL_SUMMARY:END -->
