@@ -12,6 +12,8 @@ export const REMINDER_CONFIG = {
 } as const
 
 export const REMINDER_KEY = 'slaydoku:reminder-hour'
+/** The UTC date a skip was last delivered to the Worker; one skip per date. */
+export const SKIP_KEY = 'slaydoku:reminder-skip-date'
 export const MIN_HOUR = 6
 export const MAX_HOUR = 23
 
@@ -58,6 +60,16 @@ export interface ReminderStore {
   disable(): Promise<void>
 }
 
+export interface SkipSender {
+  /**
+   * Tells the Worker today's puzzle is solved so today's reminder is not sent. Sends at most once per UTC date, only while the
+   * reminder is 'on'; every failure is swallowed and leaves the date unmarked so the next app open retries.
+   */
+  skipToday(date: string): Promise<void>
+}
+
+export type ReminderClient = ReminderStore & SkipSender
+
 const isValidHour = (h: unknown): h is number => typeof h === 'number' && Number.isInteger(h) && h >= MIN_HOUR && h <= MAX_HOUR
 
 export function readHour(storage: StorageLike | null): number | null {
@@ -82,6 +94,28 @@ function writeHour(storage: StorageLike | null, hour: number | null): void {
   }
 }
 
+/** True when a skip for `date` (UTC YYYY-MM-DD) should be sent now: reminder on, puzzle solved, not yet sent for that date. */
+export function shouldSendSkip(status: ReminderStatus, solved: boolean, date: string, lastSent: string | null): boolean {
+  return status === 'on' && solved && lastSent !== date
+}
+
+export function readSkipDate(storage: StorageLike | null): string | null {
+  if (!storage) return null
+  try {
+    return storage.getItem(SKIP_KEY)
+  } catch {
+    return null
+  }
+}
+
+function writeSkipDate(storage: StorageLike | null, date: string): void {
+  try {
+    storage?.setItem(SKIP_KEY, date)
+  } catch {
+    // Worst case one more skip is sent on the next open; the Worker treats it as a repeat.
+  }
+}
+
 /** Decodes a base64url VAPID public key into the bytes pushManager.subscribe wants. */
 export function urlBase64ToBytes(value: string): Uint8Array<ArrayBuffer> {
   const padded = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=')
@@ -95,7 +129,7 @@ export function isConfigured(config: ReminderEnv['config']): boolean {
   return !config.workerUrl.startsWith('PLACEHOLDER') && !config.vapidPublicKey.startsWith('PLACEHOLDER')
 }
 
-export function createReminderStore(env: ReminderEnv): ReminderStore {
+export function createReminderStore(env: ReminderEnv): ReminderClient {
   const listeners = new Set<() => void>()
   const available = env.standalone && !!env.notification && !!env.pushManager && isConfigured(env.config)
 
@@ -151,7 +185,27 @@ export function createReminderStore(env: ReminderEnv): ReminderStore {
     )
   }
 
+  let skipping = false
+
   return {
+    async skipToday(date) {
+      if (!available || skipping || !shouldSendSkip(state.status, true, date, readSkipDate(env.storage))) return
+      skipping = true
+      try {
+        const sub = await (await env.pushManager!()).getSubscription()
+        if (!sub) return
+        const res = await env.fetch(`${env.config.workerUrl.replace(/\/+$/, '')}/skip`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint, date }),
+        })
+        if (res.ok) writeSkipDate(env.storage, date)
+      } catch {
+        // Silent by design: a missed skip only means one reminder too many.
+      } finally {
+        skipping = false
+      }
+    },
     subscribe(listener) {
       listeners.add(listener)
       return () => void listeners.delete(listener)
@@ -198,10 +252,10 @@ function defaultStorage(): Storage | null {
   }
 }
 
-let instance: ReminderStore | null = null
+let instance: ReminderClient | null = null
 
 /** The reminder store of this page, built on first use from the real browser APIs. */
-export function getReminderStore(): ReminderStore {
+export function getReminderStore(): ReminderClient {
   if (instance) return instance
   const hasPush = typeof navigator !== 'undefined' && 'serviceWorker' in navigator && typeof PushManager !== 'undefined'
   instance = createReminderStore({
