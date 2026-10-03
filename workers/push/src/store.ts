@@ -10,6 +10,9 @@ export interface StoredSubscription {
 /** Key layout: `sub:<hash>` holds the record, `hour:<HH>:<hash>` is the per-hour index (empty value). */
 export const subKey = (hash: string) => `sub:${hash}`
 export const hourPrefix = (hour: number) => `hour:${String(hour).padStart(2, '0')}:`
+/** `skip:<hash>` holds the UTC date (YYYY-MM-DD) the player already solved; it expires by itself. */
+export const skipKey = (hash: string) => `skip:${hash}`
+export const SKIP_TTL_SECONDS = 36 * 60 * 60
 export const hourKey = (hour: number, hash: string) => `${hourPrefix(hour)}${hash}`
 
 export async function hashEndpoint(endpoint: string): Promise<string> {
@@ -40,7 +43,16 @@ export async function removeSubscription(kv: KvLike, endpoint: string): Promise<
     const old = JSON.parse(previous) as StoredSubscription
     await kv.delete(hourKey(old.hour, hash))
   }
+  await kv.delete(skipKey(hash))
   await kv.delete(subKey(hash))
+}
+
+/** Stores the skip date for an existing subscription; false when the endpoint is unknown. */
+export async function saveSkip(kv: KvLike, endpoint: string, date: string): Promise<boolean> {
+  const hash = await hashEndpoint(endpoint)
+  if (!(await kv.get(subKey(hash)))) return false
+  await kv.put(skipKey(hash), date, { expirationTtl: SKIP_TTL_SECONDS })
+  return true
 }
 
 export interface HourPage {
