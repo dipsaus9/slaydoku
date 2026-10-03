@@ -1,6 +1,6 @@
 import { amsterdamNow } from './amsterdam.ts'
 import type { KvLike } from './kv.ts'
-import { getSubscription, hourKey, listHourPage, subKey } from './store.ts'
+import { getSubscription, hourKey, listHourPage, skipKey, subKey } from './store.ts'
 import { authorizationHeader, importVapidKey, signVapidJwt } from './vapid.ts'
 
 export interface SenderEnv {
@@ -13,10 +13,10 @@ export interface SenderEnv {
 
 /**
  * Free-plan Workers allow ~50 subrequests per invocation and KV calls count. Per subscriber the
- * worst case is a KV get, a push fetch and two KV deletes (4), plus the list and the progress
- * read/write: 11 * 4 + 3 = 47.
+ * worst case is a KV get for the record, one for the skip date, a push fetch and three KV deletes
+ * (6), plus the list and the progress read/write: 7 * 6 + 3 = 45.
  */
-export const CHUNK_SIZE = 11
+export const CHUNK_SIZE = 7
 export const PUSH_TTL_SECONDS = 3 * 60 * 60
 export const PUSH_TOPIC = 'daily-puzzle'
 const JWT_LIFETIME_SECONDS = 12 * 60 * 60
@@ -34,6 +34,7 @@ export interface RunResult {
   hour: number
   sent: number
   pruned: number
+  skipped: number
   failed: number
   done: boolean
 }
@@ -46,8 +47,9 @@ export interface RunResult {
  */
 export async function runScheduled(env: SenderEnv, scheduledTime: number, fetchFn: typeof fetch = fetch): Promise<RunResult> {
   const now = new Date(scheduledTime)
+  const utcToday = now.toISOString().slice(0, 10)
   const { date, hour } = amsterdamNow(now)
-  const result: RunResult = { hour, sent: 0, pruned: 0, failed: 0, done: false }
+  const result: RunResult = { hour, sent: 0, pruned: 0, skipped: 0, failed: 0, done: false }
   const pKey = progressKey(date, hour)
   const raw = await env.SUBSCRIPTIONS.get(pKey)
   const progress: Progress = raw ? (JSON.parse(raw) as Progress) : { done: false }
@@ -74,6 +76,11 @@ export async function runScheduled(env: SenderEnv, scheduledTime: number, fetchF
         await env.SUBSCRIPTIONS.delete(hourKey(hour, hash))
         return
       }
+      // The app reports a solved puzzle with POST /skip; a skip date of today means no reminder.
+      if ((await env.SUBSCRIPTIONS.get(skipKey(hash))) === utcToday) {
+        result.skipped++
+        return
+      }
       const { endpoint } = stored.subscription
       try {
         const jwt = await jwtFor(new URL(endpoint).origin)
@@ -88,7 +95,11 @@ export async function runScheduled(env: SenderEnv, scheduledTime: number, fetchF
           },
         })
         if (res.status === 404 || res.status === 410) {
-          await Promise.all([env.SUBSCRIPTIONS.delete(subKey(hash)), env.SUBSCRIPTIONS.delete(hourKey(hour, hash))])
+          await Promise.all([
+            env.SUBSCRIPTIONS.delete(subKey(hash)),
+            env.SUBSCRIPTIONS.delete(hourKey(hour, hash)),
+            env.SUBSCRIPTIONS.delete(skipKey(hash)),
+          ])
           result.pruned++
         } else if (res.ok) result.sent++
         else {

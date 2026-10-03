@@ -1,5 +1,5 @@
 import { EdgeFeatureIcon } from './EdgeFeatureIcon.tsx'
-import { ObjectIconGlyph } from './ObjectIcon.tsx'
+import { IconDepthScope, ObjectIconGlyph } from './ObjectIcon.tsx'
 import { ORIENTATIONS, ROTATIONS, boundingSize, orientCells } from './orientation.ts'
 import type { Rotation } from './orientation.ts'
 import type { IconVariant } from './registry.tsx'
@@ -44,7 +44,9 @@ function Tile({ type, variant, rotation }: { type: IconObjectType; variant: Icon
             strokeDasharray="6 5"
           />
         ))}
-        <ObjectIconGlyph type={type} cells={cells} rotation={rotation} />
+        <IconDepthScope>
+          <ObjectIconGlyph type={type} cells={cells} rotation={rotation} />
+        </IconDepthScope>
       </svg>
       <figcaption>{rotation}&deg;</figcaption>
     </figure>

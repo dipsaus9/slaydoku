@@ -1,6 +1,6 @@
 import type { PlacedObject } from '../../engine/model/index.ts'
 import type { SceneGeometry } from '../scene/geometry.ts'
-import { ObjectIconGlyph } from './ObjectIcon.tsx'
+import { IconDepthScope, ObjectIconGlyph } from './ObjectIcon.tsx'
 import { ThemeObjectIconGlyph } from './themes/ThemeObjectIcon.tsx'
 import type { ThemeIconId } from './themes/types.ts'
 import { U } from './art/tokens.ts'
@@ -25,7 +25,7 @@ export interface SceneObjectIconsProps {
  */
 export function SceneObjectIcons({ objects, geometry, themeIcons }: SceneObjectIconsProps) {
   return (
-    <>
+    <IconDepthScope>
       {objects.map((object) => {
         if (object.cells.length === 0) return null
         const top = Math.min(...object.cells.map((c) => c.row))
@@ -46,6 +46,6 @@ export function SceneObjectIcons({ objects, geometry, themeIcons }: SceneObjectI
           </g>
         )
       })}
-    </>
+    </IconDepthScope>
   )
 }

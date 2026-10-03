@@ -1,6 +1,6 @@
 import type { Cell } from '../../../engine/model/index.ts'
 import type { Rotation } from '../orientation.ts'
-import { ObjectIconGlyph } from '../ObjectIcon.tsx'
+import { IconDepthGroup, ObjectIconGlyph } from '../ObjectIcon.tsx'
 import { resolveThemeObjectIcon } from './resolve.ts'
 import type { ThemeIconRef } from './resolve.ts'
 
@@ -21,12 +21,14 @@ export function ThemeObjectIconGlyph({ object, cells, rotation, mirror }: ThemeO
   if (!icon) return null
   const [a, b, c, d, e, f] = icon.matrix
   return (
-    <g
-      data-theme-icon={object.themeIcon}
-      data-variant={icon.variant.id}
-      transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}
-    >
-      {icon.variant.draw()}
-    </g>
+    <IconDepthGroup>
+      <g
+        data-theme-icon={object.themeIcon}
+        data-variant={icon.variant.id}
+        transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}
+      >
+        {icon.variant.draw()}
+      </g>
+    </IconDepthGroup>
   )
 }

@@ -74,16 +74,16 @@ bunx wrangler kv key list --binding SUBSCRIPTIONS --remote
 ```
 
 Turn reminders on in the app for the next full hour, then watch `tail` at that hour. Subscriptions
-show up as `sub:<hash>` and `hour:<HH>:<hash>` keys; `run:<date>:<HH>` is the send progress of an
+show up as `sub:<hash>` and `hour:<HH>:<hash>` keys, plus a short-lived `skip:<hash>` (the UTC date the player already solved, 36 hour TTL, from `POST /skip`; the sender leaves that subscription out on that day); `run:<date>:<HH>` is the send progress of an
 hour. A push service answering 404/410 removes that subscription automatically.
 
 ## Why every five minutes
 
 The free plan allows about 50 outgoing requests per run (KV calls count). The sender therefore
-handles 11 subscribers per run and keeps a KV cursor (`run:<date>:<hour>`), so a large hour drains
-across several runs, about 130 subscribers per hour at this schedule. Once an hour is done a run
+handles 7 subscribers per run and keeps a KV cursor (`run:<date>:<hour>`), so a large hour drains
+across several runs, about 84 subscribers per hour at this schedule. Once an hour is done a run
 costs one KV read. If an hour ever has more subscribers, tighten the cron or move to a paid plan
-(a higher subrequest limit; raise `CHUNK_SIZE` in `workers/push/src/sender.ts` with it).
+(a higher subrequest limit; per subscriber the worst case is 6 subrequests now: record, skip date, push, three deletes; raise `CHUNK_SIZE` in `workers/push/src/sender.ts` with it).
 
 ## Free-tier limits (check Cloudflare's pricing pages for current numbers)
 
@@ -99,7 +99,7 @@ costs one KV read. If an hour ever has more subscribers, tighten the cron or mov
 ## Privacy footprint
 
 The Worker stores, per subscribed device: the push endpoint URL, the two push keys (`p256dh`,
-`auth`), the chosen hour and optionally a language code. No name, email, account, IP address,
+`auth`), the chosen hour and optionally a language code, and for at most 36 hours the UTC date of a solved puzzle (the skip date). No name, email, account, IP address,
 puzzle progress or stats; the app has no accounts. Pushes carry no payload, only the fixed reminder.
 Unsubscribing in the app (or the browser revoking permission) deletes the record; dead endpoints
 are pruned when a push service reports them gone. This is the one server-side exception to
