@@ -11,6 +11,7 @@ import { PlayScreen } from '../play/index.ts'
 import { navigate, usePath } from '../router/index.ts'
 import { SharePanel } from '../share/index.ts'
 import { ReminderRow } from '../reminder/index.ts'
+import { getReminderStore } from '../../pwa/reminder.ts'
 import { StatsEntry } from '../stats/index.ts'
 import { shareMetaOf } from '../../share/index.ts'
 import { parseRoute, routePath } from './route.ts'
@@ -84,6 +85,13 @@ export function DailyFlow({ clock: givenClock, storage: givenStorage, index = SC
   useEffect(() => {
     if (day && status?.kind === 'solved' && readResult(storage, day.n, day.fp) === null) recordResult(storage, status.result)
   }, [storage, day, status])
+
+  // SLAY-15.2: once today's puzzle is solved (just now, or found solved on open) the Worker is told to skip today's reminder.
+  // The store sends once per UTC date and swallows every failure.
+  const solvedToday = day !== null && day.date === today && status?.kind === 'solved'
+  useEffect(() => {
+    if (solvedToday) void getReminderStore().skipToday(today)
+  }, [solvedToday, today])
 
   const unknown = route.kind === 'unknown'
   // SLAY-9.13 (AC #5, deliberate): a solved day stays playable. This covers two cases the same
