@@ -1,6 +1,8 @@
 export { ReminderDialog, ReminderDialogView } from './ReminderDialog.tsx'
 export type { ReminderDialogViewProps } from './ReminderDialog.tsx'
 export { ReminderOptionsEntry, ReminderRow } from './ReminderEntries.tsx'
+export { SolveReminderPopup } from './SolveReminderPopup.tsx'
+export type { SolveReminderPopupProps } from './SolveReminderPopup.tsx'
 export { summaryOf } from './summary.ts'
 export { useReminder } from './context.ts'
 export { ReminderStoreProvider } from './store.tsx'

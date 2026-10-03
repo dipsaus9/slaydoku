@@ -17,6 +17,8 @@ export interface ReminderStrings {
   save: string
   saving: string
   close: string
+  /** Dismiss button of the popup offered right after a solve. */
+  notNow: string
   blocked: string
   error: string
 }
@@ -38,6 +40,7 @@ export const REMINDER_EN: ReminderStrings = {
   save: 'Save',
   saving: 'Saving...',
   close: 'Close',
+  notNow: 'Not now',
   blocked: 'Notifications are blocked for Slaydoku. Allow them in your device settings, then try again.',
   error: 'Saving the reminder failed. Check your connection and try again.',
 }
@@ -59,6 +62,7 @@ export const REMINDER_NL: ReminderStrings = {
   save: 'Opslaan',
   saving: 'Opslaan...',
   close: 'Sluiten',
+  notNow: 'Nu niet',
   blocked: 'Meldingen zijn geblokkeerd voor Slaydoku. Sta ze toe in je apparaatinstellingen en probeer het opnieuw.',
   error: 'Opslaan van de herinnering is mislukt. Controleer je verbinding en probeer het opnieuw.',
 }
