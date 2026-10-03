@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { corsHeaders } from './cors.ts'
 import { fakeKv } from './fakeKv.ts'
 import { handleRequest } from './handler.ts'
-import { hashEndpoint, hourKey, listHour, subKey } from './store.ts'
+import { hashEndpoint, hourKey, listHour, skipKey, subKey } from './store.ts'
 
 const endpoint = 'https://fcm.googleapis.com/fcm/send/abc123'
 const sub = (over: Record<string, unknown> = {}) => ({
@@ -78,6 +78,70 @@ describe('store', () => {
     expect((await call(kv, 'DELETE', { endpoint })).status).toBe(200)
     expect(kv.data.size).toBe(0)
     expect((await call(kv, 'DELETE', { endpoint })).status).toBe(200)
+  })
+})
+
+describe('skip', () => {
+  const NOW = Date.parse('2026-10-15T12:00:00Z')
+  const skip = (kv: ReturnType<typeof fakeKv>, body: unknown, origin?: string, method = 'POST') =>
+    handleRequest(
+      new Request('https://push.example/skip', {
+        method,
+        body: method === 'POST' ? JSON.stringify(body) : null,
+        headers: origin ? { origin } : {},
+      }),
+      { SUBSCRIPTIONS: kv },
+      NOW,
+    )
+
+  it.each(['2026-10-15', '2026-10-14'])('stores date %s with a 36 hour TTL and answers 204', async (date) => {
+    const kv = fakeKv()
+    await call(kv, 'POST', sub())
+    const put = vi.spyOn(kv, 'put')
+    const res = await skip(kv, { endpoint, date })
+    expect(res.status).toBe(204)
+    const hash = await hashEndpoint(endpoint)
+    expect(kv.data.get(skipKey(hash))).toBe(date)
+    expect(put).toHaveBeenCalledWith(skipKey(hash), date, { expirationTtl: 36 * 60 * 60 })
+  })
+
+  it('answers the same 400 for an unknown endpoint, a bad date and a bad endpoint', async () => {
+    const kv = fakeKv()
+    await call(kv, 'POST', sub())
+    const before = kv.data.size
+    const bodies = [
+      { endpoint: 'https://fcm.googleapis.com/fcm/send/unknown', date: '2026-10-15' },
+      { endpoint, date: '2026-10-13' },
+      { endpoint, date: '2026-10-16' },
+      { endpoint, date: 'tomorrow' },
+      { endpoint, date: 20261015 },
+      { endpoint: 'https://evil.example/x', date: '2026-10-15' },
+      { date: '2026-10-15' },
+    ]
+    const answers = await Promise.all(bodies.map(async (b) => { const r = await skip(kv, b); return [r.status, await r.text()] }))
+    for (const a of answers) expect(a).toEqual(answers[0])
+    expect(answers[0]![0]).toBe(400)
+    expect(kv.data.size).toBe(before)
+  })
+
+  it('DELETE /subscribe removes the skip entry', async () => {
+    const kv = fakeKv()
+    await call(kv, 'POST', sub())
+    await skip(kv, { endpoint, date: '2026-10-15' })
+    await call(kv, 'DELETE', { endpoint })
+    expect(kv.data.size).toBe(0)
+  })
+
+  it('has the same CORS as /subscribe, and rejects other methods', async () => {
+    const kv = fakeKv()
+    await call(kv, 'POST', sub())
+    const ok = await skip(kv, { endpoint, date: '2026-10-15' }, 'https://slaydoku.nl')
+    expect(ok.headers.get('access-control-allow-origin')).toBe('https://slaydoku.nl')
+    const bad = await skip(kv, { endpoint, date: '2026-10-15' }, 'https://evil.example')
+    expect(bad.headers.get('access-control-allow-origin')).toBeNull()
+    const pre = await skip(kv, undefined, 'https://slaydoku.nl', 'OPTIONS')
+    expect(pre.status).toBe(204)
+    expect((await skip(kv, undefined, undefined, 'DELETE')).status).toBe(405)
   })
 })
 
