@@ -3,10 +3,10 @@ id: SLAY-15
 title: >-
   Epic: reminder only when today is still unsolved, install notice off the play
   screen
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-03 09:15'
-updated_date: '2026-10-03 09:39'
+updated_date: '2026-10-03 20:43'
 labels:
   - epic
 dependencies: []
@@ -24,6 +24,12 @@ Install notice: show it on the start screen only, not on /play, so it cannot ove
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A player with a reminder who solved today receives no notification that day, and receives it again the next day (manual live check)
-- [ ] #2 All stories SLAY-15.1 to SLAY-15.5 are Done
+- [x] #1 A player with a reminder who solved today receives no notification that day, and receives it again the next day (manual live check)
+- [x] #2 All stories SLAY-15.1 to SLAY-15.5 are Done
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Closed on 2026-10-03 on the owner's instruction (Sluit alles). All stories are Done and merged. The manual criteria (live reminder check / owner check on a real phone) were accepted by the owner and were NOT independently verified by the agent.
+<!-- SECTION:NOTES:END -->
