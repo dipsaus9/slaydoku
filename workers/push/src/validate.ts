@@ -63,3 +63,14 @@ export function parseUnsubscribeBody(body: unknown): { endpoint: string } | null
   if (!isRecord(body) || !isPushEndpoint(body.endpoint)) return null
   return { endpoint: body.endpoint }
 }
+
+const utcDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+
+/** Body of POST /skip: a push endpoint and a UTC date that is today or yesterday. */
+export function parseSkipBody(body: unknown, nowMs: number): { endpoint: string; date: string } | null {
+  if (!isRecord(body) || !isPushEndpoint(body.endpoint)) return null
+  const { date } = body
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+  if (date !== utcDay(nowMs) && date !== utcDay(nowMs - 24 * 60 * 60 * 1000)) return null
+  return { endpoint: body.endpoint, date }
+}
