@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-10-03 09:15'
+updated_date: '2026-10-03 09:39'
 labels:
   - epic
 dependencies: []
@@ -23,6 +24,6 @@ Install notice: show it on the start screen only, not on /play, so it cannot ove
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 All stories SLAY-15.1 to SLAY-15.4 are Done
-- [ ] #2 A player with a reminder who solved today receives no notification that day, and receives it again the next day (manual live check)
+- [ ] #1 A player with a reminder who solved today receives no notification that day, and receives it again the next day (manual live check)
+- [ ] #2 All stories SLAY-15.1 to SLAY-15.5 are Done
 <!-- AC:END -->
