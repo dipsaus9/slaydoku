@@ -1,0 +1,222 @@
+<title>Slaydoku Objecten Ronde Twee</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one review sheet. A depth slider on top drives every sample live; below it a grid of objects (rows) in four states (columns), then a strip on a wooden floor. */
+:root {
+  --bg: #f7f2e6; --fg: #2a2a36; --muted: #6b6a74; --surface: #fdf8ec; --line: #cbb994; --accent: #b3413e;
+  --board: #f1d9b5; --board-line: rgba(160, 120, 80, .35);
+  --font-display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-body: 'Instrument Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1f1d24; --fg: #efe9dc; --muted: #a39f9a; --surface: #2a2730; --line: #4a4450; --accent: #e07b77; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #1f1d24; --fg: #efe9dc; --muted: #a39f9a; --surface: #2a2730; --line: #4a4450; --accent: #e07b77; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); padding-inline: 16px; padding-block: 28px 64px; }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.1; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: .95rem; }
+p { margin: 0; max-width: 64ch; line-height: 1.5; }
+.lead { color: var(--muted); }
+.tag { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; }
+.ctl { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+input[type=range] { width: 100%; accent-color: var(--accent); min-height: 28px; }
+output { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 4ch; text-align: right; }
+.grid { display: grid; grid-template-columns: 110px repeat(4, minmax(0, 1fr)); gap: 12px 14px; align-items: end; overflow-x: auto; }
+.grid > .h { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.grid > .n { font-weight: 600; align-self: center; }
+.cellbox { display: flex; align-items: flex-end; min-height: 100px; }
+.tile { position: relative; flex: none; background-color: var(--board); border: 1px solid var(--board-line);
+  background-image: linear-gradient(var(--board-line) 1px, transparent 1px), linear-gradient(90deg, var(--board-line) 1px, transparent 1px); background-size: 84px 84px; }
+.tile svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.floor { background-color: #f2d6ae; background-image: repeating-linear-gradient(90deg, rgba(150,100,60,.22) 0 1px, transparent 1px 42px), linear-gradient(var(--board-line) 1px, transparent 1px), linear-gradient(90deg, var(--board-line) 1px, transparent 1px); background-size: 84px 84px, 84px 84px, 84px 84px; }
+.strip { overflow-x: auto; }
+.pick { display: grid; gap: 10px; }
+fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+label { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; cursor: pointer; }
+input[type=radio] { accent-color: var(--accent); width: 18px; height: 18px; }
+.out { padding: 10px 12px; border-radius: 8px; border: 1px dashed var(--line); font-variant-numeric: tabular-nums; }
+button { font: inherit; font-weight: 600; padding: 8px 14px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; width: fit-content; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 640px) { .grid { grid-template-columns: 80px repeat(4, 150px); } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <span class="tag">Objecten, tweede ronde</span>
+    <h1>Op het niveau van je referentiefoto</h1>
+    <p class="lead">Dit zijn eigen tekeningen, geen overgenomen kunst. Ze hebben dezelfde diepte: details binnenin, voetjes, een rand die licht vangt en een schaduw op de vloer. Het licht komt altijd van linksboven, ook als een object gedraaid is.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-depth">
+    <h2 id="h-depth">Hoeveel diepte?</h2>
+    <div class="ctl"><span class="lead">Vlakker</span><input id="depth" type="range" min="0" max="100" value="55" aria-label="Diepte"><span class="lead">Dieper</span></div>
+    <p class="lead">De schuif regelt de glans op de randen, de donkere onderrand en de schaduw. Stand <output id="depthOut">55</output> van 100.</p>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-obj">
+    <h2 id="h-obj">Vier objecten, vier standen</h2>
+    <p class="lead">Kolom 1 is wat het spel nu tekent. De drie andere tonen hetzelfde nieuwe ontwerp ongedraaid, 90 graden gedraaid en gespiegeld op zijn kop. De schaduw blijft rechtsonder.</p>
+    <div class="panel"><div class="grid" id="grid"></div></div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-strip">
+    <h2 id="h-strip">Op een houten vloer</h2>
+    <div class="panel strip"><div id="strip"></div></div>
+  </section>
+
+  <section class="panel pick" aria-labelledby="h-pick">
+    <h2 id="h-pick">Jouw oordeel</h2>
+    <fieldset><legend>Richting</legend>
+      <label><input type="radio" name="r" value="goed" checked>Dit is hem</label>
+      <label><input type="radio" name="r" value="detail">Meer detail binnenin</label>
+      <label><input type="radio" name="r" value="vlak">Minder, dichter bij nu</label>
+      <label><input type="radio" name="r" value="ander">Anders</label>
+    </fieldset>
+    <div class="out" id="out"></div>
+    <button type="button" id="copy">Kopieer</button>
+    <p class="lead">Plak de regel in het gesprek, of typ het gewoon. Zeg erbij wat je wilt veranderen.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var CELL = 84;
+  var C = { ink:'#29211d', white:'#fbfbf8', cream:'#f2e9d4', creamLight:'#fef7e7', creamDark:'#d8c9a6', wood:'#a2795a', woodLight:'#be9f7d', woodDark:'#78553d', woodDeep:'#5b3f2b', gold:'#cea657', goldDark:'#a98438', yellow:'#e1ca73', yellowLight:'#ecdc9a', green:'#629b62', greenLight:'#8dba82', greenDark:'#3f7048', terracotta:'#ae644a', terraDark:'#8a4a36', soil:'#5a3a2b', red:'#c6706d', purple:'#ad9bc4', sky:'#d1e5eb' };
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function B(x, y, w, h, r, fill, sw, op) { return { t:'box', x:x, y:y, w:w, h:h, r:r, fill:fill, sw:sw === undefined ? 5 : sw, op:op }; }
+  function D(x, y, r, fill, sw, op) { return { t:'disc', x:x, y:y, r:r, fill:fill, sw:sw === undefined ? 5 : sw, op:op }; }
+  function P(d, fill, sw, op, stroke) { return { t:'path', d:d, fill:fill, sw:sw === undefined ? 4 : sw, op:op, stroke:stroke }; }
+  function L(x1, y1, x2, y2, stroke, sw, op) { return { t:'line', x1:x1, y1:y1, x2:x2, y2:y2, stroke:stroke, sw:sw, op:op }; }
+  var NONE = 'none';
+
+  // ---- current art (copied from src/render/icons/art) ----
+  var OLD = {
+    chair: [B(14, 6, 72, 30, 14, C.cream), B(6, 24, 22, 68, 10, C.cream), B(72, 24, 22, 68, 10, C.cream), B(26, 34, 48, 54, 8, C.creamLight)],
+    plant: (function () { var o = []; for (var k = 0; k < 6; k++) { var a = k * Math.PI / 3 + Math.PI / 6, ca = Math.cos(a), sa = Math.sin(a), c1 = [50 + ca * 24 - sa * 13, 50 + sa * 24 + ca * 13], c2 = [50 + ca * 24 + sa * 13, 50 + sa * 24 - ca * 13], t = [50 + ca * 39, 50 + sa * 39]; o.push(P('M 50 50 Q ' + r1(c1[0]) + ' ' + r1(c1[1]) + ' ' + r1(t[0]) + ' ' + r1(t[1]) + ' Q ' + r1(c2[0]) + ' ' + r1(c2[1]) + ' 50 50 Z', k % 2 ? C.greenLight : C.green, 4)); } o.push(D(50, 50, 13, C.terracotta), D(50, 50, 6, C.woodDark, 2)); return o; })(),
+    table: [B(8, 8, 184, 84, 6, C.wood), B(20, 20, 160, 60, 3, C.woodLight, 3)],
+    shelf: (function () { var o = [B(6, 6, 188, 88, 6, C.woodDark), B(10, 10, 180, 80, 3, C.wood, 2)], cols = [C.red, C.cream, C.green, C.gold, C.purple, C.sky], step = (200 - 24) / 10; for (var s = 0; s < 3; s++) for (var k = 0; k < 10; k++) { var drop = ((k + s) % 3) * 3; o.push(B(r1(12 + k * step + 1), 14 + s * 27 + drop, r1(step - 2.5), 22 - drop, 1, cols[(k + s * 2) % 6], 2)); } o.push(L(10, 38, 190, 38, C.ink, 2), L(10, 65, 190, 65, C.ink, 2)); return o; })()
+  };
+
+  // ---- new art: detail inside, feet, highlights. Only rotation-safe detail lives in the art; light and shadow come from the filter. ----
+  var NEW = {
+    chair: [
+      B(9, 88, 13, 9, 3, C.woodDeep, 3), B(78, 88, 13, 9, 3, C.woodDeep, 3), B(9, 3, 13, 9, 3, C.woodDeep, 3), B(78, 3, 13, 9, 3, C.woodDeep, 3),
+      B(14, 6, 72, 34, 16, C.cream), B(6, 24, 22, 68, 10, C.cream), B(72, 24, 22, 68, 10, C.cream),
+      B(22, 12, 56, 24, 10, C.creamLight, 3), B(26, 38, 48, 50, 10, C.creamLight),
+      L(50, 42, 50, 84, C.creamDark, 2.5), L(32, 62, 68, 62, C.creamDark, 2.5, .8),
+      L(17, 34, 17, 80, C.white, 3, .8), L(83, 34, 83, 80, C.white, 3, .8)
+    ],
+    plant: (function () {
+      var o = [D(50, 50, 33, C.terraDark, 3, .9)];
+      for (var k = 0; k < 8; k++) {
+        var a = k * Math.PI / 4 + Math.PI / 8, ca = Math.cos(a), sa = Math.sin(a), tip = 41, mid = 26, wing = 11;
+        var c1 = [50 + ca * mid - sa * wing, 50 + sa * mid + ca * wing], c2 = [50 + ca * mid + sa * wing, 50 + sa * mid - ca * wing], t = [50 + ca * tip, 50 + sa * tip];
+        o.push(P('M 50 50 Q ' + r1(c1[0]) + ' ' + r1(c1[1]) + ' ' + r1(t[0]) + ' ' + r1(t[1]) + ' Q ' + r1(c2[0]) + ' ' + r1(c2[1]) + ' 50 50 Z', k % 2 ? C.greenLight : C.green, 3.5));
+        o.push(L(r1(50 + ca * 10), r1(50 + sa * 10), r1(50 + ca * 34), r1(50 + sa * 34), C.greenDark, 2.2, .85));
+      }
+      o.push(D(50, 50, 14, C.terracotta, 4), D(50, 50, 8.5, C.soil, 2.5), D(46, 46, 2.5, C.wood, 0));
+      return o;
+    })(),
+    table: [
+      B(10, 84, 11, 11, 3, C.woodDeep, 3), B(179, 84, 11, 11, 3, C.woodDeep, 3), B(10, 5, 11, 11, 3, C.woodDeep, 3), B(179, 5, 11, 11, 3, C.woodDeep, 3),
+      B(8, 8, 184, 84, 8, C.yellow), B(18, 18, 164, 64, 4, NONE, 3, 1), B(24, 24, 152, 52, 2, C.yellowLight, 2.5),
+      L(30, 32, 170, 32, C.white, 3, .7)
+    ],
+    shelf: (function () {
+      var o = [B(5, 88, 12, 8, 3, C.woodDeep, 3), B(183, 88, 12, 8, 3, C.woodDeep, 3), B(5, 4, 12, 8, 3, C.woodDeep, 3), B(183, 4, 12, 8, 3, C.woodDeep, 3), B(6, 6, 188, 88, 7, C.wood), B(13, 13, 174, 74, 3, C.woodDeep, 3)];
+      var cols = [C.red, C.cream, C.green, C.gold, C.purple, C.sky, '#e4aab8'], step = 168 / 11, s, k;
+      for (s = 0; s < 3; s++) for (k = 0; k < 11; k++) { var drop = ((k * 2 + s) % 4) * 2.5; o.push(B(r1(16 + k * step + .8), r1(16 + s * 23.5 + drop), r1(step - 2.2), r1(20 - drop), 1.5, cols[(k + s * 3) % 7], 2)); }
+      o.push(L(13, 38.5, 187, 38.5, C.woodLight, 3.5), L(13, 62, 187, 62, C.woodLight, 3.5), L(13, 86, 187, 86, C.woodLight, 3.5), L(18, 11, 182, 11, C.white, 3, .55));
+      return o;
+    })()
+  };
+
+  // ---- renderer ----
+  var n = 0;
+  function el(p) {
+    var sw = p.sw, st = p.stroke || C.ink, off = sw === 0 || st === 'none', op = p.op === undefined ? 1 : p.op;
+    var common = ' stroke="' + (off ? 'none' : st) + '" stroke-width="' + (off ? 0 : sw) + '" stroke-linejoin="round" stroke-linecap="round"';
+    if (p.t === 'box') { var f = p.fill, ex = f === 'none' ? ' fill="none"' : ' fill="' + f + '"'; return '<rect x="' + p.x + '" y="' + p.y + '" width="' + p.w + '" height="' + p.h + '" rx="' + p.r + '"' + ex + common + (op < 1 ? ' opacity="' + op + '"' : '') + '/>'; }
+    if (p.t === 'disc') return '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + p.r + '" fill="' + p.fill + '"' + common + (op < 1 ? ' opacity="' + op + '"' : '') + '/>';
+    if (p.t === 'path') return '<path d="' + p.d + '" fill="' + p.fill + '"' + common + '/>';
+    return '<line x1="' + p.x1 + '" y1="' + p.y1 + '" x2="' + p.x2 + '" y2="' + p.y2 + '" stroke="' + p.stroke + '" stroke-width="' + p.sw + '" stroke-linecap="round"' + (op < 1 ? ' stroke-opacity="' + op + '"' : '') + '/>';
+  }
+  function filterDef(id, t) {
+    var hi = (.15 + .6 * t).toFixed(2), sh = (.1 + .3 * t).toFixed(2), so = (.12 + .3 * t).toFixed(2), dy = (2 + 6 * t).toFixed(1), dx = (1 + 2.5 * t).toFixed(1), bo = (1.5 + 2.5 * t).toFixed(1), bb = (1.5 + 2 * t).toFixed(1);
+    return '<filter id="' + id + '" x="-25%" y="-25%" width="160%" height="175%" color-interpolation-filters="sRGB">' +
+      '<feOffset in="SourceAlpha" dx="' + bo + '" dy="' + bo + '" result="dr"/><feComposite in="SourceAlpha" in2="dr" operator="out" result="rimTL"/><feGaussianBlur in="rimTL" stdDeviation=".8" result="rimTLb"/>' +
+      '<feFlood flood-color="#fff" flood-opacity="' + hi + '"/><feComposite in2="rimTLb" operator="in" result="hi"/>' +
+      '<feOffset in="SourceAlpha" dx="-' + bo + '" dy="-' + bo + '" result="ul"/><feComposite in="SourceAlpha" in2="ul" operator="out" result="rimBR"/><feGaussianBlur in="rimBR" stdDeviation="1" result="rimBRb"/>' +
+      '<feFlood flood-color="#2a1a10" flood-opacity="' + sh + '"/><feComposite in2="rimBRb" operator="in" result="sh"/>' +
+      '<feGaussianBlur in="SourceAlpha" stdDeviation="' + bb + '" result="gb"/><feOffset in="gb" dx="' + dx + '" dy="' + dy + '" result="go"/><feFlood flood-color="#2a1a10" flood-opacity="' + so + '"/><feComposite in2="go" operator="in" result="gs"/>' +
+      '<feMerge><feMergeNode in="gs"/><feMergeNode in="SourceGraphic"/><feMergeNode in="hi"/><feMergeNode in="sh"/></feMerge></filter>';
+  }
+  // orientation: mirror first, then clockwise rotation, as in src/render/icons/orientation.ts
+  function tf(cols, rows, rot, mirror) {
+    var m = mirror ? 'scale(-1 1) translate(-' + cols * 100 + ' 0) ' : '';
+    var r = rot === 90 ? 'translate(' + rows * 100 + ' 0) rotate(90) ' : rot === 180 ? 'translate(' + cols * 100 + ' ' + rows * 100 + ') rotate(180) ' : rot === 270 ? 'translate(0 ' + cols * 100 + ') rotate(270) ' : '';
+    return r + m;
+  }
+  function svgOf(prims, cols, rows, rot, mirror, fx) {
+    var id = 'f' + (n++), t = fx === null ? null : fx;
+    var body = prims.map(el).join('');
+    var inner = '<g transform="' + tf(cols, rows, rot, mirror) + '">' + body + '</g>';
+    var w = rot % 180 ? rows : cols, h = rot % 180 ? cols : rows;
+    var out = '<svg viewBox="0 0 ' + w * 100 + ' ' + h * 100 + '" aria-hidden="true">' + (t === null ? '' : '<defs>' + filterDef(id, t) + '</defs>') + '<g' + (t === null ? '' : ' filter="url(#' + id + ')"') + '>' + inner + '</g></svg>';
+    return { svg: out, w: w, h: h };
+  }
+  function tile(prims, cols, rows, rot, mirror, fx, label, cls) {
+    var s = svgOf(prims, cols, rows, rot, mirror, fx);
+    return '<div class="tile ' + (cls || '') + '" style="width:' + s.w * CELL + 'px;height:' + s.h * CELL + 'px" role="img" aria-label="' + label + '">' + s.svg + '</div>';
+  }
+
+  var ROWS = [
+    { n: 'Stoel', key: 'chair', c: 1, r: 1 }, { n: 'Plant', key: 'plant', c: 1, r: 1 },
+    { n: 'Tafel', key: 'table', c: 2, r: 1 }, { n: 'Boekenkast', key: 'shelf', c: 2, r: 1 }
+  ];
+  var STATES = [
+    { h: 'Nu', old: true, rot: 0, mirror: false }, { h: 'Nieuw', rot: 0, mirror: false },
+    { h: 'Nieuw, 90° gedraaid', rot: 90, mirror: false }, { h: 'Nieuw, gespiegeld en 180°', rot: 180, mirror: true }
+  ];
+  var grid = document.getElementById('grid'), strip = document.getElementById('strip');
+  function draw(t) {
+    var html = '<span class="h"></span>' + STATES.map(function (s) { return '<span class="h">' + s.h + '</span>'; }).join('');
+    ROWS.forEach(function (row) {
+      html += '<span class="n">' + row.n + '</span>';
+      STATES.forEach(function (s) {
+        html += '<div class="cellbox">' + tile(s.old ? OLD[row.key] : NEW[row.key], row.c, row.r, s.rot, s.mirror, s.old ? null : t, row.n + ', ' + s.h) + '</div>';
+      });
+    });
+    grid.innerHTML = html;
+    // strip: six cells wide, two high, on a wooden floor
+    var parts = [
+      { k: 'plant', c: 1, r: 1, x: 0, y: 0 }, { k: 'chair', c: 1, r: 1, x: 1, y: 0 }, { k: 'table', c: 2, r: 1, x: 2, y: 0 }, { k: 'plant', c: 1, r: 1, x: 4, y: 0 }, { k: 'chair', c: 1, r: 1, x: 5, y: 0 },
+      { k: 'shelf', c: 2, r: 1, x: 0, y: 1 }, { k: 'chair', c: 1, r: 1, x: 2, y: 1, rot: 90 }, { k: 'plant', c: 1, r: 1, x: 3, y: 1 }, { k: 'table', c: 2, r: 1, x: 4, y: 1 }
+    ];
+    var s = '<div class="tile floor" style="width:' + 6 * CELL + 'px;height:' + 2 * CELL + 'px" role="img" aria-label="Objecten op een houten vloer">';
+    parts.forEach(function (p) {
+      var one = svgOf(NEW[p.k], p.c, p.r, p.rot || 0, false, t);
+      s += '<div style="position:absolute;left:' + p.x * CELL + 'px;top:' + p.y * CELL + 'px;width:' + one.w * CELL + 'px;height:' + one.h * CELL + 'px">' + one.svg.replace('<svg ', '<svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" ') + '</div>';
+    });
+    strip.innerHTML = s + '</div>';
+  }
+  var depth = document.getElementById('depth'), depthOut = document.getElementById('depthOut');
+  function go() { depthOut.textContent = depth.value; draw(depth.value / 100); upd(); }
+  depth.addEventListener('input', go);
+
+  var out = document.getElementById('out');
+  var LBL = { goed: 'dit is hem', detail: 'meer detail binnenin', vlak: 'minder, dichter bij nu', ander: 'anders' };
+  function line() { var r = document.querySelector('input[name=r]:checked'); return 'Diepte ' + depth.value + '/100 · ' + LBL[r ? r.value : 'goed']; }
+  function upd() { out.textContent = line(); }
+  document.querySelectorAll('input[type=radio]').forEach(function (e) { e.addEventListener('change', upd); });
+  document.getElementById('copy').addEventListener('click', function () {
+    var b = this;
+    function done(ok) { b.textContent = ok ? 'Gekopieerd' : 'Selecteer de regel hierboven'; setTimeout(function () { b.textContent = 'Kopieer'; }, 1800); }
+    try { navigator.clipboard.writeText(line()).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+  });
+  go();
+})();
+</script>
