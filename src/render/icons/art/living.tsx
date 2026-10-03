@@ -183,7 +183,6 @@ export function diningTable(cols: number, rows: number): ReactNode {
       {planks}
       <Disc x={w / 2} y={h / 2} r={13} fill={C.woodLight} />
       <Disc x={w / 2} y={h / 2} r={7} fill={C.red} sw={DETAIL} />
-      <Disc x={w / 2 + 2.5} y={h / 2 - 2.5} r={2.5} fill={C.white} sw={0} opacity={0.8} />
     </>
   )
 }
@@ -271,7 +270,6 @@ export function cabinet(cols: number, rows: number): ReactNode {
       <Box x={i * U + 14} y={14} w={U - 28} h={h - 28} r={4} fill={C.creamLight} sw={DETAIL} />
       <Box x={i * U + 22} y={22} w={U - 44} h={h - 44} r={2} fill="none" stroke={C.creamDark} sw={2} />
       <Disc x={i * U + U / 2} y={h - 28} r={4.5} fill={C.woodDark} sw={2} />
-      <Disc x={i * U + U / 2 - 1.2} y={h - 29.2} r={1.4} fill={C.white} sw={0} opacity={0.7} />
     </g>
   ))
   return (
@@ -297,7 +295,6 @@ export function wardrobe(cols: number, rows: number): ReactNode {
   for (let i = 0; i < cols; i++) {
     parts.push(
       <Disc key={`k${i}`} x={i * U + U / 2} y={h - 18} r={4.5} fill={C.cream} sw={2} />,
-      <Disc key={`h${i}`} x={i * U + U / 2 - 1.2} y={h - 19.2} r={1.4} fill={C.white} sw={0} opacity={0.8} />,
     )
   }
   return (
