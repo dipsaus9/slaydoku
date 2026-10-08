@@ -20,7 +20,7 @@ describe('room rules (SLAY-17.1, SLAY-17.2)', () => {
       })
 
       it('keeps beds, vehicles and wet fixtures to their own rooms', () => {
-        const wanted: Record<string, string> = { bed: 'sleeping', car: 'garage', toilet: 'wet', sink: 'wet', shower: 'wet', bath: 'wet' }
+        const wanted: Record<string, string> = { bed: 'sleeping', car: 'garage', toilet: 'wet', sink: 'wet', shower: 'wet', bathtub: 'wet', fridge: 'kitchen' }
         for (const o of theme.objects) {
           const need = wanted[o.engineType]
           if (need) expect(o.allowedRoomTypes, o.kind).toEqual([need])

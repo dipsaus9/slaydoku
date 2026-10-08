@@ -320,7 +320,7 @@ describe('clue text: Dutch (locale nl)', () => {
     expect(Object.keys(OBJECT_WORDS_NL).sort()).toEqual([...OBJECT_TYPES].sort())
     // A handful of these happen to spell the same in both languages ("bed", "plant", "tv"); every other
     // type must actually have changed from the English noun it used to just repeat (SLAY-3.2's own choice).
-    const coincidentallyTheSame = new Set(['bed', 'plant', 'tv'])
+    const coincidentallyTheSame = new Set(['bed', 'plant', 'tv', 'lamp', 'piano', 'aquarium', 'barbecue', 'tent'])
     for (const type of OBJECT_TYPES) {
       const nl = OBJECT_WORDS_NL[type]
       expect(nl.noun.length, type).toBeGreaterThan(0)
