@@ -51,6 +51,26 @@ export const OBJECT_CATALOG: Record<ObjectType, ObjectCatalogEntry> = {
   bicycle: { occupiable: false, footprint: cells(2) },
   gardenTable: { occupiable: false, footprint: cells(1, 4) },
   bench: { occupiable: false, footprint: cells(2, 3) },
+  // Decor objects (SLAY-19.1): lamps, mirrors and the like that give a room variety. All blocking.
+  lamp: { occupiable: false, footprint: cells(1) },
+  mirror: { occupiable: false, footprint: cells(1) },
+  coatRack: { occupiable: false, footprint: cells(1) },
+  fridge: { occupiable: false, footprint: cells(1) },
+  bathtub: { occupiable: false, footprint: cells(2) },
+  fireplace: { occupiable: false, footprint: cells(2) },
+  piano: { occupiable: false, footprint: cells(2) },
+  aquarium: { occupiable: false, footprint: cells(2) },
+  exerciseBike: { occupiable: false, footprint: cells(2) },
+  bin: { occupiable: false, footprint: cells(1) },
+  waterCooler: { occupiable: false, footprint: cells(1) },
+  serverRack: { occupiable: false, footprint: cells(2) },
+  globe: { occupiable: false, footprint: cells(1) },
+  gymBox: { occupiable: false, footprint: cells(1) },
+  playEquipment: { occupiable: false, footprint: cells(2) },
+  barbecue: { occupiable: false, footprint: cells(1) },
+  tent: { occupiable: false, footprint: cells(4) },
+  shoppingCart: { occupiable: false, footprint: cells(1) },
+  kiosk: { occupiable: false, footprint: cells(1) },
 }
 
 export const OBJECT_TYPES = Object.keys(OBJECT_CATALOG) as ObjectType[]

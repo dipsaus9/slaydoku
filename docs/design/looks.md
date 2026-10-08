@@ -155,6 +155,34 @@ Desktop fit (owner bug, 2026-10-08): the headroom made the drawing 5.4 to 10.1 p
 
 Known limit of the view: a tall piece turned so that its long side runs north to south shows its top and a narrow right side (the oblique view skews by 0.22), so doors and shelves on that side are slivers; hence the things on top and the colours above.
 
+## Decor objects (SLAY-19.1, awaiting owner approval)
+
+Nineteen new engine types, all blocking, drawn as block models in `src/render/looks/decorModels.ts` (the bathtub keeps its model in `modelsHouse.ts` and is an object kind now, `MODEL_ONLY` is empty): lamp, mirror, coatRack, fridge, bathtub, fireplace, piano, aquarium, exerciseBike, bin, waterCooler, serverRack, globe, gymBox (a vaulting box), playEquipment (a slide), barbecue, tent (a party tent), shoppingCart, kiosk. Screenshots: `docs/design/looks-shots/slay-19.1/` (contact sheets in all 8 orientations, the confusable strips at phone size, a generated 9x9 board per theme at 700 and 360 px wide; the baked schedule has none of these kinds until SLAY-18.10 regenerates it, so the boards are fresh scenes).
+
+What the drawing taught:
+
+- **Wide and low does not rise.** A 2x2 base of 200 units lifts only 67 units on screen, so a canvas cone or a stepped ridge for the tent read as a floor disc or a stack of stripes. The tent is a party tent: four poles under a red-and-white striped canopy, which stands clear of the floor. The slide is stepped (ten 5-unit steps), a slope is not a primitive.
+- **A wider piece around a taller one hides it.** The painter's sort has no order between a mantelpiece (wider, z 60-66) and the chimney breast it wraps (z 0-88), so the breast above the mantel vanished; split the tall piece at the wider one's height (`fireplace`). The same for a tank with a lid: the aquarium has four thin rim bars and the light water surface as its top face.
+- **Details on the front stay on the front.** Fish and plants are discs and sheets on the tank's south face; LEDs are small boxes on the server faces; keys are boxes on the keyboard shelf. From the right these are slivers, so each kind also has a telling top: the water surface, the vent grille, the white key shelf.
+- **Facing: no new rule.** `chairFacing` (SLAY-17.4) stays the only facing rule. A mirror, fireplace, piano, fridge or kiosk against the south wall could be turned to face into the room, but then the viewer sees its back (a brown board, a plain box), which at 36 px reads worse than the front toward the viewer standing on the wall side; every other wall object (bookshelf, wardrobe, tv) already behaves that way, so the new kinds follow it.
+
+### Confusable-pairs audit, round 2
+
+Added to `CONFUSABLE_GROUPS` (contact sheet, 36 px per cell) and checked by eye:
+
+| Group | What tells them apart |
+|---|---|
+| tv, mirror, kiosk, easel, statue | the tv is a wide dark screen on a low stand; the mirror a tall wooden frame with pale glass and a gold crown; the kiosk a steel column with a small screen on top |
+| fridge, washing machine, dryer, cabinet, water cooler | the fridge is the only 92-high white box, two doors and vertical handles; the water cooler is a short white box with a light-blue bottle |
+| lamp, plant, globe, bin, coat rack | cream shade on a post with a yellow glow; green balls in a terracotta pot; blue ball with green patches on a gold post; grey bucket with a lid; post with a red and a blue coat |
+| server rack, wardrobe, piano, bookshelf | slate with green and red lights; walnut with doors; slate with a white key shelf; open shelves with books |
+| bathtub, aquarium, sink, fireplace | white tub with blue water and foam; blue tank on a dark stand with fish; vanity with basins; grey stone with a dark hearth and flames |
+| tent, tree, barbecue, slide, bench | striped canopy on poles; crown on a trunk; black bowl on three legs; ladder, platform and yellow chute; slats |
+| shopping cart, chest, vaulting box, bin | steel basket with a red handle and groceries; wooden chest; stacked wooden sections with a leather pad; grey bucket |
+| exercise bike, bicycle | one wheel in front with a tall post and T-bar; two wheels side by side |
+
+Names follow what is drawn (owner rule): the engine lamp is a standing lamp, so every lamp kind is a floor lamp (home, office) or a lantern (park); the school's drinking fountain is a water cooler (the art is a bottle on a cabinet); the home "nightstand" and "shoe rack" are a bedside cabinet and a shoe cabinet (the cabinet art is a tall painted cupboard); the park flower pot is a potted plant (the plant art is a pot with a plant). Not added, because the available art would misname them: a table lamp (same art as the floor lamp), a laundry basket (the chest art is a wooden chest), a lab table with a microscope (the plain table) and a bird bath (the statue art is a bust); the large plants of office, shop and home are the existing `houseplant`, already allowed in those rooms.
+
 ## How to draw a new object
 
 For the theme stories SLAY-18.6 to 18.9 and anything after. Do the steps in this order; the look-completeness test (`src/render/looks/completeness.test.tsx`) fails by kind name until step 3 is done.

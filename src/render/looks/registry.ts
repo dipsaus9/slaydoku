@@ -1,6 +1,7 @@
 import type { IconObjectType } from '../icons/types.ts'
 import type { ThemeIconId } from '../icons/themes/types.ts'
 import type { ModelBuilder, SolidModel } from './models.ts'
+import * as decor from './decorModels.ts'
 import * as home from './modelsHouse.ts'
 import * as living from './modelsLiving.ts'
 import * as outdoor from './modelsOutdoor.ts'
@@ -44,6 +45,26 @@ export const ENGINE_MODELS: Record<IconObjectType, ModelBuilder> = {
   bicycle: () => home.bicycle(),
   gardenTable: (c, r) => outdoor.gardenTable(c, r),
   bench: (c) => outdoor.bench(c),
+  // Decor objects (SLAY-19.1).
+  lamp: () => decor.lamp(),
+  mirror: () => decor.mirror(),
+  coatRack: () => decor.coatRack(),
+  fridge: () => decor.fridge(),
+  bathtub: (c, r) => home.bathtub(c, r),
+  fireplace: () => decor.fireplace(),
+  piano: () => decor.piano(),
+  aquarium: () => decor.aquarium(),
+  exerciseBike: () => decor.exerciseBike(),
+  bin: () => decor.bin(),
+  waterCooler: () => decor.waterCooler(),
+  serverRack: (c) => decor.serverRack(c),
+  globe: () => decor.globe(),
+  gymBox: () => decor.gymBox(),
+  playEquipment: () => decor.playEquipment(),
+  barbecue: () => decor.barbecue(),
+  tent: () => decor.tent(),
+  shoppingCart: () => decor.shoppingCart(),
+  kiosk: () => decor.kiosk(),
 }
 
 const CORE_THEME_MODELS = {
@@ -89,12 +110,10 @@ const CORE_THEME_MODELS = {
 export const THEME_MODELS = Object.assign({}, CORE_THEME_MODELS, ...SEASONAL_ICON_SETS.map((s) => s.models)) as Record<ThemeIconId, ModelBuilder>
 
 /**
- * Models that are not an object kind of the app: a bathtub (the app has no bath kind; the Simpshouse `bubbleBath` is the only tub) and a
- * lamp. Kept so the contact sheet shows the water of the tub and so a kind can be added without drawing it again.
+ * Models that are not an object kind of the app, shown on the contact sheet so a kind can be added later without drawing it again. Empty since
+ * SLAY-19.1 made the bathtub an engine type; kept so the sheet and a future model-only drawing need no new plumbing.
  */
-export const MODEL_ONLY: Record<string, () => SolidModel> = {
-  bathtub: () => home.bathtub(2, 1),
-}
+export const MODEL_ONLY: Record<string, () => SolidModel> = {}
 
 /** The model of one footprint of an engine type or theme icon; null for an id nobody drew. */
 export function solidModelFor(key: string, cols: number, rows: number, variant: string): SolidModel | null {
