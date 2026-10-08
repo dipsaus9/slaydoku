@@ -1,9 +1,10 @@
 ---
 id: SLAY-17
 title: 'Epic: Room logic and recognisable objects'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-08 08:57'
+updated_date: '2026-10-08 18:02'
 labels:
   - epic
 dependencies: []
@@ -22,9 +23,15 @@ Out of scope: layout/arrangement changes (room shapes, doors, partition). Follow
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 No object kind is ever placed in a room type outside its allow-list in any of the five themes
-- [ ] #2 Exactly one chair drawing exists on the board
-- [ ] #3 No two object kinds on the contact sheet are confusable at board size, owner approved
-- [ ] #4 Room names are readable in full rooms, owner approved
-- [ ] #5 Schedule days from 2026-10-09 are regenerated; earlier days are byte-identical
+- [x] #1 No object kind is ever placed in a room type outside its allow-list in any of the five themes
+- [x] #2 Exactly one chair drawing exists on the board
+- [x] #3 No two object kinds on the contact sheet are confusable at board size, owner approved
+- [x] #4 Room names are readable in full rooms, owner approved
+- [x] #5 Schedule days from 2026-10-09 are regenerated; earlier days are byte-identical
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Closed by the orchestrator on the owner explicit "Sluiten ja" (2026-10-08), after all of 17.1 to 17.10 reached Done. Owner approvals behind criteria 3 and 4: 17.4 "Yes approved" (confusable pairs, A2 look, painter order, Dutch names) and 17.5 label treatment B. Criterion 5 holds for the 17.6 regeneration; SLAY-18.10 regenerates all future days once more as the final pass.
+<!-- SECTION:NOTES:END -->
