@@ -48,7 +48,8 @@ describe('pinned explanations per technique', () => {
   })
 
   it('intersect: a square shared by every possible square of somebody', () => {
-    expect(step('hard', 'intersect')).toMatch(/^\S+ can only stand on .+ now\. Each of those squares shares a row or column with row \d+, column \d+\. If somebody else stood there, \S+ would have nothing left\. So nobody else can stand there\.$/)
+    // One shared square, or several ("row 3, column 1 and row 6, column 3": the hard fixture since SLAY-19.1 changed the generator's draws).
+    expect(step('hard', 'intersect')).toMatch(/^\S+ can only stand on .+ now\. Each of those squares shares a row or column with row \d+, column \d+( and row \d+, column \d+)*\. If somebody else stood there, \S+ would have nothing left\. So nobody else can stand there\.$/)
   })
 })
 

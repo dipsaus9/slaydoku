@@ -13,7 +13,7 @@ const REQUIRED: ThemeId[] = ['home', 'office', 'park', 'school', 'shop', 'simpsh
 const ROTATION_OR_SIMPSHOUSE = new Set<ThemeId>(REQUIRED)
 
 /** Kinds whose Dutch noun happens to be spelled like the English one. */
-const SAME_IN_BOTH = new Set(['printer'])
+const SAME_IN_BOTH = new Set(['printer', 'piano', 'aquarium', 'barbecue'])
 
 describe('scene themes', () => {
   it('defines the five rotation themes and Simpshouse with unique ids, and any other registered theme is seasonal (SLAY-18.11)', () => {
