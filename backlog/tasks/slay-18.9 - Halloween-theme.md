@@ -1,7 +1,7 @@
 ---
 id: SLAY-18.9
 title: Halloween theme
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 09:23'
 updated_date: '2026-10-08 20:31'
@@ -35,13 +35,13 @@ Branch: SLAY-18.9/halloween-theme
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The theme matches the owner-approved Halloween preview of SLAY-18.5
-- [ ] #2 Every kind has an allow-list and an allowed room; a sweep finds no out-of-room placement (src/content/themes/halloween.rooms.test.ts)
-- [ ] #3 Nothing gory or scary beyond a playful tone (fits a daily puzzle for everyone)
+- [x] #1 The theme matches the owner-approved Halloween preview of SLAY-18.5
+- [x] #2 Every kind has an allow-list and an allowed room; a sweep finds no out-of-room placement (src/content/themes/halloween.rooms.test.ts)
+- [x] #3 Nothing gory or scary beyond a playful tone (fits a daily puzzle for everyone)
 - [ ] #4 Registered as seasonal; the calendar picks it for 17-31 October, except days with a higher-priority rule (test)
-- [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass
-- [ ] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
-- [ ] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
+- [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass
+- [x] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
+- [x] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -58,4 +58,8 @@ Coordinator decision 2026-10-08: the theme is NOT registered in this story. hall
 Verification on merged main (owner approved): lint/typecheck clean; bun run test 3656 passed, 7 skipped, 0 failed; verify:phone 3108 checks, 0 failures; looks driver all checks passed; schedule byte-identical; theme still unregistered. Review round 1: block on scope only (deleted stub halloweenArt.tsx not a Reference) -> ref added; advisory (outdoor check by room name) fixed.
 
 Review round 2: pass, no findings.
+
+Owner approval in chat (2026-10-08): "Halloween is approved". Ticked by the orchestrator. Verified on head 5772d15 by the worker: full suite 3656 passed/7 skipped, verify:phone 3108/0, looks driver green, review pass (round 2). Registration moves to SLAY-18.10.
+
+Criteria 1, 2, 3, 5 and 6 verified and ticked by the orchestrator. Criterion 4 (registered as seasonal, picked on 17-31 October) is deliberately NOT met here: registration moved to SLAY-18.10 (decision 2026-10-08, the schedule tests need the regeneration), the theme is complete and tested as halloweenTheme.
 <!-- SECTION:NOTES:END -->
