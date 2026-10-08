@@ -54,7 +54,7 @@ export const CARNAVAL_ROOMS: ThemeRoom[] = [
   room('Hotel Room', 'Hotelkamer', ['sleeping'], ['singleBed', 'doubleBed', 'wardrobe', 'television'], { floor: 'carpet' }),
   room('Cloakroom', 'Garderobe', ['storage'], ['clothesRack', 'beerCrate', 'wardrobe']),
   room('Beer Garden', 'Terras', [OUTDOOR, PARTY], ['cafeTable', 'chair', 'beerBarrel', 'barCounter'], { outdoor: true, floor: 'grass' }),
-  room('Club House', 'Clubhuis', ['living', PARTY], ['sofa', 'television', 'frog', 'longTable', 'houseplant'], { floor: 'wood' }),
+  room('Club House', 'Clubhuis', ['living', PARTY], ['sofa', 'television', 'frog', 'longTable'], { floor: 'wood' }),
   room('Binnendieze Quay', 'Binnendiezekade', [OUTDOOR], ['streetBench', 'bicycle', 'limeTree'], { outdoor: true, floor: 'water' }),
   room('Cellar', 'Kelder', ['storage'], ['beerBarrel', 'beerCrate'], { floor: 'stone' }),
 ]
@@ -87,7 +87,6 @@ export const CARNAVAL_OBJECTS: ThemeObject[] = [
   themeObject({ kind: 'streetBench', name: 'bench', nameNl: 'bankje', engineType: 'bench', weight: 4, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', allowedRoomTypes: [OUTDOOR] }),
   fromHome('bicycle', [OUTDOOR, 'garage']),
   fromHome('television', ['living', PARTY, 'sleeping']),
-  fromHome('houseplant', ['living', 'kitchen', 'study', 'sleeping', PARTY]),
 ]
 
 export const CARNAVAL_THEME: SceneTheme | undefined = {

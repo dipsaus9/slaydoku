@@ -42,20 +42,20 @@ export function frog(): SolidModel {
     cyl(50, 56, 34, 0, 4, C.stoneDark),
     ball(22, 64, 16, 14, K.frogDark),
     ball(78, 64, 16, 14, K.frogDark),
-    cyl(50, 56, 30, 4, 30, K.frog, 25),
+    cyl(50, 56, 30, 4, 30, K.frog, 23),
     ball(32, 84, 10, 9, K.frogDark),
     ball(68, 84, 10, 9, K.frogDark),
     onFront(36, 80.5, 28, 14, 12, K.frogLight),
-    cyl(50, 56, 27, 32, 4, K.red),
-    cyl(50, 56, 27, 36, 4, C.white),
-    cyl(50, 56, 27, 40, 4, K.yellow),
+    cyl(50, 56, 24, 32, 4, K.yellow),
+    cyl(50, 56, 23, 36, 4, C.white),
+    cyl(50, 56, 22, 40, 4, K.red),
     box(62, 76, 9, 8, 22, 18, K.red, 1.5),
     box(62, 76, 9, 8, 14, 8, K.yellow, 1.5),
-    ball(50, 56, 56, 20, K.frog),
-    ball(37, 58, 72, 9, C.white),
-    ball(63, 58, 72, 9, C.white),
-    ball(37, 63, 74, 4, C.ink),
-    ball(63, 63, 74, 4, C.ink),
+    ball(50, 56, 66, 22, K.frog),
+    ball(37, 60, 82, 9, C.white),
+    ball(63, 60, 82, 9, C.white),
+    ball(37, 65, 84, 4, C.ink),
+    ball(63, 65, 84, 4, C.ink),
   ])
 }
 
@@ -116,8 +116,8 @@ export function floatCart(): SolidModel {
   for (const [x, y, k] of [[12, 10, 0], [88, 10, 2], [12, 190, 2], [88, 190, 0]] as const) prims.push(cyl(x, y, 2.5, 37, 46, C.woodDeep), ball(x, y, 85, 5, OETELDONK[k]))
   for (const y of [10, 190]) for (let k = 0; k < 5; k++) prims.push(box(18 + k * 14, y - 1, 8, 2, 70, 9, OETELDONK[k % 3]!, 1))
   prims.push(ball(28, 112, 46, 12, K.frogDark), ball(72, 112, 46, 12, K.frogDark))
-  prims.push(cyl(50, 104, 30, 37, 22, K.frog, 25), cyl(50, 104, 26, 59, 3, K.red), cyl(50, 104, 26, 62, 3, C.white), cyl(50, 104, 26, 65, 3, K.yellow))
-  prims.push(ball(50, 104, 74, 17, K.frog), ball(40, 112, 86, 7, C.white), ball(60, 112, 86, 7, C.white), ball(40, 116, 87, 3, C.ink), ball(60, 116, 87, 3, C.ink))
+  prims.push(cyl(50, 104, 26, 37, 18, K.frog, 20), cyl(50, 104, 20, 55, 3, K.yellow), cyl(50, 104, 19, 58, 3, C.white), cyl(50, 104, 18, 61, 3, K.red))
+  prims.push(ball(50, 104, 79, 16, K.frog), ball(41, 110, 89, 6, C.white), ball(59, 110, 89, 6, C.white), ball(41, 114, 90, 2.5, C.ink), ball(59, 114, 90, 2.5, C.ink))
   for (const [x, y, k] of [[22, 40, 0], [70, 52, 2], [30, 160, 1], [66, 172, 0], [50, 146, 2]] as const) prims.push(onTop(x, y, 6, 4, 37, k === 1 ? K.confettiBlue : OETELDONK[k], 0.8))
   return model(1, 2, prims)
 }
