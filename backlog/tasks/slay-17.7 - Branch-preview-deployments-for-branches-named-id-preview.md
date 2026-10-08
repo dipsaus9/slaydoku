@@ -13,6 +13,9 @@ references:
   - docs/launch.md
   - CLAUDE.md
   - docs/handoff.md
+  - README.md
+  - tools/vercel-ignore.test.ts
+  - tools/check-share.test.ts
 parent_task_id: SLAY-17
 type: chore
 ordinal: 135000
