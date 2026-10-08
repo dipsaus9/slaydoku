@@ -1,10 +1,10 @@
 ---
 id: SLAY-18.4
 title: Simpshouse theme and the 2026-10-14 day
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 13:38'
+updated_date: '2026-10-08 13:39'
 labels:
   - needs-owner-review
 dependencies:
@@ -50,7 +50,7 @@ Branch: SLAY-18.4/simpshouse-theme
 - [x] #3 Rendered screens (start screen, play screen, legend) of 2026-10-14 checked at 390 and 1024 wide on the date override
 - [x] #4 bun run lint, typecheck and test --maxWorkers=1 pass
 - [x] #5 Pikachu plush is the only third-party name; no Pokemon wording, Pokeball or logos; every object has an allow-list and every kind an allowed room; a sweep over many seeds finds no out-of-room placement
-- [ ] #6 Owner has seen the 2026-10-14 day and approved (only the owner ticks this)
+- [x] #6 Owner has seen the 2026-10-14 day and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -67,4 +67,12 @@ Ships before the approved 3D look (deadline 2026-10-14) in the current look; SLA
 Deviation: vanity footprints 2x1/3x1 (desk needs 2-3 cells). Gate: THEMED_DAY_SHARED_NAMES=1. Screenshots in docs/verification/simpshouse-day/. Owner approval (AC 6) left open.
 
 Review gate: pass. Advisory: THEMED_DAY_SHARED_NAMES applies to any themed cast pool, not only Simpshouse; owner to confirm.
+
+Owner approved the 2026-10-14 Simpshouse day in chat on 2026-10-08 ("Akkoord"). The glam vanity footprint grew to 2x1 and 3x1 (engine type desk needs 2-3 cells); the one-shared-name allowance applies to any themed cast pool. Closed by the orchestrator.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Simpshouse theme registered as seasonal, 2026-10-14 regenerated as a 12x12 Simpshouse day with the Simpshouse cast, Iris exception for themed-cast days; owner approved.
+<!-- SECTION:FINAL_SUMMARY:END -->
