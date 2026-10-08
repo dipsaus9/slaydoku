@@ -302,7 +302,8 @@ describe('hint explanations are grounded in what the player has already been sho
     }
     s = finishVictim(p, s)
     expect(s.status).toBe('solved')
-  })
+    // The expert fixture is built on the spot (a 9x9 search, several seconds), hence the long timeout.
+  }, 180_000)
 })
 
 describe('the victim label in hint text', () => {
