@@ -162,7 +162,7 @@ function Glyph({ object, cells }: { object: Pick<SeasonalObject, 'themeIcon' | '
     const [a, b, c, d, e, f] = icon.matrix
     return (
       <g data-theme-icon={object.themeIcon} transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}>
-        {(icon.variant as unknown as { draw: () => ReactNode }).draw()}
+        {icon.variant.draw()}
       </g>
     )
   }
