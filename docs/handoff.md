@@ -5,6 +5,10 @@ regenerating any schedule content. It has the open decisions and recent history 
 and the other docs alone don't make obvious. Update it (don't just append forever) whenever the
 open items here get resolved.
 
+## Preview deployments (SLAY-17.7)
+
+Vercel builds `main` plus branches named `*/preview-*` (for example `SLAY-17.8/preview-look-poc`), so the owner can test on a phone; all other branches stay skipped (hobby deploy limit, one deploy per push). Rule: `ignoreCommand` in `vercel.json`, tested in `tools/vercel-ignore.test.ts`. Delete preview branches once the owner has decided. Owner decision 2026-10-08, recorded in CLAUDE.md.
+
 ## Depth look in the board objects (SLAY-16, checked in SLAY-16.9)
 
 Objects on the board and in the legend are drawn with a screen-space SVG depth filter (rim light, inner shade, ground shadow; approved 2026-10-03 at depth 55/100). It lives in `src/render/icons/ObjectIcon.tsx`: `ICON_DEPTH_FILTER` (the constants), `IconDepthScope` (once per SVG that draws icons) and `IconDepthGroup` (wraps the art outside its orientation transform, so light stays top-left in all 8 orientations). Constants, drawing rules (rotation-safe detail only, feet at all four corners, nothing baked in) and the check results are in `docs/design/depth.md`; the check itself is `docs/verification/depth.ts`. Screenshots of the SLAY-16.9 run are outside the repo in `/private/tmp/claude-501/w-16.9/shots/` (regenerate with the driver).

@@ -71,7 +71,7 @@ The Vercel project `slaydoku` exists (created with the CLI) but is **not connect
   ```
 
   or watch the Deployments tab: the deployment of the merge commit (source: the Git commit, not a CLI upload) must reach Ready and be the current Production deployment.
-- [ ] **Other branches are skipped.** `ignoreCommand` in `vercel.json` (`[ "$VERCEL_GIT_COMMIT_REF" != "main" ]`) cancels every build whose branch is not main (the hobby plan has a daily deployment limit). Push a throwaway branch and check that its deployment shows "Canceled" with "Ignored Build Step", then delete it:
+- [ ] **Other branches are skipped.** `ignoreCommand` in `vercel.json` (a `case` on `$VERCEL_GIT_COMMIT_REF`: `main` and `*/preview-*` build, everything else exits 0) cancels every other build (the hobby plan has a daily deployment limit; `tools/vercel-ignore.test.ts` covers the rule). Push a throwaway branch without `preview-` in its name and check that its deployment shows "Canceled" with "Ignored Build Step", then delete it. A branch such as `SLAY-17.8/preview-look-poc` does get a deployment (noindex like production: check it with `bun run check:share <preview url>`); delete preview branches after the owner decides:
 
   ```sh
   git switch -c chore/ignore-check && git commit --allow-empty -m "chore: check that vercel skips branches" && git push -u origin chore/ignore-check
@@ -238,7 +238,7 @@ After the flip, also ask Google Search Console and Bing Webmaster Tools to fetch
 ## Reference: hosting, the Vercel project
 
 - Project name: `slaydoku`, framework preset Vite, build command `bun run build`, output `dist` (all in `vercel.json`).
-- Production branch: `main`. Every other branch is skipped by `ignoreCommand` in `vercel.json` (the hobby plan has a daily deploy limit). Preview deployments made by hand with `vercel deploy` are not affected by it.
+- Production branch: `main`. Besides `main`, only branches named `*/preview-*` are built; every other branch is skipped by `ignoreCommand` in `vercel.json` (the hobby plan has a daily deploy limit). Preview deployments made by hand with `vercel deploy` are not affected by it.
 - The site URL in the share tags (`og:url`, `og:image`, the sitemap) comes from `VERCEL_PROJECT_PRODUCTION_URL` at build time. A custom domain is not set up yet; when it is, the next production build picks it up.
 - The project was created with the Vercel CLI (`vercel project add slaydoku`, then `vercel link`). Connecting it to the GitHub repository (`vercel git connect <repo url>`) needs the Vercel GitHub app to have access to the repository, and the repository is private: the owner opens GitHub, Settings, Applications, Vercel, Configure, adds the repository `slaydoku` to the selected repositories, and then connects it (Vercel project, Settings, Git, Connect Git Repository, or the CLI command). Until that is done nothing deploys on a push; deploy by hand with `vercel deploy` (a project with no production deployment yet promotes its first `vercel deploy` to production).
 - No custom domain is set. The default `slaydoku.vercel.app` is public but stays out of search engines (noindex mode).
