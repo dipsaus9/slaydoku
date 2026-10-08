@@ -3,6 +3,7 @@ import { SCENE_THEMES } from '../content/themes/index.ts'
 import type { ThemeId } from '../content/themes/index.ts'
 import { createRng, shuffled } from '../render/cards/procedural/rng.ts'
 import type { Rng } from '../render/cards/procedural/rng.ts'
+import { seasonalThemeOf } from './calendar.ts'
 import { dateOfDayNumber, dayNumberOf, weekStartOf, weekdayOfDayNumber } from './dates.ts'
 import { LAUNCH_DATE } from './launch.ts'
 import type { DayPlan } from './types.ts'
@@ -100,7 +101,9 @@ function tierOf(date: string): TierId {
   return unmodified === 'hard' ? weighted(RAMP_UP_TIER_MIX, createRng(`tier:${date}`)) : unmodified
 }
 
-const THEME_IDS: readonly ThemeId[] = SCENE_THEMES.map((t) => t.id)
+/** Rotation themes only: seasonal themes (`seasonal: true`) never enter the cycle, so the cycle length stays 5. */
+const THEME_IDS: readonly ThemeId[] = SCENE_THEMES.filter((t) => !t.seasonal).map((t) => t.id)
+const REGISTERED: ReadonlySet<ThemeId> = new Set(SCENE_THEMES.map((t) => t.id))
 const THEME_CYCLE = THEME_IDS.length
 
 const rawCycle = (cycle: number): ThemeId[] => shuffled(THEME_IDS, createRng(`theme-cycle:${cycle}`))
@@ -108,9 +111,14 @@ const rawCycle = (cycle: number): ThemeId[] => shuffled(THEME_IDS, createRng(`th
 /**
  * Theme of a date: the days come in cycles of five (one per theme, in a seeded order per cycle), so the themes rotate evenly. When a
  * cycle would start with the theme the last cycle ended on, its first two are swapped, so the same theme never lands on two days in a
- * row. Pure per date.
+ * row. Pure per date. A seasonal rule (`seasonalThemeOf`) takes the day first; the rotation underneath is unaffected by it.
  */
 export function themeOf(date: string): ThemeId {
+  return seasonalThemeOf(date, (id) => REGISTERED.has(id)) ?? rotationThemeOf(date)
+}
+
+/** The rotation theme of a date, ignoring the seasonal calendar. */
+export function rotationThemeOf(date: string): ThemeId {
   const day = dayNumberOf(date)
   const cycle = Math.floor(day / THEME_CYCLE)
   const order = rawCycle(cycle)

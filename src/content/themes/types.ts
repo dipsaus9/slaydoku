@@ -92,10 +92,13 @@ export type RoomType =
   | 'storage'
   | 'circulation'
 
-export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop'
+/** The five rotation themes plus the seasonal ones (SLAY-18), which stay out of the rotation and are picked by the calendar (src/schedule/calendar.ts). */
+export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop' | 'simpshouse' | 'carnaval' | 'christmas' | 'halloween' | 'fall'
 
 export interface SceneTheme {
   id: ThemeId
+  /** Seasonal themes are chosen by the calendar and are not part of the five-theme rotation (SLAY-18.1). Absent: a rotation theme. */
+  seasonal?: boolean
   name: string
   /** The real Dutch counterpart of `name` (SLAY-5.2), e.g. "Kantoor" for "Office". */
   nameNl: string
