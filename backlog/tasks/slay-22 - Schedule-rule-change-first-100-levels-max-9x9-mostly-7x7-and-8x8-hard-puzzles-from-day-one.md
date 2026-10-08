@@ -6,10 +6,12 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-10-08 20:03'
+updated_date: '2026-10-08 20:09'
 labels:
   - story
   - needs-owner-review
-dependencies: []
+dependencies:
+  - SLAY-19.1
 references:
   - src/schedule/pick.ts
   - src/schedule/pick.test.ts
@@ -19,8 +21,12 @@ references:
   - src/engine/generator/
   - src/engine/scenegen/
   - src/content/packs/
+  - src/content/themes/rooms.test.ts
+  - src/content/themes/variety.test.ts
   - docs/authoring/
   - docs/solvability/
+  - docs/verification/
+  - docs/design/looks-shots/
   - docs/launch.md
   - CLAUDE.md
 type: feature
@@ -33,6 +39,7 @@ ordinal: 143000
 Outcome: owner decision 2026-10-08. 12x12 puzzles are hard to play on a phone, so for the first 100 levels (puzzle number 1 to 100, 2026-09-27 to 2027-01-04) the board is at most 9x9: most puzzles are 7x7 or 8x8, now and then 6x6 or 9x9 (recommended weights: 7x7 35%, 8x8 35%, 6x6 15%, 9x9 15%; the worker measures and proposes the final numbers). Difficulty is no longer tied to a big grid: a hard puzzle may be 6x6 and the ramp-up window (RAMP_UP_END_DATE 2026-10-31, no hard and no expert) is removed, so hard and expert can occur from the next regenerated day. Expert stays exactly one per UTC week, on 9x9, on the seeded random weekday. Other days keep the tier mix very-easy 15%, easy 30%, easy-medium 25%, medium 20%, hard 10% (the worker checks the hard share stays about 10% over the 100 levels and that hard on 6x6 to 8x8 is generated and solvable by the ladder tiers of docs/solvability/README.md). From level 101 the earlier size preference applies again (6x6 and 9x9 preferred, 7x7 and 12x12 occasionally), unless the worker finds a reason to keep the cap and says so. Days up to today and the Simpshouse day 2026-10-14 stay byte-identical; this story changes the picker, generator support and rules only: the schedule files are regenerated once by SLAY-18.10. CLAUDE.md decisions (grid sizes, expert rule, ramp-up window) and docs are updated with the new rule, which the owner asked for.
 Type: deliverable
 Branch: SLAY-22/first-100-levels-smaller-grids
+MERGED 2026-10-08 (owner: optimise stories, merge to avoid generating and testing twice): this story also carries the former SLAY-21 (object density cap). Owner feedback: too many objects are placed in a single room, which makes the puzzle harder to read. The scene generator limits the object density per room: a cap on placed objects per room that grows with the room's size (squares), measured first on the baked schedule and on generated scenes (objects per room and per square, per theme and board size, with the new sizes 6 to 9 including 8x8), chosen so rooms look furnished but not crowded; structural kinds count too, rooms keep their signature objects, the allow-list rules, chair caps and variety numbers of SLAY-17.6/19.1 stay. Both changes share one measurement round, one sweep and one owner check of rendered boards; the schedule is regenerated once by SLAY-18.10.
 <!-- SECTION:DESCRIPTION:END -->
 
 ## Acceptance Criteria
@@ -44,4 +51,6 @@ Branch: SLAY-22/first-100-levels-smaller-grids
 - [ ] #5 Days up to today and 2026-10-14 are byte-identical, no schedule file changes in this story; schedule:check and the full test run pass; lint and typecheck pass
 - [ ] #6 CLAUDE.md (Grid, Expert, Ramp-up) and docs (docs/handoff.md, docs/authoring/schedule.md, docs/launch.md where it mentions sizes or the ramp-up) state the new rules; the old 'no hard in the first month' rule is gone
 - [ ] #7 A table of the planned size and tier distribution for levels 1 to 100 is in the PR (counts per size and per tier) for the owner to approve before merge (only the owner ticks this)
+- [ ] #8 Object density: the generator never places more objects in a room than a cap that grows with the room's squares (baseline measured on the baked schedule and on 200 generated scenes per theme and size 6, 7, 8, 9 and recorded in docs/authoring/room-rules.md; unit test over many seeds plus a slow sweep; no room left bare); the allow-list rules, chair caps, per-kind caps and variety numbers still hold
+- [ ] #9 Rendered sample boards (home, office, school, park, shop; 7x7, 8x8 and 9x9; phone and desktop) show rooms furnished but not crowded; screenshots in the PR for the owner to approve together with the size and tier table
 <!-- AC:END -->
