@@ -321,7 +321,7 @@
   justify-self: center;
   width: 100%;
   /* portrait: never taller than the screen leaves room for (header + cards strip) */
-  max-width: calc(100dvh - 380px);
+  max-width: calc((100dvh - 380px) / var(--board-aspect, 1));
   min-width: 280px;
 }
 
@@ -1175,7 +1175,9 @@ button.play-legend__row:focus-visible {
        header it stacks above the board, its 10px row-gap, its own bottom padding) instead of one
        guessed number -- the old flat 76px undercounted the real total and clipped the board's last
        row. */
-    --board: min(calc(100dvh - var(--play-top-clearance) - var(--play-header-height) - 10px - max(12px, env(safe-area-inset-bottom))), 64vw);
+    /* The board is --board wide and --board * --board-aspect high (PlayScreen sets the aspect from the drawing's own viewBox: the headroom above the
+       grid makes it taller than wide), so the height budget is divided by it. */
+    --board: min(calc((100dvh - var(--play-top-clearance) - var(--play-header-height) - 10px - max(12px, env(safe-area-inset-bottom))) / var(--board-aspect, 1)), 64vw);
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
@@ -1422,7 +1424,7 @@ button.play-legend__row:focus-visible {
   }
 
   .play {
-    --board: var(--play-board);
+    --board: calc(var(--play-board) / var(--board-aspect, 1));
     gap: 8px 12px;
     padding-bottom: max(8px, env(safe-area-inset-bottom));
     grid-template-rows: auto auto minmax(0, 1fr);

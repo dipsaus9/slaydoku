@@ -79,6 +79,15 @@ export function createGeometry(size: Pick<Scene, 'width' | 'height'>, options: G
   }
 }
 
+/**
+ * Height over width of the drawing (its viewBox) for a board of `size`. A bare square grid would be 1; the headroom above the grid makes it a
+ * little more, so the layout (play.css reads it as `--board-aspect`) can divide the height it has by it and never cut off the bottom row.
+ */
+export function boardAspect(size: Pick<Scene, 'width' | 'height'>, axisLabels: boolean): number {
+  const { width, height } = createGeometry(size, { axisLabels }).viewBox
+  return height / width
+}
+
 /** 1-based "r1c1" notation used by the official puzzles. */
 export function cellLabel(cell: Cell): string {
   return `r${cell.row + 1}c${cell.col + 1}`

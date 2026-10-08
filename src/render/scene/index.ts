@@ -3,6 +3,7 @@ export {
   AXIS_GUTTER,
   CELL_SIZE,
   cellLabel,
+  boardAspect,
   createGeometry,
   GRID_LINE_WIDTH,
   MARGIN,

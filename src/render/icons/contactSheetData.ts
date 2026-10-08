@@ -24,6 +24,7 @@ export function orientedSolid(type: IconObjectType, themeIcon: ThemeIconId | und
 export const CONFUSABLE_GROUPS: readonly { title: string; items: readonly { type: IconObjectType; themeIcon?: ThemeIconId; variant: string }[] }[] = [
   { title: 'Rug, table and bookshelf', items: [{ type: 'rug', variant: '2x1' }, { type: 'table', variant: '2x1' }, { type: 'bookshelf', variant: '2x1' }] },
   { title: 'Tables: table, dining table, garden table, desk', items: [{ type: 'table', variant: '2x1' }, { type: 'diningTable', variant: '2x1' }, { type: 'gardenTable', variant: '2x1' }, { type: 'desk', variant: '2x1' }] },
+  { title: 'Cupboards and counters: cabinet, wardrobe, desk, kitchen counter, bookshelf', items: [{ type: 'cabinet', variant: '2x1' }, { type: 'wardrobe', variant: '2x1' }, { type: 'desk', variant: '2x1' }, { type: 'kitchenCounter', variant: '2x1' }, { type: 'bookshelf', variant: '2x1' }] },
   { title: 'Storage: cabinet, wardrobe, chest', items: [{ type: 'cabinet', variant: '2x1' }, { type: 'wardrobe', variant: '2x1' }, { type: 'chest', variant: '1x1' }] },
   { title: 'Laundry: washing machine and dryer', items: [{ type: 'washingMachine', variant: '1x1' }, { type: 'dryer', variant: '1x1' }] },
   { title: 'Bathroom: toilet, sink, shower', items: [{ type: 'toilet', variant: '1x1' }, { type: 'sink', variant: '1x1' }, { type: 'shower', variant: '1x1' }] },

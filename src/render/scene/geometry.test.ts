@@ -5,6 +5,7 @@ import {
   AXIS_GUTTER,
   CELL_SIZE,
   MARGIN,
+  boardAspect,
   cellLabel,
   createGeometry,
 } from './geometry.ts'
@@ -45,6 +46,21 @@ describe('createGeometry', () => {
     const g = createGeometry({ width: 4, height: 4 })
     expect(g.origin.y).toBe(MARGIN + HEADROOM)
     expect(HEADROOM).toBeGreaterThan(30)
+  })
+
+  it('derives the height over width of the drawing from the viewBox, headroom included', () => {
+    for (const size of [6, 7, 9, 12]) {
+      for (const axis of [true, false]) {
+        const gutter = axis ? AXIS_GUTTER : 0
+        const grid = size * CELL_SIZE
+        const width = 2 * MARGIN + gutter + grid
+        expect(boardAspect({ width: size, height: size }, axis)).toBeCloseTo((2 * MARGIN + gutter + HEADROOM + grid) / width, 10)
+        expect(boardAspect({ width: size, height: size }, axis)).toBeGreaterThan(1)
+      }
+    }
+    // A 9x9 board with the numbers on is 7 percent taller than wide; a 12x12 board 5.4 percent.
+    expect(boardAspect({ width: 9, height: 9 }, true)).toBeCloseTo(1.07, 2)
+    expect(boardAspect({ width: 12, height: 12 }, true)).toBeCloseTo(1.054, 3)
   })
 
   it('formats 1-based cell labels', () => {

@@ -508,3 +508,13 @@ describe('the hint bar slot in the play grid (CAD-4.34 layout stays)', () => {
     expect(css.match(/\.play-hint \{[^}]*\}/)?.[0]).toContain('grid-area: hint')
   })
 })
+
+describe('the board fits the screen (SLAY-17.4)', () => {
+  it("hands the drawing's height over width to the layout, and play.css divides every height budget by it", async () => {
+    const html = renderToStaticMarkup(<PlayScreen puzzle={tutorial} levelId="test" storage={null} now={() => 0} />)
+    expect(html).toMatch(/class="play"[^>]*style="--board-aspect:1\.\d+/)
+    const css = (await import('node:fs')).readFileSync(new URL('./play.css', import.meta.url), 'utf8')
+    // Portrait width cap, landscape --board and short landscape --board: each one reads the aspect.
+    expect(css.match(/var\(--board-aspect, 1\)/g)?.length).toBe(3)
+  })
+})

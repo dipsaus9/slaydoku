@@ -133,25 +133,58 @@ export function chest(): SolidModel {
   ])
 }
 
-/** Sideboard: one door per cell with a knob, a top slab and short legs. */
+/**
+ * Cabinet (kast): a tall cupboard, 84 high before what stands on it. A dark plinth, a sage-green painted body (no other furniture is green), panelled
+ * doors under glass doors with a white cross of bars, brass knobs, a crown, and a vase and books on top. The doors, knobs and crown are on the front, the crown
+ * and the things on top show from every side; shallow and centred in its cell. Not a desk (no monitor, no drawers), not a counter (no hob).
+ */
 export function cabinet(cols: number): SolidModel {
   const W = cols * 100
-  const D = 56
-  const prims: Prim[] = [...legs(W, D, 10, C.woodDark, 10, 6), box(6, 4, W - 12, D - 8, 10, 52, C.woodLight), box(2, 0, W - 4, D, 62, 6, C.cream)]
+  const D = 34
+  const prims: Prim[] = [
+    box(6, 2, W - 12, D - 4, 0, 8, C.woodDeep),
+    box(8, 4, W - 16, D - 8, 8, 68, C.greenLight),
+    box(2, 0, W - 4, D, 76, 8, C.green),
+  ]
   for (let i = 0; i < cols; i++) {
-    prims.push(onFront(i * 100 + 14, D - 4, 72, 16, 40, C.cream), onFront(i * 100 + 20, D - 3.2, 60, 22, 28, C.creamLight), box(i * 100 + 74, D - 5, 6, 3, 38, 8, C.gold, 1.5))
+    const x = i * 100
+    prims.push(
+      onFront(x + 14, D - 4, 72, 12, 28, C.green),
+      onFront(x + 20, D - 3.2, 60, 17, 18, C.greenDark),
+      onFront(x + 14, D - 4, 72, 46, 26, C.sky),
+      onFront(x + 48, D - 3.2, 4, 46, 26, C.white),
+      onFront(x + 14, D - 3.2, 72, 57, 3.5, C.white),
+      onFront(x + 20, D - 3, 14, 62, 4, C.white),
+      box(x + 40, D - 6, 6, 4, 36, 7, C.gold, 1.5),
+      box(x + 54, D - 6, 6, 4, 36, 7, C.gold, 1.5),
+    )
   }
-  return model(cols, 1, shiftY(prims, 22))
+  prims.push(cyl(W - 26, D / 2, 7, 84, 8, C.terracotta, 9), ball(W - 26, D / 2, 96 - 4.5, 4, C.green), box(16, 8, 8, D - 16, 84, 10, C.red, 1.5), box(25, 8, 7, D - 16, 84, 8, C.sky, 1.5))
+  return model(cols, 1, shiftY(prims, 32))
 }
 
-/** Wardrobe: a tall body with a crown on top, a pair of doors per cell with knobs, and feet. */
+/**
+ * Wardrobe (kast to hang clothes in): the tallest piece, 96 high, dark walnut with a plinth, a pair of doors per cell (one with a mirror in it, one
+ * with raised panels), brass handles, a crown and hat boxes on top.
+ */
 export function wardrobe(cols: number, rows: number): SolidModel {
   const W = cols * 100
-  const D = rows === 1 ? 64 : rows * 100 - 24
-  const prims: Prim[] = [box(8, 4, W - 16, D - 8, 4, 86, C.wood), box(4, 0, W - 8, D, 90, 6, C.woodDark), box(10, D - 10, 12, 8, 0, 4, C.woodDeep), box(W - 22, D - 10, 12, 8, 0, 4, C.woodDeep)]
+  const D = rows === 1 ? 44 : rows * 100 - 40
+  const prims: Prim[] = [box(6, 2, W - 12, D - 4, 0, 8, C.woodDeep), box(8, 4, W - 16, D - 8, 8, 70, C.woodDark), box(4, 0, W - 8, D, 78, 7, C.woodDark)]
   for (let i = 0; i < cols; i++) {
-    prims.push(onFront(i * 100 + 14, D - 4, 34, 14, 70, C.woodLight), onFront(i * 100 + 52, D - 4, 34, 14, 70, C.woodLight), box(i * 100 + 42, D - 5, 3, 3, 46, 12, C.gold, 1.2), box(i * 100 + 55, D - 5, 3, 3, 46, 12, C.gold, 1.2))
+    const x = i * 100
+    prims.push(
+      onFront(x + 14, D - 4, 34, 16, 56, C.wood),
+      onFront(x + 19, D - 3.2, 24, 22, 44, C.woodLight),
+      onFront(x + 52, D - 4, 34, 16, 56, C.woodLight),
+      onFront(x + 56, D - 3.2, 26, 22, 48, C.glass),
+      onFront(x + 58, D - 3, 5, 54, 14, C.white),
+      onFront(x + 49, D - 4, 2, 14, 60, C.ink),
+      box(x + 42, D - 6, 3, 4, 40, 12, C.gold, 1.2),
+      box(x + 55, D - 6, 3, 4, 40, 12, C.gold, 1.2),
+    )
   }
+  prims.push(cyl(24, D / 2, 12, 85, 8, C.cream, 12), cyl(24, D / 2, 13, 92, 3.5, C.red, 13))
   return model(cols, rows, shiftY(prims, (rows * 100 - D) / 2))
 }
 

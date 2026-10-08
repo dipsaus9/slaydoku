@@ -9,6 +9,8 @@
 //   - the Legend swatches show every object whole (no block, no shadow clipped at the svg edge);
 //   - the play loop through real touch events: a note, undo, an X, a placement, hints 1-3, a complete-but-wrong board, the solved board and
 //     the finish overlay;
+//   - desktop windows (1280x720, 1366x768, 1440x900, 1920x1080, 1280x600) with 6x6, 9x9 and 12x12 boards, row and column numbers on and off: the whole board
+//     (headroom and bottom numbers included) lies inside the window, no page scroll (ONLY=desktop runs just these);
 //   - the room labels draw above people, crosses and notes (DOM order) on a crowded board; screenshots of it.
 // Usage (repo root):
 //   bun run build && bunx vite preview --port 5461 &
@@ -24,7 +26,7 @@ import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
 import { saveKey, SAVE_VERSION } from '../../src/game/persistence.ts'
 import { dailyId } from '../../src/game/daily/ids.ts'
 import { roomLabelLayout } from '../../src/render/scene/labels.ts'
-import { PLAY_DATE, dayOn, seedStorage } from './daily.ts'
+import { DAYS, PLAY_DATE, dayOn, seedStorage } from './daily.ts'
 
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const PORT = Number(process.env.CDP_PORT ?? 9561)
@@ -206,6 +208,27 @@ async function paintOrder(date: string) {
     if (!ok) bad.push(`${p.id} before ${o.id}`)
   })
   check(`${day.size}x${day.size}: ${r.objects.length} objects are painted flat first, then by front row and column`, r.objects.length === sc.objects.length && bad.length === 0, bad.slice(0, 4).join('; '))
+}
+
+/** Desktop windows (mouse, no touch): the whole board, headroom and bottom axis labels included, must lie inside the window without page scroll. */
+const DESKTOPS: [number, number][] = [[1280, 720], [1366, 768], [1440, 900], [1920, 1080], [1280, 600]]
+const desktopRows: string[] = []
+async function desktopFit(w: number, h: number) {
+  await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false })
+  await send('Emulation.setTouchEmulationEnabled', { enabled: false })
+  for (const size of [6, 9, 12]) {
+    const day = DAYS.find((d) => d.size === size && d.date > '2026-11-01')!
+    for (const axis of [true, false]) {
+      await seed(day.date, `localStorage.setItem('slaydoku:play-axis-labels', '${axis}')`)
+      await load('play')
+      await sleep(400)
+      const r = (await evaluate(`(() => { const b = document.querySelector('.play-board svg').getBoundingClientRect(); const de = document.documentElement; return { top: b.top, bottom: b.bottom, left: b.left, right: b.right, w: b.width, h: b.height, iw: innerWidth, ih: innerHeight, sh: de.scrollHeight, sw: de.scrollWidth } })()`)) as { top: number; bottom: number; left: number; right: number; w: number; h: number; iw: number; ih: number; sh: number; sw: number }
+      const ok = r.top >= -0.5 && r.bottom <= r.ih + 0.5 && r.left >= -0.5 && r.right <= r.iw + 0.5 && r.sh <= r.ih + 1 && r.sw <= r.iw + 1
+      check(`desktop ${w}x${h} ${size}x${size} axis ${axis ? 'on' : 'off'}: the whole board is inside the window, no page scroll`, ok, JSON.stringify({ top: Math.round(r.top), bottom: Math.round(r.bottom), ih: r.ih, boardW: Math.round(r.w), boardH: Math.round(r.h), sh: r.sh }))
+      desktopRows.push(`| ${w}x${h} | ${size}x${size} | ${axis ? 'on' : 'off'} | ${Math.round(r.w)} x ${Math.round(r.h)} | ${Math.round(r.bottom)} / ${r.ih} | ${ok ? 'fits' : 'CUT'} |`)
+      if (axis && (size === 12 || size === 9) && (w === 1280 && (h === 720 || h === 600))) await shotBoard(`desktop-${w}x${h}-${size}x${size}`, true)
+    }
+  }
 }
 
 const sizes: string[] = []
@@ -427,6 +450,18 @@ async function playLoop(w: number, h: number) {
   await shotBoard(`${LOOK}-${w}x${h}-solved`, true)
 }
 
+if (process.env.ONLY === 'desktop') {
+  for (const [w, h] of DESKTOPS) {
+    ctx = `${w}x${h}`
+    await send('Page.enable')
+    await send('Runtime.enable')
+    await desktopFit(w, h)
+  }
+  await Bun.write(join(OUT, 'desktop-fit.md'), ['| window | board | numbers | board size px | board bottom / window height | |', '|---|---|---|---|---|---|', ...desktopRows, ''].join('\n'))
+  console.log(`\n${failures.length ? 'FAILURES:\n' + failures.join('\n') : 'all checks passed'}`)
+  chrome.kill()
+  process.exit(failures.length ? 1 : 0)
+}
 for (const [w, h] of VIEWPORTS) {
   ctx = `${w}x${h}`
   await setViewport(w, h)
@@ -441,6 +476,11 @@ for (const [w, h] of VIEWPORTS) {
   await playLoop(w, h)
   if (w <= 390) await zoomPlay()
 }
+for (const [w, h] of DESKTOPS) {
+  ctx = `${w}x${h}`
+  await desktopFit(w, h)
+}
+await Bun.write(join(OUT, 'desktop-fit.md'), ['| window | board | numbers | board size px | board bottom / window height | |', '|---|---|---|---|---|---|', ...desktopRows, ''].join('\n'))
 await Bun.write(join(OUT, 'tap-sizes.md'), ['| viewport | board | middle cell, screen px (w x h) | biggest circle in it, px |', '|---|---|---|---|', ...sizes, ''].join('\n'))
 console.log(`\n${failures.length ? 'FAILURES:\n' + failures.join('\n') : 'all checks passed'}`)
 chrome.kill()
