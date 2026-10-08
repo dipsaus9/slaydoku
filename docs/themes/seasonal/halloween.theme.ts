@@ -1,0 +1,56 @@
+import { rect } from '../../../src/content/themes/define.ts'
+import type { SeasonalTheme } from './common.ts'
+
+/** Halloween: 17-31 October. Playful, not scary: friendly ghosts, candy, a pumpkin on every doorstep. */
+export const HALLOWEEN_THEME: SeasonalTheme = {
+  id: 'halloween',
+  name: 'Haunted house party',
+  nameNl: 'Spookhuisfeest',
+  season: '17-31 October',
+  seasonNl: '17-31 oktober',
+  blurb: 'A cheerful haunted house: jack-o-lanterns, friendly ghosts, a cauldron, cobwebs and a lot of candy.',
+  rooms: [
+    { name: "Witch's Kitchen", nameNl: 'Heksenkeuken', favours: ['cauldron', 'counter', 'potionCabinet', 'jackOLantern'], roomTypes: ['kitchen'], floor: 'tiles' },
+    { name: 'Potion Room', nameNl: 'Toverdrankkamer', favours: ['cauldron', 'alchemyDesk', 'spellShelf', 'potionCabinet'], roomTypes: ['workshop'], floor: 'carpet' },
+    { name: 'Haunted Hall', nameNl: 'Spookgang', favours: ['ghost', 'cobwebRug', 'oldChest', 'jackOLantern'], roomTypes: ['circulation', 'haunted'], floor: 'tiles' },
+    { name: 'Spooky Library', nameNl: 'Spookbibliotheek', favours: ['spellShelf', 'creakyChair', 'ghost', 'cobwebRug'], roomTypes: ['study', 'haunted'], floor: 'wood' },
+    { name: 'Cobweb Cellar', nameNl: 'Spinnenwebkelder', favours: ['cobwebRug', 'oldChest', 'potionCabinet', 'ghost'], roomTypes: ['storage', 'haunted'], floor: 'stone' },
+    { name: 'Ghost Attic', nameNl: 'Spokenzolder', favours: ['ghost', 'oldChest', 'cobwebRug', 'wardrobe'], roomTypes: ['storage', 'haunted'], floor: 'wood' },
+    { name: 'Vampire Bedroom', nameNl: 'Vampierenslaapkamer', favours: ['coffin', 'wardrobe', 'cobwebRug', 'candyBowl'], roomTypes: ['sleeping'], floor: 'carpet' },
+    { name: 'Crypt', nameNl: 'Crypte', favours: ['coffin', 'cobwebRug', 'oldChest', 'ghost'], roomTypes: ['grave', 'sleeping', 'haunted'], floor: 'stone' },
+    { name: 'Graveyard', nameNl: 'Kerkhof', favours: ['tombstone', 'deadTree', 'ghost', 'graveFlowers'], roomTypes: ['grave', 'outdoor'], outdoor: true, floor: 'grass' },
+    { name: "Witch's Garden", nameNl: 'Heksentuin', favours: ['cauldron', 'thornyPlant', 'deadTree', 'bench'], roomTypes: ['outdoor'], outdoor: true, floor: 'grass' },
+    { name: 'Pumpkin Patch', nameNl: 'Pompoenenveld', favours: ['jackOLantern', 'deadTree', 'ghost'], roomTypes: ['outdoor', 'farm'], outdoor: true, floor: 'grass' },
+    { name: 'Trick-or-Treat Street', nameNl: 'Snoepstraat', favours: ['jackOLantern', 'candyBowl', 'bench', 'broomstick'], roomTypes: ['outdoor'], outdoor: true, floor: 'stone' },
+    { name: 'Candy Shop', nameNl: 'Snoepwinkel', favours: ['counter', 'candyBowl', 'jackOLantern'], roomTypes: ['market'], floor: 'carpet' },
+    { name: 'Party Hall', nameNl: 'Feestzaal', favours: ['feastTable', 'candyBowl', 'ghost', 'sofa'], roomTypes: ['party'], floor: 'wood' },
+    { name: 'Bat Tower', nameNl: 'Vleermuistoren', favours: ['stairs', 'ghost', 'spellShelf'], roomTypes: ['circulation', 'haunted'], floor: 'stone' },
+    { name: 'Broom Shed', nameNl: 'Bezemschuur', favours: ['broomstick', 'oldChest', 'cauldron'], roomTypes: ['garage'], floor: 'stone' },
+  ],
+  objects: [
+    // Occupiable
+    { kind: 'creakyChair', name: 'creaky chair', engineType: 'chair', weight: 8, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['kitchen', 'study', 'party', 'workshop', 'sleeping'] },
+    { kind: 'cobwebRug', name: 'cobweb rug', engineType: 'rug', themeIcon: 'cobwebRug', weight: 5, footprints: [rect(1, 1), rect(2, 1, 0.7), rect(2, 2, 0.4)], placement: 'anywhere', allowedRoomTypes: ['haunted', 'sleeping', 'party'] },
+    { kind: 'coffin', name: 'coffin', engineType: 'bed', themeIcon: 'coffin', weight: 3, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2, allowedRoomTypes: ['sleeping'] },
+    { kind: 'sofa', name: 'velvet sofa', engineType: 'sofa', weight: 3, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['party', 'study'] },
+    // Blocking
+    { kind: 'jackOLantern', name: 'jack-o-lantern', engineType: 'plant', themeIcon: 'jackOLantern', weight: 8, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['farm', 'outdoor', 'party', 'kitchen', 'market', 'circulation'] },
+    { kind: 'cauldron', name: 'cauldron', engineType: 'chest', themeIcon: 'cauldron', weight: 3, footprints: [rect(1, 1)], placement: 'centre', maxPerRoom: 2, allowedRoomTypes: ['kitchen', 'workshop', 'outdoor', 'garage'] },
+    { kind: 'ghost', name: 'friendly ghost', clueNoun: 'ghost', engineType: 'statue', themeIcon: 'ghost', weight: 4, footprints: [rect(1, 1)], placement: 'anywhere', maxPerRoom: 2, allowedRoomTypes: ['haunted', 'party', 'grave', 'outdoor'] },
+    { kind: 'tombstone', name: 'tombstone', engineType: 'statue', themeIcon: 'tombstone', weight: 7, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['grave'] },
+    { kind: 'candyBowl', name: 'candy bowl', engineType: 'plant', themeIcon: 'candyBowl', weight: 4, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['market', 'party', 'kitchen', 'sleeping', 'outdoor'] },
+    { kind: 'broomstick', name: 'broomstick', engineType: 'bicycle', themeIcon: 'broomstick', weight: 3, footprints: [rect(2, 1)], placement: 'wall', maxPerRoom: 2, allowedRoomTypes: ['garage', 'outdoor'] },
+    { kind: 'deadTree', name: 'bare tree', engineType: 'tree', themeIcon: 'deadTree', weight: 6, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['grave', 'outdoor'] },
+    { kind: 'spellShelf', name: 'spell shelf', engineType: 'bookshelf', weight: 3, footprints: [rect(1, 1), rect(2, 1)], placement: 'wall', allowedRoomTypes: ['study', 'workshop', 'haunted'] },
+    { kind: 'potionCabinet', name: 'potion cabinet', engineType: 'cabinet', weight: 3, footprints: [rect(1, 1), rect(2, 1), rect(3, 1, 0.5)], placement: 'wall', allowedRoomTypes: ['workshop', 'kitchen', 'storage'] },
+    { kind: 'alchemyDesk', name: 'alchemy desk', engineType: 'desk', weight: 2, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['workshop', 'study'] },
+    { kind: 'oldChest', name: 'old chest', engineType: 'chest', weight: 3, footprints: [rect(1, 1)], placement: 'wall', allowedRoomTypes: ['storage', 'grave', 'haunted', 'garage'] },
+    { kind: 'wardrobe', name: 'wardrobe', engineType: 'wardrobe', weight: 2, footprints: [rect(1, 1), rect(2, 1)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['sleeping', 'storage'] },
+    { kind: 'counter', name: 'counter', engineType: 'kitchenCounter', weight: 3, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['kitchen', 'market', 'workshop'] },
+    { kind: 'feastTable', name: 'feast table', engineType: 'diningTable', weight: 3, footprints: [rect(2, 1), rect(3, 1), rect(2, 2)], placement: 'centre', maxPerRoom: 1, allowedRoomTypes: ['party', 'kitchen'] },
+    { kind: 'bench', name: 'bench', engineType: 'bench', weight: 3, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', allowedRoomTypes: ['outdoor', 'grave'] },
+    { kind: 'graveFlowers', name: 'grave flowers', clueNoun: 'bunch of flowers', engineType: 'flowers', weight: 4, footprints: [rect(1, 1)], placement: 'wall', allowedRoomTypes: ['grave', 'outdoor'] },
+    { kind: 'thornyPlant', name: 'thorny plant', engineType: 'plant', weight: 4, footprints: [rect(1, 1)], placement: 'corner', allowedRoomTypes: ['outdoor', 'haunted'] },
+    { kind: 'stairs', name: 'stairs', engineType: 'stairs', weight: 1.5, footprints: [rect(1, 2), rect(1, 3, 0.5), rect(2, 2, 0.4)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['circulation'] },
+  ],
+}
