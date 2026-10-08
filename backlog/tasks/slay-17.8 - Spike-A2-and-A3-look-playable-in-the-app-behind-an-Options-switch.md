@@ -4,7 +4,7 @@ title: 'Spike: A2 and A3 look playable in the app behind an Options switch'
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:45'
-updated_date: '2026-10-08 13:05'
+updated_date: '2026-10-08 13:06'
 labels:
   - needs-owner-review
 dependencies:
@@ -19,6 +19,11 @@ references:
   - src/ui/play/
   - src/locale/storage.ts
   - docs/design/looks.md
+  - src/render/icons/SceneObjectIcons.tsx
+  - src/render/looks/
+  - src/locale/index.ts
+  - docs/verification/looks.ts
+  - docs/handoff.md
 parent_task_id: SLAY-17
 type: spike
 ordinal: 136000
