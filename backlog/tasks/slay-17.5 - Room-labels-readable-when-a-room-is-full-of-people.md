@@ -1,10 +1,10 @@
 ---
 id: SLAY-17.5
 title: Room labels readable when a room is full of people
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 11:43'
+updated_date: '2026-10-08 11:47'
 labels:
   - needs-owner-review
 dependencies: []
@@ -37,7 +37,7 @@ Branch: SLAY-17.5/room-label-legibility
 - [x] #1 A room name stays readable on the play board when people are placed and crosses and notes are in that room, at 360, 390, 768 and 1024 wide (rendered check)
 - [x] #2 A rendered driver covers that state (docs/verification/labelshots.ts: crowded board in en and nl) and passes
 - [x] #3 Label tests updated and passing; bun run lint, typecheck and test --maxWorkers=1 pass
-- [ ] #4 Owner has seen the treatment comparison and screenshots in the PR and approved (only the owner ticks this)
+- [x] #4 Owner has seen the treatment comparison and screenshots in the PR and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -60,4 +60,12 @@ Redo after owner feedback: the real problem is people, X marks and notes drawn o
 Review: pass (story-reviewer); advisory on the conditional test fixed.
 
 Treatment B shipped (halo, no pill, labels above marks and people; D-only avoid logic removed). Review: pass. Owner approval, Done and auto-merge pending direct confirmation.
+
+Owner chose label treatment B (halo, no pill) after seeing the side-by-side comparison, in chat on 2026-10-08 ("Labels B"). Closed by the orchestrator because the worker could not verify the relayed choice.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Room labels are drawn above marks and people with a paper-coloured halo (treatment B), chosen by the owner.
+<!-- SECTION:FINAL_SUMMARY:END -->
