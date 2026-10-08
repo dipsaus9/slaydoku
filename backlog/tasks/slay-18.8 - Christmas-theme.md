@@ -4,6 +4,7 @@ title: Christmas theme
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:22'
+updated_date: '2026-10-08 12:29'
 labels:
   - needs-owner-review
 dependencies:
@@ -33,7 +34,8 @@ Branch: SLAY-18.8/christmas-theme
 - [ ] #3 A generated December (31 days) shows no two consecutive days with the same room set (test over the seeds of the schedule)
 - [ ] #4 Registered as seasonal; the calendar picks it for 1-31 December and nothing else changes (test)
 - [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass
-- [ ] #6 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
+- [ ] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
+- [ ] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Notes

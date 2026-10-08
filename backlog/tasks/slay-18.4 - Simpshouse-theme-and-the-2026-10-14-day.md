@@ -4,7 +4,7 @@ title: Simpshouse theme and the 2026-10-14 day
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 11:42'
+updated_date: '2026-10-08 12:29'
 labels:
   - needs-owner-review
 dependencies:
@@ -49,4 +49,6 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 From SLAY-18.3 (preview): the Salmari drink (a dark liquorice liqueur bottle with shot glasses on a tray, kind salmariBar, drawn on a bar/tray) needs a clue-text engine type decision. The draft uses engine type 'table'; decide in the clue-wording pass whether a drink on a bar/tray reads as a table, a counter or gets its own noun. Same pass: re-check the other borrowed engine types (rabbit hutch as chest, photo wall as easel).
 
 AC 2 says no Pokemon names or logos anywhere; the owner decided on 2026-10-08 that Simpshouse gets a Pikachu plush (the only named third-party character, hand-drawn, no other wording). Reword that AC when this story is picked up; the go-public checklist line is in docs/launch.md.
+
+Ships before the approved 3D look (deadline 2026-10-14) in the current look; SLAY-17.4 redraws its art afterwards, so keep each new object a separate, self-contained drawing.
 <!-- SECTION:NOTES:END -->
