@@ -27,6 +27,7 @@ Tick in this order; 1 to 4 can be done while the repository is still private.
 - [ ] The README does not mention the private prototype, its language, or any person. There is no automated check for this any more; read it yourself.
 - [ ] Third-party material: there are no images, fonts or puzzle data of other products. The dependencies are React 19 and build tools (`package.json`), all MIT/Apache; the brand images are drawn in this repository (`src/brand/*.svg`).
 - [ ] Simpshouse has a Pikachu plush (third-party character); owner to decide whether to keep it before the repo goes public (IP risk accepted by the owner for now, 2026-10-08).
+- [ ] The Simpshouse cast pool (`src/content/cast/simpshouse.ts`, SLAY-18.2) holds real first names of the owner's friends, and one of them is drawn as a monkey (Biko). Owner to confirm with the friends that they are fine with it before the repo goes public; otherwise replace the names in that one file.
 
 ### 3. About page: contact placeholder
 

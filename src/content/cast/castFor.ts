@@ -2,6 +2,61 @@ import type { Gender } from '../../engine/model/index.ts'
 import { createRng, shuffled } from '../../render/cards/procedural/rng.ts'
 import { CAST_LETTERS, MAX_CAST_SIZE, initialOf, namesFor, poolEntry } from './pool.ts'
 import { portraitsFor, type PortraitLook } from './portraits.ts'
+import { MONKEY_FUR, SIMPSHOUSE_PORTRAIT_DESIGNS, SIMPSHOUSE_POOL } from './simpshouse.ts'
+import type { CastName } from './pool.ts'
+
+/** Themes with a cast pool of their own (the others draw from the regular pool). Joint pools choose letters and genders together. */
+const THEME_POOLS: Readonly<Record<string, readonly CastName[]>> = { simpshouse: SIMPSHOUSE_POOL }
+
+/** Whether a theme draws its cast from a pool of its own: such a day stays out of the nominal cast chain (see `schedule/cast.ts`). */
+export const hasOwnCastPool = (theme: string): boolean => theme in THEME_POOLS
+
+/** Look of a name bound to a portrait (Simpshouse only), built on the slot look it replaces; undefined for every other name. */
+export function boundPortrait(name: string, slot: PortraitLook): PortraitLook | undefined {
+  const design = SIMPSHOUSE_PORTRAIT_DESIGNS[name]
+  return design === undefined ? undefined : { ...slot, design, skin: MONKEY_FUR }
+}
+
+/**
+ * A cast from a theme's own pool: `size - 1` names with distinct first letters; letters and genders are chosen together (most letters
+ * hold one gender), counts of women and men differ by at most one, and the seed decides everything else. Names of `previousCast` are
+ * avoided when another name of the letter exists.
+ */
+function themedCast(pool: readonly CastName[], size: number, seed: string | number, previousCast: readonly string[]): Cast {
+  const letters = [...new Set(pool.map((n) => initialOf(n.name)))]
+  if (!Number.isInteger(size) || size < 1 || size > letters.length + 1) {
+    throw new RangeError(`size must be an integer from 1 to ${letters.length + 1}, got ${size}`)
+  }
+  const count = size - 1
+  const rng = createRng(`cast:${seed}`)
+  const previous = new Set(previousCast.map((n) => n.trim().toLowerCase()))
+  const gendersOf = (letter: string) => new Set(pool.filter((n) => initialOf(n.name) === letter).map((n) => n.gender))
+  const women = Math.floor(count / 2) + (count % 2 === 1 && rng.next() < 0.5 ? 1 : 0)
+  for (let attempt = 0; attempt < 1000; attempt++) {
+    const chosen = shuffled(letters, rng).slice(0, count)
+    const onlyWomen = chosen.filter((l) => !gendersOf(l).has('man'))
+    const onlyMen = chosen.filter((l) => !gendersOf(l).has('woman'))
+    if (onlyWomen.length > women || onlyMen.length > count - women) continue
+    const both = chosen.filter((l) => gendersOf(l).size === 2)
+    const wantWomen = women - onlyWomen.length
+    const asWoman = new Set([...onlyWomen, ...both.slice(0, wantWomen)])
+    let blocked = false
+    const picked = chosen.map((letter) => {
+      const gender: Gender = asWoman.has(letter) ? 'woman' : 'man'
+      const all = pool.filter((n) => initialOf(n.name) === letter && n.gender === gender).map((n) => n.name)
+      const free = all.filter((n) => !previous.has(n.toLowerCase()))
+      if (free.length === 0) blocked = true
+      return { letter, gender, name: rng.pick(free.length > 0 ? free : all) }
+    })
+    // A letter whose only name of that gender is a previous name: draw again (for a while), so neighbours share no name when possible.
+    if (blocked && attempt < 500) continue
+    picked.sort((a, b) => a.letter.localeCompare(b.letter))
+    const genders = picked.map((p) => p.gender)
+    const portraits = portraitsFor(genders, seed).map((slot, i) => boundPortrait(picked[i]!.name, slot) ?? slot)
+    return { names: picked.map((p) => p.name), genders, portraits }
+  }
+  throw new RangeError(`no cast of ${count} suspects fits the pool with balanced genders`)
+}
 
 /** The people of one puzzle, decided once (when the schedule is generated) and baked into it. */
 export interface Cast {
@@ -17,9 +72,12 @@ export interface Cast {
  * The cast for a puzzle of `size` people: `size - 1` suspects (the victim needs no name), each with a distinct first letter and one name
  * of the pool, genders balanced (the counts differ by at most one; with an odd number the seed decides which gender has one more).
  * Deterministic per `seed`. Names of `previousCast` (the day before) are never used again, and letters it used are left alone as long
- * as there are other letters, so consecutive days do not repeat the set. Portraits: see `portraitsFor`.
+ * as there are other letters, so consecutive days do not repeat the set. Portraits: see `portraitsFor`. A `theme` with a pool of its own
+ * (Simpshouse) draws from that pool instead (see `themedCast`); the regular draw is untouched by it.
  */
-export function castFor(size: number, seed: string | number, previousCast: readonly string[] = []): Cast {
+export function castFor(size: number, seed: string | number, previousCast: readonly string[] = [], theme?: string): Cast {
+  const own = theme === undefined ? undefined : THEME_POOLS[theme]
+  if (own !== undefined) return themedCast(own, size, seed, previousCast)
   if (!Number.isInteger(size) || size < 1 || size > MAX_CAST_SIZE) {
     throw new RangeError(`size must be an integer from 1 to ${MAX_CAST_SIZE}, got ${size}`)
   }

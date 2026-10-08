@@ -1,4 +1,5 @@
 import type { Gender } from '../../engine/model/index.ts'
+import { SIMPSHOUSE_POOL } from './simpshouse.ts'
 
 /** One name of the cast pool and the gender it reads as (the gender clues talk about "a woman" and "a man"). */
 export interface CastName {
@@ -49,9 +50,9 @@ export const MAX_CAST_SIZE = CAST_LETTERS.length + 1
 /** The first letter of a name, upper case: what notes and markers show. */
 export const initialOf = (name: string): string => name.trim().charAt(0).toUpperCase()
 
-const byName = new Map(CAST_POOL.map((n) => [n.name, n]))
+const byName = new Map([...CAST_POOL, ...SIMPSHOUSE_POOL].map((n) => [n.name, n]))
 
-/** The pool entry for exactly this name, if it is in the pool. */
+/** The pool entry for exactly this name, if it is in the regular pool or a theme's own pool. */
 export const poolEntry = (name: string): CastName | undefined => byName.get(name)
 
 /** The pool names starting with `letter` and reading as `gender`. */
