@@ -126,7 +126,7 @@ describe('verify summary', () => {
 })
 
 describe('runGeneration', () => {
-  const request: GenerateRequest = { size: 6, tier: 'very-easy', theme: 'home', seed: 100, budgetMs: 30_000 }
+  const request: GenerateRequest = { size: 6, tier: 'very-easy', theme: 'home', seed: 101, budgetMs: 30_000 }
 
   it('generates a playable, verified puzzle and reports its phases', () => {
     const phases: string[] = []
@@ -134,7 +134,7 @@ describe('runGeneration', () => {
     expect(phases).toEqual(['scene', 'search', 'check'])
     expect(outcome.ok).toBe(true)
     if (!outcome.ok) return
-    expect(outcome.puzzle.id).toBe('6-very-easy-home-100')
+    expect(outcome.puzzle.id).toBe('6-very-easy-home-101')
     expect(outcome.puzzle.warnings).toEqual([])
     expect(verifySummary(outcome.puzzle.puzzle).pass).toBe(true)
     expect(packView(outcome.puzzle, 'generated').castSeed).toBe(outcome.puzzle.id)

@@ -8,7 +8,7 @@ import { cluePolicyFor, MIN_STEPS_PER_PERSON, qualityGate } from './gates.ts'
 import { generateForSceneWithReport } from './generate.ts'
 import { sceneForSeed } from './measure.ts'
 
-const made = generateForSceneWithReport(sceneForSeed(7, 3), { tier: 'medium', seed: 3 })
+const made = generateForSceneWithReport(sceneForSeed(7, 5), { tier: 'medium', seed: 5 })
 const clues = made.puzzle.clues as CatalogClue[]
 
 /** Runs the gate the way the generator does: on the capped walk of the given clues. */

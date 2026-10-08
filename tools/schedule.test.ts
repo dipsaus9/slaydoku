@@ -93,7 +93,7 @@ describe('bun run schedule', () => {
     // A published day must not change: tamper with one, then regenerate it.
     const file = join(dir, '2026-09.json')
     const original = readFileSync(file, 'utf8')
-    writeFileSync(file, original.replace('"attempts":1', '"attempts":9'))
+    writeFileSync(file, original.replace(/"attempts":\d+/, '"attempts":99'))
     const refused = schedule(dir, ['--start', '2026-09-27', '--days', '1', '--jobs', '1'])
     expect(refused.code).toBe(1)
     expect(refused.err).toContain('must not change')
