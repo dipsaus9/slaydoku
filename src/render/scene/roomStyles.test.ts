@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readSchedule } from '../../schedule/schedule.testing.ts'
-import { colourDistance, MIN_NEIGHBOUR_DISTANCE, resolveRoomStyles, roomNeighbours, ROOM_STYLES, TINTS } from './roomStyles.ts'
+import { colourDistance, paletteFor, resolveRoomStyles, roomNeighbours, TINT_CHROMA_SCALE } from './roomStyles.ts'
 
 const { days } = readSchedule()
 /** The fallback of THEME.labelInk (theme.ts), the ink of room names. */
@@ -18,12 +18,17 @@ const contrast = (a: string, b: string) => {
   return (hi + 0.05) / (lo + 0.05)
 }
 
-describe('room tints (SLAY-20)', () => {
+/** The strength in use (the owner picked 0.4). Add a value here to check another strength before switching. */
+const STRENGTHS = [TINT_CHROMA_SCALE]
+
+describe.each(STRENGTHS)('room tints at strength %s (SLAY-20)', (scale) => {
+  const { styles: ROOM_STYLES, tints: TINTS, minNeighbourDistance: MIN_NEIGHBOUR_DISTANCE, minTintFromClassic: MIN_TINT_FROM_CLASSIC } = paletteFor(scale)
+
   it('the shared tints, and every tone of a floor kind, are clearly different colours', () => {
     TINTS.forEach((a, i) => TINTS.slice(i + 1).forEach((b) => expect(colourDistance(a.fill, b.fill), `${a.name} ${b.name}`).toBeGreaterThanOrEqual(MIN_NEIGHBOUR_DISTANCE)))
     for (const style of Object.values(ROOM_STYLES)) {
       style.variants.forEach((a, i) =>
-        style.variants.slice(i + 1).forEach((b) => expect(colourDistance(a.fill, b.fill), `${style.id} ${a.fill} ${b.fill}`).toBeGreaterThanOrEqual(MIN_NEIGHBOUR_DISTANCE)),
+        style.variants.slice(i + 1).forEach((b) => expect(colourDistance(a.fill, b.fill), `${style.id} ${a.fill} ${b.fill}`).toBeGreaterThanOrEqual(MIN_TINT_FROM_CLASSIC)),
       )
     }
   })
@@ -41,7 +46,7 @@ describe('room tints (SLAY-20)', () => {
     let worst = Infinity
     for (const day of days) {
       const scene = day.puzzle.scene
-      const styles = resolveRoomStyles(scene)
+      const styles = resolveRoomStyles(scene, {}, scale)
       for (const [room, next] of roomNeighbours(scene)) {
         for (const other of next) {
           const [a, b] = [styles[room]!, styles[other]!]
@@ -51,9 +56,20 @@ describe('room tints (SLAY-20)', () => {
         }
       }
     }
-    console.log(`closest touching pair over the schedule: delta E ${worst.toFixed(1)}`)
+    console.log(`strength ${scale}: closest touching pair over the schedule: delta E ${worst.toFixed(1)}`)
   })
 
+  it('gives every room a valid #rrggbb fill and ink, on every scheduled day', () => {
+    for (const day of days) {
+      for (const style of Object.values(resolveRoomStyles(day.puzzle.scene, {}, scale))) {
+        expect(style.fill, day.date).toMatch(/^#[0-9a-f]{6}$/)
+        expect(style.ink, day.date).toMatch(/^#[0-9a-f]{6}$/)
+      }
+    }
+  })
+})
+
+describe('room tints (SLAY-20)', () => {
   it('is deterministic: the same scene always gets the same tints', () => {
     const scene = days[0]!.puzzle.scene
     expect(resolveRoomStyles(scene)).toEqual(resolveRoomStyles(structuredClone(scene)))

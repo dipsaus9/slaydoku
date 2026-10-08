@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-10-08 19:19'
-updated_date: '2026-10-08 20:19'
+updated_date: '2026-10-08 20:33'
 labels:
   - story
   - needs-owner-review
@@ -74,4 +74,8 @@ Owner round 2 on PR #171 (tints too alike): shared 13-tint Lab lattice (>= 18 de
 Full verification after owner approval of the round-2 tints (origin/main already merged, nothing new): bun run test --maxWorkers=1 162 files / 3629 tests green; verify:phone 3114 checks, 0 failures (48 suite x viewport runs incl. the drive swipe-sets-nothing checks); looks.ts 146 checks with 2 failures at 1024x768 (wrong-attempt reset, finish overlay) while verify:phone ran in parallel, 57/57 on a solo re-run of 1024x768 (load flake); slay20.ts 54/54. Review gate (story-reviewer): pass, no scope violations; advisory 1 fixed (useBoardZoom comment, file added to References); advisory 2 for the owner: on a zoomed board a one-finger swipe is inert (pan needs two fingers, as before).
 
 Owner approval in chat (2026-10-08): "Tinten zijn akkoord nu" (round 2 tints) and "Ja alles akkoord" (notes fade under room names, swipe marking removed). Ticked by the orchestrator. Verified on head fde5dba by the worker: full suite 3629 passed, verify:phone 3114/0, slay20 driver 54/54, looks driver green on rerun (one load flake at 1024x768, 57/57 alone), review pass. Follow-up for the owner to decide: on a zoomed board a one-finger swipe now does nothing (panning needs two fingers, as before).
+
+Owner round 3 on PR #171 (too much colour, then calmer x4): only the soft tint ring is left; every floor colour's chroma is scaled by TINT_CHROMA_SCALE (default 0.35, one line); touching rooms >= 17 x scale apart on every scheduled day (0.35: guaranteed 5.95, closest pair 6.9). Dev-only ?tint=<scale> override (tintOverride.ts, docs/daily-flow.md) to try strengths live; tests run for 1, 0.7, 0.5, 0.35, 0.25 (contrast, valid hex, touching distance).
+
+Final strength: TINT_CHROMA_SCALE = 0.4 (owner: 'Tint 0.4 is de sweet spot'); touching rooms >= 8.0 delta E apart on every scheduled day, closest pair 8.02 (2026-10-27 water #f3ded7 / wood #e5dac6). The dev-only ?tint override used to pick it is removed again.
 <!-- SECTION:NOTES:END -->

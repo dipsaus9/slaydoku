@@ -1,5 +1,5 @@
 // Rendered check of the SLAY-20 owner feedback on the play board:
-//   1. room tints: rooms that touch never share a floor tint (read from the drawn floor paths: each room's pattern fill);
+//   1. room tints: rooms that touch differ by at least MIN_NEIGHBOUR_DISTANCE (read from the drawn floor paths: each room's pattern fill);
 //   2. notes under room names: every square under a room label carries candidate notes of several people, and the notes
 //      are drawn above the labels (DOM order) so a letter is never hidden behind a name's halo;
 //   3. no swipe marking: one-finger swipes across a row and down a column (touch, and a mouse drag on desktop) set no note
@@ -17,7 +17,7 @@ import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
 import { saveKey, SAVE_VERSION } from '../../src/game/persistence.ts'
 import { dailyId } from '../../src/game/daily/ids.ts'
 import { roomLabelLayout } from '../../src/render/scene/labels.ts'
-import { roomNeighbours } from '../../src/render/scene/roomStyles.ts'
+import { colourDistance, MIN_NEIGHBOUR_DISTANCE, roomNeighbours } from '../../src/render/scene/roomStyles.ts'
 import { dayOn, seedStorage } from './daily.ts'
 
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
@@ -132,8 +132,8 @@ for (const date of DATES) {
       return out
     })()`)
     const clashes: string[] = []
-    for (const [room, next] of roomNeighbours(scene)) for (const other of next) if (room < other && fills[room] === fills[other]) clashes.push(`${room}/${other} ${fills[room]}`)
-    check(`${name}: touching rooms have different tints`, Object.keys(fills).length === scene.rooms.length && clashes.length === 0, clashes.join(' '))
+    for (const [room, next] of roomNeighbours(scene)) for (const other of next) if (room < other && !(colourDistance(fills[room]!, fills[other]!) >= MIN_NEIGHBOUR_DISTANCE)) clashes.push(`${room} ${fills[room]}/${other} ${fills[other]}`)
+    check(`${name}: touching rooms differ by delta E >= ${MIN_NEIGHBOUR_DISTANCE}`, Object.keys(fills).length === scene.rooms.length && clashes.length === 0, clashes.join(' '))
 
     // 2. Notes under labels: drawn, and above the labels in paint order.
     const probe = await json<{ notes: number; above: boolean }>(`(() => {
