@@ -10,13 +10,17 @@ import { SCENE_THEMES, getTheme, roomNameNlOf } from './index.ts'
 import type { ThemeId } from './types.ts'
 
 const REQUIRED: ThemeId[] = ['home', 'office', 'park', 'school', 'shop', 'simpshouse']
+const ROTATION_OR_SIMPSHOUSE = new Set<ThemeId>(REQUIRED)
 
 /** Kinds whose Dutch noun happens to be spelled like the English one. */
 const SAME_IN_BOTH = new Set(['printer', 'piano', 'aquarium', 'barbecue'])
 
 describe('scene themes', () => {
-  it('defines the five rotation themes and Simpshouse with unique ids', () => {
-    expect(SCENE_THEMES.map((t) => t.id).sort()).toEqual([...REQUIRED].sort())
+  it('defines the five rotation themes and Simpshouse with unique ids, and any other registered theme is seasonal (SLAY-18.11)', () => {
+    const ids = SCENE_THEMES.map((t) => t.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const id of REQUIRED) expect(ids).toContain(id)
+    for (const theme of SCENE_THEMES) if (!ROTATION_OR_SIMPSHOUSE.has(theme.id)) expect(theme.seasonal, theme.id).toBe(true)
     for (const id of REQUIRED) expect(getTheme(id).id).toBe(id)
     expect(() => getTheme('nope' as ThemeId)).toThrow()
   })

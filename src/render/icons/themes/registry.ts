@@ -1,31 +1,12 @@
-import type { Cell } from '../../../engine/model/index.ts'
-import type { IconVariant } from '../registry.tsx'
+import { defineThemeIcon, type ThemeIconDefinition } from './define.ts'
+import { SEASONAL_ICON_SETS } from './sets.ts'
 import type { ThemeIconId } from './types.ts'
 
-/** Footprints (canonical orientation, facing south) of one theme icon. */
-export interface ThemeIconDefinition {
-  id: ThemeIconId
-  variants: IconVariant[]
-}
+export type { ThemeIconDefinition }
 
-type Size = readonly [cols: number, rows: number]
+const define = defineThemeIcon
 
-function rectCells(cols: number, rows: number): Cell[] {
-  const cells: Cell[] = []
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) cells.push({ row, col })
-  }
-  return cells
-}
-
-function define(id: ThemeIconId, sizes: readonly Size[]): ThemeIconDefinition {
-  return {
-    id,
-    variants: sizes.map(([cols, rows]) => ({ id: `${cols}x${rows}`, cells: rectCells(cols, rows), cols, rows })),
-  }
-}
-
-export const THEME_ICON_DEFINITIONS: Record<ThemeIconId, ThemeIconDefinition> = {
+const CORE_THEME_ICON_DEFINITIONS = {
   picnicBlanket: define('picnicBlanket', [[2, 1], [2, 2]]),
   hammock: define('hammock', [[1, 2]]),
   sandbox: define('sandbox', [[2, 1], [2, 2]]),
@@ -62,4 +43,11 @@ export const THEME_ICON_DEFINITIONS: Record<ThemeIconId, ThemeIconDefinition> = 
   cardDisplayCase: define('cardDisplayCase', [[1, 1], [2, 1]]),
   readingNook: define('readingNook', [[2, 1], [2, 2]]),
   yellowPlush: define('yellowPlush', [[1, 1]]),
-}
+} as const
+
+/** The core definitions plus those of every seasonal set (SLAY-18.11), keyed by icon id. */
+export const THEME_ICON_DEFINITIONS = Object.assign(
+  {},
+  CORE_THEME_ICON_DEFINITIONS,
+  ...SEASONAL_ICON_SETS.map((s) => s.definitions),
+) as Record<ThemeIconId, ThemeIconDefinition<ThemeIconId>>

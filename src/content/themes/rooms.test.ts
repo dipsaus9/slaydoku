@@ -113,3 +113,13 @@ describe('room rules (SLAY-17.1, SLAY-17.2)', () => {
     })
   })
 })
+
+describe('theme room floors (SLAY-18.11)', () => {
+  it('lets a theme room name its floor, ahead of the name hints, and leaves other names alone', async () => {
+    const { styleForName } = await import('../../render/scene/roomStyles.ts')
+    expect(styleForName('Kitchen')).toBe('tiles')
+    for (const theme of SCENE_THEMES) {
+      for (const room of theme.rooms) if (room.floor) expect(styleForName(room.name), room.name).toBe(room.floor)
+    }
+  })
+})
