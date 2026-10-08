@@ -1,5 +1,7 @@
 import { buildEntry, seedBase } from '../content/packs/build.ts'
+import type { CatalogClue } from '../engine/clues/index.ts'
 import type { Puzzle } from '../engine/model/index.ts'
+import { solveHuman } from '../engine/solver/human/index.ts'
 import { hasMark, hasNote } from './board.ts'
 import { getHint, nextStep } from './hints.ts'
 import { initialState, reduce } from './reducer.ts'
@@ -61,7 +63,15 @@ export function hardPuzzle(): Puzzle {
     if (!built.ok) continue
     const state = initialState({ autoXOnPlace: true, preventXOnBlocked: true, showTimer: true })
     const first = nextStep(built.entry.puzzle, state)
-    if (first?.focus && !first.placement) return (hard = built.entry.puzzle)
+    if (!first?.focus || first.placement) continue
+    // The pinned texts also want the first note to span rows and columns ("row 3, column 4 ...")
+    // and the solver to need an intersect step somewhere.
+    const level2 = getHint(built.entry.puzzle, state, 2)?.text ?? ''
+    if (!/^\S+ can only stand on row \d+, column \d+/.test(level2)) continue
+    const { scene, people, clues } = built.entry.puzzle
+    const steps = solveHuman(scene, people, clues as CatalogClue[]).steps
+    if (!steps.some((s) => s.technique === 'intersect' && s.placed === undefined)) continue
+    return (hard = built.entry.puzzle)
   }
   throw new Error('no hard 6x6 puzzle with a note as its first hint in 100 seeds')
 }
