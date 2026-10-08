@@ -7,6 +7,7 @@ import { useLocale } from '../../locale/index.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 import type { FloorPattern } from '../../render/scene/index.ts'
 import { useAxisLabels } from './axisLabels.ts'
+import { useLook } from './look.ts'
 import { Board } from './Board.tsx'
 import { HELP_CONTENT } from '../../content/help/help.ts'
 import { markHelpSeen, shouldShowHelp } from '../help/index.ts'
@@ -114,6 +115,7 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, back, ro
   )
   const state = useGameState(store)
   const [showAxisLabels, setShowAxisLabels] = useAxisLabels(storage)
+  const { look, setLook, available: lookAvailable } = useLook(storage)
   const elapsed = useElapsed(store, state)
   usePauseWhenHidden(store)
   const telemetry = useTelemetry(store, puzzle, levelId, storage, now)
@@ -339,6 +341,7 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, back, ro
           roomStyles={roomStyles}
           themeIcons={themeIcons}
           showAxisLabels={showAxisLabels}
+          look={look}
           dispatch={store.dispatch}
           getBoard={() => store.getState().board}
           onMessage={() => say(strings.pickSuspect)}
@@ -396,6 +399,8 @@ export function PlayScreen({ puzzle: given, levelId, title: givenTitle, back, ro
           options={state.options}
           showAxisLabels={showAxisLabels}
           onAxisLabels={setShowAxisLabels}
+          look={look}
+          onLook={lookAvailable ? setLook : undefined}
           onChange={(option, value) => store.dispatch({ type: 'setOption', option, value })}
           onClearAll={() => store.dispatch({ type: 'clearAll' })}
           onRestart={restart}

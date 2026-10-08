@@ -508,3 +508,32 @@ describe('the hint bar slot in the play grid (CAD-4.34 layout stays)', () => {
     expect(css.match(/\.play-hint \{[^}]*\}/)?.[0]).toContain('grid-area: hint')
   })
 })
+
+describe('the Look entry in Options (SLAY-17.8, preview only)', () => {
+  const base = { options: DEFAULT_OPTIONS, showAxisLabels: true, onChange: () => {}, onAxisLabels: () => {}, onClearAll: () => {}, onRestart: () => {}, onClose: () => {} }
+
+  it('is absent unless the screen passes onLook (production hosts)', () => {
+    const html = renderToStaticMarkup(withLocale('en', <OptionsPanel {...base} />))
+    expect(html).not.toContain('data-look-entry')
+  })
+
+  it.each(['en', 'nl'] as const)('offers Now, A2 and A3 in %s with the current look pressed', (locale) => {
+    const t = PLAY_STRINGS[locale].options
+    const html = renderToStaticMarkup(withLocale(locale, <OptionsPanel {...base} look="a2" onLook={() => {}} />))
+    expect(html).toContain('data-look-entry')
+    expect(html).toContain(t.look)
+    expect(html).toContain(t.lookHelp)
+    expect(html.match(/aria-pressed="true"[^>]*data-look-option="([a-z0-9]+)"/)?.[1]).toBe('a2')
+    for (const option of ['now', 'a2', 'a3']) expect(html).toContain(`data-look-option="${option}"`)
+    expect(t.lookNow.length).toBeGreaterThan(0)
+  })
+
+  it('uses the default look now when nothing is stored, and ignores a stored look where the switch is not allowed', async () => {
+    const { renderHook } = await import('./lookHook.testing.ts')
+    const storage = createMemoryStorage()
+    storage.setItem('slaydoku:look', 'a3')
+    expect(renderHook(createMemoryStorage(), true).look).toBe('now')
+    expect(renderHook(storage, true).look).toBe('a3')
+    expect(renderHook(storage, false).look).toBe('now')
+  })
+})

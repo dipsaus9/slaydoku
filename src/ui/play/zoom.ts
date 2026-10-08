@@ -117,7 +117,7 @@ export function boxAroundCells(geometry: SceneGeometry, cells: readonly Cell[]):
   const { width, height } = geometry.viewBox
   const box = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity }
   for (const cell of cells) {
-    const r = geometry.cellRect(cell)
+    const r = geometry.cellBounds(cell)
     box.left = Math.min(box.left, r.x / width)
     box.top = Math.min(box.top, r.y / height)
     box.right = Math.max(box.right, (r.x + r.width) / width)
