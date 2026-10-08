@@ -4,7 +4,7 @@ title: Redraw all object art in the approved 3D look
 status: To Do
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 12:29'
+updated_date: '2026-10-08 13:15'
 labels:
   - needs-owner-review
 dependencies:
@@ -41,7 +41,10 @@ Branch: SLAY-17.4/object-art-3d
 - [ ] #7 Scope is every object kind of every theme registered when this story merges: the five regular themes, Simpshouse (SLAY-18.4) and any seasonal theme already on main; none is left in the old look
 - [ ] #8 A look-completeness test lists every ThemeObject kind of every registered theme and fails when one has no art in the approved look, so a future theme cannot skip it
 - [ ] #9 docs/design/looks.md gets a section 'How to draw a new object' (block model, heights, board margin, legend padding, orientations) that the seasonal theme stories SLAY-18.6 to 18.9 follow
-- [ ] #10 Owner has seen screenshots in the PR and approved (only the owner ticks this)
+- [ ] #10 Owner decision 2026-10-08: the look is A2 (oblique blocks on the unchanged square grid). A2 becomes the only production look; the Look switch and the A3 (isometric) code from SLAY-17.8 are removed again (they stay in git history and docs/design/looks.md)
+- [ ] #11 An object never paints outside its own room: blocks must not cross a wall into the neighbouring room or cover the cell behind a wall (clip to the room, or draw the walls above the objects and cap the height at the room edge); checked on a rendered board against docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png
+- [ ] #12 Every kind is in the A2 style, with no flat leftovers: named in the owner's feedback are toilet, washbasin (sink), washing machine, dryer, kitchen counter and stairs; a rendered contact sheet of all kinds proves it
+- [ ] #13 Owner has seen screenshots in the PR and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -50,4 +53,6 @@ Branch: SLAY-17.4/object-art-3d
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it.
 
 Owner decision 2026-10-08: this story takes everything, including the extra themes. If a theme story merges BEFORE this one (Simpshouse, SLAY-18.4, does), this story redraws its art. Theme stories that come AFTER this one (SLAY-18.6 to 18.9) must follow the approved look and the completeness test themselves.
+
+Owner feedback on the A2 PoC (2026-10-08): 'elementen lijken over andere vakjes heen te lopen en sommige items zijn nog niet in dezelfde stijl zoals het toilet en de wasbak'. Screenshot: docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png. The PoC only drew chair, sofa, bed, bookshelf, table, rug and plant, so the flat items are expected; the overflow across walls is a real A2 issue to solve here (headroom of the blocks versus walls).
 <!-- SECTION:NOTES:END -->
