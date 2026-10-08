@@ -1,6 +1,5 @@
 import type { Cell } from '../../../engine/model/index.ts'
 import type { ModelBuilder } from '../../looks/models.ts'
-import type { IconVariant } from '../registry.tsx'
 
 /**
  * Per-theme icon modules (SLAY-18.11). A theme's own drawings live in two files of its own, `src/render/icons/themes/<id>Art.tsx` (the
@@ -16,6 +15,17 @@ import type { IconVariant } from '../registry.tsx'
  * The shared registries (`types.ts`, `registry.ts`, `looks/registry.ts`) merge the four seasonal sets, so a theme story edits neither
  * them nor `ThemeIconId`: the id union and the id list grow with the set.
  */
+
+/**
+ * Structurally the same as `IconVariant` in ../registry.tsx; declared here because the content types reach this file and the generator
+ * worker may import no .tsx module (src/ui/lab/worker.test.ts).
+ */
+export interface IconVariant {
+  id: string
+  cells: Cell[]
+  cols: number
+  rows: number
+}
 
 /** Footprints (canonical orientation, facing south) of one theme icon. */
 export interface ThemeIconDefinition<K extends string = string> {
