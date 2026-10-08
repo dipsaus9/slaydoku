@@ -4,13 +4,14 @@ title: 'Spike: 3D object look prototype for owner review'
 status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 09:18'
+updated_date: '2026-10-08 09:30'
 labels:
   - needs-owner-review
 dependencies: []
 references:
   - docs/design/looks-prototype.html
   - docs/design/looks.md
+  - docs/design/looks-shots/
 parent_task_id: SLAY-17
 type: spike
 ordinal: 120000
@@ -40,4 +41,6 @@ Owner visual check (label needs-owner-review): present the prototype, leave the 
 Prototype: docs/design/looks-prototype.html (A block, B steps, C relief, 9 objects, 8 orientations). Recommendation B at reduced scale; A as fallback; skip C. AC 3 left for the owner.
 
 Review: pass (AC 3 pending owner, advisory: Dutch labels in prototype are fine).
+
+Round 2 (owner: A best, B and C out): A2 oblique and A3 isometric block models added, B and C removed from the page. Recommendation A2, A3 as next step. AC 3 still owner-only.
 <!-- SECTION:NOTES:END -->
