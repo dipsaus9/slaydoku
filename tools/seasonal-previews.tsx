@@ -10,9 +10,9 @@ import { generateWithReport } from '../src/engine/generator/index.ts'
 import { isOccupiableType } from '../src/engine/model/index.ts'
 import type { Cell, Placement, Scene } from '../src/engine/model/index.ts'
 import { generateSceneDetailed } from '../src/engine/scenegen/generate.ts'
-import { IconDepthGroup, IconDepthScope } from '../src/render/icons/ObjectIcon.tsx'
 import { resolveVariant } from '../src/render/icons/resolve.ts'
-import { ThemeObjectIconGlyph } from '../src/render/icons/themes/ThemeObjectIcon.tsx'
+import { SolidGlyph } from '../src/render/looks/Solids.tsx'
+import { solidFor } from '../src/render/looks/solid.ts'
 import type { ThemeIconId } from '../src/render/icons/themes/types.ts'
 import { U } from '../src/render/icons/art/tokens.ts'
 import { SceneView } from '../src/render/scene/index.ts'
@@ -161,14 +161,14 @@ function Glyph({ object, cells }: { object: Pick<SeasonalObject, 'themeIcon' | '
     if (!icon) return null
     const [a, b, c, d, e, f] = icon.matrix
     return (
-      <IconDepthGroup>
-        <g data-theme-icon={object.themeIcon} transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}>
-          {icon.variant.draw()}
-        </g>
-      </IconDepthGroup>
+      <g data-theme-icon={object.themeIcon} transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}>
+        {(icon.variant as unknown as { draw: () => ReactNode }).draw()}
+      </g>
     )
   }
-  return <ThemeObjectIconGlyph object={{ engineType: object.engineType, themeIcon: object.themeIcon as ThemeIconId | undefined }} cells={cells} />
+  // Drafts above are still flat (SLAY-18.6 to 18.9 redraw them as blocks); everything registered is a block model.
+  const solid = solidFor(object.engineType, object.themeIcon as ThemeIconId | undefined, cells)
+  return solid ? <SolidGlyph solid={solid} /> : null
 }
 
 function footprintBox(cells: readonly Cell[]): { cols: number; rows: number } {
@@ -180,9 +180,7 @@ function iconSvg(object: SeasonalObject, cells: readonly Cell[]): string {
   const svg = (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox={`-8 -8 ${cols * U + 16} ${rows * U + 24}`} width={cols * 64 + 8} height={rows * 64 + 12} role="img" aria-label={object.name}>
       <rect x={0} y={0} width={cols * U} height={rows * U} rx={6} fill="#f7f0e0" stroke="#e3d6bb" strokeWidth={2} />
-      <IconDepthScope>
-        <Glyph object={object} cells={cells} />
-      </IconDepthScope>
+      <Glyph object={object} cells={cells} />
     </svg>
   )
   return renderToStaticMarkup(svg, { identifierPrefix: nextPrefix() })
@@ -198,7 +196,7 @@ function boardSvg(scene: Scene, draft: SeasonalTheme, solution: readonly Placeme
   // The engine looks Dutch room names up in the registered themes; drafts are not registered, so the Dutch board is the same scene with Dutch room names.
   const shown: Scene = locale === 'nl' ? { ...scene, rooms: scene.rooms.map((r) => ({ ...r, name: byName.get(r.name)?.nameNl ?? r.name })) } : scene
   const objectsLayer = (geometry: SceneGeometry): ReactNode => (
-    <IconDepthScope>
+    <>
       {scene.objects.map((obj) => {
         const o = byKind.get(kindOf(obj.id))
         const top = Math.min(...obj.cells.map((c) => c.row))
@@ -210,7 +208,7 @@ function boardSvg(scene: Scene, draft: SeasonalTheme, solution: readonly Placeme
           </g>
         )
       })}
-    </IconDepthScope>
+    </>
   )
   const peopleLayer = (geometry: SceneGeometry): ReactNode => (
     <g>

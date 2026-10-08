@@ -162,6 +162,8 @@ export interface SolidSvgProps {
   showCells?: boolean
   className?: string
   title?: string
+  /** Written to `data-icon` on the svg, so the checks can tell the swatches apart. */
+  iconId?: string
 }
 
 /** Padding around the drawing's bounds, model units. */
@@ -171,7 +173,7 @@ const SVG_PAD = 3
  * One object in an svg of its own, cropped to what it covers (blocks, outline and shadow), so a swatch or a tile never clips a tall block or its
  * shadow whatever the size of the object. Used by the Legend and the contact sheets.
  */
-export function SolidSvg({ solid, pxPerCell, showCells = false, className, title }: SolidSvgProps) {
+export function SolidSvg({ solid, pxPerCell, showCells = false, className, title, iconId }: SolidSvgProps) {
   const b = solidBounds(solid)
   const x0 = b.x0 - SVG_PAD
   const y0 = b.y0 - SVG_PAD
@@ -189,6 +191,7 @@ export function SolidSvg({ solid, pxPerCell, showCells = false, className, title
       aria-label={title}
       aria-hidden={title ? undefined : true}
       focusable="false"
+      data-icon={iconId}
     >
       {showCells
         ? solid.cells.map((c) => <rect key={`${c.row}-${c.col}`} x={c.col * 100} y={c.row * 100} width={100} height={100} fill="rgba(255,255,255,.7)" stroke="#b9b2a0" strokeWidth={1.5} strokeDasharray="6 5" />)

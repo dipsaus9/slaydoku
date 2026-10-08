@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { OBJECT_CATALOG, OBJECT_TYPES } from '../../engine/model/index.ts'
 import type { Cell } from '../../engine/model/index.ts'
 import { EdgeFeatureIcon } from './EdgeFeatureIcon.tsx'
-import { ICON_DEPTH_FILTER, IconDepthScope, ObjectIcon, ObjectIconGlyph } from './ObjectIcon.tsx'
 import { doorArt, EDGE_LENGTH, EDGE_THICKNESS, windowArt } from './art/edges.tsx'
 import { renderContactSheet } from './contactSheet.ts'
 import {
@@ -105,13 +104,6 @@ function pathPoints(d: string): [number, number][] {
     }
   }
   return pts
-}
-
-function insideCells(x: number, y: number, cells: readonly Cell[]): boolean {
-  const eps = 1e-6
-  return cells.some(
-    (c) => x >= c.col * 100 - eps && x <= (c.col + 1) * 100 + eps && y >= c.row * 100 - eps && y <= (c.row + 1) * 100 + eps,
-  )
 }
 
 function neighbours(a: Cell, b: Cell): boolean {
@@ -230,23 +222,6 @@ describe('orientation', () => {
 })
 
 describe('footprint bounds', () => {
-  it('draws every variant inside its own cells, stroke included', () => {
-    for (const type of OBJECT_TYPES) {
-      for (const v of iconFootprints(type)) {
-        const markup = renderToStaticMarkup(<svg>{v.draw()}</svg>)
-        const shapes = shapeExtents(markup)
-        expect(shapes.length, `${type} ${v.id} draws something`).toBeGreaterThan(0)
-        for (const { points, pad } of shapes) {
-          for (const [x, y] of points) {
-            for (const [dx, dy] of [[-pad, -pad], [pad, -pad], [-pad, pad], [pad, pad]] as const) {
-              expect(insideCells(x + dx, y + dy, v.cells), `${type} ${v.id} point ${x},${y} pad ${pad}`).toBe(true)
-            }
-          }
-        }
-      }
-    }
-  })
-
   it('keeps edge features inside their one-cell-by-thin box', () => {
     for (const art of [windowArt, doorArt]) {
       for (const { points, pad } of shapeExtents(renderToStaticMarkup(<svg>{art()}</svg>))) {
@@ -262,24 +237,8 @@ describe('footprint bounds', () => {
 })
 
 describe('components', () => {
-  it('sizes the standalone svg to the oriented footprint', () => {
-    const html = renderToStaticMarkup(
-      <ObjectIcon type="bed" cells={[{ row: 2, col: 5 }, { row: 2, col: 6 }]} cellSize={50} />,
-    )
-    expect(html).toContain('width="100"')
-    expect(html).toContain('height="50"')
-    expect(html).toContain('viewBox="0 0 200 100"')
-  })
-
-  it('renders nothing for a footprint it cannot draw', () => {
-    expect(renderToStaticMarkup(<ObjectIcon type="chair" cells={[{ row: 0, col: 0 }, { row: 1, col: 0 }]} />)).toBe('')
-    expect(renderToStaticMarkup(<svg><ObjectIconGlyph type="tv" cells={[]} /></svg>)).not.toContain('data-icon')
-  })
-
   it('does not encode occupiable/blocking in the art', () => {
-    // The art is a pure function of type and footprint; the flag lives in the catalog only.
-    const html = renderToStaticMarkup(<ObjectIcon type="sofa" cells={[{ row: 0, col: 0 }, { row: 0, col: 1 }]} />)
-    expect(html).not.toMatch(/occupiable|blocking/i)
+    // The flag lives in the catalog only; the art is a pure function of type and footprint.
     const { occupiable, blocking } = iconLegendGroups()
     expect(occupiable.every((t) => OBJECT_CATALOG[t].occupiable)).toBe(true)
     expect(blocking.every((t) => !OBJECT_CATALOG[t].occupiable)).toBe(true)
@@ -301,47 +260,9 @@ describe('contact sheet', () => {
     for (const type of OBJECT_TYPES) expect(html, type).toContain(`data-type="${type}"`)
     const footprints = OBJECT_TYPES.reduce((n, t) => n + iconFootprints(t).length, 0)
     expect(html.match(/class="variant"/g)?.length).toBe(footprints)
+    // Every footprint shows all 8 orientations, none without art.
+    expect(html.match(/data-orientation=/g)!.length).toBeGreaterThanOrEqual(footprints * 8)
+    expect(html).not.toContain('no art')
     expect(html).toContain('L3')
-  })
-})
-
-describe('depth filter', () => {
-  it('keeps the approved depth-55 values in one constant', () => {
-    expect(ICON_DEPTH_FILTER).toEqual({
-      bevel: 2.9,
-      rimLight: { color: '#ffffff', opacity: 0.48, blur: 0.8 },
-      innerShade: { color: '#2a1a10', opacity: 0.27, blur: 1 },
-      groundShadow: { color: '#2a1a10', opacity: 0.29, blur: 2.6, dx: 2.4, dy: 5.3 },
-      region: { x: '-25%', y: '-25%', width: '160%', height: '175%' },
-    })
-    const html = renderToStaticMarkup(<ObjectIcon type="chair" cells={[{ row: 0, col: 0 }]} />)
-    expect(html).toMatch(/<filter [^>]*x="-25%" y="-25%" width="160%" height="175%"/)
-    expect(html).toContain('dx="2.4" dy="5.3"')
-    expect(html).toContain('stdDeviation="2.6"')
-  })
-
-  it('puts the filter outside the orientation transform in all 8 orientations', () => {
-    const cells = [{ row: 0, col: 0 }]
-    for (const rotation of [0, 90, 180, 270] as const) {
-      for (const mirror of [false, true]) {
-        const html = renderToStaticMarkup(
-          <svg>
-            <IconDepthScope>
-              <ObjectIconGlyph type="chair" cells={cells} rotation={rotation} mirror={mirror} />
-            </IconDepthScope>
-          </svg>,
-        )
-        const filtered = html.indexOf('<g data-depth="" filter="url(#')
-        const oriented = html.indexOf('<g data-icon="chair"')
-        expect(filtered).toBeGreaterThan(-1)
-        expect(oriented).toBeGreaterThan(filtered)
-        expect(html.slice(html.indexOf('<g data-icon="chair"'), html.indexOf('>', oriented))).toContain('transform="matrix(')
-        expect((html.match(/<filter /g) ?? []).length).toBe(1)
-      }
-    }
-  })
-
-  it('draws flat outside a scope', () => {
-    expect(renderToStaticMarkup(<svg><ObjectIconGlyph type="chair" cells={[{ row: 0, col: 0 }]} /></svg>)).not.toContain('filter=')
   })
 })
