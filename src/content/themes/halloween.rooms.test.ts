@@ -109,7 +109,7 @@ describe('Halloween theme (SLAY-18.9)', () => {
     for (const r of theme.rooms) {
       expect(r.roomTypes?.length, r.name).toBeGreaterThan(0)
       expect(r.floor, r.name).toBeDefined()
-      expect(r.outdoor === true, r.name).toBe(r.floor === 'grass' || r.name === 'Trick-or-Treat Street')
+      expect(r.outdoor === true, r.name).toBe(r.roomTypes?.includes('outdoor') === true)
     }
   })
 
