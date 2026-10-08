@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-10-08 19:19'
-updated_date: '2026-10-08 20:04'
+updated_date: '2026-10-08 20:17'
 labels:
   - story
   - needs-owner-review
@@ -25,6 +25,7 @@ references:
   - src/ui/play/intent.ts
   - src/ui/play/intent.test.ts
   - src/ui/play/useGesture.ts
+  - src/ui/play/useBoardZoom.ts
   - src/ui/play/Board.tsx
   - src/ui/play/BoardLayers.tsx
   - src/ui/play/index.ts
@@ -51,9 +52,9 @@ Branch: SLAY-20/ui-feedback-tints-notes-swipe
 <!-- AC:BEGIN -->
 - [x] #1 Two rooms that touch each other never share the same floor tint, in all themes and sizes; the tints stay readable behind marks, people and notes and keep the contrast of the labels (test over the baked schedule and a visual check)
 - [x] #2 A note on a square under a room name is clearly visible (the label gets out of the way or the note is drawn over the halo, decided from rendered screenshots); checked on a crowded 9x9 and 12x12 board at 360 and 390 wide
-- [ ] #3 The multi-square swipe/drag marking gesture is removed on touch (and mouse); a scroll or swipe over the board scrolls the page or pans and never sets a note or cross; single tap and long press behave as before (gesture tests updated, verify:phone drive suite passes)
+- [x] #3 The multi-square swipe/drag marking gesture is removed on touch (and mouse); a scroll or swipe over the board scrolls the page or pans and never sets a note or cross; single tap and long press behave as before (gesture tests updated, verify:phone drive suite passes)
 - [x] #4 Settings text, help text and docs no longer mention swiping over squares
-- [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass; verify:phone passes
+- [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass; verify:phone passes
 - [ ] #6 Owner has seen rendered boards on a phone and approved (only the owner ticks this)
 <!-- AC:END -->
 
@@ -69,4 +70,6 @@ Gesture: drop the painting phase from gesture.ts (a press past the slop does not
 Quick-fix-first pass (2026-10-08): tints by room-map colouring, notes in their own layer above room names with a name over noted squares fading to 0.5, multi-square swipe removed (unzoomed board touch-action pan-y). Lint, typecheck and the tests of src/render, src/ui, src/share, src/content/help green (1309). docs/verification/slay20.ts: 54 checks green on 6 days (9x9 shop/home/park, 12x12 simpshouse/school/park) at 360, 390, 1280. Full suite, verify:phone (AC 3, 5) and the review gate wait for the owner's approval.
 
 Owner round 2 on PR #171 (tints too alike): shared 13-tint Lab lattice (>= 18 delta E apart, hue shifts), greedy most-constrained colouring with FAR_ENOUGH 26; schedule test requires every touching pair >= 18 (closest 26.5). slay20.ts 54/54 again; screenshots re-rendered with a before/after pair.
+
+Full verification after owner approval of the round-2 tints (origin/main already merged, nothing new): bun run test --maxWorkers=1 162 files / 3629 tests green; verify:phone 3114 checks, 0 failures (48 suite x viewport runs incl. the drive swipe-sets-nothing checks); looks.ts 146 checks with 2 failures at 1024x768 (wrong-attempt reset, finish overlay) while verify:phone ran in parallel, 57/57 on a solo re-run of 1024x768 (load flake); slay20.ts 54/54. Review gate (story-reviewer): pass, no scope violations; advisory 1 fixed (useBoardZoom comment, file added to References); advisory 2 for the owner: on a zoomed board a one-finger swipe is inert (pan needs two fingers, as before).
 <!-- SECTION:NOTES:END -->
