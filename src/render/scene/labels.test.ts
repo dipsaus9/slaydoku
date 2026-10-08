@@ -77,6 +77,6 @@ describe('room labels stay clear of objects (SLAY-17.5)', () => {
         for (const locale of ['en', 'nl'] as const) if (coveredByLabel(day.puzzle.scene, room.id, locale).hits.length > 0) touching++
       }
     }
-    expect(touching).toBeLessThanOrEqual(12)
+    expect(touching).toBeLessThanOrEqual(9)
   })
 })

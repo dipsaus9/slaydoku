@@ -85,13 +85,13 @@ function splitInTwo(words: string[]): string[] {
   return best
 }
 
+/** Dutch endings of compound room names: a break goes before them (SPEELGOED-AFDELING). */
+const COMPOUND_ENDINGS = ['AFDELING', 'KAMER', 'LOKAAL', 'RUIMTE', 'KANTOOR', 'BOERDERIJ', 'ZAAL', 'TUIN', 'HOEK', 'KLAS', 'WEIDE', 'PLAATS', 'KEUKEN']
+
 /**
  * A single long word (a Dutch compound such as HANDVAARDIGHEIDSLOKAAL) split in two lines with a hyphen: at its own
  * hyphen when it has one, else before a known Dutch compound ending, else near the middle, after a vowel so the break falls between syllables.
  */
-/** Dutch endings of compound room names: a break goes before them (SPEELGOED-AFDELING). */
-const COMPOUND_ENDINGS = ['AFDELING', 'KAMER', 'LOKAAL', 'RUIMTE', 'KANTOOR', 'BOERDERIJ', 'ZAAL', 'TUIN', 'HOEK', 'KLAS', 'WEIDE', 'PLAATS', 'KEUKEN']
-
 export function hyphenate(word: string): string[] {
   const dash = [...word.matchAll(/-/g)].map((m) => m.index! + 1).filter((i) => i < word.length)
   const mid = word.length / 2

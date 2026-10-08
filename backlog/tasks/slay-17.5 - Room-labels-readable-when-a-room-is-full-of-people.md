@@ -4,7 +4,7 @@ title: Room labels readable when a room is full of people
 status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 09:27'
+updated_date: '2026-10-08 09:28'
 labels:
   - needs-owner-review
 dependencies: []
@@ -48,4 +48,6 @@ Column runs (label turned a quarter), pick the run with the largest font, hyphen
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it. Use the dev date override (?date=...), see docs/daily-flow.md.
 
 Rendered check: docs/verification/labelshots.ts at 360/390/768/1024, en+nl, days 2026-11-30, 2026-12-30, 2027-01-22. 2026-11-30 has no object under a label. Residual: 9 labels in one/two-cell rooms (e.g. 2026-12-30) still touch an object. AC4 left for the owner.
+
+Review: pass (story-reviewer). Advisories fixed (hyphenate doc placement, test limit 9). Status stays In Progress, AC4 owner-only.
 <!-- SECTION:NOTES:END -->
