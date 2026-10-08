@@ -50,10 +50,10 @@ export function mapleTree(): SolidModel {
     onTop(74, 78, 12, 9, 0, F.mapleGold),
     onTop(20, 14, 10, 12, 0, F.orange),
     cyl(50, 56, 11, 0, 40, C.woodDark, 8),
-    ball(32, 52, 62, 22, F.maple),
-    ball(68, 52, 62, 22, F.orange),
-    ball(50, 64, 56, 24, F.mapleGold),
-    ball(50, 44, 76, 19, F.mapleDark),
+    ball(32, 50, 60, 24, F.maple),
+    ball(68, 50, 60, 24, F.orange),
+    ball(50, 64, 54, 25, F.mapleGold),
+    ball(50, 42, 72, 23, F.mapleDark),
   ])
 }
 
@@ -146,23 +146,31 @@ export function bonfire(): SolidModel {
   return model(1, 1, prims)
 }
 
-/** Fireplace (hearth): a stone chimney breast with a dark firebox, flames on a log, a wooden mantel with a little pumpkin and a candle. */
+/**
+ * Fireplace (hearth): a brick chimney breast with a big dark firebox, a fire of logs and flames standing in it, a stone hearth slab and a
+ * wooden mantel with a little pumpkin and a candle. The fire is made of blocks, so it shows from every side, not only from the front.
+ */
 export function hearth(): SolidModel {
   return model(
     1,
     1,
     shiftY(
       [
-        box(4, 0, 92, 46, 0, 80, C.stone),
-        box(0, 46, 100, 16, 0, 5, C.stoneDark),
-        onFront(22, 46, 56, 5, 44, C.slate),
-        onFront(34, 46.4, 32, 11, 28, F.fire),
-        onFront(42, 46.6, 16, 11, 18, F.flame),
-        box(28, 48, 44, 8, 5, 7, C.woodDark),
-        box(0, 46, 100, 12, 56, 6, C.woodDark),
-        ball(22, 52, 67, 5, F.orange),
-        cyl(78, 52, 3, 62, 14, C.creamLight),
-        ball(78, 52, 78, 2.5, F.flame),
+        box(4, 0, 18, 44, 0, 56, C.terracotta),
+        box(78, 0, 18, 44, 0, 56, C.terracotta),
+        box(22, 0, 56, 14, 0, 56, C.slate),
+        box(22, 14, 56, 30, 0, 2, C.ink),
+        box(22, 30, 56, 14, 44, 12, C.terracotta),
+        box(14, 0, 72, 30, 56, 32, C.terraDark),
+        box(0, 44, 100, 18, 0, 4, C.stoneDark),
+        box(30, 26, 40, 8, 2, 7, C.woodDark),
+        box(34, 18, 8, 22, 2, 7, C.wood),
+        cyl(50, 28, 13, 9, 22, F.fire, 3),
+        cyl(50, 30, 7, 9, 28, F.flame, 1),
+        box(0, 30, 100, 18, 56, 6, C.woodDark),
+        ball(20, 40, 68, 6, F.orange),
+        cyl(80, 40, 3, 62, 14, C.creamLight),
+        ball(80, 40, 78, 2.5, F.flame),
       ],
       14,
     ),
@@ -178,36 +186,38 @@ export function baleOfHay(cols: number, rows: number): SolidModel {
   const bale = (x: number, y: number, w: number, d: number, z: number): void => {
     prims.push(box(x, y, w, d, z, 34, F.hay))
     for (let k = 1; k < 4; k++) prims.push(onTop(x + 6, y + (d * k) / 4 - 1, w - 12, 2, z + 34, F.hayDark))
-    for (const f of [0.3, 0.7]) prims.push(box(x + w * f - 2.5, y - 0.6, 5, d + 1.2, z, 35, C.woodDeep, 0), onFront(x + w * f - 2.5, y + d + 0.2, 5, z, 34, C.woodDeep))
-    prims.push(onFront(x + 6, y + d + 0.4, w - 12, z + 26, 2, F.hayLight))
+    for (const f of [0.3, 0.7]) prims.push(onTop(x + w * f - 1.5, y, 3, d, z + 34.9, C.terraDark), onFront(x + w * f - 1.5, y + d + 0.2, 3, z, 34, C.terraDark))
+    for (const zz of [9, 20]) prims.push(onFront(x + 4, y + d + 0.4, w - 8, z + zz, 1.6, F.hayDark))
   }
   for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) bale(c * 100 + 8, r * 100 + 16, 84, 68, 0)
   if (cols >= 2 && rows >= 2) bale(30, 26, cols * 100 - 60, 60, 34)
   return model(cols, rows, prims)
 }
 
-/** Leaf pile: a low mound of fallen leaves in red, orange, gold and brown, any size. */
+/**
+ * Leaf pile: a low heap of fallen leaves, any size. Each leaf is a thin flat square at its own height and colour (red, orange, gold, brown),
+ * stacked into a mound, with a few loose leaves around it; no balls, so it never reads as fruit.
+ */
 export function leafPile(cols: number, rows: number): SolidModel {
+  const prims: Prim[] = []
+  const colors = [F.maple, F.orange, F.mapleGold, F.leafBrown, F.orangeDark, F.mapleDark]
   const W = cols * 100
   const H = rows * 100
-  const prims: Prim[] = [cyl(W / 2, H / 2, Math.min(W, H) / 2 - 10, 0, 6, F.leafBrown, Math.min(W, H) / 2 - 18)]
-  const colors = [F.maple, F.orange, F.mapleGold, F.leafBrown, F.orangeDark]
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const ox = c * 100
-      const oy = r * 100
-      const spots: [number, number, number, number][] = [
-        [30, 34, 10, 15],
-        [64, 30, 10, 14],
-        [50, 52, 14, 18],
-        [28, 66, 9, 14],
-        [70, 66, 9, 15],
-        [48, 78, 7, 12],
-      ]
-      spots.forEach(([x, y, z, rad], i) => prims.push(ball(ox + x, oy + y, z, rad, colors[(i + r + c) % colors.length]!)))
-      prims.push(onTop(ox + 14, oy + 84, 12, 8, 0, F.maple), onTop(ox + 80, oy + 14, 10, 10, 0, F.mapleGold))
+  // One heap over the whole footprint: leaves on a jittered grid inside an ellipse, higher toward the middle.
+  let i = 0
+  for (let y = 10; y <= H - 24; y += 11) {
+    for (let x = 10 + ((y / 11) % 2) * 6; x <= W - 24; x += 13) {
+      const dx = (x + 7 - W / 2) / (W / 2 - 8)
+      const dy = (y + 6 - H / 2) / (H / 2 - 8)
+      const d = dx * dx + dy * dy
+      if (d > 1) continue
+      const layer = Math.floor((1 - d) * 4)
+      const s = 13 + ((i * 7) % 5)
+      prims.push(box(x, y, s, s * 0.75, layer * 3.5, 2.5, colors[(i * 7) % colors.length]!, 1))
+      i++
     }
   }
+  prims.push(onTop(4, H - 12, 9, 7, 0, F.maple), onTop(W - 13, 5, 8, 8, 0, F.mapleGold), onTop(W - 12, H - 12, 7, 7, 0, F.orange))
   return model(cols, rows, prims)
 }
 
@@ -234,16 +244,22 @@ export function harvestCrate(): SolidModel {
 
 /** Cider barrel: an oak barrel standing on end with dark iron hoops, a lid and a brass tap on the front. */
 export function ciderBarrel(): SolidModel {
+  // Stacked bands from the floor up (wood, hoop, wood, ...), so every hoop shows; the belly is widest in the middle.
+  const bands: [number, number, number, number, string][] = [
+    [0, 4, 27, 28, C.slate],
+    [4, 14, 28, 31, C.woodLight],
+    [18, 4, 31, 32, C.slate],
+    [22, 18, 32, 32, C.woodLight],
+    [40, 4, 32, 31, C.slate],
+    [44, 14, 31, 28, C.woodLight],
+    [58, 4, 28, 27, C.slate],
+  ]
   return model(1, 1, [
-    cyl(50, 50, 28, 0, 12, C.wood, 32),
-    cyl(50, 50, 32, 12, 26, C.woodLight, 32),
-    cyl(50, 50, 32, 38, 18, C.wood, 28),
-    cyl(50, 50, 29, 4, 4, C.slate, 30),
-    cyl(50, 50, 32.5, 24, 4, C.slate, 32.5),
-    cyl(50, 50, 29, 48, 4, C.slate, 28.5),
-    cyl(50, 50, 26, 56, 2, C.woodDark, 26),
-    box(46, 80, 8, 8, 20, 6, C.gold),
-    box(48, 86, 4, 4, 14, 8, C.goldDark),
+    ...bands.map(([z, h, r0, r1, color]) => cyl(50, 50, r0, z, h, color, r1)),
+    cyl(50, 50, 24, 62, 1.2, C.wood, 24, 1.5),
+    cyl(50, 50, 6, 62, 3, C.woodDark),
+    box(45, 81, 10, 9, 26, 6, C.gold),
+    box(47, 88, 6, 5, 18, 10, C.goldDark),
   ])
 }
 
@@ -259,8 +275,17 @@ export function harvestTable(cols: number, rows: number): SolidModel {
     onTop(6, H / 2 - 1, W - 12, 2, 44, C.wood),
   ]
   const top = 44
-  prims.push(ball(30, 34, top + 13, 13, F.orange), cyl(30, 34, 2.5, top + 24, 6, C.woodDark))
-  prims.push(cyl(W - 32, H - 34, 14, top, 10, C.woodLight, 16), ball(W - 36, H - 36, top + 12, 5, F.apple), ball(W - 26, H - 32, top + 12, 5, F.appleGold), ball(W - 32, H - 40, top + 13, 5, F.apple))
-  if (cols * rows > 1) prims.push(ball(W / 2, H / 2 + 14, top + 10, 10, F.mapleGold), ball(W / 2 + 22, 30, top + 8, 8, F.orangeDark), box(W / 2 - 30, H - 36, 22, 14, top, 6, F.burlap))
+  const pumpkinAt = (x: number, y: number, r: number, color: string) => prims.push(ball(x, y, top + r + 0.5, r, color), cyl(x, y, 2.5, top + 2 * r - 1, 6, C.woodDark))
+  const basketAt = (x: number, y: number) =>
+    prims.push(cyl(x, y, 15, top, 12, C.woodLight, 18), ball(x - 7, y - 4, top + 14, 6, F.apple), ball(x + 6, y - 2, top + 14, 6, F.appleGold), ball(x, y + 6, top + 15, 6, F.apple))
+  // Every cell of the top carries a pumpkin and a basket of apples, so a long table is laid all along.
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const ox = c * 100
+      const oy = r * 100
+      pumpkinAt(ox + 34, oy + 38, 15, (r + c) % 2 ? F.mapleGold : F.orange)
+      basketAt(ox + 66, oy + 62)
+    }
+  }
   return model(cols, rows, prims)
 }
