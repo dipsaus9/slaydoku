@@ -36,7 +36,7 @@ function lcg(seed: number): () => number {
   }
 }
 
-/** The Oeteldonk frog: a fat green frog sitting up, big white eyes, a red, white and yellow scarf round its neck. */
+/** The Oeteldonk frog: a fat green frog sitting up with big white eyes and a scarf in the Oeteldonk colours: a white collar with a red and a yellow block at each side, so it reads red, white, yellow from every side (owner, PR #169). */
 export function frog(): SolidModel {
   return model(1, 1, [
     cyl(50, 56, 34, 0, 4, C.stoneDark),
@@ -46,11 +46,11 @@ export function frog(): SolidModel {
     ball(32, 84, 10, 9, K.frogDark),
     ball(68, 84, 10, 9, K.frogDark),
     onFront(36, 80.5, 28, 14, 12, K.frogLight),
-    cyl(50, 56, 24, 32, 4, K.yellow),
-    cyl(50, 56, 23, 36, 4, C.white),
-    cyl(50, 56, 22, 40, 4, K.red),
-    box(62, 76, 9, 8, 22, 18, K.red, 1.5),
-    box(62, 76, 9, 8, 14, 8, K.yellow, 1.5),
+    cyl(50, 56, 26, 32, 11, C.white, undefined, 1.5),
+    box(22, 68, 15, 13, 32, 11, K.red, 1.5),
+    box(63, 68, 15, 13, 32, 11, K.yellow, 1.5),
+    box(22, 31, 15, 13, 32, 11, K.yellow, 1.5),
+    box(63, 31, 15, 13, 32, 11, K.red, 1.5),
     ball(50, 56, 66, 22, K.frog),
     ball(37, 60, 82, 9, C.white),
     ball(63, 60, 82, 9, C.white),
@@ -106,7 +106,7 @@ export function confettiPile(cols: number, rows: number): SolidModel {
   return model(cols, rows, prims)
 }
 
-/** Parade float (praalwagen): a wagon on four wheels with a red, white and yellow skirt, bunting poles at the corners and a big frog on the deck. One cell wide, two long. */
+/** Parade float (praalwagen): a wagon on four wheels with a red, white and yellow skirt, bunting poles at the corners and a big green Oeteldonk frog in its red, white and yellow scarf on the deck. One cell wide, two long. */
 export function floatCart(): SolidModel {
   const prims: Prim[] = []
   for (const [x, y] of [[6, 22], [80, 22], [6, 150], [80, 150]] as const) prims.push(box(x, y, 14, 28, 0, 22, C.slate, 2))
@@ -116,7 +116,7 @@ export function floatCart(): SolidModel {
   for (const [x, y, k] of [[12, 10, 0], [88, 10, 2], [12, 190, 2], [88, 190, 0]] as const) prims.push(cyl(x, y, 2.5, 37, 46, C.woodDeep), ball(x, y, 85, 5, OETELDONK[k]))
   for (const y of [10, 190]) for (let k = 0; k < 5; k++) prims.push(box(18 + k * 14, y - 1, 8, 2, 70, 9, OETELDONK[k % 3]!, 1))
   prims.push(ball(28, 112, 46, 12, K.frogDark), ball(72, 112, 46, 12, K.frogDark))
-  prims.push(cyl(50, 104, 26, 37, 18, K.frog, 20), cyl(50, 104, 20, 55, 3, K.yellow), cyl(50, 104, 19, 58, 3, C.white), cyl(50, 104, 18, 61, 3, K.red))
+  prims.push(cyl(50, 104, 26, 37, 18, K.frog, 20), cyl(50, 104, 21, 55, 8, C.white, undefined, 1.5), box(31, 114, 12, 11, 55, 8, K.red, 1.5), box(57, 114, 12, 11, 55, 8, K.yellow, 1.5), box(31, 83, 12, 11, 55, 8, K.yellow, 1.5), box(57, 83, 12, 11, 55, 8, K.red, 1.5))
   prims.push(ball(50, 104, 79, 16, K.frog), ball(41, 110, 89, 6, C.white), ball(59, 110, 89, 6, C.white), ball(41, 114, 90, 2.5, C.ink), ball(59, 114, 90, 2.5, C.ink))
   for (const [x, y, k] of [[22, 40, 0], [70, 52, 2], [30, 160, 1], [66, 172, 0], [50, 146, 2]] as const) prims.push(onTop(x, y, 6, 4, 37, k === 1 ? K.confettiBlue : OETELDONK[k], 0.8))
   return model(1, 2, prims)
