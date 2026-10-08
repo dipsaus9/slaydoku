@@ -1,12 +1,29 @@
 import type { Scene } from '../../../engine/model/index.ts'
 import type { Locale } from '../../../locale/types.ts'
 import type { SceneGeometry } from '../geometry.ts'
-import { LABEL_LINE_HEIGHT, roomLabelLayout } from '../labels.ts'
+import { LABEL_LINE_HEIGHT, roomLabelLayout, type RoomLabelLayout } from '../labels.ts'
 import { THEME } from '../theme.ts'
 
 const round = (n: number) => Math.round(n * 100) / 100
 
-export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; geometry: SceneGeometry; locale?: Locale }) {
+/** The squares of a label's run that its text actually covers. */
+function labelCells(label: RoomLabelLayout): string[] {
+  const from = Math.max(label.run.fromCol, Math.floor(label.center.x - label.width / 2))
+  const to = Math.min(label.run.toCol, Math.ceil(label.center.x + label.width / 2) - 1)
+  const keys: string[] = []
+  for (let col = from; col <= to; col++) keys.push(`${label.run.row},${col}`)
+  return keys
+}
+
+/** Opacity of a room name that lies over a square with notes: the letters drawn over it stay the clearest thing (SLAY-20). */
+export const YIELDING_LABEL_OPACITY = 0.5
+
+/**
+ * `notedCells` (cell keys "row,col") are squares with candidate notes. A name over one of them steps back
+ * (YIELDING_LABEL_OPACITY): the notes are drawn above the names (SceneView), and a faded name behind them
+ * keeps every letter of the notes readable while the name itself still shows through.
+ */
+export function RoomLabels({ scene, geometry, locale = 'en', notedCells }: { scene: Scene; geometry: SceneGeometry; locale?: Locale; notedCells?: ReadonlySet<string> }) {
   const size = geometry.cellSize
   return (
     <g data-layer="room-labels" pointerEvents="none">
@@ -17,12 +34,15 @@ export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; g
         const font = round(label.fontSize * size)
         const lineGap = round(font * LABEL_LINE_HEIGHT)
         const firstLineY = -((label.lines.length - 1) * lineGap) / 2
+        const yields = !!notedCells && labelCells(label).some((key) => notedCells.has(key))
         // No pill: the paper-coloured halo around the text keeps it readable over marks and people (SLAY-17.5).
         return (
           <g
             key={room.id}
             data-room-label={room.id}
             transform={`translate(${centre.x} ${centre.y})`}
+            opacity={yields ? YIELDING_LABEL_OPACITY : undefined}
+            data-yield={yields ? '' : undefined}
           >
             <text
               textAnchor="middle"

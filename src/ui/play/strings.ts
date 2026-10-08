@@ -88,9 +88,9 @@ export const PLAY_EN: PlayStrings = {
     more: 'More',
   },
   toolTitle: {
-    note: 'Tap a square to make a note, hold to place. Drag to fill several squares.',
+    note: 'Tap a square to make a note, hold to place.',
     place: 'Tap a square to place the suspect, hold to make a note.',
-    x: 'Tap a square to rule it out. Drag to cross several squares.',
+    x: 'Tap a square to rule it out.',
     erase: 'Tap a square to clear it. Hold this button to clear everything.',
     legend: 'What do the objects and marks on this board mean?',
   },
@@ -165,9 +165,9 @@ export const PLAY_NL: PlayStrings = {
     more: 'Meer',
   },
   toolTitle: {
-    note: 'Tik op een vakje voor een notitie, houd vast om te plaatsen. Sleep om meerdere vakjes te vullen.',
+    note: 'Tik op een vakje voor een notitie, houd vast om te plaatsen.',
     place: 'Tik op een vakje om de verdachte te plaatsen, houd vast voor een notitie.',
-    x: 'Tik op een vakje om het uit te sluiten. Sleep om meerdere vakjes te kruisen.',
+    x: 'Tik op een vakje om het uit te sluiten.',
     erase: 'Tik op een vakje om het te wissen. Houd deze knop ingedrukt om alles te wissen.',
     legend: 'Wat betekenen de objecten en tekens op dit bord?',
   },

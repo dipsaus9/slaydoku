@@ -31,6 +31,14 @@ export const CONFUSABLE_GROUPS: readonly { title: string; items: readonly { type
   { title: 'Seats: chair, sofa, bench', items: [{ type: 'chair', variant: '1x1' }, { type: 'sofa', variant: '2x1' }, { type: 'bench', variant: '2x1' }] },
   { title: 'Lying flat: rug, oil slick, framed painting, flowers', items: [{ type: 'rug', variant: '1x1' }, { type: 'oilSlick', variant: '1x1' }, { type: 'framedPainting', variant: '1x1' }, { type: 'flowers', variant: '1x1' }] },
   { title: 'Greenery: plant, tree, flowers', items: [{ type: 'plant', variant: '1x1' }, { type: 'tree', variant: '1x1' }, { type: 'flowers', variant: '1x1' }] },
-  { title: 'Upright faces: tv, easel, statue', items: [{ type: 'tv', variant: '1x1' }, { type: 'easel', variant: '1x1' }, { type: 'statue', variant: '1x1' }] },
+  { title: 'Upright faces: tv, mirror, kiosk, easel, statue', items: [{ type: 'tv', variant: '1x1' }, { type: 'mirror', variant: '1x1' }, { type: 'kiosk', variant: '1x1' }, { type: 'easel', variant: '1x1' }, { type: 'statue', variant: '1x1' }] },
+  // Decor objects (SLAY-19.1).
+  { title: 'White boxes: fridge, washing machine, dryer, cabinet, water cooler', items: [{ type: 'fridge', variant: '1x1' }, { type: 'washingMachine', variant: '1x1' }, { type: 'dryer', variant: '1x1' }, { type: 'cabinet', variant: '1x1' }, { type: 'waterCooler', variant: '1x1' }] },
+  { title: 'On a post: lamp, plant, globe, bin, coat rack', items: [{ type: 'lamp', variant: '1x1' }, { type: 'plant', variant: '1x1' }, { type: 'globe', variant: '1x1' }, { type: 'bin', variant: '1x1' }, { type: 'coatRack', variant: '1x1' }] },
+  { title: 'Dark cabinets: server rack, wardrobe, piano, bookshelf', items: [{ type: 'serverRack', variant: '2x1' }, { type: 'wardrobe', variant: '2x1' }, { type: 'piano', variant: '2x1' }, { type: 'bookshelf', variant: '2x1' }] },
+  { title: 'Water: bathtub, aquarium, sink, fireplace', items: [{ type: 'bathtub', variant: '2x1' }, { type: 'aquarium', variant: '2x1' }, { type: 'sink', variant: '2x1' }, { type: 'fireplace', variant: '2x1' }] },
+  { title: 'Outdoors: tent, tree, barbecue, slide, bench', items: [{ type: 'tent', variant: '2x2' }, { type: 'tree', variant: '1x1' }, { type: 'barbecue', variant: '1x1' }, { type: 'playEquipment', variant: '2x1' }, { type: 'bench', variant: '2x1' }] },
+  { title: 'Small boxes: shopping cart, chest, vaulting box, bin', items: [{ type: 'shoppingCart', variant: '1x1' }, { type: 'chest', variant: '1x1' }, { type: 'gymBox', variant: '1x1' }, { type: 'bin', variant: '1x1' }] },
+  { title: 'Two-wheelers: exercise bike, bicycle', items: [{ type: 'exerciseBike', variant: '1x2' }, { type: 'bicycle', variant: '2x1' }] },
 ]
 

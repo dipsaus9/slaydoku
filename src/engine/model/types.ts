@@ -50,6 +50,26 @@ export type ObjectType =
   | 'bicycle'
   | 'gardenTable'
   | 'bench'
+  // Decor objects (SLAY-19.1), all blocking.
+  | 'lamp'
+  | 'mirror'
+  | 'coatRack'
+  | 'fridge'
+  | 'bathtub'
+  | 'fireplace'
+  | 'piano'
+  | 'aquarium'
+  | 'exerciseBike'
+  | 'bin'
+  | 'waterCooler'
+  | 'serverRack'
+  | 'globe'
+  | 'gymBox'
+  | 'playEquipment'
+  | 'barbecue'
+  | 'tent'
+  | 'shoppingCart'
+  | 'kiosk'
 
 /**
  * An object standing on the grid. It covers one or more cells (a 2-cell bed,

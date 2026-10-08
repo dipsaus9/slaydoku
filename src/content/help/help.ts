@@ -101,7 +101,6 @@ export const HELP_EN: HelpContent = {
   more: {
     title: 'More about the buttons',
     items: [
-      ['Drag', 'Drag over squares to fill or clear several at once.'],
       ['X', 'Rule out squares for the selected person.'],
       ['Erase', 'Tap a square to clear it. Hold the button to clear everything.'],
       ['Undo and Redo', 'Take back your last move, or do it again.'],
@@ -169,7 +168,6 @@ export const HELP_NL: HelpContent = {
   more: {
     title: 'Meer over de knoppen',
     items: [
-      ['Slepen', 'Sleep over vakjes om er meteen meerdere te vullen of te wissen.'],
       ['X', 'Sluit vakjes uit voor de gekozen persoon.'],
       ['Wissen', 'Tik op een vakje om het te wissen. Houd de knop ingedrukt om alles te wissen.'],
       ['Ongedaan maken en opnieuw', 'Maak je laatste zet ongedaan, of doe hem opnieuw.'],
