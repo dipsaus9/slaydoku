@@ -4,7 +4,7 @@ title: 'Room rules for office, school, park and shop, one chair look, new rooms'
 status: Done
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 10:57'
+updated_date: '2026-10-08 11:13'
 labels:
   - story
 dependencies:
@@ -22,6 +22,7 @@ references:
     tools/schedule.test.ts src/engine/solver/advanced/soundness.test.ts
     docs/authoring/room-rules.md docs/authoring/rules.md
     docs/authoring/theme-and-icons.md
+  - src/engine/solver/advanced/soundness.slow.test.ts
 parent_task_id: SLAY-17
 type: feature
 ordinal: 119000
