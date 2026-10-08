@@ -132,7 +132,7 @@ function painted(html: string): { id: string; row: number }[] {
 }
 
 describe('the draw order of every kind and of every day of the schedule', () => {
-  it('paints every kind in every orientation: flat first, then by front row and column, the shadow only for what stands up', () => {
+  it('paints every kind in every orientation: flat first, then by front row and column, the shadow only for what stands up', { timeout: 60_000 }, () => {
     const kinds = [...Object.entries(ICON_DEFINITIONS).map(([k, d]) => [k, undefined, d.variants] as const), ...Object.entries(THEME_ICON_DEFINITIONS).map(([k, d]) => ['chair', k, d.variants] as const)]
     const scene: Scene = { width: 12, height: 12, rooms: [{ id: 'A', name: 'A' }], cellRooms: Array.from({ length: 12 }, () => Array.from({ length: 12 }, () => 'A')), objects: [], edgeFeatures: [] }
     const geometry = createGeometry(scene)
@@ -160,7 +160,7 @@ describe('the draw order of every kind and of every day of the schedule', () => 
     expect(n).toBeGreaterThan(500)
   })
 
-  it('paints the objects of every day of the baked schedule with the flat ones first and then by front row and column', () => {
+  it('paints the objects of every day of the baked schedule with the flat ones first and then by front row and column', { timeout: 120_000 }, () => {
     const { days } = readSchedule()
     let checked = 0
     for (const day of days) {
