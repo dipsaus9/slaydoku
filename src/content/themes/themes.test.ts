@@ -3,11 +3,16 @@ import { OBJECT_CATALOG, checkScene, isOccupiableType } from '../../engine/model
 import type { Scene } from '../../engine/model/index.ts'
 import { THEME_ICON_IDS } from '../../render/icons/themes/types.ts'
 import { resolveThemeObjectIcon } from '../../render/icons/themes/resolve.ts'
-import { ENGINE_ICON, drawnKinds, kindNoun, specificNoun, themeObjectOf } from './drawn.ts'
+import { OBJECT_WORDS } from '../../engine/clues/en.ts'
+import { OBJECT_WORDS_NL } from '../../engine/clues/nl.ts'
+import { ENGINE_ICON, drawnKinds, kindNoun, kindNounNl, specificNoun, themeObjectOf } from './drawn.ts'
 import { SCENE_THEMES, getTheme, roomNameNlOf } from './index.ts'
 import type { ThemeId } from './types.ts'
 
 const REQUIRED: ThemeId[] = ['home', 'office', 'park', 'school', 'shop', 'simpshouse']
+
+/** Kinds whose Dutch noun happens to be spelled like the English one. */
+const SAME_IN_BOTH = new Set(['printer'])
 
 describe('scene themes', () => {
   it('defines the five rotation themes and Simpshouse with unique ids', () => {
@@ -68,6 +73,35 @@ describe('scene themes', () => {
       it('has unique kinds and names', () => {
         expect(new Set(theme.objects.map((o) => o.kind)).size).toBe(theme.objects.length)
         for (const o of theme.objects) expect(o.name.length, o.kind).toBeGreaterThan(2)
+      })
+
+      it('has a real Dutch noun for every object kind (SLAY-17.4): singular, lower case, no article, not the English word', () => {
+        for (const o of theme.objects) {
+          expect(typeof o.nameNl, o.kind).toBe('string')
+          expect(o.nameNl.trim(), o.kind).toBe(o.nameNl)
+          expect(o.nameNl.length, o.kind).toBeGreaterThanOrEqual(2) // "wc"
+          expect(o.nameNl, o.kind).toBe(o.nameNl.toLowerCase())
+          expect(/^(de|het|een) /.test(o.nameNl), `${o.kind}: no article in nameNl`).toBe(false)
+          // A kind whose Dutch and English nouns are spelled alike ("printer") is fine; the check catches an untranslated copy-paste.
+          expect(o.nameNl === kindNoun(o) && !SAME_IN_BOTH.has(o.kind), `${o.kind}: nameNl equals the English noun`).toBe(false)
+        }
+      })
+
+      it('gives kinds a player can tell apart different Dutch nouns, and never the generic noun to a kind with its own art (SLAY-17.4: the Dutch noun audit needs it)', () => {
+        for (const type of new Set(theme.objects.map((o) => o.engineType))) {
+          const kinds = theme.objects.filter((o) => o.engineType === type)
+          const byNoun = new Map<string, Set<string>>()
+          for (const o of kinds) byNoun.set(o.nameNl, (byNoun.get(o.nameNl) ?? new Set()).add(o.themeIcon ?? ENGINE_ICON))
+          // one Dutch noun, one icon: two kinds drawn differently must not share a word, or "een X" would name both
+          for (const [noun, icons] of byNoun) expect([...icons], `${theme.id} ${type}: "${noun}" names kinds drawn differently`).toHaveLength(1)
+          // a kind with its own art must not take the generic noun, which already names the plain-icon kinds of the type
+          for (const o of kinds.filter((o) => o.themeIcon)) expect(o.nameNl, `${o.kind}: nameNl is the generic noun of ${type}`).not.toBe(OBJECT_WORDS_NL[type].noun)
+          // the same rule in English (it always held; pinned so both languages are checked alike)
+          const byNounEn = new Map<string, Set<string>>()
+          for (const o of kinds) byNounEn.set(kindNoun(o), (byNounEn.get(kindNoun(o)) ?? new Set()).add(o.themeIcon ?? ENGINE_ICON))
+          for (const [noun, icons] of byNounEn) expect([...icons], `${theme.id} ${type}: "${noun}" names kinds drawn differently`).toHaveLength(1)
+          for (const o of kinds.filter((o) => o.themeIcon)) expect(kindNoun(o), `${o.kind}: noun is the generic noun of ${type}`).not.toBe(OBJECT_WORDS[type].noun)
+        }
       })
 
       it('takes the occupiable flag from the engine catalog', () => {
@@ -189,12 +223,42 @@ function isConnected(cells: readonly { row: number; col: number }[]): boolean {
 describe('drawn kinds (clue nouns)', () => {
   const all = SCENE_THEMES.flatMap((t) => t.objects)
 
-  it('gives a kind name shared by several themes the same noun, engine type and art', () => {
+  it('gives a kind name shared by several themes the same nouns (both languages), engine type and art', () => {
     for (const o of all) {
       for (const other of all.filter((x) => x.kind === o.kind)) {
-        expect([other.name, other.clueNoun, other.engineType, other.themeIcon], o.kind).toEqual([o.name, o.clueNoun, o.engineType, o.themeIcon])
+        expect([other.name, other.clueNoun, other.nameNl, other.engineType, other.themeIcon], o.kind).toEqual([o.name, o.clueNoun, o.nameNl, o.engineType, o.themeIcon])
       }
     }
+  })
+
+  it('names every kind in Dutch too: no kind of any registered theme is without a nameNl (SLAY-17.4)', () => {
+    const missing = SCENE_THEMES.flatMap((t) => t.objects.filter((o) => !o.nameNl || o.nameNl.trim() === '').map((o) => `${t.id}:${o.kind}`))
+    expect(missing).toEqual([])
+    expect(all.length).toBeGreaterThan(100)
+  })
+
+  it('draws every chair kind with the plain chair in Dutch too, one group with the generic noun; a kind with own art gets its own Dutch noun', () => {
+    const chairs = drawnKinds(
+      [
+        { id: 'gardenChair-1', type: 'chair' as const },
+        { id: 'schoolChair-1', type: 'chair' as const },
+      ],
+      'chair',
+    )
+    expect(chairs.map((g) => [g.nounsNl, specificNoun(g, 'nl')])).toEqual([[['tuinstoel', 'schoolstoel'], undefined]])
+    const plants = drawnKinds(
+      [
+        { id: 'houseplant-1', type: 'plant' as const },
+        { id: 'lavaLamp-1', type: 'plant' as const },
+      ],
+      'plant',
+    )
+    expect(plants.map((g) => [g.icon, g.nounsNl, specificNoun(g, 'nl')])).toEqual([
+      [ENGINE_ICON, ['kamerplant'], 'kamerplant'],
+      ['lavaLamp', ['lavalamp'], 'lavalamp'],
+    ])
+    expect(kindNounNl(all.find((o) => o.kind === 'filingCabinet')!)).toBe('archiefkast')
+    expect(kindNounNl(all.find((o) => o.kind === 'lockers')!)).toBe('kluisje')
   })
 
   it('finds the theme object behind a generated object id, only for its own engine type', () => {

@@ -321,7 +321,7 @@
   justify-self: center;
   width: 100%;
   /* portrait: never taller than the screen leaves room for (header + cards strip) */
-  max-width: calc(100dvh - 380px);
+  max-width: calc((100dvh - 380px) / var(--board-aspect, 1));
   min-width: 280px;
 }
 
@@ -789,21 +789,6 @@
   list-style: none;
 }
 
-/* SLAY-17.8 preview only: the object look switch, a row like .play-switch with three buttons under the text. */
-.play-look {
-  display: grid;
-  gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--paper);
-}
-
-.play-look small {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
 .play-switch {
   display: flex;
   align-items: center;
@@ -1090,12 +1075,10 @@ button.play-legend__row:focus-visible {
   height: 52px;
 }
 
-/* The viewBox has room for the ground shadow at the right and bottom (Legend.tsx); the box grows by the
-   same ratio so the object keeps its size, and the shift keeps it centred as before. */
+/* The svg is cropped to everything the object covers (Solids.tsx SolidSvg), so it fits the swatch whole: nothing clipped, however tall. */
 .play-legend__icon {
-  width: calc(100% * var(--swatch-grow-x, 1));
-  height: calc(100% * var(--swatch-grow-y, 1));
-  transform: translate(var(--swatch-shift-x, 0), var(--swatch-shift-y, 0));
+  width: 100%;
+  height: 100%;
 }
 
 .play-legend__square {
@@ -1192,7 +1175,9 @@ button.play-legend__row:focus-visible {
        header it stacks above the board, its 10px row-gap, its own bottom padding) instead of one
        guessed number -- the old flat 76px undercounted the real total and clipped the board's last
        row. */
-    --board: min(calc(100dvh - var(--play-top-clearance) - var(--play-header-height) - 10px - max(12px, env(safe-area-inset-bottom))), 64vw);
+    /* The board is --board wide and --board * --board-aspect high (PlayScreen sets the aspect from the drawing's own viewBox: the headroom above the
+       grid makes it taller than wide), so the height budget is divided by it. */
+    --board: min(calc((100dvh - var(--play-top-clearance) - var(--play-header-height) - 10px - max(12px, env(safe-area-inset-bottom))) / var(--board-aspect, 1)), 64vw);
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
@@ -1439,7 +1424,7 @@ button.play-legend__row:focus-visible {
   }
 
   .play {
-    --board: var(--play-board);
+    --board: calc(var(--play-board) / var(--board-aspect, 1));
     gap: 8px 12px;
     padding-bottom: max(8px, env(safe-area-inset-bottom));
     grid-template-rows: auto auto minmax(0, 1fr);

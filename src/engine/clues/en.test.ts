@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { OBJECT_TYPES } from '../model/index.ts'
 import { checkClue } from './check.ts'
 import { OBJECT_WORDS, VICTIM_TEXT, capitalizeLabel, countWord, objectNouns, objectOn, renderClue, roomName, upperFirst, withArticle } from './en.ts'
-import { OBJECT_WORDS_NL, objectOnNl } from './nl.ts'
+import { OBJECT_WORDS_NL, objectNounsNl, objectOnNl } from './nl.ts'
+import type { RenderContext } from './en.ts'
+import { SCENE_THEMES } from '../../content/themes/index.ts'
 import { renderClue as renderClueLocale } from './render.ts'
 import { people, scene } from './testing.fixture.ts'
 import { STRUCTURAL_CLUE_TYPES } from './types.ts'
@@ -601,5 +603,72 @@ describe('object nouns follow what the board draws', () => {
   it('does not take a theme kind whose engine type differs from the object', () => {
     // "car" is a home kind of type car; an id "car-1" on a chair is a plain chair
     expect(objectNouns([{ id: 'car-1', type: 'chair' }], 'chair')).toEqual(['chair'])
+  })
+
+  describe('in Dutch (SLAY-17.4: every theme kind has its own Dutch noun, so Dutch draws the same distinction)', () => {
+    const nl = (clue: CatalogClue, c: RenderContext) => renderClueLocale(clue, c, 'nl')
+
+    it('names both rugs, each by its own Dutch noun', () => {
+      expect(objectNounsNl(rugAndMat.scene.objects, 'rug')).toEqual(['leeskleed', 'sportmat'])
+      const beside = { personId: 'A', type: 'besideObject', args: { objectType: 'rug' } } as const
+      expect(nl(beside, rugAndMat)).toBe('A stond naast een leeskleed of een sportmat.')
+      expect(nl({ ...beside, args: { objectType: 'rug', exactlyOne: true } }, rugAndMat)).toBe('A stond naast precies één leeskleed of sportmat.')
+      expect(nl({ personId: 'A', type: 'onObject', args: { objectType: 'rug' } }, rugAndMat)).toBe('A stond op een leeskleed of een sportmat.')
+      expect(nl({ personId: 'A', type: 'squareWithObject', args: { objectType: 'rug' } }, rugAndMat)).toBe(
+        "Er lag een leeskleed of een sportmat op A's vakje.",
+      )
+    })
+
+    it('names a kind with its own art by what is drawn, never by the generic noun of its type (owner report: a lava lamp read as "plant", a filing cabinet as "kast")', () => {
+      const glam = {
+        scene: {
+          ...scene,
+          objects: [
+            { id: 'lavaLamp-1', type: 'plant' as const, cells: [at(0, 0)] },
+            { id: 'filingCabinet-1', type: 'cabinet' as const, cells: [at(2, 2)] },
+          ],
+        },
+        people,
+      }
+      expect(nl({ personId: 'A', type: 'besideObject', args: { objectType: 'plant' } }, glam)).toBe('A stond naast een lavalamp.')
+      expect(nl({ personId: 'A', type: 'notBesideObject', args: { objectType: 'cabinet' } }, glam)).toBe('A stond niet naast een archiefkast.')
+      expect(nl({ personId: 'A', type: 'directlyNextToObject', args: { side: 'east', objectType: 'cabinet' } }, glam)).toBe(
+        'A stond op het vakje direct rechts van een archiefkast.',
+      )
+      expect(nl({ personId: 'A', type: 'directionOfObject', args: { side: 'north', objectType: 'plant' } }, glam)).toBe(
+        'A stond verder naar het noorden dan een lavalamp.',
+      )
+    })
+
+    it('uses the generic Dutch noun when every member of the group is drawn alike, and for a bare scene', () => {
+      const alike = withObjects([
+        { id: 'schoolChair-1', type: 'chair', cells: [at(0, 0)] },
+        { id: 'meetingChair-1', type: 'chair', cells: [at(1, 1)] },
+      ])
+      expect(objectNounsNl(alike.scene.objects, 'chair')).toEqual(['stoel'])
+      expect(nl({ personId: 'A', type: 'besideObject', args: { objectType: 'chair' } }, alike)).toBe('A stond naast een stoel.')
+      const park = withObjects([{ id: 'gardenChair-1', type: 'chair', cells: [at(0, 0)] }])
+      expect(nl({ personId: 'A', type: 'besideObject', args: { objectType: 'chair' } }, park)).toBe('A stond naast een tuinstoel.')
+      expect(objectNounsNl(scene.objects, 'chair')).toEqual(['stoel'])
+      expect(objectNounsNl(undefined, 'rug')).toEqual(['kleed'])
+      expect(objectNounsNl([{ id: 'car-1', type: 'chair' }], 'chair')).toEqual(['stoel'])
+    })
+
+    it('uses the singular Dutch noun for a plural theme name (lockers), and "in" for a vehicle', () => {
+      const lockers = withObjects([{ id: 'lockers-1', type: 'wardrobe', cells: [at(0, 0), at(0, 1)] }])
+      expect(nl({ personId: 'A', type: 'besideObject', args: { objectType: 'wardrobe' } }, lockers)).toBe('A stond naast een kluisje.')
+      const bus = { scene: { ...scene, objects: [{ id: 'schoolBus-1', type: 'car' as const, cells: [at(0, 0), at(1, 0)] }] }, people }
+      expect(nl({ personId: 'A', type: 'onObject', args: { objectType: 'car' } }, bus)).toBe('A zat in een schoolbus.')
+    })
+
+    it('gives every kind of every theme a Dutch noun a Dutch sentence can say (no English leaks through)', () => {
+      for (const theme of SCENE_THEMES) {
+        for (const o of theme.objects) {
+          const one = { scene: { ...scene, objects: [{ id: `${o.kind}-1`, type: o.engineType, cells: o.footprints[0]!.cells }] }, people }
+          const text = nl({ personId: 'A', type: 'besideObject', args: { objectType: o.engineType } }, one)
+          expect(text, o.kind).toBe(`A stond naast een ${o.nameNl}.`)
+        }
+      }
+    })
   })
 })

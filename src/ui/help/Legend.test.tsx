@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { generatedPuzzles } from '../../content/generated.testing.ts'
 import { demoPuzzle } from '../../content/demo/puzzle.ts'
 import { themeObjectOf } from '../../content/themes/drawn.ts'
-import { objectNouns } from '../../engine/clues/en.ts'
-import { OBJECT_WORDS_NL } from '../../engine/clues/nl.ts'
+import { OBJECT_WORDS, objectNouns } from '../../engine/clues/en.ts'
+import { OBJECT_WORDS_NL, objectNounsNl } from '../../engine/clues/nl.ts'
 import { OBJECT_CATALOG, cellKey } from '../../engine/model/index.ts'
 import type { PlacedObject, Puzzle, Scene } from '../../engine/model/index.ts'
 import { HELP_CONTENT, help } from '../../content/help/help.ts'
@@ -39,14 +39,11 @@ function expectRowsMatchScene(scene: Scene, locale: Locale = 'en') {
     const members = scene.objects.filter((o) => kindOf(o) === row.key)
     // the can / cannot flag is the engine catalog's
     expect(row.occupiable).toBe(OBJECT_CATALOG[row.type].occupiable)
-    if (locale === 'nl') {
-      // Dutch never names the specific theme kind (SLAY-6.2's nl.ts precedent): always the type's one generic noun, nothing "also"
-      expect(row.noun).toBe(OBJECT_WORDS_NL[row.type].noun)
-      expect(row.alsoNouns).toEqual([])
-    } else {
-      // the noun is one the clue cards use for this type
-      expect(objectNouns(scene.objects, row.type)).toContain(row.noun)
-    }
+    // the noun is one the clue cards use for this type, in this language (SLAY-17.4: Dutch names the drawn kind too)
+    expect(locale === 'nl' ? objectNounsNl(scene.objects, row.type) : objectNouns(scene.objects, row.type)).toContain(row.noun)
+    // a specific noun stands alone; the generic noun lists the kinds drawn alike as "also", never itself
+    expect(row.alsoNouns).not.toContain(row.noun)
+    if (row.alsoNouns.length > 0) expect(row.noun).toBe((locale === 'nl' ? OBJECT_WORDS_NL : OBJECT_WORDS)[row.type].noun)
     // it flashes exactly the squares of its objects
     const squares = new Set(members.flatMap((o) => o.cells.map(cellKey)))
     expect(new Set(row.cells.map(cellKey))).toEqual(squares)
@@ -154,12 +151,12 @@ describe('legendOf on generated scenes', () => {
 
 describe('legendOf, nl locale', () => {
   for (const { name, puzzle } of [...houses, ...picked]) {
-    it(`${name}: one row per object kind, the type's real Dutch noun and the right flag`, () => {
+    it(`${name}: one row per object kind, the real Dutch noun of the drawn kind and the right flag`, () => {
       expectRowsMatchScene(puzzle.scene, 'nl')
     })
   }
 
-  it('collapses look-alike kinds to the one Dutch noun: a gym mat and a reading rug both say the one rug noun, nothing "also"', () => {
+  it('names differently drawn kinds by their own Dutch nouns: a gym mat next to a reading rug are "leeskleed" and "sportmat", nothing "also" (SLAY-17.4)', () => {
     const scene: Scene = {
       width: 3,
       height: 1,
@@ -174,12 +171,36 @@ describe('legendOf, nl locale', () => {
     }
     const legend = expectRowsMatchScene(scene, 'nl')
     expect(legend.objects.map((r) => [r.noun, r.alsoNouns])).toEqual([
-      [OBJECT_WORDS_NL.rug.noun, []],
-      [OBJECT_WORDS_NL.rug.noun, []],
+      ['leeskleed', []],
+      ['sportmat', []],
     ])
   })
 
-  it('names chairs that look alike (garden chair, school chair) with the generic Dutch noun too, unlike English which keeps them apart', () => {
+  it('names a kind with its own art by what is drawn, never by the generic noun of its engine type: a lava lamp is "lavalamp", not "plant"; a filing cabinet "archiefkast", not "kast" (owner report)', () => {
+    const scene: Scene = {
+      width: 4,
+      height: 1,
+      rooms: [{ id: 'r', name: 'Living Room' }],
+      cellRooms: [['r', 'r', 'r', 'r']],
+      objects: [
+        { id: 'houseplant-1', type: 'plant', cells: [{ row: 0, col: 0 }] },
+        { id: 'lavaLamp-1', type: 'plant', cells: [{ row: 0, col: 1 }] },
+        { id: 'filingCabinet-1', type: 'cabinet', cells: [{ row: 0, col: 2 }] },
+        { id: 'printer-1', type: 'cabinet', cells: [{ row: 0, col: 3 }] },
+      ],
+      edgeFeatures: [],
+    }
+    const legend = expectRowsMatchScene(scene, 'nl')
+    expect(legend.objects.map((r) => [r.noun, r.alsoNouns])).toEqual([
+      ['kamerplant', []],
+      ['lavalamp', []],
+      ['archiefkast', []],
+      ['printer', []],
+    ])
+    expect(legendOf(scene, 'en').objects.map((r) => r.noun)).toEqual(['houseplant', 'lava lamp', 'filing cabinet', 'printer'])
+  })
+
+  it('names chairs that look alike (garden chair, school chair) with the generic Dutch noun and lists the kinds as "also", exactly like English', () => {
     const scene: Scene = {
       width: 2,
       height: 1,
@@ -193,8 +214,8 @@ describe('legendOf, nl locale', () => {
     }
     const [row, ...rest] = expectRowsMatchScene(scene, 'nl').objects
     expect(rest).toHaveLength(0)
-    expect(row!.noun).toBe(OBJECT_WORDS_NL.chair.noun)
-    expect(row!.alsoNouns).toEqual([])
+    expect(row!.noun).toBe('stoel')
+    expect(row!.alsoNouns).toEqual(['tuinstoel', 'schoolstoel'])
   })
 })
 
@@ -227,8 +248,8 @@ describe('<Legend/>', () => {
     expect(legendNl.objects.length).toBeGreaterThan(0)
     for (const row of legendNl.objects) {
       expect(nl).toContain(`<strong>${row.noun}</strong>`)
-      // the nl noun is the type's real Dutch generic noun, not whatever English rendered for the same row key
-      expect(row.noun).toBe(OBJECT_WORDS_NL[row.type].noun)
+      // the nl noun is a real Dutch noun the Dutch cards use for this type, not whatever English rendered for the same row key
+      expect(objectNounsNl(puzzle.scene.objects, row.type)).toContain(row.noun)
     }
     expect(en).not.toBe(nl)
   })

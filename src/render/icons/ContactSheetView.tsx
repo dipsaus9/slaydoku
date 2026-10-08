@@ -1,72 +1,46 @@
+import { OBJECT_CATALOG } from '../../engine/model/index.ts'
+import { MODEL_ONLY } from '../looks/registry.ts'
+import { SolidSvg } from '../looks/Solids.tsx'
+import { solidFor } from '../looks/solid.ts'
+import type { Solid } from '../looks/solid.ts'
 import { EdgeFeatureIcon } from './EdgeFeatureIcon.tsx'
-import { IconDepthScope, ObjectIconGlyph } from './ObjectIcon.tsx'
-import { ORIENTATIONS, ROTATIONS, boundingSize, orientCells } from './orientation.ts'
-import type { Rotation } from './orientation.ts'
+import { BOARD_CELL, CONFUSABLE_GROUPS, PHONE_CELL, orientedSolid } from './contactSheetData.ts'
+import { ORIENTATIONS, boundingSize, orientCells } from './orientation.ts'
+import type { Orientation } from './orientation.ts'
 import type { IconVariant } from './registry.tsx'
 import { iconFootprints } from './resolve.ts'
-import { OBJECT_CATALOG } from '../../engine/model/index.ts'
+import { ThemeIconSheet } from './themes/ThemeIconSheet.tsx'
 import { iconLegendGroups } from './types.ts'
 import type { IconObjectType } from './types.ts'
-import { ThemeIconSheet } from './themes/ThemeIconSheet.tsx'
+import type { ThemeIconId } from './themes/types.ts'
 
-/** Pixel size of one cell on the sheet. */
-const CELL = 60
+const orientationLabel = (o: Orientation) => `${o.rotation}${o.mirror ? ' mirrored' : ''}`
 
-/** One tile for a single cell, four (one per quarter turn) for anything bigger. */
-function rotationsToShow(variant: IconVariant): Rotation[] {
-  return variant.cells.length === 1 ? [0] : [...ROTATIONS]
-}
-
-function Tile({ type, variant, rotation }: { type: IconObjectType; variant: IconVariant; rotation: Rotation }) {
-  const orientation = ORIENTATIONS.find((o) => o.rotation === rotation && !o.mirror)!
-  const cells = orientCells(variant.cells, variant.cols, variant.rows, orientation)
-  const size = boundingSize(cells)
+/** All 8 orientations of a footprint (a single cell shows four: it has the same footprint turned, but the art turns with it). */
+export function OrientationTiles({ type, themeIcon, variant, px }: { type: IconObjectType; themeIcon?: ThemeIconId; variant: IconVariant; px: number }) {
   return (
-    <figure className="tile">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={size.cols * CELL}
-        height={size.rows * CELL}
-        viewBox={`0 0 ${size.cols * 100} ${size.rows * 100}`}
-        role="img"
-        aria-label={`${type} ${variant.id} rotated ${rotation}`}
-      >
-        {cells.map((c) => (
-          <rect
-            key={`${c.row}-${c.col}`}
-            x={c.col * 100}
-            y={c.row * 100}
-            width={100}
-            height={100}
-            fill="#ffffff"
-            stroke="#b9b2a0"
-            strokeWidth={1.5}
-            strokeDasharray="6 5"
-          />
-        ))}
-        <IconDepthScope>
-          <ObjectIconGlyph type={type} cells={cells} rotation={rotation} />
-        </IconDepthScope>
-      </svg>
-      <figcaption>{rotation}&deg;</figcaption>
-    </figure>
+    <div className="tiles">
+      {ORIENTATIONS.map((o) => {
+        const solid = orientedSolid(type, themeIcon, variant, o)
+        const size = boundingSize(orientCells(variant.cells, variant.cols, variant.rows, o))
+        return (
+          <figure className="tile" key={orientationLabel(o)} data-orientation={orientationLabel(o)} data-size={`${size.cols}x${size.rows}`}>
+            {solid ? <SolidSvg solid={solid} pxPerCell={px} showCells title={`${themeIcon ?? type} ${variant.id} ${orientationLabel(o)}`} /> : <div className="missing">no art</div>}
+            <figcaption>{orientationLabel(o)}</figcaption>
+          </figure>
+        )
+      })}
+    </div>
   )
 }
 
 function VariantRow({ type, variant }: { type: IconObjectType; variant: IconVariant }) {
   return (
-    <div className="variant">
+    <div className="variant" data-type={type} data-variant={variant.id}>
       <div className="variant-label">
-        {variant.id}{' '}
-        <span>
-          ({variant.cells.length} {variant.cells.length === 1 ? 'cell' : 'cells'})
-        </span>
+        {variant.id} <span>({variant.cells.length} {variant.cells.length === 1 ? 'cell' : 'cells'})</span>
       </div>
-      <div className="tiles">
-        {rotationsToShow(variant).map((rotation) => (
-          <Tile key={rotation} type={type} variant={variant} rotation={rotation} />
-        ))}
-      </div>
+      <OrientationTiles type={type} variant={variant} px={BOARD_CELL} />
     </div>
   )
 }
@@ -82,6 +56,52 @@ function ObjectCard({ type }: { type: IconObjectType }) {
   )
 }
 
+function ConfusableStrip({ group, px }: { group: (typeof CONFUSABLE_GROUPS)[number]; px: number }) {
+  return (
+    <section className="card" data-confusable={group.title}>
+      <h3>{group.title}</h3>
+      <div className="tiles">
+        {group.items.map((item) => {
+          const variant = iconFootprints(item.type).find((v) => v.id === item.variant)
+          const solid = variant ? solidFor(item.type, item.themeIcon, variant.cells) : null
+          return (
+            <figure className="tile" key={`${item.type}-${item.variant}`}>
+              {solid ? <SolidSvg solid={solid} pxPerCell={px} title={item.type} /> : <div className="missing">no art</div>}
+              <figcaption>{item.type}</figcaption>
+            </figure>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+/** The water of the bathtub model: not an object kind of the app, drawn here so its water can be checked. */
+function ModelOnlyCards() {
+  return (
+    <div className="grid">
+      {Object.entries(MODEL_ONLY).map(([name, build]) => {
+        const model = build()
+        const cells = Array.from({ length: model.cols * model.rows }, (_, i) => ({ row: Math.floor(i / model.cols), col: i % model.cols }))
+        const solid: Solid = { key: name as never, themeIcon: undefined, prims: model.prims, flat: model.flat, cells, width: model.cols * 100, height: model.rows * 100 }
+        return (
+          <section className="card" key={name} data-model-only={name}>
+            <h3>{name} (model only, no object kind)</h3>
+            <div className="tiles">
+              {[BOARD_CELL, PHONE_CELL].map((px) => (
+                <figure className="tile" key={px}>
+                  <SolidSvg solid={solid} pxPerCell={px} showCells title={name} />
+                  <figcaption>{px} px per cell</figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        )
+      })}
+    </div>
+  )
+}
+
 const STYLE = `
 :root { color-scheme: light; font: 15px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif; color: #2a211c; }
 body { margin: 0; padding: 24px; background: #f5f3ef; }
@@ -94,13 +114,14 @@ h3 { margin: 0 0 8px; font-size: 16px; }
 p.note { margin: 0; color: #6b6259; }
 .grid { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
 .card { background: #fff; border: 1px solid #ddd6c8; border-radius: 10px; padding: 12px 14px; }
-.variant { margin-bottom: 10px; }
+.variant, .theme-variant { margin-bottom: 10px; }
 .variant-label { font-weight: 600; margin-bottom: 4px; }
 .variant-label span { font-weight: 400; color: #6b6259; }
-.tiles { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+.tiles { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
 .tile { margin: 0; }
 .tile svg { display: block; }
 .tile figcaption { font-size: 12px; color: #6b6259; text-align: center; }
+.missing { padding: 8px; background: #f7d6d6; border: 2px solid #c0392b; font-weight: 700; }
 .edge { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
 `
 
@@ -112,16 +133,22 @@ export function ContactSheetView() {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <title>Slaydoku icon contact sheet</title>
+        <title>Slaydoku object contact sheet</title>
         <style dangerouslySetInnerHTML={{ __html: STYLE }} />
       </head>
       <body>
-        <h1>Slaydoku object icons</h1>
+        <h1>Slaydoku objects</h1>
         <p className="note">
-          Dashed cells mark each footprint. Art is drawn facing south (back or head on the north side) and
-          turned by rotation. Sections follow the object catalog, as the official legend does: the icons
-          themselves carry no occupiable/blocking colour.
+          Every kind in the oblique block look, all 8 orientations (four turns, then mirrored), {BOARD_CELL} px per cell like the board at full width. Dashed
+          cells mark each footprint. Models face south (back, head or tank on the north side) and are turned in 3D, so a turned object shows its back.
+          Sections follow the object catalog.
         </p>
+        <h2 className="edges">Easily mistaken for each other, at phone size ({PHONE_CELL} px per cell)</h2>
+        <div className="grid">
+          {CONFUSABLE_GROUPS.map((group) => (
+            <ConfusableStrip key={group.title} group={group} px={PHONE_CELL} />
+          ))}
+        </div>
         <h2 className="occupiable">Can be occupied ({occupiable.length})</h2>
         <div className="grid">
           {occupiable.map((type) => (
@@ -144,6 +171,8 @@ export function ContactSheetView() {
             </div>
           ))}
         </div>
+        <h2 className="edges">Models without an object kind in the app</h2>
+        <ModelOnlyCards />
         <ThemeIconSheet />
         <p className="note">
           {Object.keys(OBJECT_CATALOG).length} object types, {footprintCount} footprints.

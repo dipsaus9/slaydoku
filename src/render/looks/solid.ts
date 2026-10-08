@@ -1,35 +1,64 @@
-import type { PlacedObject } from '../../engine/model/index.ts'
-import { resolveIcon } from '../icons/resolve.ts'
+import type { Cell, PlacedObject } from '../../engine/model/index.ts'
+import type { Rotation } from '../icons/orientation.ts'
+import type { OrientationPreference } from '../icons/resolve.ts'
+import { resolveThemeObjectIcon } from '../icons/themes/resolve.ts'
+import type { ThemeIconId } from '../icons/themes/types.ts'
 import type { IconObjectType } from '../icons/types.ts'
-import { orientModel, solidModel, type Prim } from './models.ts'
+import { orientModel, type Prim } from './models.ts'
+import { solidModelFor } from './registry.ts'
 
 export type SolidObject = Omit<PlacedObject, 'type'> & { type: IconObjectType }
 
+/** What picks the art of an object: its own theme icon, else the engine type's. */
+export type SolidKey = IconObjectType | ThemeIconId
+
+/** An object's block model turned into the footprint of its cells, ready to draw. */
 export interface Solid {
-  object: SolidObject
+  key: SolidKey
+  themeIcon: ThemeIconId | undefined
+  /** The blocks, in the footprint's own units: 100 per cell, origin at its top-left corner. */
   prims: Prim[]
+  /** Lies on the floor: drawn under the tall objects, no shadow. */
   flat: boolean
-  /** Footprint in model units (100 per cell), relative to its top-left corner. */
+  /** The footprint's cells relative to its top-left corner. */
+  cells: Cell[]
+  /** Footprint in model units. */
   width: number
   height: number
 }
 
-/** The block form of an object, turned into its footprint; null when the object has no blocks (it keeps the flat art). */
-export function solidOf(object: SolidObject, themeIcons?: Readonly<Record<string, unknown>>): Solid | null {
-  if (object.cells.length === 0 || themeIcons?.[object.id]) return null
-  const icon = resolveIcon(object.type, object.cells)
+/**
+ * The block form of an object covering `cells`, turned to fit them (`prefer` picks a facing when several fit). Null when the footprint
+ * has no art or the art has no model: the look-completeness test makes sure that never happens for an object of a registered theme.
+ */
+export function solidFor(type: IconObjectType, themeIcon: ThemeIconId | undefined, cells: readonly Cell[], prefer: OrientationPreference = {}): Solid | null {
+  if (cells.length === 0) return null
+  const icon = resolveThemeObjectIcon({ engineType: type, themeIcon }, cells, prefer)
   if (!icon) return null
-  const model = solidModel(object.type, icon.variant.cols, icon.variant.rows, icon.variant.id)
+  const key = themeIcon ?? type
+  const model = solidModelFor(key, icon.variant.cols, icon.variant.rows, icon.variant.id)
   if (!model) return null
-  return { object, prims: orientModel(model, icon.matrix), flat: model.flat, width: icon.cols * 100, height: icon.rows * 100 }
+  return { key, themeIcon, prims: orientModel(model.prims, icon.matrix), flat: model.flat, cells: icon.cells, width: icon.cols * 100, height: icon.rows * 100 }
 }
 
-/** Darker shade of a #rrggbb colour, as the prototype does it: sides are darker than the top. */
-export function shade(hex: string, factor: number): string {
-  const v = Number.parseInt(hex.slice(1), 16)
-  const r = (v >> 16) & 255
-  const g = (v >> 8) & 255
-  const b = v & 255
-  return `rgb(${Math.round(r * factor)},${Math.round(g * factor * 0.96)},${Math.round(b * factor * 0.94)})`
+/**
+ * `solidFor` for an object of the scene; `themeIcons` names the objects that have their own theme art. A scene object has no facing, only its
+ * cells, so where several turns fit the board shows the most readable one: the front toward the viewer (south) on a wide or square footprint,
+ * toward the right (east, the other side that shows) on a tall one. `facing` (a chair turned toward its table, see facing.ts) wins over that. Every one of the 8 orientations still draws (contact sheet, tests).
+ */
+export function solidOf(object: SolidObject, themeIcons?: Readonly<Record<string, ThemeIconId>>, facing?: Rotation): Solid | null {
+  if (facing !== undefined) return solidFor(object.type, themeIcons?.[object.id], object.cells, { rotation: facing })
+  const rows = new Set(object.cells.map((c) => c.row)).size
+  const cols = new Set(object.cells.map((c) => c.col)).size
+  return solidFor(object.type, themeIcons?.[object.id], object.cells, { rotation: rows > cols ? 270 : 0 })
 }
 
+/**
+ * The object as the Legend shows it: the same model, but in its canonical turn (the way the footprint is listed in the registry, front
+ * toward the viewer, long side across), so a sofa that stands on a tall footprint on the board still shows full width in its small swatch.
+ */
+export function solidCanonicalOf(object: SolidObject, themeIcons?: Readonly<Record<string, ThemeIconId>>): Solid | null {
+  const themeIcon = themeIcons?.[object.id]
+  const icon = resolveThemeObjectIcon({ engineType: object.type, themeIcon }, object.cells)
+  return icon ? solidFor(object.type, themeIcon, icon.variant.cells) : null
+}

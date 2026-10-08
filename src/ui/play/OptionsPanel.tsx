@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { GameOptions } from '../../game/index.ts'
-import { LOOKS, type Look } from '../../render/looks/look.ts'
 import { LocaleToggle } from '../daily/LocaleToggle.tsx'
 import { ReminderDialog, ReminderOptionsEntry } from '../reminder/index.ts'
 import { Modal } from './Modal.tsx'
@@ -11,9 +10,6 @@ export interface OptionsPanelProps {
   showAxisLabels: boolean
   onAxisLabels: (value: boolean) => void
   onChange: (option: keyof GameOptions, value: boolean) => void
-  /** The object look and its setter (SLAY-17.8). Pass `onLook` only where the switch is allowed (look.ts): without it the entry is not shown. */
-  look?: Look
-  onLook?: (look: Look) => void
   onClearAll: () => void
   onRestart: () => void
   onClose: () => void
@@ -24,7 +20,7 @@ export interface OptionsPanelProps {
  * language switch (SLAY-9.4: reachable from the play screen, not only the start screen, so a
  * player can change language mid-puzzle without losing board state).
  */
-export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, look = 'now', onLook, onClearAll, onRestart, onClose }: OptionsPanelProps) {
+export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, onClearAll, onRestart, onClose }: OptionsPanelProps) {
   const t = usePlayStrings().options
   const [confirmRestart, setConfirmRestart] = useState(false)
   const [reminderOpen, setReminderOpen] = useState(false)
@@ -66,30 +62,6 @@ export function OptionsPanel({ options, showAxisLabels, onAxisLabels, onChange, 
             </button>
           </li>
         ))}
-        {onLook ? (
-          <li data-look-entry="">
-            <div className="play-look">
-              <span className="play-switch__text">
-                <strong>{t.look}</strong>
-                <small>{t.lookHelp}</small>
-              </span>
-              <div className="daily__locale" role="group" aria-label={t.look}>
-                {LOOKS.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    className="daily-btn daily-btn--quiet daily__locale-option"
-                    aria-pressed={look === option}
-                    data-look-option={option}
-                    onClick={() => onLook(option)}
-                  >
-                    {option === 'now' ? t.lookNow : option === 'a2' ? t.lookA2 : t.lookA3}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </li>
-        ) : null}
         <li>
           <ReminderOptionsEntry onOpen={() => setReminderOpen(true)} />
         </li>

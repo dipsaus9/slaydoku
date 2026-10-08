@@ -1,5 +1,4 @@
 export { EdgeFeatureIcon, type EdgeFeatureIconProps } from './EdgeFeatureIcon.tsx'
-export { ObjectIcon, ObjectIconGlyph, type ObjectIconProps, type ObjectIconSvgProps } from './ObjectIcon.tsx'
 export {
   ORIENTATIONS,
   ROTATIONS,

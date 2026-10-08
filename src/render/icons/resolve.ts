@@ -13,8 +13,8 @@ import {
 import { ICON_DEFINITIONS, type IconVariant } from './registry.tsx'
 import type { IconObjectType } from './types.ts'
 
-export interface ResolvedIcon {
-  variant: IconVariant
+export interface ResolvedIcon<V extends IconVariant = IconVariant> {
+  variant: V
   orientation: Orientation
   /** Size in cells of the oriented footprint's bounding box. */
   cols: number
@@ -49,12 +49,13 @@ export function resolveIcon(
   return resolveVariant(ICON_DEFINITIONS[type].variants, cells, prefer)
 }
 
-/** The matching of {@link resolveIcon}, over any list of footprint variants (theme icons use it too). */
-export function resolveVariant(
-  variants: readonly IconVariant[],
+/** The matching of {@link resolveIcon}, over any list of footprint variants (theme icons use it too). Generic over the variant
+ * type, so a caller with richer variants (the seasonal drafts of `tools/seasonal-previews.tsx` carry `draw`) keeps them typed. */
+export function resolveVariant<V extends IconVariant>(
+  variants: readonly V[],
   cells: readonly Cell[],
   prefer: OrientationPreference = {},
-): ResolvedIcon | undefined {
+): ResolvedIcon<V> | undefined {
   if (cells.length === 0) return undefined
   const normal = normalizeCells(cells)
   const key = footprintKey(normal)

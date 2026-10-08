@@ -1,6 +1,6 @@
 import { expandClue } from '../../engine/clues/index.ts'
 import type { CatalogClue } from '../../engine/clues/index.ts'
-import { auditObjectNames } from '../../engine/clues/objectNames.ts'
+import { auditObjectNamesBoth } from '../../engine/clues/objectNames.ts'
 import { LADDER_TIER_IDS } from '../../engine/generator/ladder/index.ts'
 import { difficultyScore, tierById } from '../../engine/generator/tiers/index.ts'
 import type { TierId } from '../../engine/generator/tiers/index.ts'
@@ -86,7 +86,7 @@ export function ratingOf(puzzle: Puzzle, tier: TierId): { human: HumanResult; ra
  *   hard and expert: hardest technique level inside the tier's range (the solver capped at its level);
  * - `tierFor` gives exactly the entry's tier (the easiest tier a person can solve the puzzle on, for every tier);
  * - score v2 lies in the band of the entry's tier (`SOLVABLE_TIERS[].scoreBand`, CAD-5.6), or the puzzle is one of `BAND_EXCEPTIONS`;
- * - the clue-noun audit (`auditObjectNames`, CAD-8.1): every object clue names exactly one drawn kind of object;
+ * - the clue-noun audit (`auditObjectNames`, CAD-8.1, in English and in Dutch since SLAY-17.4): every object clue names exactly one drawn kind of object;
  * - sane clue count and variety of clue kinds;
  * - the hint and clue audit (`src/validation/`): every hint of a full human solve is plain Dutch, names the
  *   person and the square and ends with an instruction; the cards are clear and enough of them are direct.
@@ -158,7 +158,7 @@ export function entryProblems(entry: PackEntry): string[] {
     at(`stored rating ${JSON.stringify(entry.rating)} differs from measured ${rating.score}/${rating.level}/${rating.steps}`)
   }
 
-  for (const problem of auditObjectNames(puzzle)) at(`clue noun: ${problem}`)
+  for (const problem of auditObjectNamesBoth(puzzle)) at(`clue noun: ${problem}`)
   for (const problem of auditHints(puzzle)) at(`hints: ${problem}`)
   for (const problem of auditClues(puzzle, entry.tier)) at(`clues: ${problem}`)
   return problems

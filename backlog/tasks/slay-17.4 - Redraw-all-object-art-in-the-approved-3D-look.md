@@ -1,10 +1,10 @@
 ---
 id: SLAY-17.4
 title: Redraw all object art in the approved 3D look
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 13:15'
+updated_date: '2026-10-08 17:31'
 labels:
   - needs-owner-review
 dependencies:
@@ -17,6 +17,20 @@ references:
   - src/ui/help/legend.ts
   - tools/icon-sheet.ts
   - docs/design/
+  - src/render/looks/
+  - src/render/scene/
+  - src/ui/play/
+  - src/ui/help/
+  - src/locale/
+  - docs/verification/
+  - docs/handoff.md
+  - tools/seasonal-previews.tsx
+  - src/content/themes/
+  - src/engine/clues/
+  - src/content/packs/gates.ts
+  - src/content/packs/gates.test.ts
+  - docs/authoring/theme-and-icons.md
+  - docs/themes/seasonal/common.ts
 parent_task_id: SLAY-17
 type: feature
 ordinal: 121000
@@ -32,19 +46,21 @@ Branch: SLAY-17.4/object-art-3d
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 All object icons use the approved look in all 8 orientations, board and legend
-- [ ] #2 Contact sheet (tools/icon-sheet.ts) at board size lists every kind; confusable pairs found are listed in docs/design/looks.md and fixed
-- [ ] #3 Rug, table and bookshelf are clearly different from each other and recognisable at phone size
-- [ ] #4 Legend swatches are not clipped
-- [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass; verify:phone legend and screens suites pass
-- [ ] #6 The bathtub (introduced in the SLAY-17.3 prototype) is drawn with water that clearly reads as water (visible water surface, colour and highlight distinct from the tub), checked at phone size
-- [ ] #7 Scope is every object kind of every theme registered when this story merges: the five regular themes, Simpshouse (SLAY-18.4) and any seasonal theme already on main; none is left in the old look
-- [ ] #8 A look-completeness test lists every ThemeObject kind of every registered theme and fails when one has no art in the approved look, so a future theme cannot skip it
-- [ ] #9 docs/design/looks.md gets a section 'How to draw a new object' (block model, heights, board margin, legend padding, orientations) that the seasonal theme stories SLAY-18.6 to 18.9 follow
-- [ ] #10 Owner decision 2026-10-08: the look is A2 (oblique blocks on the unchanged square grid). A2 becomes the only production look; the Look switch and the A3 (isometric) code from SLAY-17.8 are removed again (they stay in git history and docs/design/looks.md)
-- [ ] #11 An object never paints outside its own room: blocks must not cross a wall into the neighbouring room or cover the cell behind a wall (clip to the room, or draw the walls above the objects and cap the height at the room edge); checked on a rendered board against docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png
-- [ ] #12 Every kind is in the A2 style, with no flat leftovers: named in the owner's feedback are toilet, washbasin (sink), washing machine, dryer, kitchen counter and stairs; a rendered contact sheet of all kinds proves it
-- [ ] #13 Owner has seen screenshots in the PR and approved (only the owner ticks this)
+- [x] #1 All object icons use the approved look in all 8 orientations, board and legend
+- [x] #2 Contact sheet (tools/icon-sheet.ts) at board size lists every kind; confusable pairs found are listed in docs/design/looks.md and fixed
+- [x] #3 Rug, table and bookshelf are clearly different from each other and recognisable at phone size
+- [x] #4 Legend swatches are not clipped
+- [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass; verify:phone legend and screens suites pass
+- [x] #6 The bathtub (introduced in the SLAY-17.3 prototype) is drawn with water that clearly reads as water (visible water surface, colour and highlight distinct from the tub), checked at phone size
+- [x] #7 Scope is every object kind of every theme registered when this story merges: the five regular themes, Simpshouse (SLAY-18.4) and any seasonal theme already on main; none is left in the old look
+- [x] #8 A look-completeness test lists every ThemeObject kind of every registered theme and fails when one has no art in the approved look, so a future theme cannot skip it
+- [x] #9 docs/design/looks.md gets a section 'How to draw a new object' (block model, heights, board margin, legend padding, orientations) that the seasonal theme stories SLAY-18.6 to 18.9 follow
+- [x] #10 Owner decision 2026-10-08: the look is A2 (oblique blocks on the unchanged square grid). A2 becomes the only production look; the Look switch and the A3 (isometric) code from SLAY-17.8 are removed again (they stay in git history and docs/design/looks.md)
+- [x] #11 An object never paints outside its own room: blocks must not cross a wall into the neighbouring room or cover the cell behind a wall (clip to the room, or draw the walls above the objects and cap the height at the room edge); checked on a rendered board against docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png
+- [x] #12 Every kind is in the A2 style, with no flat leftovers: named in the owner's feedback are toilet, washbasin (sink), washing machine, dryer, kitchen counter and stairs; a rendered contact sheet of all kinds proves it
+- [x] #13 A chair faces the nearest object people sit at (table, dining table, desk, kitchen counter, garden table) when it touches one (4 neighbours, stable order), else away from the nearest wall into the room, else the default; a render-only pure function with unit tests, working with the block orientation matrix; a board with tables and chairs in the PR screenshots
+- [x] #14 Owner has seen screenshots in the PR and approved (only the owner ticks this)
+- [x] #15 Every object kind of every registered theme has a required Dutch noun (ThemeObject.nameNl) naming exactly what is drawn (a lava lamp is 'lavalamp', not 'plant'; a filing cabinet 'archiefkast', not 'kast'); Dutch clue cards, the Dutch Legend (with its 'ook' siblings) and the clue-noun audit use it the way English uses name/clueNoun, the audit runs in both languages in the pack gate, a test fails when a kind lacks a Dutch noun, and the authoring docs say the field is required
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -55,4 +71,12 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 Owner decision 2026-10-08: this story takes everything, including the extra themes. If a theme story merges BEFORE this one (Simpshouse, SLAY-18.4, does), this story redraws its art. Theme stories that come AFTER this one (SLAY-18.6 to 18.9) must follow the approved look and the completeness test themselves.
 
 Owner feedback on the A2 PoC (2026-10-08): 'elementen lijken over andere vakjes heen te lopen en sommige items zijn nog niet in dezelfde stijl zoals het toilet en de wasbak'. Screenshot: docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png. The PoC only drew chair, sofa, bed, bookshelf, table, rug and plant, so the flat items are expected; the overflow across walls is a real A2 issue to solve here (headroom of the blocks versus walls).
+
+Review gate (dipsaus-ai:story-reviewer): pass, no scope violations, no findings. Verification: bun docs/verification/looks.ts 88/88 checks on 360/390/768/1024; verify:phone legend+screens 1278 checks, 0 failures; full suite 3597 tests green.
+
+Owner decision 2026-10-08 on criterion #11 (recorded after two rejected clip attempts; the criterion text predates it): no clipping and no height cap. Painter's order instead: walls, doors and windows are painted under every object, objects flat first and then by the row of their front edge and column (src/render/looks/drawOrder.ts), each with its own shadow; a block may rise over the wall behind it and into the cell above, which is the intended A2 look. The overflow the criterion targets (blocks spilling sideways into the neighbouring room's floor, docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png) is gone because every model stays inside its own footprint (looks.test.tsx, all 8 orientations) and the projection only moves height up and 0.22 per unit to the left. Documented in docs/design/looks.md and docs/handoff.md.
+
+Verification on the merged head (c20001e plus the doc fixes of the review round, 2026-10-08): bun run lint and bun run typecheck pass; bun run verify:phone 3108 checks, 0 failures on 360x640, 390x844, 430x932, 844x390, 1024x768 and 768x1024 (drive 127 per viewport, the complete-but-wrong board at 844x390 included, board rect top 24 bottom 382, cells 34px; locale 44 per viewport with the Dutch EXPECT_NL table; legend 101-105; screens 110); bun docs/verification/looks.ts 142 checks pass at 360/390/768/1024 plus the desktop windows; the drive suite repeated alone at 844x390: 127/127. The full unit suite (bun run test --maxWorkers=1) runs in the orchestrator's worktree on the same head.
+
+Owner approval in chat (2026-10-08): "Yes approved. Je hebt merge conflicten. Los die op en merge het", given after the screenshots, the painter-order board, the desktop and cabinet fixes and the Dutch name table (146 kinds, open questions ligbed, ziekenbed, lerarenbureau, schooltafel, stelling, mappenkast, shotjesblad, snackautomaat, dj-booth, wc). Ticked by the orchestrator. Unit suite on the merged head c20001e: 161 files, 3632 tests passed (bun run test --maxWorkers=1); later commits only docs, a comment, a title string and a type generic. verify:phone 3108/0, looks driver 142 pass.
 <!-- SECTION:NOTES:END -->

@@ -44,7 +44,7 @@ Themes live in `src/content/themes/<theme>.ts` ([office.ts](../../src/content/th
 with `themeObject({...})`:
 
 ```ts
-themeObject({ kind: 'meetingChair', name: 'meeting chair', engineType: 'chair',
+themeObject({ kind: 'meetingChair', name: 'meeting chair', nameNl: 'vergaderstoel', engineType: 'chair',
               weight: 16, footprints: [rect(1, 1)], placement: 'anywhere',
               allowedRoomTypes: ['meeting', 'study', 'dining', 'living', 'circulation', 'kitchen'] }),
 ```
@@ -53,6 +53,7 @@ themeObject({ kind: 'meetingChair', name: 'meeting chair', engineType: 'chair',
 |---|---|
 | `kind` | Theme-local id, unique in the theme. Rooms refer to it in `favours`. |
 | `name` | Display name (singular noun; a plural such as "lockers" also sets `clueNoun: 'locker'`). Clue text says "an office chair", so it must read after "a/an". |
+| `nameNl` | **Required** (SLAY-17.4). The real Dutch noun of exactly what is drawn: singular, lower case, no article, as it reads after "een" ("lavalamp", "archiefkast", "kluisje" for `lockers`, "tros ballonnen" for `balloons`). Never the generic noun of the engine type (a lava lamp is engine type plant, but a Dutch card must say "lavalamp", not "plant"). Dutch clue cards and the Dutch Legend use it the way English uses `name`/`clueNoun`. `themes.test.ts` fails a kind without one, a kind whose Dutch noun is also used by a kind of the same type drawn differently, and a kind with own art that takes the generic noun (`OBJECT_WORDS_NL` in `src/engine/clues/nl.ts`). |
 | `engineType` | The engine `ObjectType` it becomes in a scene. This decides occupiable or blocking (the flag is copied from the catalog, never typed by hand). |
 | `themeIcon` | Optional own art ([job B](#b-add-a-theme-only-icon)). Without it the engine icon of `engineType` is drawn. |
 | `weight` | Relative chance among objects of the same class (occupiable, blocking). |
@@ -72,14 +73,16 @@ object of every kind builds a valid scene.
 ## B. Add a theme-only icon
 
 1. Add the id to `THEME_ICON_IDS` in `src/render/icons/themes/types.ts`.
-2. Draw it in `src/render/icons/themes/art.tsx`: a function returning SVG, in the coordinates below.
-3. Register its footprints in `src/render/icons/themes/registry.ts`:
-   `myIcon: define('myIcon', [[1, 1], [2, 1]], art.myIcon)` (sizes are `[cols, rows]`; the function receives `cols` and `rows`).
+2. Register its footprints in `src/render/icons/themes/registry.ts`:
+   `myIcon: define('myIcon', [[1, 1], [2, 1]])` (sizes are `[cols, rows]`).
+3. Draw it as a block model: a function `(cols, rows) => SolidModel` in `src/render/looks/modelsTheme.ts` (or the theme's own
+   `models*.ts` file), listed under its id in `THEME_MODELS` (`src/render/looks/registry.ts`). The model language, heights, colours
+   and the contact-sheet check are in [docs/design/looks.md](../design/looks.md), section "How to draw a new object".
 4. Point a theme object at it with `themeIcon: 'myIcon'` (job A).
 
-Tests: `bunx vitest run src/render/icons/themes/themes.test.tsx` requires every id to be defined with at least one footprint and no
-duplicate variants, every variant to draw something and stay inside its own cells (stroke included), and every footprint to
-resolve under every rotation and mirror.
+Tests: `bunx vitest run src/render/icons/themes/themes.test.tsx src/render/looks` requires every id to be defined with at least one
+footprint and no duplicate variants, every footprint to resolve under every rotation and mirror, and every model to stay inside its
+footprint and below `MAX_Z` in all 8 orientations; the look-completeness test fails by kind name while the model is missing.
 
 ## C. Add an engine object type
 
@@ -92,16 +95,19 @@ Use this when the object should exist in house scenes, in clues ("next to a bicy
    bed, sofa, car, oil slick, painting); everything else blocks. Do not change the flag of an existing type: the
    committed puzzles depend on it.
 3. `src/engine/clues/en.ts`: add to `OBJECT_WORDS` (for `bicycle`): `{ noun: 'bicycle', prep: 'on', verb: 'stood' }`. `prep` is `on` or
-   `in` ("in a car", "on a bed"), `verb` is `stood`, `sat` or `lay`. The article ("a bicycle", "an easel") is added for you. This is
-   the only file with clue text.
-4. Art in `src/render/icons/art/house.tsx`, `living.tsx` or `outdoor.tsx`, and its footprints in `src/render/icons/registry.tsx`:
+   `in` ("in a car", "on a bed"), `verb` is `stood`, `sat` or `lay`. The article ("a bicycle", "an easel") is added for you. Then
+   `src/engine/clues/nl.ts`: add the real Dutch generic noun and its gender to `OBJECT_NOUNS_NL` (`{ noun: 'fiets', gender: 'de' }`);
+   this generic noun is what a Dutch card says for a plain engine object or for kinds drawn alike, each theme kind has its own `nameNl`.
+4. Footprints in `src/render/icons/registry.tsx`:
 
    ```ts
-   bicycle: { type: 'bicycle', variants: rects([[2, 1]], house.bicycle) },
+   bicycle: { type: 'bicycle', variants: rects([[2, 1]]) },
    ```
 
-   `rects(sizes, draw)` makes one variant per `[cols, rows]`; use `lShape(arm)` for L shapes. Only list one orientation
-   (facing south): rotations and mirrors are derived.
+   `rects(sizes)` makes one variant per `[cols, rows]`; use `lShape(arm)` for L shapes. Only list one orientation
+   (facing south): rotations and mirrors are derived. Then the block model: a function `(cols, rows) => SolidModel` in
+   `src/render/looks/modelsHouse.ts`, `modelsLiving.ts` or `modelsOutdoor.ts`, listed under the type in `ENGINE_MODELS`
+   (`src/render/looks/registry.ts`); see the drawing conventions below.
 5. If the catalog gives a footprint range, every drawn variant must have a cell count inside it (tested).
 
 Then run `bunx vitest run src/engine/model/catalog.test.ts src/render/icons/icons.test.tsx src/engine/clues/en.test.ts` and `bun run typecheck`.
@@ -114,24 +120,26 @@ regenerating ([regenerate-packs.md](regenerate-packs.md)).
 
 ### Drawing conventions
 
-- One grid cell is 100 x 100 units (`U` in `src/render/icons/art/tokens.ts`). A footprint of `cols x rows` cells is drawn in a
-  `cols*100` by `rows*100` box, facing south (the front of the object is at the bottom).
-- Everything, stroke included, stays inside the cells of the footprint. Leave `M` (6 units) to the cell edge. For an L shape
-  or other non-rectangular footprints, stay inside the occupied cells only. A test measures this.
-- Use the primitives from `art/shapes.tsx`: `Box`, `Disc`, `Oval`, `Stroke`, `Shape` (`Shape` takes absolute path data using
-  `M L H V C Q Z` only; the bounds test reads it).
-- Use the flat palette `C` and the widths `SW` (outline) and `DETAIL` (inner lines) from `tokens.ts`. Theme-only icons may add
-  colours in the local `T` palette of `themes/art.tsx`. Own art only: never trace official Murdoku artwork.
+Every object is a block model (SLAY-17.4, the A2 look): the full reference is [docs/design/looks.md](../design/looks.md), section
+"How to draw a new object". In short:
+
+- One grid cell is 100 x 100 units; x right, y toward the viewer (south), z up. A footprint of `cols x rows` cells is drawn in a
+  `cols*100` by `rows*100` box, facing south (the front of the object is at the bottom); the renderer turns it for the other 7
+  orientations.
+- Everything stays inside the cells of the footprint and below `MAX_Z` (96). For an L shape or other non-rectangular footprints,
+  stay inside the occupied cells only. `src/render/looks/looks.test.tsx` measures this in all 8 orientations.
+- Use the primitives from `src/render/looks/models.ts` (`box`, `cyl`, `ball`, `disc`, `onTop`, `onFront`, `legs`, `shiftY`) and
+  its `COLORS`. Own art only: never trace official Murdoku artwork.
 - Art never shows whether an object is occupiable; the legend groups by the catalog flag.
 
 ## D. Add a scene theme
 
 1. `src/content/themes/types.ts`: add the id to the `ThemeId` union.
-2. New file `src/content/themes/<id>.ts` exporting a `SceneTheme` (`id`, `name` shown in pack titles, `rooms`, `objects`); copy
+2. New file `src/content/themes/<id>.ts` exporting a `SceneTheme` (`id`, `name` shown in pack titles, `nameNl`, `rooms`, `objects`); copy
    [office.ts](../../src/content/themes/office.ts). Requirements, all tested by
    [themes.test.ts](../../src/content/themes/themes.test.ts):
-   - at least 16 unique room names, bare and natural after "in the" ("Kitchen", "Meeting Room") (a 16x16 board uses up to that many); each room lists the object kinds it `favours`;
-   - at least 6 occupiable and 6 blocking object kinds;
+   - at least 16 unique room names, bare and natural after "in the" ("Kitchen", "Meeting Room") (a 16x16 board uses up to that many), each with its Dutch `nameNl`; each room lists the object kinds it `favours`;
+   - at least 6 occupiable and 6 blocking object kinds, every one with an English `name` and a Dutch `nameNl` (job A);
    - the rules of job A for every object.
 3. Register it in `src/content/themes/index.ts` (`SCENE_THEMES`, and the export list).
 4. `src/content/themes/themes.test.ts`: the list `REQUIRED` and the test name "defines the five required themes" name all themes exactly;

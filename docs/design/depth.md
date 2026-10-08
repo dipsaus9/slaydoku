@@ -1,3 +1,5 @@
+> **Superseded (SLAY-17.4):** the SVG depth filter described here is gone. Every object is now a block model with its own light, front and side faces and ground shadow (`docs/design/looks.md`). This file stays as the record of the SLAY-16 approval and its checks; `docs/verification/depth.ts` was removed with the flat art.
+
 # Depth in the board objects (SLAY-16)
 
 How the objects on the board get their solid look, so the private cadeauko project can port it (CAD-11.1).

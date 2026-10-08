@@ -1,141 +1,144 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { createMemoryStorage } from '../../game/memoryStorage.ts'
-import { LOOK_KEY, readLook, writeLook } from '../../locale/index.ts'
 import { OBJECT_TYPES } from '../../engine/model/index.ts'
+import { ORIENTATIONS, orientCells } from '../icons/orientation.ts'
 import { ICON_DEFINITIONS } from '../icons/registry.tsx'
-import { createGeometry } from '../scene/geometry.ts'
-import { sample9x9 } from '../scene/sample.fixture.ts'
-import { SceneView } from '../scene/SceneView.tsx'
-import { SceneObjectIcons } from '../icons/SceneObjectIcons.tsx'
-import { lookSwitchAllowed } from './look.ts'
-import { bathtub, SOLID_COLORS, solidModel, SOLID_TYPES } from './models.ts'
-import { sortBackToFront } from './project.ts'
-import { SceneSolids } from './Solids.tsx'
-import { solidOf } from './solid.ts'
+import { THEME_ICON_DEFINITIONS } from '../icons/themes/registry.ts'
+import { THEME_ICON_IDS } from '../icons/themes/types.ts'
+import { HEADROOM, MAX_Z, RISE, SKEW, projectModel, sortBackToFront } from './project.ts'
+import { COLORS, modelHeight, orientModel, type Prim } from './models.ts'
+import { bathtub } from './modelsHouse.ts'
+import { ENGINE_MODELS, MODEL_ONLY, THEME_MODELS, solidModelFor } from './registry.ts'
+import { SolidSvg } from './Solids.tsx'
+import { solidBounds } from './solidGeometry.ts'
+import { solidFor, solidOf } from './solid.ts'
 
-const size = { width: 9, height: 7 }
+/** Footprint of a primitive, model units. */
+function footprintOf(p: Prim): { x0: number; x1: number; y0: number; y1: number } {
+  switch (p.kind) {
+    case 'box':
+      return p
+    case 'cylinder':
+      return { x0: p.x - Math.max(p.r, p.r1 ?? 0), x1: p.x + Math.max(p.r, p.r1 ?? 0), y0: p.y - Math.max(p.r, p.r1 ?? 0), y1: p.y + Math.max(p.r, p.r1 ?? 0) }
+    case 'sphere':
+      return { x0: p.x - p.r, x1: p.x + p.r, y0: p.y - p.r, y1: p.y + p.r }
+    case 'disc':
+      return p.plane === 'xz' ? { x0: p.x - p.r, x1: p.x + p.r, y0: p.y, y1: p.y } : { x0: p.x, x1: p.x, y0: p.y - p.r, y1: p.y + p.r }
+  }
+}
 
-describe('where the Look switch may show', () => {
-  it('shows in dev, on localhost and on preview hosts, never on production', () => {
-    expect(lookSwitchAllowed(true, 'anything')).toBe(true)
-    expect(lookSwitchAllowed(false, 'localhost')).toBe(true)
-    expect(lookSwitchAllowed(false, 'slaydoku-git-slay-17-8-preview-look-poc-team.vercel.app')).toBe(true)
-    expect(lookSwitchAllowed(false, 'slaydoku-5hq3k1.vercel.app')).toBe(true)
-    expect(lookSwitchAllowed(false, 'slaydoku.vercel.app')).toBe(false)
-    expect(lookSwitchAllowed(false, 'slaydoku.nl')).toBe(false)
-    expect(lookSwitchAllowed(false, 'www.slaydoku.nl')).toBe(false)
-    expect(lookSwitchAllowed(false, 'evil.example.com')).toBe(false)
-    expect(lookSwitchAllowed(false, '')).toBe(false)
-  })
-})
+const allVariants = [
+  ...OBJECT_TYPES.flatMap((type) => ICON_DEFINITIONS[type].variants.map((variant) => ({ key: type as string, variant }))),
+  ...THEME_ICON_IDS.flatMap((id) => THEME_ICON_DEFINITIONS[id].variants.map((variant) => ({ key: id as string, variant }))),
+]
 
-describe('the stored look', () => {
-  it('round-trips and ignores unusable values', () => {
-    const storage = createMemoryStorage()
-    expect(readLook(storage)).toBeNull()
-    writeLook(storage, 'a3')
-    expect(readLook(storage)).toBe('a3')
-    storage.setItem(LOOK_KEY, 'b9')
-    expect(readLook(storage)).toBeNull()
-    expect(readLook(null)).toBeNull()
-  })
-})
-
-describe('A3 geometry (diamond grid)', () => {
-  const g = createGeometry(size, { look: 'a3', axisLabels: true })
-
-  it('keeps the flat drawing and lays it on the diamond with one transform', () => {
-    expect(g.planeTransform).toMatch(/^matrix\(/)
-    expect(createGeometry(size).planeTransform).toBeUndefined()
-    expect(createGeometry(size, { look: 'a2' }).planeTransform).toBeUndefined()
+describe('projection', () => {
+  it('is the oblique view of the owner pick: the floor stays square, height moves up and a little left', () => {
+    expect(projectModel(30, 40, 0)).toEqual([30, 40])
+    expect(projectModel(30, 40, 100)).toEqual([30 - 100 * SKEW, 40 - 100 * RISE])
   })
 
-  it('puts every cell centre inside the view box, inside its own diamond, and upright centres on the same spot', () => {
-    for (let row = 0; row < size.height; row++) {
-      for (let col = 0; col < size.width; col++) {
-        const bounds = g.cellBounds({ row, col })
-        const c = g.upright.cellCenter({ row, col })
-        expect(bounds.x).toBeGreaterThanOrEqual(0)
-        expect(bounds.y).toBeGreaterThanOrEqual(0)
-        expect(bounds.x + bounds.width).toBeLessThanOrEqual(g.viewBox.width)
-        expect(bounds.y + bounds.height).toBeLessThanOrEqual(g.viewBox.height)
-        expect(c.x).toBeCloseTo(bounds.x + bounds.width / 2, 5)
-        expect(c.y).toBeCloseTo(bounds.y + bounds.height / 2, 5)
-      }
-    }
-  })
-
-  it('is a real isometric lattice: neighbours differ by the same screen step', () => {
-    const a = g.upright.cellCenter({ row: 2, col: 2 })
-    const right = g.upright.cellCenter({ row: 2, col: 3 })
-    const down = g.upright.cellCenter({ row: 3, col: 2 })
-    expect(right.x - a.x).toBeCloseTo(a.x - down.x, 5)
-    expect(right.y - a.y).toBeCloseTo(down.y - a.y, 5)
-    expect(right.y).toBeGreaterThan(a.y)
-  })
-
-  it('gives every axis label a point outside the grid and inside the view box', () => {
-    for (let i = 0; i < size.width; i++) {
-      const p = g.axisPoint('col', i)
-      expect(p.x).toBeGreaterThan(0)
-      expect(p.x).toBeLessThan(g.viewBox.width)
-      expect(p.y).toBeGreaterThan(0)
-    }
-    for (let i = 0; i < size.height; i++) expect(g.axisPoint('row', i).x).toBeGreaterThan(0)
-  })
-
-  it('leaves headroom for the blocks in A2 and A3 only', () => {
-    expect(createGeometry(size, { look: 'a2' }).origin.y).toBeGreaterThan(createGeometry(size).origin.y)
-    expect(createGeometry(size).viewBox).toEqual(createGeometry(size, { look: 'now' }).viewBox)
+  it('leaves headroom for the tallest block the models may use', () => {
+    const rise = MAX_Z * RISE * 0.64
+    expect(HEADROOM).toBeGreaterThanOrEqual(Math.floor(rise))
+    expect(HEADROOM).toBeLessThanOrEqual(Math.ceil(rise) + 1)
   })
 })
 
 describe('block models', () => {
-  it('covers the seven kinds named in the story, for every footprint of a rectangular variant', () => {
-    expect([...SOLID_TYPES].sort()).toEqual(['bed', 'bookshelf', 'chair', 'plant', 'rug', 'sofa', 'table'])
-    for (const type of SOLID_TYPES) {
-      for (const variant of ICON_DEFINITIONS[type].variants) {
-        const model = solidModel(type, variant.cols, variant.rows, variant.id)
-        if (variant.id.startsWith('L')) expect(model).toBeNull()
-        else expect(model, `${type} ${variant.id}`).not.toBeNull()
+  it('has a model for every footprint of every engine type and every theme-only drawing', () => {
+    expect(Object.keys(ENGINE_MODELS).sort()).toEqual([...OBJECT_TYPES].sort())
+    expect(Object.keys(THEME_MODELS).sort()).toEqual([...THEME_ICON_IDS].sort())
+    for (const { key, variant } of allVariants) expect(solidModelFor(key, variant.cols, variant.rows, variant.id), `${key} ${variant.id}`).not.toBeNull()
+  })
+
+  it('keeps every block inside its footprint box and below the headroom height', () => {
+    for (const { key, variant } of allVariants) {
+      const model = solidModelFor(key, variant.cols, variant.rows, variant.id)!
+      expect(model.cols, key).toBe(variant.cols)
+      expect(model.rows, key).toBe(variant.rows)
+      for (const p of model.prims) {
+        const f = footprintOf(p)
+        expect(f.x0, `${key} ${variant.id}`).toBeGreaterThanOrEqual(0)
+        expect(f.y0, `${key} ${variant.id}`).toBeGreaterThanOrEqual(0)
+        expect(f.x1, `${key} ${variant.id}`).toBeLessThanOrEqual(variant.cols * 100)
+        expect(f.y1, `${key} ${variant.id}`).toBeLessThanOrEqual(variant.rows * 100)
       }
+      expect(modelHeight(model.prims), `${key} ${variant.id} height`).toBeLessThanOrEqual(MAX_Z)
     }
   })
 
-  it('leaves every other kind on the flat art', () => {
-    for (const type of OBJECT_TYPES.filter((t) => !SOLID_TYPES.includes(t))) {
-      for (const variant of ICON_DEFINITIONS[type].variants) expect(solidModel(type, variant.cols, variant.rows, variant.id)).toBeNull()
-    }
-  })
-
-  it('keeps every block inside its footprint', () => {
-    for (const type of SOLID_TYPES) {
-      for (const variant of ICON_DEFINITIONS[type].variants) {
-        const model = solidModel(type, variant.cols, variant.rows, variant.id)
-        if (!model) continue
-        for (const p of model.prims) {
-          const [x0, x1, y0, y1] = p.kind === 'box' ? [p.x0, p.x1, p.y0, p.y1] : [p.x - p.r, p.x + p.r, p.y - p.r, p.y + p.r]
-          expect(x0, `${type} ${variant.id}`).toBeGreaterThanOrEqual(0)
-          expect(y0).toBeGreaterThanOrEqual(0)
-          expect(x1).toBeLessThanOrEqual(variant.cols * 100)
-          expect(y1).toBeLessThanOrEqual(variant.rows * 100)
+  it('turns every footprint in all 8 orientations into blocks that stay inside the turned footprint', () => {
+    for (const { key, variant } of allVariants) {
+      const model = solidModelFor(key, variant.cols, variant.rows, variant.id)!
+      for (const o of ORIENTATIONS) {
+        const cells = variant.cells
+        const solid = solidFor(key in ENGINE_MODELS ? (key as never) : 'chair', key in THEME_MODELS ? (key as never) : undefined, orientCellsOf(variant, o), o)
+        expect(solid, `${key} ${variant.id} ${o.rotation}${o.mirror ? 'm' : ''}`).not.toBeNull()
+        expect(solid!.prims.length).toBe(model.prims.length)
+        for (const p of solid!.prims) {
+          const f = footprintOf(p)
+          expect(f.x0).toBeGreaterThanOrEqual(-0.001)
+          expect(f.y0).toBeGreaterThanOrEqual(-0.001)
+          expect(f.x1).toBeLessThanOrEqual(solid!.width + 0.001)
+          expect(f.y1).toBeLessThanOrEqual(solid!.height + 0.001)
         }
+        expect(cells.length).toBe(solid!.cells.length)
       }
     }
+  })
+
+  it('draws a rug flat and everything that stands on legs higher than that', () => {
+    const rug = solidModelFor('rug', 2, 1, '2x1')!
+    expect(rug.flat).toBe(true)
+    expect(modelHeight(rug.prims)).toBeLessThanOrEqual(6)
+    for (const kind of ['table', 'bookshelf', 'chair', 'wardrobe']) expect(solidModelFor(kind, 1, 1, '1x1')!.flat, kind).toBe(false)
   })
 
   it('makes the bathtub water a saturated blue standing below the rim, with a light surface and foam, not a pale slab', () => {
     const tub = bathtub()
-    const rim = Math.max(...tub.prims.filter((p) => p.color === SOLID_COLORS.white).map((p) => p.z1))
-    const water = tub.prims.find((p) => p.color === SOLID_COLORS.water)!
+    const rim = Math.max(...tub.prims.filter((p) => p.kind === 'box' && p.color === COLORS.white).map((p) => (p as { z1: number }).z1))
+    const water = tub.prims.find((p) => p.color === COLORS.water) as { z1: number }
     expect(water.z1).toBeLessThan(rim)
-    expect(tub.prims.some((p) => p.color === SOLID_COLORS.waterLight)).toBe(true)
-    expect(tub.prims.filter((p) => p.kind === 'cylinder' && p.color === SOLID_COLORS.white).length).toBeGreaterThanOrEqual(3)
-    // Blue clearly dominates red in the water colour and differs from the tub body.
-    const r = Number.parseInt(SOLID_COLORS.water.slice(1, 3), 16)
-    const b = Number.parseInt(SOLID_COLORS.water.slice(5, 7), 16)
+    expect(tub.prims.some((p) => p.color === COLORS.waterLight)).toBe(true)
+    expect(tub.prims.filter((p) => p.kind === 'sphere' && p.color === COLORS.white).length).toBeGreaterThanOrEqual(3)
+    const r = Number.parseInt(COLORS.water.slice(1, 3), 16)
+    const b = Number.parseInt(COLORS.water.slice(5, 7), 16)
     expect(b - r).toBeGreaterThan(100)
+    expect(Object.keys(MODEL_ONLY)).toContain('bathtub')
+  })
+
+  it('shows the water of the bubble bath the same way', () => {
+    const bath = solidModelFor('bubbleBath', 2, 1, '2x1')!
+    expect(bath.prims.some((p) => p.color === COLORS.water)).toBe(true)
+    expect(bath.prims.some((p) => p.color === COLORS.waterLight)).toBe(true)
+  })
+})
+
+const orientCellsOf = (variant: { cells: { row: number; col: number }[]; cols: number; rows: number }, o: (typeof ORIENTATIONS)[number]) => orientCells(variant.cells, variant.cols, variant.rows, o)
+
+describe('what the board shows when several turns fit', () => {
+  it('puts the front toward the viewer on a wide footprint and toward the right on a tall one', () => {
+    const wide = solidOf({ id: 'w', type: 'wardrobe', cells: [{ row: 0, col: 0 }, { row: 0, col: 1 }] })!
+    const tall = solidOf({ id: 't', type: 'wardrobe', cells: [{ row: 0, col: 0 }, { row: 1, col: 0 }] })!
+    // A door is a thin sheet on the front: thin in y when the front faces south, thin in x when it faces east.
+    const door = (prims: Prim[]) => prims.find((p) => p.kind === 'box' && p.color === COLORS.woodLight && p.line === 0) as Extract<Prim, { kind: 'box' }>
+    expect(door(wide.prims).y1 - door(wide.prims).y0).toBeLessThan(1)
+    expect(door(wide.prims).y0).toBeGreaterThan(50)
+    expect(door(tall.prims).x1 - door(tall.prims).x0).toBeLessThan(1)
+    expect(door(tall.prims).x0).toBeGreaterThan(50)
+    expect(tall.width).toBe(100)
+    expect(tall.height).toBe(200)
+  })
+
+  it('orients a model with the footprint matrix and keeps a flat sheet flat', () => {
+    const model = solidModelFor('rug', 2, 1, '2x1')!
+    const turned = orientModel(model.prims, [0, 1, -1, 0, 100, 0])
+    for (const p of turned) {
+      const f = footprintOf(p)
+      expect(f.x1).toBeLessThanOrEqual(100.001)
+      expect(f.y1).toBeLessThanOrEqual(200.001)
+    }
   })
 })
 
@@ -151,58 +154,20 @@ describe('painter order', () => {
   })
 })
 
-describe('SceneSolids and SceneObjectIcons', () => {
-  const objects = [
-    { id: 'c1', type: 'chair' as const, cells: [{ row: 1, col: 1 }] },
-    { id: 'car1', type: 'car' as const, cells: [{ row: 3, col: 3 }, { row: 4, col: 3 }] },
-    { id: 'l1', type: 'sofa' as const, cells: [{ row: 5, col: 0 }, { row: 5, col: 1 }, { row: 6, col: 0 }] },
-  ]
-  const geometry = createGeometry(size, { look: 'a3' })
-
-  it('turns only the covered kinds into blocks (the L sofa and the car stay flat)', () => {
-    expect(solidOf(objects[0]!)).not.toBeNull()
-    expect(solidOf(objects[1]!)).toBeNull()
-    expect(solidOf(objects[2]!)).toBeNull()
-    expect(solidOf(objects[0]!, { c1: 'printer' })).toBeNull()
-  })
-
-  it.each(['a2', 'a3'] as const)('draws blocks for the chair and flat art for the rest in %s', (look) => {
-    const g = createGeometry(size, { look })
-    const solids = renderToStaticMarkup(<svg><SceneSolids objects={objects} geometry={g} look={look} /></svg>)
-    expect(solids).toContain('data-solid="chair"')
-    expect(solids).not.toContain('data-solid="car"')
-    const flat = renderToStaticMarkup(<svg><SceneObjectIcons objects={objects} geometry={g} look={look} /></svg>)
-    expect(flat).not.toContain('data-object="c1"')
-    expect(flat).toContain('data-object="car1"')
-    expect(flat).toContain('data-object="l1"')
-  })
-
-  it('keeps the shipped markup for look now: no plane group, hit squares on top, flat art for everything', () => {
-    const html = renderToStaticMarkup(
-      <SceneView scene={sample9x9} objectsLayer={(g) => <SceneObjectIcons objects={sample9x9.objects} geometry={g} />} />,
-    )
-    expect(html).not.toContain('data-layer="plane"')
-    expect(html).not.toContain('data-layer="solids"')
-    expect(html.indexOf('data-layer="hit"')).toBeGreaterThan(html.indexOf('data-room-label'))
-  })
-
-  it('draws the diamond: floors, walls and hit squares in the plane group, room labels and people outside it', () => {
-    const html = renderToStaticMarkup(
-      <SceneView
-        scene={sample9x9}
-        look="a3"
-        showAxisLabels
-        objectsLayer={(g) => <SceneObjectIcons objects={sample9x9.objects} geometry={g} look="a3" />}
-        solidsLayer={(g) => <SceneSolids objects={sample9x9.objects} geometry={g} look="a3" />}
-      />,
-    )
-    expect(geometry.planeTransform).toBeDefined()
-    expect(html).toContain('data-layer="plane"')
-    expect(html).toContain('data-layer="hit-plane"')
-    // 81 hit squares, every one inside the transformed group.
-    const hit = html.slice(html.indexOf('data-layer="hit-plane"'))
-    expect((hit.match(/data-cell=/g) ?? []).length).toBe(81)
-    // The labels come after the marks and people layers, as in the flat looks (SLAY-17.5).
-    expect(html.indexOf('data-room-label')).toBeGreaterThan(html.indexOf('data-layer="people"'))
+describe('SolidSvg (legend swatch and contact sheet tile)', () => {
+  it('crops to everything the object covers: a tall block never clips at the top, its shadow never at the right or bottom', () => {
+    for (const [key, kind] of [['wardrobe', 'wardrobe'], ['bookshelf', 'bookshelf'], ['tree', 'tree'], ['fountain', 'fountain']] as const) {
+      const type = key in ENGINE_MODELS ? kind : 'chair'
+      const solid = solidFor(type as never, key in THEME_MODELS ? (key as never) : undefined, [{ row: 0, col: 0 }])!
+      const b = solidBounds(solid)
+      const html = renderToStaticMarkup(<SolidSvg solid={solid} pxPerCell={36} />)
+      const vb = /viewBox="([-\d. ]+)"/.exec(html)![1]!.split(' ').map(Number)
+      expect(vb[0]!, key).toBeLessThanOrEqual(b.x0)
+      expect(vb[1]!, key).toBeLessThanOrEqual(b.y0)
+      expect(vb[0]! + vb[2]!, key).toBeGreaterThanOrEqual(b.x1)
+      expect(vb[1]! + vb[3]!, key).toBeGreaterThanOrEqual(b.y1)
+      // The tall ones reach above the footprint, so the box must start above 0.
+      if (key === 'wardrobe' || key === 'tree') expect(b.y0).toBeLessThan(-20)
+    }
   })
 })

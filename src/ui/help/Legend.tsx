@@ -1,12 +1,11 @@
-import { useId, useMemo, type CSSProperties, type ReactNode } from 'react'
+import { useId, useMemo, type ReactNode } from 'react'
 import { HELP_CONTENT } from '../../content/help/help.ts'
 import type { Cell, Person, Puzzle } from '../../engine/model/index.ts'
 import { useLocale } from '../../locale/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import { EdgeFeatureIcon } from '../../render/icons/index.ts'
-import { U } from '../../render/icons/art/tokens.ts'
-import { IconDepthScope } from '../../render/icons/ObjectIcon.tsx'
-import { ThemeObjectIconGlyph } from '../../render/icons/themes/ThemeObjectIcon.tsx'
+import { SolidSvg } from '../../render/looks/Solids.tsx'
+import { solidCanonicalOf } from '../../render/looks/solid.ts'
 import { NoteGlyph, PersonDisc, PortraitClip, XMarkGlyph } from '../play/BoardLayers.tsx'
 import { bareRoomName } from '../../render/scene/labels.ts'
 import { legendOf, type LegendObjectRow } from './legend.ts'
@@ -21,38 +20,14 @@ export interface LegendProps {
   onShow: (cells: readonly Cell[]) => void
 }
 
-/** Room at the right and bottom of a swatch for the depth filter ground shadow (reaches about 6.7 down, 4.9 right). */
-const SWATCH_SHADOW_PAD = 8
-
 /**
- * The object as the board draws it, cropped to its own footprint plus room for the ground shadow. The svg
- * box grows by the same ratio (--swatch-grow-*, see .play-legend__icon) so the object keeps its size.
+ * The object as the board draws it (same block model, drawn in its canonical turn so it fills the swatch), in an svg cropped to everything it covers: the blocks that rise over the
+ * footprint, their outline and the ground shadow. Nothing is clipped, however tall the object is; the box scales to fit the swatch.
  */
 function ObjectSwatch({ row }: { row: LegendObjectRow }) {
-  const { cells, type } = row.sample
-  const cols = Math.max(...cells.map((c) => c.col)) - Math.min(...cells.map((c) => c.col)) + 1
-  const rows = Math.max(...cells.map((c) => c.row)) - Math.min(...cells.map((c) => c.row)) + 1
-  const growStyle = {
-    '--swatch-grow-x': (cols * U + SWATCH_SHADOW_PAD) / (cols * U),
-    '--swatch-grow-y': (rows * U + SWATCH_SHADOW_PAD) / (rows * U),
-    '--swatch-shift-x': `${(50 * SWATCH_SHADOW_PAD) / (cols * U + SWATCH_SHADOW_PAD)}%`,
-    '--swatch-shift-y': `${(50 * SWATCH_SHADOW_PAD) / (rows * U + SWATCH_SHADOW_PAD)}%`,
-  } as CSSProperties
-  return (
-    <svg
-      className="play-legend__icon"
-      viewBox={`0 0 ${cols * U + SWATCH_SHADOW_PAD} ${rows * U + SWATCH_SHADOW_PAD}`}
-      style={growStyle}
-      preserveAspectRatio="xMidYMid meet"
-      aria-hidden="true"
-      focusable="false"
-      data-icon={row.themeIcon ?? type}
-    >
-      <IconDepthScope>
-        <ThemeObjectIconGlyph object={{ engineType: type, themeIcon: row.themeIcon }} cells={cells} />
-      </IconDepthScope>
-    </svg>
-  )
+  const solid = solidCanonicalOf(row.sample, row.themeIcon ? { [row.sample.id]: row.themeIcon } : undefined)
+  if (!solid) return null
+  return <SolidSvg solid={solid} className="play-legend__icon" iconId={row.themeIcon ?? row.sample.type} />
 }
 
 /** A mark drawn on a bare square, exactly like the board draws it (same glyphs as BoardLayers). */

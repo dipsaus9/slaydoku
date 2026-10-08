@@ -5,9 +5,11 @@ import {
   AXIS_GUTTER,
   CELL_SIZE,
   MARGIN,
+  boardAspect,
   cellLabel,
   createGeometry,
 } from './geometry.ts'
+import { HEADROOM } from '../looks/project.ts'
 import { roomLabelLayout } from './labels.ts'
 import { resolveRoomStyles, styleForName } from './roomStyles.ts'
 import { sample9x9 } from './sample.fixture.ts'
@@ -19,10 +21,10 @@ describe('createGeometry', () => {
     const g = createGeometry({ width: 6, height: 4 })
     const a = g.cellRect({ row: 0, col: 0 })
     const b = g.cellRect({ row: 3, col: 5 })
-    expect(a).toEqual({ x: MARGIN, y: MARGIN, width: CELL_SIZE, height: CELL_SIZE })
+    expect(a).toEqual({ x: MARGIN, y: MARGIN + HEADROOM, width: CELL_SIZE, height: CELL_SIZE })
     expect(b.x).toBe(MARGIN + 5 * CELL_SIZE)
-    expect(b.y).toBe(MARGIN + 3 * CELL_SIZE)
-    expect(g.viewBox).toEqual({ width: 2 * MARGIN + 6 * CELL_SIZE, height: 2 * MARGIN + 4 * CELL_SIZE })
+    expect(b.y).toBe(MARGIN + HEADROOM + 3 * CELL_SIZE)
+    expect(g.viewBox).toEqual({ width: 2 * MARGIN + 6 * CELL_SIZE, height: 2 * MARGIN + HEADROOM + 4 * CELL_SIZE })
   })
 
   it('reserves a gutter for axis labels only when asked', () => {
@@ -36,8 +38,29 @@ describe('createGeometry', () => {
     const g = createGeometry({ width: 4, height: 4 })
     expect(g.cellCenter({ row: 1, col: 2 })).toEqual({
       x: MARGIN + 2.5 * CELL_SIZE,
-      y: MARGIN + 1.5 * CELL_SIZE,
+      y: MARGIN + HEADROOM + 1.5 * CELL_SIZE,
     })
+  })
+
+  it('leaves headroom above the grid for the tall parts of the objects in the top row', () => {
+    const g = createGeometry({ width: 4, height: 4 })
+    expect(g.origin.y).toBe(MARGIN + HEADROOM)
+    expect(HEADROOM).toBeGreaterThan(30)
+  })
+
+  it('derives the height over width of the drawing from the viewBox, headroom included', () => {
+    for (const size of [6, 7, 9, 12]) {
+      for (const axis of [true, false]) {
+        const gutter = axis ? AXIS_GUTTER : 0
+        const grid = size * CELL_SIZE
+        const width = 2 * MARGIN + gutter + grid
+        expect(boardAspect({ width: size, height: size }, axis)).toBeCloseTo((2 * MARGIN + gutter + HEADROOM + grid) / width, 10)
+        expect(boardAspect({ width: size, height: size }, axis)).toBeGreaterThan(1)
+      }
+    }
+    // A 9x9 board with the numbers on is 7 percent taller than wide; a 12x12 board 5.4 percent.
+    expect(boardAspect({ width: 9, height: 9 }, true)).toBeCloseTo(1.07, 2)
+    expect(boardAspect({ width: 12, height: 12 }, true)).toBeCloseTo(1.054, 3)
   })
 
   it('formats 1-based cell labels', () => {
@@ -55,7 +78,7 @@ describe('edgeFeatureSpots', () => {
       kind: 'window',
       rotation: 90,
       x: MARGIN + 4 * CELL_SIZE,
-      y: MARGIN + 2.5 * CELL_SIZE,
+      y: MARGIN + HEADROOM + 2.5 * CELL_SIZE,
     })
   })
 
@@ -73,7 +96,7 @@ describe('edgeFeatureSpots', () => {
   it('puts horizontal-line features at rotation 0 on the line between the rows', () => {
     const g = createGeometry(sample9x9)
     const door = edgeFeatureSpots(sample9x9, g).find((s) => s.kind === 'door')
-    expect(door).toMatchObject({ rotation: 0, x: MARGIN + 3.5 * CELL_SIZE, y: MARGIN + 5 * CELL_SIZE })
+    expect(door).toMatchObject({ rotation: 0, x: MARGIN + 3.5 * CELL_SIZE, y: MARGIN + HEADROOM + 5 * CELL_SIZE })
   })
 })
 
