@@ -48,7 +48,13 @@ export interface ThemeObject {
   themeIcon?: ThemeIconId
   /** Cap per room, so a house does not get five televisions. Absent: unlimited. */
   maxPerRoom?: number
-  /** Room types (see `RoomType`) this object must never be placed in, hard exclusion. */
+  /**
+   * Allow-list (SLAY-17.1): the room types (see `RoomType`) this object may be placed in, a
+   * hard rule the generator never breaks. A room qualifies when it has at least one of them.
+   * Absent: allowed in any room (themes not yet assigned, see docs/authoring/room-rules.md).
+   */
+  allowedRoomTypes?: RoomType[]
+  /** Room types this object must never be placed in, hard exclusion. Older than the allow-list; both apply. */
   excludeRoomTypes?: RoomType[]
 }
 
@@ -66,13 +72,25 @@ export interface ThemeRoom {
 }
 
 /**
- * A room category used for hard placement exclusions (see `ThemeObject.excludeRoomTypes`
- * and `ThemeRoom.roomTypes`) — unlike `favours`, a preference the generator only weighs,
- * a room type is a rule the generator never breaks (CAD-owner: "a delivery van can never
- * be in a sleeping room"). `'sleeping'` marks a room with a bed-like object (a real bedroom,
- * a showroom bedroom, a sick bay bed, a garden hammock nook): no vehicle belongs there.
+ * A room category for hard placement rules (see `ThemeObject.allowedRoomTypes`,
+ * `ThemeObject.excludeRoomTypes` and `ThemeRoom.roomTypes`) — unlike `favours`, a preference
+ * the generator only weighs, a room type is a rule it never breaks (owner: "a delivery van can
+ * never be in a sleeping room"). `'sleeping'` marks a room with a bed-like object (a real
+ * bedroom, a showroom bedroom, a sick bay bed, a garden hammock nook): no vehicle belongs there.
+ * The other types are used by the Home theme (docs/authoring/room-rules.md).
  */
-export type RoomType = 'sleeping'
+export type RoomType =
+  | 'sleeping'
+  | 'wet'
+  | 'utility'
+  | 'garage'
+  | 'kitchen'
+  | 'living'
+  | 'dining'
+  | 'study'
+  | 'fitness'
+  | 'storage'
+  | 'circulation'
 
 export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop'
 
