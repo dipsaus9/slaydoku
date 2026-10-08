@@ -1,9 +1,10 @@
 ---
 id: SLAY-17.3
 title: 'Spike: 3D object look prototype for owner review'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
+updated_date: '2026-10-08 09:18'
 labels:
   - needs-owner-review
 dependencies: []
@@ -26,8 +27,8 @@ Branch: SLAY-17.3/look-3d-prototype
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 docs/design/looks-prototype.html shows chair, rug, table, bookshelf and at least 3 more objects in 2-3 3D look variants, in all 8 orientations
-- [ ] #2 docs/design/looks.md records the variants, their trade-offs and the recommendation
+- [x] #1 docs/design/looks-prototype.html shows chair, rug, table, bookshelf and at least 3 more objects in 2-3 3D look variants, in all 8 orientations
+- [x] #2 docs/design/looks.md records the variants, their trade-offs and the recommendation
 - [ ] #3 Owner has seen the prototype with Claude and picked a look; the choice is written in docs/design/looks.md (only the owner ticks this)
 <!-- AC:END -->
 
@@ -35,4 +36,6 @@ Branch: SLAY-17.3/look-3d-prototype
 
 <!-- SECTION:NOTES:BEGIN -->
 Owner visual check (label needs-owner-review): present the prototype, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it.
+
+Prototype: docs/design/looks-prototype.html (A block, B steps, C relief, 9 objects, 8 orientations). Recommendation B at reduced scale; A as fallback; skip C. AC 3 left for the owner.
 <!-- SECTION:NOTES:END -->

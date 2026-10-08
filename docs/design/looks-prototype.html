@@ -1,0 +1,300 @@
+<title>Slaydoku Objecten Drie Dimensies</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one review sheet. Top: settings (extrusion scale). Then (1) a comparison of Now / A / B / C per object, (2) all 8 orientations for one chosen variant, (3) a furnished floor, (4) the owner's pick. */
+:root {
+  --bg: #f7f2e6; --fg: #2a2a36; --muted: #6b6a74; --surface: #fdf8ec; --line: #cbb994; --accent: #b3413e;
+  --board: #f1d9b5; --board-line: rgba(160, 120, 80, .35);
+  --font-display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-body: 'Instrument Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1f1d24; --fg: #efe9dc; --muted: #a39f9a; --surface: #2a2730; --line: #4a4450; --accent: #e07b77; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #1f1d24; --fg: #efe9dc; --muted: #a39f9a; --surface: #2a2730; --line: #4a4450; --accent: #e07b77; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); padding-inline: 16px; padding-block: 28px 64px; margin: 0; }
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.1; }
+h2 { font-size: 1.25rem; }
+p { margin: 0; max-width: 66ch; line-height: 1.5; }
+.lead { color: var(--muted); }
+.tag { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; }
+.ctl { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+input[type=range] { width: 100%; accent-color: var(--accent); min-height: 28px; }
+output { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 4ch; text-align: right; }
+.grid { display: grid; gap: 12px 14px; align-items: end; overflow-x: auto; padding-bottom: 6px; }
+.grid > .h { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.grid > .n { font-weight: 600; align-self: center; }
+.cmp { grid-template-columns: 100px repeat(4, minmax(170px, 1fr)); }
+.ori { grid-template-columns: 90px repeat(8, 112px); }
+.cellbox { display: flex; align-items: flex-end; min-height: 60px; padding-bottom: 8px; }
+.tile { position: relative; flex: none; background-color: var(--board); border: 1px solid var(--board-line);
+  background-image: linear-gradient(var(--board-line) 1px, transparent 1px), linear-gradient(90deg, var(--board-line) 1px, transparent 1px); }
+.tile svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.floor { background-color: #f2d6ae; }
+.strip { overflow-x: auto; }
+.vdesc { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.vdesc div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 4px; font-size: .92rem; line-height: 1.4; }
+.vdesc b { font-family: var(--font-display); }
+.pick { display: grid; gap: 10px; }
+fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+label { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; cursor: pointer; }
+input[type=radio] { accent-color: var(--accent); width: 18px; height: 18px; }
+.out { padding: 10px 12px; border-radius: 8px; border: 1px dashed var(--line); font-variant-numeric: tabular-nums; }
+button { font: inherit; font-weight: 600; padding: 8px 14px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; width: fit-content; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <span class="tag">Objecten, derde ronde</span>
+    <h1>Meer 3D, minder plat met schaduw</h1>
+    <p class="lead">Negen eigen tekeningen (stoel, kleed, tafel, boekenkast, plant, bank, bed, lamp, bad) in drie 3D-uitvoeringen. Het licht komt altijd van linksboven en de diepte wijst altijd naar rechtsonder, ook als een object gedraaid of gespiegeld is: het effect wordt op schermniveau getekend, buiten de draaiing van het object.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-set">
+    <h2 id="h-set">Hoe hoog?</h2>
+    <div class="ctl"><span class="lead">Lager</span><input id="scale" type="range" min="0" max="160" value="100" aria-label="Hoogte"><span class="lead">Hoger</span></div>
+    <p class="lead">Schaalt de dikte van A en de hoogte van de onderdelen in B. Stand <output id="scaleOut">100</output> procent. Variant C heeft geen dikte, alleen reliëf.</p>
+    <div class="vdesc">
+      <div><b>A. Blok</b><span>Het hele object wordt een donkerder blok met een zijkant naar rechtsonder. Eenvoudig en robuust: een filter, geen aparte tekening per onderdeel.</span></div>
+      <div><b>B. Trappen</b><span>Elk onderdeel heeft een eigen hoogte met eigen zijkant: zitting laag, leuning hoog, boeken onder de kast. Het meest ruimtelijk, maar elk object krijgt hoogtes erbij.</span></div>
+      <div><b>C. Reliëf</b><span>Geen zijkant, wel verlichte vormen: het licht schuurt langs bolle randen, naden worden groeven en er is een glanspunt. Rustig, past op de huidige maat, blijft dichter bij nu.</span></div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-cmp">
+    <h2 id="h-cmp">Naast elkaar</h2>
+    <p class="lead">Kolom 1 is de huidige diepte (rand, schaduw) op dezelfde tekening. Daarna A, B en C, ongedraaid.</p>
+    <div class="panel"><div class="grid cmp" id="cmp"></div></div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-ori">
+    <h2 id="h-ori">Alle 8 standen</h2>
+    <fieldset><legend>Variant</legend>
+      <label><input type="radio" name="v" value="now">Nu</label>
+      <label><input type="radio" name="v" value="A">A. Blok</label>
+      <label><input type="radio" name="v" value="B" checked>B. Trappen</label>
+      <label><input type="radio" name="v" value="C">C. Reliëf</label>
+    </fieldset>
+    <p class="lead">Per rij: 4 draaiingen, links gewoon en rechts gespiegeld.</p>
+    <div class="panel"><div class="grid ori" id="ori"></div></div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-floor">
+    <h2 id="h-floor">Op een kamervloer</h2>
+    <p class="lead">Dezelfde variant als hierboven gekozen. Let op hoe de zijkanten over de volgende cel heen vallen.</p>
+    <div class="panel strip"><div id="floor"></div></div>
+  </section>
+
+  <section class="panel pick" aria-labelledby="h-pick">
+    <h2 id="h-pick">Jouw oordeel</h2>
+    <fieldset><legend>Richting</legend>
+      <label><input type="radio" name="r" value="A" checked>A. Blok</label>
+      <label><input type="radio" name="r" value="B">B. Trappen</label>
+      <label><input type="radio" name="r" value="C">C. Reliëf</label>
+      <label><input type="radio" name="r" value="AC">A met C erbij</label>
+      <label><input type="radio" name="r" value="none">Geen, blijf bij nu</label>
+      <label><input type="radio" name="r" value="other">Anders</label>
+    </fieldset>
+    <div class="out" id="out"></div>
+    <button type="button" id="copy">Kopieer</button>
+    <p class="lead">Plak de regel in het gesprek en zeg erbij wat je wilt veranderen.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var C = { ink:'#29211d', white:'#fbfbf8', cream:'#f2e9d4', creamLight:'#fef7e7', creamDark:'#d8c9a6', wood:'#a2795a', woodLight:'#be9f7d', woodDark:'#78553d', woodDeep:'#5b3f2b', gold:'#cea657', yellow:'#e1ca73', yellowLight:'#ecdc9a', green:'#629b62', greenLight:'#8dba82', greenDark:'#3f7048', terracotta:'#ae644a', terraDark:'#8a4a36', soil:'#5a3a2b', red:'#c6706d', purple:'#ad9bc4', sky:'#d1e5eb', teal:'#5f8a9a', tealLight:'#7fa6b4', tealDark:'#41697a', rug:'#b5524f', rugLight:'#d98b7a', blue:'#8eaed0', blueDark:'#6b8cb3' };
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function B(x, y, w, h, r, fill, sw, op) { return { t:'box', x:x, y:y, w:w, h:h, r:r, fill:fill, sw:sw === undefined ? 5 : sw, op:op, z:0 }; }
+  function D(x, y, r, fill, sw, op) { return { t:'disc', x:x, y:y, r:r, fill:fill, sw:sw === undefined ? 5 : sw, op:op, z:0 }; }
+  function P(d, fill, sw, op, stroke) { return { t:'path', d:d, fill:fill, sw:sw === undefined ? 4 : sw, op:op, stroke:stroke, z:0 }; }
+  function L(x1, y1, x2, y2, stroke, sw, op) { return { t:'line', x1:x1, y1:y1, x2:x2, y2:y2, stroke:stroke, sw:sw, op:op, z:0 }; }
+  function Z(z, p) { p.z = z; return p; }
+  var NONE = 'none';
+
+  // ---- art: detail inside, feet at the corners, no light or shadow baked in. z = part height in icon units (used by B); H = block thickness (used by A). ----
+  var ART = {
+    chair: { c:1, r:1, H:9, prims: [
+      B(9, 88, 13, 9, 3, C.woodDeep, 3), B(78, 88, 13, 9, 3, C.woodDeep, 3), B(9, 3, 13, 9, 3, C.woodDeep, 3), B(78, 3, 13, 9, 3, C.woodDeep, 3),
+      Z(6, B(26, 38, 48, 50, 10, C.creamLight)),
+      Z(10, B(6, 24, 22, 68, 10, C.cream)), Z(10, B(72, 24, 22, 68, 10, C.cream)),
+      Z(14, B(14, 6, 72, 34, 16, C.cream)), Z(16, B(22, 12, 56, 24, 10, C.creamLight, 3)),
+      L(50, 44, 50, 84, C.creamDark, 2.5), L(32, 62, 68, 62, C.creamDark, 2.5, .8),
+      L(17, 34, 17, 80, C.white, 3, .8), L(83, 34, 83, 80, C.white, 3, .8)
+    ] },
+    rug: { c:2, r:1, H:2.5, prims: [
+      Z(2.5, B(8, 10, 184, 80, 6, C.rug)), B(16, 18, 168, 64, 3, NONE, 3, 1), B(24, 26, 152, 48, 2, C.rugLight, 2.5),
+      P('M 100 30 L 130 50 L 100 70 L 70 50 Z', C.cream, 3), D(100, 50, 7, C.rug, 2.5),
+      L(2, 20, 8, 20, C.cream, 3), L(2, 38, 8, 38, C.cream, 3), L(2, 56, 8, 56, C.cream, 3), L(2, 74, 8, 74, C.cream, 3),
+      L(192, 20, 198, 20, C.cream, 3), L(192, 38, 198, 38, C.cream, 3), L(192, 56, 198, 56, C.cream, 3), L(192, 74, 198, 74, C.cream, 3)
+    ] },
+    table: { c:2, r:1, H:11, prims: [
+      B(10, 84, 11, 11, 3, C.woodDeep, 3), B(179, 84, 11, 11, 3, C.woodDeep, 3), B(10, 5, 11, 11, 3, C.woodDeep, 3), B(179, 5, 11, 11, 3, C.woodDeep, 3),
+      Z(12, B(8, 8, 184, 84, 8, C.yellow)), B(18, 18, 164, 64, 4, NONE, 3, 1), B(24, 24, 152, 52, 2, C.yellowLight, 2.5),
+      L(30, 32, 170, 32, C.white, 3, .7)
+    ] },
+    shelf: { c:2, r:1, H:12, prims: (function () {
+      var o = [B(5, 88, 12, 8, 3, C.woodDeep, 3), B(183, 88, 12, 8, 3, C.woodDeep, 3), B(5, 4, 12, 8, 3, C.woodDeep, 3), B(183, 4, 12, 8, 3, C.woodDeep, 3), Z(14, B(6, 6, 188, 88, 7, C.wood)), B(13, 13, 174, 74, 3, C.woodDeep, 3)];
+      var cols = [C.red, C.cream, C.green, C.gold, C.purple, C.sky, '#e4aab8'], step = 168 / 11, s, k;
+      for (s = 0; s < 3; s++) for (k = 0; k < 11; k++) { var drop = ((k * 2 + s) % 4) * 2.5; o.push(Z(4, B(r1(16 + k * step + .8), r1(16 + s * 23.5 + drop), r1(step - 2.2), r1(20 - drop), 1.5, cols[(k + s * 3) % 7], 2))); }
+      o.push(L(13, 38.5, 187, 38.5, C.woodLight, 3.5), L(13, 62, 187, 62, C.woodLight, 3.5), L(13, 86, 187, 86, C.woodLight, 3.5), L(18, 11, 182, 11, C.white, 3, .55));
+      return o;
+    })() },
+    plant: { c:1, r:1, H:9, prims: (function () {
+      var o = [Z(3, D(50, 50, 33, C.terraDark, 3, .9))];
+      for (var k = 0; k < 8; k++) {
+        var a = k * Math.PI / 4 + Math.PI / 8, ca = Math.cos(a), sa = Math.sin(a), tip = 41, mid = 26, wing = 11;
+        var c1 = [50 + ca * mid - sa * wing, 50 + sa * mid + ca * wing], c2 = [50 + ca * mid + sa * wing, 50 + sa * mid - ca * wing], t = [50 + ca * tip, 50 + sa * tip];
+        o.push(Z(7, P('M 50 50 Q ' + r1(c1[0]) + ' ' + r1(c1[1]) + ' ' + r1(t[0]) + ' ' + r1(t[1]) + ' Q ' + r1(c2[0]) + ' ' + r1(c2[1]) + ' 50 50 Z', k % 2 ? C.greenLight : C.green, 3.5)));
+        o.push(L(r1(50 + ca * 10), r1(50 + sa * 10), r1(50 + ca * 34), r1(50 + sa * 34), C.greenDark, 2.2, .85));
+      }
+      o.push(Z(10, D(50, 50, 14, C.terracotta, 4)), D(50, 50, 8.5, C.soil, 2.5), D(46, 46, 2.5, C.wood, 0));
+      return o;
+    })() },
+    sofa: { c:2, r:1, H:10, prims: [
+      B(10, 86, 12, 9, 3, C.woodDeep, 3), B(178, 86, 12, 9, 3, C.woodDeep, 3), B(10, 5, 12, 9, 3, C.woodDeep, 3), B(178, 5, 12, 9, 3, C.woodDeep, 3),
+      Z(6, B(6, 8, 188, 86, 12, C.teal)),
+      Z(8, B(32, 38, 66, 52, 9, C.tealLight)), Z(8, B(102, 38, 66, 52, 9, C.tealLight)),
+      Z(12, B(6, 8, 188, 30, 12, C.tealDark)), Z(10, B(6, 8, 26, 86, 12, C.tealDark)), Z(10, B(168, 8, 26, 86, 12, C.tealDark)),
+      L(100, 42, 100, 86, C.tealDark, 2.5), L(40, 46, 90, 46, C.white, 3, .5), L(110, 46, 160, 46, C.white, 3, .5)
+    ] },
+    bed: { c:2, r:1, H:10, prims: [
+      B(6, 90, 12, 8, 3, C.woodDeep, 3), B(182, 90, 12, 8, 3, C.woodDeep, 3),
+      Z(7, B(4, 6, 192, 88, 8, C.woodDark)), Z(9, B(12, 12, 178, 76, 6, C.white)),
+      Z(11, B(70, 12, 120, 76, 6, C.blue)), L(78, 22, 78, 78, C.blueDark, 2.5), L(86, 26, 184, 26, C.white, 3, .5),
+      Z(13, B(18, 20, 40, 28, 11, C.creamLight, 3.5)), Z(13, B(18, 52, 40, 28, 11, C.creamLight, 3.5)),
+      Z(18, B(4, 6, 10, 88, 4, C.wood))
+    ] },
+    lamp: { c:1, r:1, H:12, prims: [
+      B(14, 78, 10, 8, 3, C.woodDeep, 3), B(76, 78, 10, 8, 3, C.woodDeep, 3), B(14, 14, 10, 8, 3, C.woodDeep, 3), B(76, 14, 10, 8, 3, C.woodDeep, 3),
+      Z(3, D(50, 50, 32, C.woodDark, 4)),
+      Z(16, D(50, 50, 37, C.yellowLight, 4)), D(50, 50, 27, C.yellow, 2.5), D(50, 50, 18, C.yellowLight, 2.5), D(50, 50, 6, C.white, 0)
+    ] },
+    tub: { c:2, r:1, H:10, prims: [
+      Z(12, B(6, 8, 188, 84, 28, C.white)), B(18, 20, 164, 60, 22, C.sky, 3.5),
+      L(40, 38, 120, 38, C.white, 3.5, .85), D(34, 50, 5, C.creamDark, 2),
+      Z(4, B(162, 40, 20, 20, 5, C.gold, 3.5)), D(172, 50, 4, C.goldDark || '#a98438', 0)
+    ] }
+  };
+  var ORDER = [['chair','Stoel'], ['rug','Kleed'], ['table','Tafel'], ['shelf','Boekenkast'], ['plant','Plant'], ['sofa','Bank'], ['bed','Bed'], ['lamp','Lamp'], ['tub','Bad']];
+
+  // ---- renderer ----
+  function dark(hex, f) {
+    if (hex.charAt(0) !== '#') return hex;
+    var v = parseInt(hex.slice(1), 16), r = v >> 16 & 255, g = v >> 8 & 255, b = v & 255;
+    return 'rgb(' + Math.round(r * f) + ',' + Math.round(g * f * .96) + ',' + Math.round(b * f * .94) + ')';
+  }
+  function el(p, wall) {
+    var sw = p.sw, st = p.stroke || C.ink, off = sw === 0 || st === 'none', op = p.op === undefined ? 1 : p.op;
+    var fill = p.fill;
+    if (wall) fill = dark(fill, .68);
+    var common = ' stroke="' + (off ? 'none' : st) + '" stroke-width="' + (off ? 0 : sw) + '" stroke-linejoin="round" stroke-linecap="round"';
+    if (p.t === 'box') return '<rect x="' + p.x + '" y="' + p.y + '" width="' + p.w + '" height="' + p.h + '" rx="' + p.r + '" fill="' + fill + '"' + common + (op < 1 ? ' opacity="' + op + '"' : '') + '/>';
+    if (p.t === 'disc') return '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + p.r + '" fill="' + fill + '"' + common + (op < 1 ? ' opacity="' + op + '"' : '') + '/>';
+    if (p.t === 'path') return '<path d="' + p.d + '" fill="' + fill + '"' + common + '/>';
+    return '<line x1="' + p.x1 + '" y1="' + p.y1 + '" x2="' + p.x2 + '" y2="' + p.y2 + '" stroke="' + p.stroke + '" stroke-width="' + p.sw + '" stroke-linecap="round"' + (op < 1 ? ' stroke-opacity="' + op + '"' : '') + '/>';
+  }
+  var HI = '<feOffset in="SourceAlpha" dx="2.9" dy="2.9" result="dr"/><feComposite in="SourceAlpha" in2="dr" operator="out" result="rimTL"/><feGaussianBlur in="rimTL" stdDeviation=".8" result="rimTLb"/><feFlood flood-color="#fff" flood-opacity=".48"/><feComposite in2="rimTLb" operator="in" result="hi"/>';
+  var SH = '<feOffset in="SourceAlpha" dx="-2.9" dy="-2.9" result="ul"/><feComposite in="SourceAlpha" in2="ul" operator="out" result="rimBR"/><feGaussianBlur in="rimBR" stdDeviation="1" result="rimBRb"/><feFlood flood-color="#2a1a10" flood-opacity=".27"/><feComposite in2="rimBRb" operator="in" result="sh"/>';
+  function ground(dx, dy, op) { return '<feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="gb"/><feOffset in="gb" dx="' + dx + '" dy="' + dy + '" result="go"/><feFlood flood-color="#2a1a10" flood-opacity="' + op + '"/><feComposite in2="go" operator="in" result="gs"/>'; }
+  // Light: top-left (azimuth 225), always in screen space because the filter group sits outside the orientation transform.
+  function filterDef(id, v, H) {
+    var open = '<filter id="' + id + '" x="-25%" y="-25%" width="165%" height="' + (190 + H * 2) + '%" color-interpolation-filters="sRGB">', m;
+    if (v === 'now') return open + HI + SH + ground(2.4, 5.3, .29) + '<feMerge><feMergeNode in="gs"/><feMergeNode in="SourceGraphic"/><feMergeNode in="hi"/><feMergeNode in="sh"/></feMerge></filter>';
+    if (v === 'A') {
+      var ex = '<feColorMatrix in="SourceGraphic" type="matrix" values=".55 0 0 0 0  0 .5 0 0 0  0 0 .48 0 0  0 0 0 1 0" result="dk"/>', mg = '<feMergeNode in="gs"/>', k, steps = Math.max(1, Math.ceil(H / 2));
+      for (k = steps; k >= 1; k--) { ex += '<feOffset in="dk" dx="' + r1(.5 * H * k / steps) + '" dy="' + r1(H * k / steps) + '" result="e' + k + '"/>'; mg += '<feMergeNode in="e' + k + '"/>'; }
+      return open + ground(2.4 + .5 * H, 5.3 + H, .3) + ex + HI + '<feMerge>' + mg + '<feMergeNode in="SourceGraphic"/><feMergeNode in="hi"/></feMerge></filter>';
+    }
+    if (v === 'B') return open + HI + ground(2.4 + .25 * H, 5 + .8 * H, .3) + '<feMerge><feMergeNode in="gs"/><feMergeNode in="SourceGraphic"/><feMergeNode in="hi"/></feMerge></filter>';
+    // C: lighting. The bump map is the luminance of the art: pale parts are raised, ink lines and seams become grooves.
+    m = '<feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .5 .9 .2 0 0" result="lum"/><feGaussianBlur in="lum" stdDeviation="1.7" result="bump"/>' +
+      '<feDiffuseLighting in="bump" surfaceScale="6" diffuseConstant="1" lighting-color="#fff" result="diff"><feDistantLight azimuth="225" elevation="52"/></feDiffuseLighting>' +
+      '<feComposite in="SourceGraphic" in2="diff" operator="arithmetic" k1="1.12" k2="0" k3="0" k4="0" result="lit"/>' +
+      '<feSpecularLighting in="bump" surfaceScale="6" specularConstant=".4" specularExponent="20" lighting-color="#fff" result="spec"><feDistantLight azimuth="225" elevation="52"/></feSpecularLighting>' +
+      '<feComposite in="spec" in2="SourceAlpha" operator="in" result="spec2"/><feComposite in="lit" in2="spec2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="out"/>';
+    return open + m + ground(3, 6.5, .3) + '<feMerge><feMergeNode in="gs"/><feMergeNode in="out"/></feMerge></filter>';
+  }
+  // orientation: mirror first, then clockwise rotation, as in src/render/icons/orientation.ts
+  function tf(cols, rows, rot, mirror) {
+    var m = mirror ? 'scale(-1 1) translate(-' + cols * 100 + ' 0) ' : '';
+    var r = rot === 90 ? 'translate(' + rows * 100 + ' 0) rotate(90) ' : rot === 180 ? 'translate(' + cols * 100 + ' ' + rows * 100 + ') rotate(180) ' : rot === 270 ? 'translate(0 ' + cols * 100 + ') rotate(270) ' : '';
+    return r + m;
+  }
+  var n = 0, SCALE = 1;
+  function svgOf(art, rot, mirror, v) {
+    var id = 'f' + (n++), cols = art.c, rows = art.r, o = '<g transform="' + tf(cols, rows, rot, mirror) + '">', e = '</g>', body = '', H = art.H * SCALE, bz = 0, i, p, k, steps, off;
+    if (v === 'B') {
+      for (i = 0; i < art.prims.length; i++) {
+        p = art.prims[i];
+        if (p.z > bz) bz = p.z;
+        if (p.z > 0 && p.t !== 'line' && p.fill !== 'none') {
+          var z = p.z * SCALE * .45; steps = Math.max(1, Math.ceil(z / 2));
+          for (k = steps; k >= 1; k--) { off = z * k / steps; body += '<g transform="translate(' + r1(off * .5) + ' ' + r1(off) + ')">' + o + el(p, true) + e + '</g>'; }
+        }
+        body += o + el(p) + e;
+      }
+      H = bz * SCALE * .45;
+    } else {
+      body = o + art.prims.map(function (q) { return el(q); }).join('') + e;
+    }
+    var w = rot % 180 ? rows : cols, h = rot % 180 ? cols : rows;
+    return { svg: '<svg viewBox="0 0 ' + w * 100 + ' ' + h * 100 + '" aria-hidden="true"><defs>' + filterDef(id, v, H) + '</defs><g filter="url(#' + id + ')">' + body + '</g></svg>', w: w, h: h };
+  }
+  function tile(art, rot, mirror, v, cell, label) {
+    var s = svgOf(art, rot, mirror, v);
+    return '<div class="tile" style="width:' + s.w * cell + 'px;height:' + s.h * cell + 'px;background-size:' + cell + 'px ' + cell + 'px" role="img" aria-label="' + label + '">' + s.svg + '</div>';
+  }
+
+  var VN = { now: 'Nu', A: 'A. Blok', B: 'B. Trappen', C: 'C. Reliëf' };
+  var ORI = [[0,false,'0°'],[90,false,'90°'],[180,false,'180°'],[270,false,'270°'],[0,true,'gespiegeld'],[90,true,'90° gesp.'],[180,true,'180° gesp.'],[270,true,'270° gesp.']];
+  var cmp = document.getElementById('cmp'), ori = document.getElementById('ori'), floor = document.getElementById('floor');
+  function curV() { return document.querySelector('input[name=v]:checked').value; }
+  function draw() {
+    var html = '<span class="h"></span>', v;
+    ['now','A','B','C'].forEach(function (k) { html += '<span class="h">' + VN[k] + '</span>'; });
+    ORDER.forEach(function (row) {
+      html += '<span class="n">' + row[1] + '</span>';
+      ['now','A','B','C'].forEach(function (k) { html += '<div class="cellbox">' + tile(ART[row[0]], 0, false, k, 72, row[1] + ', ' + VN[k]) + '</div>'; });
+    });
+    cmp.innerHTML = html;
+    v = curV();
+    html = '<span class="h"></span>' + ORI.map(function (o) { return '<span class="h">' + o[2] + '</span>'; }).join('');
+    ORDER.forEach(function (row) {
+      html += '<span class="n">' + row[1] + '</span>';
+      ORI.forEach(function (o) { html += '<div class="cellbox">' + tile(ART[row[0]], o[0], o[1], v, 48, row[1] + ', ' + o[2]) + '</div>'; });
+    });
+    ori.innerHTML = html;
+    var CELL = 72, parts = [
+      ['rug',3,1,0,0], ['sofa',0,0,0,0], ['shelf',2,0,0,0], ['lamp',4,0,0,0], ['bed',5,0,90,0], ['plant',7,0,0,0],
+      ['chair',3,1,0,0], ['chair',4,1,180,1], ['table',0,2,0,0], ['tub',2,2,0,0], ['chair',4,2,90,0], ['lamp',5,2,0,0], ['plant',7,2,0,1], ['sofa',6,1,0,1]
+    ];
+    var s = '<div class="tile floor" style="width:' + 8 * CELL + 'px;height:' + 3 * CELL + 'px;background-size:' + CELL + 'px ' + CELL + 'px" role="img" aria-label="Kamervloer met alle objecten">';
+    parts.forEach(function (p) {
+      var one = svgOf(ART[p[0]], p[3], !!p[4], v);
+      s += '<div style="position:absolute;left:' + p[1] * CELL + 'px;top:' + p[2] * CELL + 'px;width:' + one.w * CELL + 'px;height:' + one.h * CELL + 'px">' + one.svg.replace('<svg ', '<svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" ') + '</div>';
+    });
+    floor.innerHTML = s + '</div>';
+    upd();
+  }
+  var scale = document.getElementById('scale'), scaleOut = document.getElementById('scaleOut');
+  scale.addEventListener('input', function () { SCALE = scale.value / 100; scaleOut.textContent = scale.value; draw(); });
+  document.querySelectorAll('input[name=v]').forEach(function (e) { e.addEventListener('change', draw); });
+
+  var out = document.getElementById('out');
+  var LBL = { A: 'A. Blok', B: 'B. Trappen', C: 'C. Reliëf', AC: 'A met C erbij', none: 'geen, blijf bij nu', other: 'anders' };
+  function line() { var r = document.querySelector('input[name=r]:checked'); return 'Hoogte ' + scale.value + '% · ' + LBL[r ? r.value : 'A']; }
+  function upd() { out.textContent = line(); }
+  document.querySelectorAll('input[name=r]').forEach(function (e) { e.addEventListener('change', upd); });
+  scale.addEventListener('input', upd);
+  document.getElementById('copy').addEventListener('click', function () {
+    var b = this;
+    function done(ok) { b.textContent = ok ? 'Gekopieerd' : 'Selecteer de regel hierboven'; setTimeout(function () { b.textContent = 'Kopieer'; }, 1800); }
+    try { navigator.clipboard.writeText(line()).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+  });
+  draw();
+})();
+</script>
