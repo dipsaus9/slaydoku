@@ -6,7 +6,7 @@ import type { RoomType, SceneTheme, ThemeObject, ThemeRoom } from './types.ts'
 /**
  * The Carnaval theme (SLAY-18.7) for 11 November, Oeteldonk style: Den Bosch as Oeteldonk, red, white and yellow, the frog, the kroeg,
  * confetti and the optocht. Built from the owner-approved draft (docs/themes/seasonal/carnaval.theme.ts, SLAY-18.5). No brand, logo or
- * beer label anywhere. Seasonal: picked by the calendar (src/schedule/calendar.ts), never part of the rotation.
+ * beer label anywhere. Seasonal: picked by the calendar (src/schedule/calendar.ts), never part of the rotation. Registration (and regenerating 11 November) is SLAY-18.10.
  *
  * Changes against the draft, from the rules epic 17 set after it: the plain chair is the only chair (the draft's bar stool was drawn as the
  * plain chair, so it is called a chair); a kind is named after what is drawn (the kroeg counter is its own bar drawing with beer taps, the
@@ -89,7 +89,8 @@ export const CARNAVAL_OBJECTS: ThemeObject[] = [
   fromHome('television', ['living', PARTY, 'sleeping']),
 ]
 
-export const CARNAVAL_THEME: SceneTheme | undefined = {
+/** The finished theme. Not registered yet: SLAY-18.10 registers it (sets `CARNAVAL_THEME` below to it) and regenerates 11 November. */
+export const carnavalTheme: SceneTheme = {
   id: 'carnaval',
   seasonal: true,
   name: 'Carnival in Oeteldonk',
@@ -97,3 +98,6 @@ export const CARNAVAL_THEME: SceneTheme | undefined = {
   rooms: CARNAVAL_ROOMS,
   objects: CARNAVAL_OBJECTS,
 }
+
+/** What `index.ts` registers: nothing until SLAY-18.10, so `SCENE_THEMES`, the picker and every scheduled day stay as they are. */
+export const CARNAVAL_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10 (set to carnavalTheme)
