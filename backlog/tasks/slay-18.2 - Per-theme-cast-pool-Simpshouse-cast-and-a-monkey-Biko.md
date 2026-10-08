@@ -1,10 +1,10 @@
 ---
 id: SLAY-18.2
 title: 'Per-theme cast pool, Simpshouse cast and a monkey Biko'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 12:40'
+updated_date: '2026-10-08 12:46'
 labels:
   - needs-owner-review
 dependencies:
@@ -40,7 +40,7 @@ Branch: SLAY-18.2/simpshouse-cast
 - [x] #4 Biko always renders as a monkey portrait on cards, board and share card; other names still get slot portraits; override is documented in CLAUDE.md as the one exception to 'avatars are not tied to names'
 - [x] #5 The cast chain skips seasonal-cast days: casts of all other days are byte-identical (test)
 - [x] #6 bun run lint, typecheck and test --maxWorkers=1 pass
-- [ ] #7 Owner has seen the monkey Biko and approved (only the owner ticks this)
+- [x] #7 Owner has seen the monkey Biko and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -51,4 +51,12 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 Delivered on branch; AC 7 (owner approval of the monkey) left unchecked, story stays In Progress. Screenshots: docs/design/monkey-biko/. Share card draws no people, so the monkey appears on cards and board only.
 
 Review gate: pass in round 1 (no findings, no scope violations; AC 7 is the owner's).
+
+Owner approved the monkey Biko in chat on 2026-10-08 ("Goed"). Owner decision on the Iris clash: 2026-10-14 is a 12x12 that needs all 11 letters, so Iris repeats from 2026-10-13; the consecutive-day shared-name gate (src/schedule/gates.ts) gets an exception for days with their own cast pool (Simpshouse): one shared name with a neighbouring day is allowed there. SLAY-18.4 builds the exception and removes the theme mock from cast.simpshouse.test.ts. Closed by the orchestrator.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Per-theme cast pools, the 18-name Simpshouse pool, a monkey Biko (owner approved), and a cast chain that keeps themed days out so all other casts stay byte-identical.
+<!-- SECTION:FINAL_SUMMARY:END -->
