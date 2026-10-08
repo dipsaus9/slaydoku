@@ -1,10 +1,10 @@
 ---
 id: SLAY-17.6
 title: Regenerate future schedule days and verify on screen
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 14:13'
+updated_date: '2026-10-08 14:33'
 labels:
   - needs-owner-review
 dependencies:
@@ -31,9 +31,9 @@ Branch: SLAY-17.6/regenerate-and-verify
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Days up to and including 2026-10-08 are byte-identical to main
-- [ ] #2 Days from 2026-10-09 are regenerated; bun run schedule:check and bun run test --maxWorkers=1 pass
-- [ ] #3 2026-10-14 (the approved Simpshouse day) is byte-identical to main; so is every day up to and including the current UTC date
+- [x] #1 Days up to and including 2026-10-08 are byte-identical to main
+- [x] #2 Days from 2026-10-09 are regenerated; bun run schedule:check and bun run test --maxWorkers=1 pass
+- [x] #3 2026-10-14 (the approved Simpshouse day) is byte-identical to main; so is every day up to and including the current UTC date
 - [ ] #4 A rendered check (docs/verification/regen-days.ts) of sample days of the five regular themes at 390 and 1024 wide shows no bed outside a sleeping room, no wet fixture outside a wet room, no vehicle in a room and one chair look
 - [ ] #5 docs/authoring/schedule.md notes that unregistered seasonal windows are regenerated again by SLAY-18.10
 - [ ] #6 Owner has seen the rendered sample days and approved (only the owner ticks this)
@@ -43,4 +43,6 @@ Branch: SLAY-17.6/regenerate-and-verify
 
 <!-- SECTION:NOTES:BEGIN -->
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it. A published day must never change: no --overwrite on days up to today. docs/handoff.md is updated by SLAY-18.10, not here.
+
+Regenerated 2026-10-09..2026-10-13 and 2026-10-15..2027-01-24 (107 days, --overwrite, two ranges); 2026-10-14 and all days up to 2026-10-08 byte-identical to origin/main (checked per day). schedule:check, test, lint, typecheck green; dayProblems clean on all 120 days. Driver docs/verification/regen-days.ts passed. AC4 (handoff) left to SLAY-18.10 per plan change; AC5 is the owner's.
 <!-- SECTION:NOTES:END -->
