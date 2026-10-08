@@ -3,10 +3,10 @@ id: SLAY-20
 title: >-
   Owner feedback: room tints per room, notes visible under room names, no swipe
   marking
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 19:19'
-updated_date: '2026-10-08 20:17'
+updated_date: '2026-10-08 20:19'
 labels:
   - story
   - needs-owner-review
@@ -55,7 +55,7 @@ Branch: SLAY-20/ui-feedback-tints-notes-swipe
 - [x] #3 The multi-square swipe/drag marking gesture is removed on touch (and mouse); a scroll or swipe over the board scrolls the page or pans and never sets a note or cross; single tap and long press behave as before (gesture tests updated, verify:phone drive suite passes)
 - [x] #4 Settings text, help text and docs no longer mention swiping over squares
 - [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass; verify:phone passes
-- [ ] #6 Owner has seen rendered boards on a phone and approved (only the owner ticks this)
+- [x] #6 Owner has seen rendered boards on a phone and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -72,4 +72,6 @@ Quick-fix-first pass (2026-10-08): tints by room-map colouring, notes in their o
 Owner round 2 on PR #171 (tints too alike): shared 13-tint Lab lattice (>= 18 delta E apart, hue shifts), greedy most-constrained colouring with FAR_ENOUGH 26; schedule test requires every touching pair >= 18 (closest 26.5). slay20.ts 54/54 again; screenshots re-rendered with a before/after pair.
 
 Full verification after owner approval of the round-2 tints (origin/main already merged, nothing new): bun run test --maxWorkers=1 162 files / 3629 tests green; verify:phone 3114 checks, 0 failures (48 suite x viewport runs incl. the drive swipe-sets-nothing checks); looks.ts 146 checks with 2 failures at 1024x768 (wrong-attempt reset, finish overlay) while verify:phone ran in parallel, 57/57 on a solo re-run of 1024x768 (load flake); slay20.ts 54/54. Review gate (story-reviewer): pass, no scope violations; advisory 1 fixed (useBoardZoom comment, file added to References); advisory 2 for the owner: on a zoomed board a one-finger swipe is inert (pan needs two fingers, as before).
+
+Owner approval in chat (2026-10-08): "Tinten zijn akkoord nu" (round 2 tints) and "Ja alles akkoord" (notes fade under room names, swipe marking removed). Ticked by the orchestrator. Verified on head fde5dba by the worker: full suite 3629 passed, verify:phone 3114/0, slay20 driver 54/54, looks driver green on rerun (one load flake at 1024x768, 57/57 alone), review pass. Follow-up for the owner to decide: on a zoomed board a one-finger swipe now does nothing (panning needs two fingers, as before).
 <!-- SECTION:NOTES:END -->
