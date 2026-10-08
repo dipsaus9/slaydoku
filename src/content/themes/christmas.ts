@@ -6,8 +6,8 @@ import type { RoomType, SceneTheme, ThemeObject, ThemeRoom } from './types.ts'
 /**
  * The Christmas theme (SLAY-18.8): Santa's village for all of December, built from the owner-approved draft of SLAY-18.5
  * (docs/themes/seasonal/christmas.theme.ts): a workshop, a stable, a market and a chapel under snow, with trees, presents, a sleigh, reindeer
- * and gingerbread. 18 rooms, so 31 days in a row stay varied. Seasonal: picked by the calendar (src/schedule/calendar.ts), never part of the
- * rotation.
+ * and gingerbread. 18 rooms, so 31 days in a row stay varied. Seasonal: picked by the calendar (src/schedule/calendar.ts) once SLAY-18.10
+ * registers it, never part of the rotation.
  *
  * Changes from the draft, each forced by a rule of the engine or epic 17:
  * - The plain chair is the only chair (SLAY-17.2): the draft's armchair is the Home `chair`.
@@ -81,7 +81,8 @@ export const CHRISTMAS_OBJECTS: ThemeObject[] = [
   themeObject({ kind: 'holly', name: 'holly bush', clueNoun: 'holly bush', nameNl: 'hulststruik', engineType: 'plant', themeIcon: 'holly', weight: 5, footprints: [rect(1, 1)], placement: 'corner', allowedRoomTypes: [OUTDOOR, 'chapel', 'market'] }),
 ]
 
-export const CHRISTMAS_THEME: SceneTheme | undefined = {
+/** The finished theme. Not registered yet: SLAY-18.10 points CHRISTMAS_THEME at it when it regenerates the December days. */
+export const christmasTheme: SceneTheme = {
   id: 'christmas',
   seasonal: true,
   name: "Santa's village",
@@ -89,3 +90,10 @@ export const CHRISTMAS_THEME: SceneTheme | undefined = {
   rooms: CHRISTMAS_ROOMS,
   objects: CHRISTMAS_OBJECTS,
 }
+
+/**
+ * What index.ts registers. Left undefined on purpose (coordinator decision, SLAY-18.8): registering makes the calendar give Christmas to
+ * December while the committed schedule still has the rotation themes there, so the schedule tests would fail until SLAY-18.10 regenerates
+ * those days. SLAY-18.10 flips this to `christmasTheme`.
+ */
+export const CHRISTMAS_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10

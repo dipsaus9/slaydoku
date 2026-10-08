@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { puzzleFingerprint } from '../game/fingerprint.ts'
 import { castProblems, hasOwnCastPool, sharedNames } from '../content/cast/index.ts'
-import { bakedBeforeSeason, scheduleProblems } from './check.ts'
+import { scheduleProblems } from './check.ts'
 import { addDays } from './dates.ts'
 import { monthFileName, orderedDay, parseIndex, serializeIndex, serializeMonth } from './format.ts'
 import { castOfDay, dayProblems, packEntryOf } from './gates.ts'
@@ -68,7 +68,7 @@ describe('committed schedule: what is in it', () => {
     for (const day of days) {
       const plan = planDay(day.date)
       expect(day.tier, day.date).toBe(plan.tier)
-      if (!bakedBeforeSeason(day)) expect(day.theme, day.date).toBe(plan.theme)
+      expect(day.theme, day.date).toBe(plan.theme)
       expect(day.size, day.date).toBe(day.fallbackFrom === undefined ? plan.size : 9)
       expect(day.seed).toBeGreaterThanOrEqual(plan.seed)
       expect(day.seed).toBeLessThan(plan.seed + 50)
