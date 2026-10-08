@@ -41,8 +41,13 @@ A3 is the strongest 3D candidate and uses the same models as A2, so it is the ne
 
 Porting (a follow-up story, not part of this spike): add a block model per object to the icon registry, a `project(x, y, z)` function, and replace `ICON_DEPTH_FILTER` with a polygon renderer that keeps the orientation, sort and shadow rules above.
 
-## Owner choice
+## Decision
 
-Not yet chosen. The owner looks at the prototype together with Claude and the choice is written here (only the owner ticks acceptance criterion 3 of SLAY-17.3).
+Owner, 2026-10-08: "Zouden we hier niet voor kiezen om allebei uit te werken? Ik vind isometrisch heel mooi maar speelt misschien onhandig. Anders wordt schuin de optie."
 
-Chosen look: _pending_
+- Both A2 (oblique, square grid) and A3 (isometric, diamond grid) go on to the in-app proof of concept SLAY-17.8, behind an Options switch. The final pick is made there.
+- A (round 1, the block) is the base of both. B and C stay rejected.
+- The owner finds isometric very beautiful but fears it plays awkwardly. A3 is therefore judged on playability: tap targets including corners, a 12x12 board on a phone, labels and walls, and overlap of tall objects. A2 is the fallback if A3 plays badly.
+- The bathtub water must clearly read as water (owner remark; see the SLAY-17.4 and SLAY-17.8 criteria). In the prototype it is a flat pale-blue slab, which is not enough.
+
+Chosen look: A2 and A3 carried to the PoC (SLAY-17.8); final pick there.
