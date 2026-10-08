@@ -4,7 +4,7 @@ title: 'Spike: Simpshouse preview (rooms, objects, sample levels)'
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 11:19'
+updated_date: '2026-10-08 11:24'
 labels:
   - needs-owner-review
 dependencies:
@@ -43,4 +43,6 @@ Preview built: docs/themes/simpshouse/preview.html (static, open the file direct
 Review gate: pass (no scope violations; AC 4 intentionally unchecked, owner only).
 
 Round 2 (owner: much more party): draft theme now 25 rooms, 44 objects, 22 new drawings. Added rabbit hutch (Balcony), red carpet, champagne tower, gold mirror, glitter shoe wall, photo wall, DJ booth, dance floor, confetti cannon, balloons, snack table, cocktail bar, photo booth, lava lamp, salmiak candy table (generic dark liquorice, no brand); rooms Balcony, Dance Floor, Cocktail Lounge, Candy Corner, Photo Studio, Glam Room. Beanbag and bookcase dropped (plain chair is the only chair look). New RoomTypes needed in src by the theme story: party, outdoor (draft casts them). Floor styles for the new room names also need NAME_HINTS entries in roomStyles.ts. Fixed duplicate SVG ids in the preview. AC 4 stays unchecked.
+
+Round 2 review gate: pass (advisory: re-check borrowed engineTypes in SLAY-18.4 clue pass).
 <!-- SECTION:NOTES:END -->
