@@ -66,7 +66,7 @@ export function NoteGlyph({ x, y, fontSize, bold, color, tag, opacity = 1, noteK
  * so a letter never jumps around when others are added or removed. The selected suspect's
  * letters are bold and their X marks are drawn big over a light wash; other people's X marks
  * are not drawn (there would be no room), they show when that suspect is selected.
- * `show` splits the two for the diamond look (SLAY-17.8): the crosses lie on the floor, the letters stay upright.
+ * `show` draws the crosses and the letters apart: the Board puts the letters above the press ring.
  */
 export function MarksLayer({ geometry, puzzle, board, selectedId, tags, colors, show = 'both' }: LayerProps & { show?: 'both' | 'crosses' | 'notes' }) {
   const people = puzzle.people

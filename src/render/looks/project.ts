@@ -1,15 +1,22 @@
-import type { Look } from './look.ts'
 import type { Prim } from './models.ts'
 
-/** Isometric scale of the diamond grid: one plane unit along a column or row moves ISO_X across and ISO_Y down. */
-export const ISO_X = 0.693
-export const ISO_Y = 0.4
-/** Height scale of the isometric look (the prototype's 0.8). */
-export const ISO_Z = 0.8
+/**
+ * The one projection of the objects (owner pick A2, SLAY-17.8): an oblique view from the front and above on the unchanged square grid.
+ * A model point (100 units per cell, x right, y toward the viewer, z up) lands at `(x - SKEW * z, y - RISE * z)` relative to the footprint's
+ * top-left corner: the floor stays square, a point at height z moves up and a little left, so the top, the front and the right side of a block
+ * show. The camera is at the +x, +y, +z corner; light comes from the top left.
+ */
+export const SKEW = 0.22
+export const RISE = 0.7
 
-/** A model point (100 units per cell, x right, y toward the viewer, z up) to the flat drawing, relative to the footprint's top-left. */
-export function projectModel(look: 'a2' | 'a3', x: number, y: number, z: number): [number, number] {
-  return look === 'a2' ? [x - 0.22 * z, y - 0.7 * z] : [(x - y) * ISO_X, (x + y) * ISO_Y - z * ISO_Z]
+/** Nothing a model draws is higher than this (model units), so no block rises more than `RISE * MAX_Z` above its footprint. */
+export const MAX_Z = 96
+
+/** Free space above the grid (drawing units, 64 per cell) for the tallest block of the top row: `RISE * MAX_Z` model units, 0.64 each. */
+export const HEADROOM = 44
+
+export function projectModel(x: number, y: number, z: number): [number, number] {
+  return [x - SKEW * z, y - RISE * z]
 }
 
 export interface Extent {
@@ -21,8 +28,20 @@ export interface Extent {
   z1: number
 }
 
-export const primExtent = (p: Prim): Extent =>
-  p.kind === 'box' ? p : { x0: p.x - p.r, y0: p.y - p.r, x1: p.x + p.r, y1: p.y + p.r, z0: p.z0, z1: p.z1 }
+export const primExtent = (p: Prim): Extent => {
+  switch (p.kind) {
+    case 'box':
+      return p
+    case 'cylinder':
+      return { x0: p.x - p.r, y0: p.y - p.r, x1: p.x + p.r, y1: p.y + p.r, z0: p.z0, z1: p.z1 }
+    case 'sphere':
+      return { x0: p.x - p.r, y0: p.y - p.r, x1: p.x + p.r, y1: p.y + p.r, z0: p.z - p.r, z1: p.z + p.r }
+    case 'disc':
+      return p.plane === 'xz'
+        ? { x0: p.x - p.r, y0: p.y, x1: p.x + p.r, y1: p.y, z0: p.z - p.r, z1: p.z + p.r }
+        : { x0: p.x, y0: p.y - p.r, x1: p.x, y1: p.y + p.r, z0: p.z - p.r, z1: p.z + p.r }
+  }
+}
 
 /**
  * Back to front for a camera at +x, +y, +z: A goes before B when A lies entirely behind, left of or below B and B does not
@@ -60,9 +79,4 @@ export function sortBackToFront<T>(items: readonly T[], extent: (item: T) => Ext
     for (const t of after[best]!) indegree[t]!--
   }
   return out
-}
-
-/** Headroom above the grid that the tallest block of a look needs (viewBox units). */
-export function headroom(look: Look): number {
-  return look === 'a2' ? 44 : look === 'a3' ? 52 : 0
 }

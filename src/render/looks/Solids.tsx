@@ -1,40 +1,35 @@
-import { useId, useMemo, type ReactNode } from 'react'
-import { CELL_SIZE, type SceneGeometry } from '../scene/geometry.ts'
-import { SOLID_COLORS, type Cylinder, type Prim } from './models.ts'
-import { shade, type Solid, type SolidObject, solidOf } from './solid.ts'
+import { useId, type ReactNode } from 'react'
+import { LINE, type Box, type Cylinder, type Disc, type Prim, type Sphere } from './models.ts'
 import { primExtent, projectModel, sortBackToFront } from './project.ts'
+import type { Solid } from './solid.ts'
+import { shade, shadowRects, solidBounds } from './solidGeometry.ts'
 
-export interface SceneSolidsProps {
-  objects: readonly SolidObject[]
-  /** The flat geometry of the scene (its `project` puts the footprint on screen). */
-  geometry: SceneGeometry
-  look: 'a2' | 'a3'
-  /** Objects that have their own theme art keep it (flat) in every look. */
-  themeIcons?: Readonly<Record<string, unknown>>
-}
-
-const r1 = (n: number) => Math.round(n * 10) / 10
+/** Light from the top left: the top face keeps the colour, the front face is 80 percent of it, the right face 62 percent. */
 const FRONT = 0.8
 const RIGHT = 0.62
-const STROKE = 3
+const INK = '#29211d'
 
-function Poly({ pts, fill }: { pts: [number, number][]; fill: string }) {
-  return <polygon points={pts.map((q) => `${r1(q[0])},${r1(q[1])}`).join(' ')} fill={fill} stroke={SOLID_COLORS.ink} strokeWidth={STROKE} strokeLinejoin="round" />
+const r1 = (n: number) => Math.round(n * 10) / 10
+type Pt = [number, number]
+const pts = (list: Pt[]) => list.map((q) => `${r1(q[0])},${r1(q[1])}`).join(' ')
+
+function Poly({ points, fill, line = LINE }: { points: Pt[]; fill: string; line?: number }) {
+  return <polygon points={pts(points)} fill={fill} stroke={line > 0 ? INK : 'none'} strokeWidth={line} strokeLinejoin="round" />
 }
 
-function cross(a: [number, number], b: [number, number], c: [number, number]) {
+function cross(a: Pt, b: Pt, c: Pt) {
   return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 }
 
 /** Convex hull (monotone chain) of the projected rings of a cylinder: its silhouette. */
-function hull(points: [number, number][]): [number, number][] {
+function hull(points: Pt[]): Pt[] {
   const all = [...points].sort((u, w) => u[0] - w[0] || u[1] - w[1])
-  const lower: [number, number][] = []
+  const lower: Pt[] = []
   for (const p of all) {
     while (lower.length > 1 && cross(lower[lower.length - 2]!, lower[lower.length - 1]!, p) <= 0) lower.pop()
     lower.push(p)
   }
-  const upper: [number, number][] = []
+  const upper: Pt[] = []
   for (const p of [...all].reverse()) {
     while (upper.length > 1 && cross(upper[upper.length - 2]!, upper[upper.length - 1]!, p) <= 0) upper.pop()
     upper.push(p)
@@ -42,81 +37,163 @@ function hull(points: [number, number][]): [number, number][] {
   return [...lower.slice(0, -1), ...upper.slice(0, -1)]
 }
 
-function PrimShape({ prim, look }: { prim: Prim; look: 'a2' | 'a3' }) {
-  const P = (x: number, y: number, z: number) => projectModel(look, x, y, z)
-  if (prim.kind === 'box') {
-    const { x0, y0, x1, y1, z0, z1, color } = prim
-    return (
-      <>
-        <Poly fill={shade(color, FRONT)} pts={[P(x0, y1, z0), P(x1, y1, z0), P(x1, y1, z1), P(x0, y1, z1)]} />
-        <Poly fill={shade(color, RIGHT)} pts={[P(x1, y0, z0), P(x1, y1, z0), P(x1, y1, z1), P(x1, y0, z1)]} />
-        <Poly fill={color} pts={[P(x0, y0, z1), P(x1, y0, z1), P(x1, y1, z1), P(x0, y1, z1)]} />
-      </>
-    )
-  }
-  const ring = (c: Cylinder, z: number) => Array.from({ length: 24 }, (_, t): [number, number] => P(c.x + Math.cos((t * Math.PI) / 12) * c.r, c.y + Math.sin((t * Math.PI) / 12) * c.r, z))
-  const lo = ring(prim, prim.z0)
-  const hi = ring(prim, prim.z1)
+const P = projectModel
+const SEGMENTS = 24
+const BEVEL = 4
+
+function BoxShape({ box }: { box: Box }) {
+  const { x0, y0, x1, y1, z0, z1, color, line } = box
+  // A solid block gets a pale line just inside its top edge: a bevel that keeps a big top from reading as a flat patch.
+  const bevel = line !== 0 && z1 - z0 >= 4 && x1 - x0 >= 22 && y1 - y0 >= 22
   return (
     <>
-      <Poly fill={shade(prim.color, FRONT)} pts={hull([...lo, ...hi])} />
-      <Poly fill={prim.color} pts={hi} />
+      <Poly line={line} fill={shade(color, FRONT)} points={[P(x0, y1, z0), P(x1, y1, z0), P(x1, y1, z1), P(x0, y1, z1)]} />
+      <Poly line={line} fill={shade(color, RIGHT)} points={[P(x1, y0, z0), P(x1, y1, z0), P(x1, y1, z1), P(x1, y0, z1)]} />
+      <Poly line={line} fill={color} points={[P(x0, y0, z1), P(x1, y0, z1), P(x1, y1, z1), P(x0, y1, z1)]} />
+      {bevel ? <polygon points={pts([P(x0 + BEVEL, y0 + BEVEL, z1), P(x1 - BEVEL, y0 + BEVEL, z1), P(x1 - BEVEL, y1 - BEVEL, z1), P(x0 + BEVEL, y1 - BEVEL, z1)])} fill="none" stroke="#ffffff" strokeOpacity={0.32} strokeWidth={1.4} strokeLinejoin="round" /> : null}
     </>
   )
 }
 
-/** The blocks and cylinders of one model, back to front, in model units (for contact sheets and checks; the board uses SceneSolids). */
-export function SolidPrims({ prims, look }: { prims: readonly Prim[]; look: 'a2' | 'a3' }) {
-  return <>{sortBackToFront(prims, primExtent).map((p, i) => <PrimShape key={i} prim={p} look={look} />)}</>
+function CylinderShape({ cyl }: { cyl: Cylinder }) {
+  const ring = (r: number, z: number): Pt[] =>
+    Array.from({ length: SEGMENTS }, (_, t) => P(cyl.x + Math.cos((t * 2 * Math.PI) / SEGMENTS) * r, cyl.y + Math.sin((t * 2 * Math.PI) / SEGMENTS) * r, z))
+  const lo = ring(cyl.r, cyl.z0)
+  const hi = ring(cyl.r1 ?? cyl.r, cyl.z1)
+  return (
+    <>
+      <Poly line={cyl.line} fill={shade(cyl.color, FRONT)} points={hull([...lo, ...hi])} />
+      <Poly line={cyl.line} fill={cyl.color} points={hi} />
+    </>
+  )
 }
 
-/** A soft ground shadow: the footprint pushed to the lower right in model space (light from the top left). */
-function shadowPoints(s: Solid, look: 'a2' | 'a3'): [number, number][] {
-  const P = (x: number, y: number) => projectModel(look, x, y, 0)
-  return [P(14, 10), P(s.width + 8, 10), P(s.width + 8, s.height + 4), P(14, s.height + 4)]
+function SphereShape({ ball }: { ball: Sphere }) {
+  const [cx, cy] = P(ball.x, ball.y, ball.z)
+  const r = ball.r
+  return (
+    <>
+      <circle cx={r1(cx)} cy={r1(cy)} r={r} fill={shade(ball.color, RIGHT + 0.1)} stroke={INK} strokeWidth={LINE} />
+      <circle cx={r1(cx - r * 0.14)} cy={r1(cy - r * 0.16)} r={r1(r * 0.72)} fill={ball.color} />
+    </>
+  )
+}
+
+function DiscShape({ disc }: { disc: Disc }) {
+  const { plane, x, y, z, r, ring, color } = disc
+  const at = (a: number): Pt => (plane === 'xz' ? P(x + Math.cos(a) * r, y, z + Math.sin(a) * r) : P(x, y + Math.cos(a) * r, z + Math.sin(a) * r))
+  const outline = Array.from({ length: SEGMENTS }, (_, t) => at((t * 2 * Math.PI) / SEGMENTS))
+  const fill = shade(color, plane === 'xz' ? FRONT : RIGHT)
+  if (ring === undefined) return <polygon points={pts(outline)} fill={fill} stroke={INK} strokeWidth={LINE * 0.7} strokeLinejoin="round" />
+  return <polygon points={pts(outline)} fill="none" stroke={fill} strokeWidth={ring} strokeLinejoin="round" />
+}
+
+function PrimShape({ prim }: { prim: Prim }) {
+  switch (prim.kind) {
+    case 'box':
+      return <BoxShape box={prim} />
+    case 'cylinder':
+      return <CylinderShape cyl={prim} />
+    case 'sphere':
+      return <SphereShape ball={prim} />
+    case 'disc':
+      return <DiscShape disc={prim} />
+  }
+}
+
+/** The blocks, cylinders, balls and discs of one object, back to front, in model units (100 per cell, origin at the footprint's top-left). */
+export function SolidPrims({ prims }: { prims: readonly Prim[] }) {
+  return <>{sortBackToFront(prims, primExtent).map((p, i) => <PrimShape key={i} prim={p} />)}</>
+}
+
+/** Softens the shadow. One definition per drawing, shared by every object in it. */
+export function ShadowFilter({ id }: { id: string }) {
+  return (
+    <filter id={id} x="-20%" y="-20%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="2.4" />
+    </filter>
+  )
+}
+
+/** The shadow rectangles of one object, to sit inside a group that carries the blur filter. */
+export function SolidShadow({ solid }: { solid: Pick<Solid, 'cells'> }): ReactNode {
+  return (
+    <g fill="#2a1a10" opacity={0.26}>
+      {shadowRects(solid).map((q, i) => (
+        <rect key={i} x={r1(q.x)} y={r1(q.y)} width={q.w} height={q.h} rx={6} />
+      ))}
+    </g>
+  )
+}
+
+export interface SolidGlyphProps {
+  solid: Solid
 }
 
 /**
- * The 3D blocks of a scene (looks 'a2' and 'a3'): rugs first, then one soft shadow layer, then the tall objects from back to front, each
- * made of its blocks and cylinders sorted the same way. Every object sits in a group translated to its footprint's top-left corner on
- * screen and scaled from model units (100 per cell) to drawing units; faces are the top (light), the front (darker) and the right (darkest).
+ * One object on its own (the legend swatch, the contact sheet): shadow, then blocks. In model units with the footprint's top-left at 0,0.
+ * The board draws its objects with SceneObjectIcons, which adds the room clip.
  */
-export function SceneSolids({ objects, geometry, look, themeIcons }: SceneSolidsProps): ReactNode {
+export function SolidGlyph({ solid }: SolidGlyphProps) {
   const filterId = `solid-shadow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
-  const solids = useMemo(() => {
-    const list = objects.map((o) => solidOf(o, themeIcons)).filter((s): s is Solid => s !== null)
-    const place = (s: Solid) => {
-      const top = Math.min(...s.object.cells.map((c) => c.row))
-      const left = Math.min(...s.object.cells.map((c) => c.col))
-      const origin = geometry.project(geometry.toPoint(left, top))
-      return { origin, left: left * 100, top: top * 100 }
-    }
-    const withPlace = list.map((s) => ({ s, ...place(s) }))
-    const extent = (w: (typeof withPlace)[number]) => ({ x0: w.left, y0: w.top, x1: w.left + w.s.width, y1: w.top + w.s.height, z0: 0, z1: w.s.flat ? 1 : 2 })
-    return {
-      flat: sortBackToFront(withPlace.filter((w) => w.s.flat), extent),
-      tall: sortBackToFront(withPlace.filter((w) => !w.s.flat), extent),
-    }
-  }, [objects, geometry, themeIcons])
-  if (solids.flat.length + solids.tall.length === 0) return null
-  const scale = CELL_SIZE / 100
-  const group = (w: (typeof solids.flat)[number], body: ReactNode, tag = true) => (
-    <g key={w.s.object.id} data-object={tag ? w.s.object.id : undefined} data-solid={tag ? w.s.object.type : undefined} transform={`translate(${r1(w.origin.x)} ${r1(w.origin.y)}) scale(${scale})`}>
-      {body}
+  return (
+    <g data-solid={solid.key} data-icon={solid.themeIcon ? undefined : solid.key} data-theme-icon={solid.themeIcon}>
+      {solid.flat ? null : (
+        <>
+          <defs>
+            <ShadowFilter id={filterId} />
+          </defs>
+          <g filter={`url(#${filterId})`}>
+            <SolidShadow solid={solid} />
+          </g>
+        </>
+      )}
+      <SolidPrims prims={solid.prims} />
     </g>
   )
+}
+
+
+export interface SolidSvgProps {
+  solid: Solid
+  /** Pixels per cell: the size of the drawing on screen (the board draws 64 per cell at full width, about 36 on a phone). Omit for a CSS-sized svg. */
+  pxPerCell?: number
+  /** Dashed squares under the object, for contact sheets. */
+  showCells?: boolean
+  className?: string
+  title?: string
+}
+
+/** Padding around the drawing's bounds, model units. */
+const SVG_PAD = 3
+
+/**
+ * One object in an svg of its own, cropped to what it covers (blocks, outline and shadow), so a swatch or a tile never clips a tall block or its
+ * shadow whatever the size of the object. Used by the Legend and the contact sheets.
+ */
+export function SolidSvg({ solid, pxPerCell, showCells = false, className, title }: SolidSvgProps) {
+  const b = solidBounds(solid)
+  const x0 = b.x0 - SVG_PAD
+  const y0 = b.y0 - SVG_PAD
+  const w = b.x1 - b.x0 + 2 * SVG_PAD
+  const h = b.y1 - b.y0 + 2 * SVG_PAD
   return (
-    <g data-look={look}>
-      <defs>
-        <filter id={filterId} x="-20%" y="-20%" width="150%" height="150%">
-          <feGaussianBlur stdDeviation="2" />
-        </filter>
-      </defs>
-      {solids.flat.map((w) => group(w, sortBackToFront(w.s.prims, primExtent).map((p, i) => <PrimShape key={i} prim={p} look={look} />)))}
-      <g filter={`url(#${filterId})`}>
-        {solids.tall.map((w) => group(w, <polygon points={shadowPoints(w.s, look).map((q) => `${r1(q[0])},${r1(q[1])}`).join(' ')} fill="rgba(42,26,16,.24)" />, false))}
-      </g>
-      {solids.tall.map((w) => group(w, sortBackToFront(w.s.prims, primExtent).map((p, i) => <PrimShape key={i} prim={p} look={look} />)))}
-    </g>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      viewBox={`${r1(x0)} ${r1(y0)} ${r1(w)} ${r1(h)}`}
+      width={pxPerCell ? r1((w * pxPerCell) / 100) : undefined}
+      height={pxPerCell ? r1((h * pxPerCell) / 100) : undefined}
+      preserveAspectRatio="xMidYMid meet"
+      role={title ? 'img' : undefined}
+      aria-label={title}
+      aria-hidden={title ? undefined : true}
+      focusable="false"
+    >
+      {showCells
+        ? solid.cells.map((c) => <rect key={`${c.row}-${c.col}`} x={c.col * 100} y={c.row * 100} width={100} height={100} fill="rgba(255,255,255,.7)" stroke="#b9b2a0" strokeWidth={1.5} strokeDasharray="6 5" />)
+        : null}
+      <SolidGlyph solid={solid} />
+    </svg>
   )
 }

@@ -10,6 +10,11 @@ export function AxisLabels({ geometry }: { geometry: SceneGeometry }) {
     fontWeight: 700,
     fontSize: 14,
     fill: THEME.axisInk,
+    // A paper halo like the room labels: the tall parts of a top row object may rise behind a column number (SLAY-17.4).
+    stroke: THEME.labelFill,
+    strokeWidth: 4,
+    strokeLinejoin: 'round' as const,
+    paintOrder: 'stroke' as const,
     textAnchor: 'middle' as const,
     dominantBaseline: 'central' as const,
   }

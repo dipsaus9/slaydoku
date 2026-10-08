@@ -1,10 +1,10 @@
 ---
 id: SLAY-17.4
 title: Redraw all object art in the approved 3D look
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 13:15'
+updated_date: '2026-10-08 14:05'
 labels:
   - needs-owner-review
 dependencies:

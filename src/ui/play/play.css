@@ -789,21 +789,6 @@
   list-style: none;
 }
 
-/* SLAY-17.8 preview only: the object look switch, a row like .play-switch with three buttons under the text. */
-.play-look {
-  display: grid;
-  gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--paper);
-}
-
-.play-look small {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
 .play-switch {
   display: flex;
   align-items: center;

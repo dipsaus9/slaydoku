@@ -42,12 +42,6 @@ export interface PlayStrings {
     timerHelp: string
     axisLabels: string
     axisLabelsHelp: string
-    /** SLAY-17.8 preview only: the object look switch. */
-    look: string
-    lookHelp: string
-    lookNow: string
-    lookA2: string
-    lookA3: string
     clearAll: string
     restart: string
     restartConfirm: string
@@ -115,11 +109,6 @@ export const PLAY_EN: PlayStrings = {
     timerHelp: 'The clock keeps running, even when you hide it.',
     axisLabels: 'Row and column numbers',
     axisLabelsHelp: 'R1, R2 along the left are the rows, C1, C2 above the board are the columns: R3 and C4 is "row 3, column 4".',
-    look: 'Look (preview)',
-    lookHelp: 'Now: flat objects. A2: slanted 3D blocks on the square grid. A3: isometric blocks on a diamond grid. Only chair, sofa, bed, bookshelf, table, rug and plant change.',
-    lookNow: 'Now',
-    lookA2: 'A2',
-    lookA3: 'A3',
     clearAll: 'Clear all',
     restart: 'Start over',
     restartConfirm: 'Sure? Tap again',
@@ -197,11 +186,6 @@ export const PLAY_NL: PlayStrings = {
     timerHelp: 'De klok blijft lopen, ook als je hem verbergt.',
     axisLabels: 'Rij- en kolomnummers',
     axisLabelsHelp: 'R1, R2 links zijn de rijen, C1, C2 boven het bord zijn de kolommen: R3 en C4 is "rij 3, kolom 4".',
-    look: 'Uiterlijk (preview)',
-    lookHelp: 'Nu: platte objecten. A2: schuine 3D-blokken op het vierkante raster. A3: isometrische blokken op een ruitraster. Alleen stoel, bank, bed, boekenkast, tafel, kleed en plant veranderen.',
-    lookNow: 'Nu',
-    lookA2: 'A2',
-    lookA3: 'A3',
     clearAll: 'Alles wissen',
     restart: 'Opnieuw beginnen',
     restartConfirm: 'Zeker? Tik nogmaals',
