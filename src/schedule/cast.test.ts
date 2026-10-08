@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { castProblems, sharedNames } from '../content/cast/index.ts'
+import { castProblems, hasOwnCastPool, sharedNames } from '../content/cast/index.ts'
 import { CAST_CHAIN_START, fallbackCast, nominalCast } from './cast.ts'
 import { addDays } from './dates.ts'
-import { planDay } from './pick.ts'
+import { planDay, themeOf } from './pick.ts'
 
 describe('the cast chain', () => {
   const dates = Array.from({ length: 200 }, (_, i) => addDays('2026-10-12', i))
@@ -17,7 +17,9 @@ describe('the cast chain', () => {
   })
   it('shares no name between consecutive days', () => {
     dates.forEach((date, i) => {
-      if (i > 0) expect(sharedNames(nominalCast(dates[i - 1]!).names, nominalCast(date).names), date).toEqual([])
+      // A day with a cast pool of its own (Simpshouse) may share one name with a neighbour (THEMED_DAY_SHARED_NAMES in gates.ts).
+      const themed = hasOwnCastPool(themeOf(date)) || hasOwnCastPool(themeOf(dates[i - 1] ?? date))
+      if (i > 0) expect(sharedNames(nominalCast(dates[i - 1]!).names, nominalCast(date).names).length, date).toBeLessThanOrEqual(themed ? 1 : 0)
     })
   })
   it('is a pure function of the date, whatever order it is asked in', () => {

@@ -24,7 +24,7 @@ describe('room names', () => {
     for (const name of names) expect(name, name).not.toMatch(/^the\s/i)
   })
   it('reads after "in the" as a natural place', () => {
-    for (const name of names) expect(name, name).toMatch(/^[A-Z][A-Za-z' ]+$/)
+    for (const name of names) expect(name, name).toMatch(/^[A-Z][A-Za-z' -]+$/)
   })
 })
 

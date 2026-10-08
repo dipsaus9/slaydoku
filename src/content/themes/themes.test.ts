@@ -7,10 +7,10 @@ import { ENGINE_ICON, drawnKinds, kindNoun, specificNoun, themeObjectOf } from '
 import { SCENE_THEMES, getTheme, roomNameNlOf } from './index.ts'
 import type { ThemeId } from './types.ts'
 
-const REQUIRED: ThemeId[] = ['home', 'office', 'park', 'school', 'shop']
+const REQUIRED: ThemeId[] = ['home', 'office', 'park', 'school', 'shop', 'simpshouse']
 
 describe('scene themes', () => {
-  it('defines the five required themes with unique ids', () => {
+  it('defines the five rotation themes and Simpshouse with unique ids', () => {
     expect(SCENE_THEMES.map((t) => t.id).sort()).toEqual([...REQUIRED].sort())
     for (const id of REQUIRED) expect(getTheme(id).id).toBe(id)
     expect(() => getTheme('nope' as ThemeId)).toThrow()

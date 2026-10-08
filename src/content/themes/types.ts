@@ -97,6 +97,8 @@ export type RoomType =
   | 'retail'
   | 'fitting'
   | 'checkout'
+  | 'party'
+  | 'outdoor'
 
 /** The five rotation themes plus the seasonal ones (SLAY-18), which stay out of the rotation and are picked by the calendar (src/schedule/calendar.ts). */
 export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop' | 'simpshouse' | 'carnaval' | 'christmas' | 'halloween' | 'fall'

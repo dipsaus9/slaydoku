@@ -71,7 +71,7 @@ describe('picker rules over long runs', () => {
         expect(share(plans, (p) => p.size, 6) + share(plans, (p) => p.size, 9)).toBeGreaterThan(65)
       })
       it('rotates the five themes evenly and never repeats one two days in a row', () => {
-        for (const theme of SCENE_THEMES) expect(share(plans, (p) => p.theme, theme.id), theme.id).toBeGreaterThan(17)
+        for (const theme of SCENE_THEMES.filter((t) => !t.seasonal)) expect(share(plans, (p) => p.theme, theme.id), theme.id).toBeGreaterThan(17)
         plans.forEach((p, i) => {
           if (i > 0) expect(p.theme, p.date).not.toBe(plans[i - 1]!.theme)
         })
