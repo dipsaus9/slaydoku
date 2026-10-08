@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readSchedule } from '../../schedule/schedule.testing.ts'
-import { colourDistance, resolveRoomStyles, roomNeighbours, ROOM_STYLES } from './roomStyles.ts'
+import { colourDistance, MIN_NEIGHBOUR_DISTANCE, resolveRoomStyles, roomNeighbours, ROOM_STYLES, TINTS } from './roomStyles.ts'
 
 const { days } = readSchedule()
 /** The fallback of THEME.labelInk (theme.ts), the ink of room names. */
@@ -19,10 +19,11 @@ const contrast = (a: string, b: string) => {
 }
 
 describe('room tints (SLAY-20)', () => {
-  it('every tone of a floor kind is clearly another colour than the other tones of that kind', () => {
+  it('the shared tints, and every tone of a floor kind, are clearly different colours', () => {
+    TINTS.forEach((a, i) => TINTS.slice(i + 1).forEach((b) => expect(colourDistance(a.fill, b.fill), `${a.name} ${b.name}`).toBeGreaterThanOrEqual(MIN_NEIGHBOUR_DISTANCE)))
     for (const style of Object.values(ROOM_STYLES)) {
       style.variants.forEach((a, i) =>
-        style.variants.slice(i + 1).forEach((b) => expect(colourDistance(a.fill, b.fill), `${style.id} ${a.fill} ${b.fill}`).toBeGreaterThanOrEqual(8.5)),
+        style.variants.slice(i + 1).forEach((b) => expect(colourDistance(a.fill, b.fill), `${style.id} ${a.fill} ${b.fill}`).toBeGreaterThanOrEqual(MIN_NEIGHBOUR_DISTANCE)),
       )
     }
   })
@@ -36,23 +37,21 @@ describe('room tints (SLAY-20)', () => {
     }
   })
 
-  it(`two rooms that touch (a wall or a corner) never share a tint, on every scheduled day (${days.length} days)`, () => {
-    let pairs = 0
-    let clear = 0
+  it(`two rooms that touch (a wall or a corner) are clearly different colours (delta E >= MIN_NEIGHBOUR_DISTANCE), on every scheduled day (${days.length} days)`, () => {
+    let worst = Infinity
     for (const day of days) {
       const scene = day.puzzle.scene
       const styles = resolveRoomStyles(scene)
       for (const [room, next] of roomNeighbours(scene)) {
         for (const other of next) {
           const [a, b] = [styles[room]!, styles[other]!]
-          expect(a.fill, `${day.date} ${room}/${other}`).not.toBe(b.fill)
-          pairs++
-          if (colourDistance(a.fill, b.fill) >= 9) clear++
+          const d = colourDistance(a.fill, b.fill)
+          expect(d, `${day.date} ${room} ${a.fill} / ${other} ${b.fill}`).toBeGreaterThanOrEqual(MIN_NEIGHBOUR_DISTANCE)
+          worst = Math.min(worst, d)
         }
       }
     }
-    // Not only different hex codes: nearly every touching pair is a clearly different colour.
-    expect(clear / pairs).toBeGreaterThanOrEqual(0.97)
+    console.log(`closest touching pair over the schedule: delta E ${worst.toFixed(1)}`)
   })
 
   it('is deterministic: the same scene always gets the same tints', () => {

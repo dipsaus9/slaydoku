@@ -13,70 +13,60 @@ export interface FloorStyle {
 export interface RoomStyle {
   id: FloorPattern
   /**
-   * Tones of one floor kind, far enough apart (CIE76 delta E >= 8.5 within a kind) that two rooms of
-   * the same kind side by side read as two rooms (SLAY-20). The first is the kind's classic tone.
+   * The tones a room of this floor kind can get: its classic tone first, then the shared tints
+   * (TINTS) that are clearly another colour than the classic, nearest first (SLAY-20).
    */
   variants: readonly FloorStyle[]
 }
 
-/** Own flat palette, in the spirit of the official sheets: soft fills, light pattern lines. */
-export const ROOM_STYLES: Record<FloorPattern, RoomStyle> = {
-  wood: {
-    id: 'wood',
-    variants: [
-      { fill: '#f1d9a6', ink: '#d7b978' },
-      { fill: '#dfb67e', ink: '#c1a06a' },
-      { fill: '#f8ecd0', ink: '#d7ccb3' },
-      { fill: '#efc0a0', ink: '#cfa588' },
-      { fill: '#d8d4ae', ink: '#bab795' },
-    ],
-  },
-  tiles: {
-    id: 'tiles',
-    variants: [
-      { fill: '#f6efe0', ink: '#e3d6bb' },
-      { fill: '#e6f0ee', ink: '#c9dcd8' },
-      { fill: '#eee6f3', ink: '#cec7d3' },
-      { fill: '#fbe6c8', ink: '#dac7ac' },
-    ],
-  },
-  grass: {
-    id: 'grass',
-    variants: [
-      { fill: '#cdebd0', ink: '#8fc79a' },
-      { fill: '#b7dfae', ink: '#9dc195' },
-      { fill: '#dcefc0', ink: '#becfa5' },
-      { fill: '#bfe2da', ink: '#a4c3bc' },
-    ],
-  },
-  water: {
-    id: 'water',
-    variants: [
-      { fill: '#bfe3f2', ink: '#8cc6e0' },
-      { fill: '#a7d0ea', ink: '#8eb3cb' },
-      { fill: '#c9eae6', ink: '#adcbc7' },
-      { fill: '#d3dcf5', ink: '#b6bed5' },
-    ],
-  },
-  stone: {
-    id: 'stone',
-    variants: [
-      { fill: '#cbc3cf', ink: '#a79eac' },
-      { fill: '#d5c3bd', ink: '#b39f98' },
-      { fill: '#bfc8bc', ink: '#a4aca1' },
-      { fill: '#e3ddd3', ink: '#c4bfb6' },
-    ],
-  },
-  carpet: {
-    id: 'carpet',
-    variants: [
-      { fill: '#e2d7f1', ink: '#c5b4e0' },
-      { fill: '#f3d3da', ink: '#e2aebb' },
-      { fill: '#d4e1f2', ink: '#b7c3d2' },
-      { fill: '#ecc6df', ink: '#ccaac1' },
-    ],
-  },
+/** The classic tone of each floor kind (the look before SLAY-20): what a room gets when no neighbour is in the way. */
+const CLASSIC: Record<FloorPattern, FloorStyle> = {
+  wood: { fill: '#f1d9a6', ink: '#d7b978' },
+  tiles: { fill: '#f6efe0', ink: '#e3d6bb' },
+  grass: { fill: '#cdebd0', ink: '#8fc79a' },
+  water: { fill: '#bfe3f2', ink: '#8cc6e0' },
+  stone: { fill: '#cbc3cf', ink: '#a79eac' },
+  carpet: { fill: '#e2d7f1', ink: '#c5b4e0' },
 }
+
+/**
+ * Shared tints, a lattice in CIE L*a*b* (SLAY-20, owner: "the tints still look too much alike"): six hues
+ * at L* 76 and chroma 30, six hues in between at L* 89 and chroma 21, and a grey at L* 82. Every two are at
+ * least MIN_NEIGHBOUR_DISTANCE apart, with a real hue shift, and every one keeps the label ink at 7:1 or
+ * better. The floor pattern drawn over it (planks, tiles, blades, waves ...) keeps the material readable.
+ */
+export const TINTS: readonly (FloorStyle & { name: string })[] = [
+  { name: 'rose', fill: '#f3a7ae', ink: '#d68990' },
+  { name: 'honey', fill: '#dcb586', ink: '#be9768' },
+  { name: 'sage', fill: '#a2c593', ink: '#83a875' },
+  { name: 'teal', fill: '#6acbc9', ink: '#42adab' },
+  { name: 'sky', fill: '#85c2f0', ink: '#61a5d4' },
+  { name: 'lilac', fill: '#d1b0e3', ink: '#b391c6' },
+  { name: 'peach', fill: '#ffd5c4', ink: '#e8b6a5' },
+  { name: 'straw', fill: '#e5e1b9', ink: '#c6c399' },
+  { name: 'mint', fill: '#b9ead5', ink: '#99ccb6' },
+  { name: 'ice', fill: '#ade9fb', ink: '#8bcbdd' },
+  { name: 'periwinkle', fill: '#d6deff', ink: '#b7bfe8' },
+  { name: 'blush', fill: '#ffd3ea', ink: '#e4b3cc' },
+  { name: 'grey', fill: '#cccccc', ink: '#aeaeae' },
+]
+
+/** Rooms that touch differ by at least this much (CIE76 delta E): another colour at a glance, not a shade. */
+export const MIN_NEIGHBOUR_DISTANCE = 18
+
+function variantsOf(pattern: FloorPattern): FloorStyle[] {
+  const classic = CLASSIC[pattern]
+  const others = TINTS.filter((t) => colourDistance(t.fill, classic.fill) >= MIN_NEIGHBOUR_DISTANCE)
+    .map(({ fill, ink }) => ({ fill, ink, d: colourDistance(fill, classic.fill) }))
+    .sort((x, y) => x.d - y.d)
+    .map(({ fill, ink }) => ({ fill, ink }))
+  return [classic, ...others]
+}
+
+/** Own flat palette, in the spirit of the official sheets: soft fills, light pattern lines. */
+export const ROOM_STYLES: Record<FloorPattern, RoomStyle> = Object.fromEntries(
+  (Object.keys(CLASSIC) as FloorPattern[]).map((id) => [id, { id, variants: variantsOf(id) }]),
+) as unknown as Record<FloorPattern, RoomStyle>
 
 const CYCLE: FloorPattern[] = ['wood', 'carpet', 'tiles', 'grass', 'stone', 'water']
 
@@ -99,7 +89,7 @@ export function styleForName(name: string): FloorPattern | undefined {
 
 export interface ResolvedRoomStyle {
   pattern: FloorPattern
-  /** Which tone of the pattern's palette (an index past the palette is a darker shade of the last tones). */
+  /** Which tone of the pattern's palette (ROOM_STYLES[pattern].variants). */
   variant: number
   fill: string
   ink: string
@@ -121,17 +111,6 @@ function lab(hex: string): [number, number, number] {
 export function colourDistance(a: string, b: string): number {
   const [p, q] = [lab(a), lab(b)]
   return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])
-}
-
-const darker = (hex: string, factor: number) =>
-  '#' + [1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * factor).toString(16).padStart(2, '0')).join('')
-
-/** Tone `i` of a pattern; past the palette (a room with more same-kind neighbours than tones, never seen in practice) a darker shade. */
-function toneOf(pattern: FloorPattern, i: number): FloorStyle {
-  const tones = ROOM_STYLES[pattern].variants
-  const base = tones[i % tones.length]!
-  const round = Math.floor(i / tones.length)
-  return round === 0 ? base : { fill: darker(base.fill, 1 - 0.06 * round), ink: darker(base.ink, 1 - 0.06 * round) }
 }
 
 /** Rooms that touch: share a wall or a corner (a corner is where two floors meet too). */
@@ -156,18 +135,19 @@ export function roomNeighbours(scene: Pick<Scene, 'cellRooms'>): Map<string, Set
   return next
 }
 
-/** Tones further apart than this all count as clearly different; then variety decides. */
-const CLEAR = 12
+/** Tones at least this far from every neighbour all count as far enough; then the kind's own look decides. */
+const FAR_ENOUGH = 26
 
 /**
  * One floor style per room: an explicit override wins, then the floor a theme gave the room
  * name, then a name hint (kitchen -> tiles, garden -> grass ...), then a cycle through the kinds.
  *
  * The tone is a colouring of the room map (SLAY-20, owner: "the colours of the rooms should differ
- * per room"): rooms that touch never share a fill, and among the tones of its kind a room takes the
- * one furthest from its already-coloured neighbours (up to CLEAR), then the tone used least in the
- * scene. Rooms go most-neighbours first, so the crowded middle of the map picks before the edges.
- * Deterministic: it reads only the scene. Without `cellRooms` there is no map and only variety counts.
+ * per room"): rooms that touch (a wall or a corner) get tones at least MIN_NEIGHBOUR_DISTANCE apart.
+ * Greedy, most constrained room first (most coloured neighbours, then most neighbours, then map order):
+ * a room takes the tone of its kind with the largest distance to its coloured neighbours, where every
+ * distance of FAR_ENOUGH or more counts the same, so a room keeps its classic tone (or the nearest tint
+ * to it) whenever its neighbours allow. Deterministic: it reads only the scene.
  */
 export function resolveRoomStyles(
   scene: Pick<Scene, 'rooms'> & Partial<Pick<Scene, 'cellRooms'>>,
@@ -180,31 +160,21 @@ export function resolveRoomStyles(
       overrides[room.id] ?? styleForName(room.name) ?? (CYCLE[index % CYCLE.length] as FloorPattern),
     ]),
   )
-  const degree = (id: string) => neighbours.get(id)?.size ?? 0
-  const order = scene.rooms
-    .map((room, index) => ({ id: room.id, index }))
-    .sort((a, b) => degree(b.id) - degree(a.id) || a.index - b.index)
-
-  const used = new Map<string, number>()
+  const next = (id: string) => [...(neighbours.get(id) ?? [])]
   const result: Record<string, ResolvedRoomStyle> = {}
-  for (const { id } of order) {
+  const left = scene.rooms.map((room, index) => ({ id: room.id, index }))
+  while (left.length > 0) {
+    const coloured = (id: string) => next(id).filter((n) => result[n]).length
+    left.sort((a, b) => coloured(b.id) - coloured(a.id) || next(b.id).length - next(a.id).length || a.index - b.index)
+    const { id } = left.shift()!
     const pattern = patternOf.get(id)!
-    const near = [...(neighbours.get(id) ?? [])].flatMap((n) => (result[n] ? [result[n].fill] : []))
-    let best: { variant: number; tone: FloorStyle; score: number; uses: number } | undefined
-    for (let variant = 0; ; variant++) {
-      const tone = toneOf(pattern, variant)
-      const palette = variant < ROOM_STYLES[pattern].variants.length
-      if (!near.includes(tone.fill)) {
-        const score = Math.min(CLEAR, ...near.map((fill) => colourDistance(fill, tone.fill)))
-        const uses = used.get(`${pattern}:${variant}`) ?? 0
-        if (!best || score > best.score || (score === best.score && uses < best.uses)) best = { variant, tone, score, uses }
-      }
-      // Past the palette only as a last resort: the first free shade ends the search.
-      if (!palette && best) break
-      if (variant === ROOM_STYLES[pattern].variants.length - 1 && best) break
-    }
-    used.set(`${pattern}:${best.variant}`, best.uses + 1)
-    result[id] = { pattern, variant: best.variant, ...best.tone }
+    const near = next(id).flatMap((n) => (result[n] ? [result[n].fill] : []))
+    let best = { variant: 0, score: -1 }
+    ROOM_STYLES[pattern].variants.forEach((tone, variant) => {
+      const score = near.includes(tone.fill) ? 0 : Math.min(FAR_ENOUGH, ...near.map((fill) => colourDistance(fill, tone.fill)))
+      if (score > best.score) best = { variant, score }
+    })
+    result[id] = { pattern, variant: best.variant, ...ROOM_STYLES[pattern].variants[best.variant]! }
   }
   return result
 }
