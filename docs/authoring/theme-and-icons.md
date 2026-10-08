@@ -73,14 +73,16 @@ object of every kind builds a valid scene.
 ## B. Add a theme-only icon
 
 1. Add the id to `THEME_ICON_IDS` in `src/render/icons/themes/types.ts`.
-2. Draw it in `src/render/icons/themes/art.tsx`: a function returning SVG, in the coordinates below.
-3. Register its footprints in `src/render/icons/themes/registry.ts`:
-   `myIcon: define('myIcon', [[1, 1], [2, 1]], art.myIcon)` (sizes are `[cols, rows]`; the function receives `cols` and `rows`).
+2. Register its footprints in `src/render/icons/themes/registry.ts`:
+   `myIcon: define('myIcon', [[1, 1], [2, 1]])` (sizes are `[cols, rows]`).
+3. Draw it as a block model: a function `(cols, rows) => SolidModel` in `src/render/looks/modelsTheme.ts` (or the theme's own
+   `models*.ts` file), listed under its id in `THEME_MODELS` (`src/render/looks/registry.ts`). The model language, heights, colours
+   and the contact-sheet check are in [docs/design/looks.md](../design/looks.md), section "How to draw a new object".
 4. Point a theme object at it with `themeIcon: 'myIcon'` (job A).
 
-Tests: `bunx vitest run src/render/icons/themes/themes.test.tsx` requires every id to be defined with at least one footprint and no
-duplicate variants, every variant to draw something and stay inside its own cells (stroke included), and every footprint to
-resolve under every rotation and mirror.
+Tests: `bunx vitest run src/render/icons/themes/themes.test.tsx src/render/looks` requires every id to be defined with at least one
+footprint and no duplicate variants, every footprint to resolve under every rotation and mirror, and every model to stay inside its
+footprint and below `MAX_Z` in all 8 orientations; the look-completeness test fails by kind name while the model is missing.
 
 ## C. Add an engine object type
 
@@ -96,14 +98,16 @@ Use this when the object should exist in house scenes, in clues ("next to a bicy
    `in` ("in a car", "on a bed"), `verb` is `stood`, `sat` or `lay`. The article ("a bicycle", "an easel") is added for you. Then
    `src/engine/clues/nl.ts`: add the real Dutch generic noun and its gender to `OBJECT_NOUNS_NL` (`{ noun: 'fiets', gender: 'de' }`);
    this generic noun is what a Dutch card says for a plain engine object or for kinds drawn alike, each theme kind has its own `nameNl`.
-4. Art in `src/render/icons/art/house.tsx`, `living.tsx` or `outdoor.tsx`, and its footprints in `src/render/icons/registry.tsx`:
+4. Footprints in `src/render/icons/registry.tsx`:
 
    ```ts
-   bicycle: { type: 'bicycle', variants: rects([[2, 1]], house.bicycle) },
+   bicycle: { type: 'bicycle', variants: rects([[2, 1]]) },
    ```
 
-   `rects(sizes, draw)` makes one variant per `[cols, rows]`; use `lShape(arm)` for L shapes. Only list one orientation
-   (facing south): rotations and mirrors are derived.
+   `rects(sizes)` makes one variant per `[cols, rows]`; use `lShape(arm)` for L shapes. Only list one orientation
+   (facing south): rotations and mirrors are derived. Then the block model: a function `(cols, rows) => SolidModel` in
+   `src/render/looks/modelsHouse.ts`, `modelsLiving.ts` or `modelsOutdoor.ts`, listed under the type in `ENGINE_MODELS`
+   (`src/render/looks/registry.ts`); see the drawing conventions below.
 5. If the catalog gives a footprint range, every drawn variant must have a cell count inside it (tested).
 
 Then run `bunx vitest run src/engine/model/catalog.test.ts src/render/icons/icons.test.tsx src/engine/clues/en.test.ts` and `bun run typecheck`.
@@ -116,14 +120,16 @@ regenerating ([regenerate-packs.md](regenerate-packs.md)).
 
 ### Drawing conventions
 
-- One grid cell is 100 x 100 units (`U` in `src/render/icons/art/tokens.ts`). A footprint of `cols x rows` cells is drawn in a
-  `cols*100` by `rows*100` box, facing south (the front of the object is at the bottom).
-- Everything, stroke included, stays inside the cells of the footprint. Leave `M` (6 units) to the cell edge. For an L shape
-  or other non-rectangular footprints, stay inside the occupied cells only. A test measures this.
-- Use the primitives from `art/shapes.tsx`: `Box`, `Disc`, `Oval`, `Stroke`, `Shape` (`Shape` takes absolute path data using
-  `M L H V C Q Z` only; the bounds test reads it).
-- Use the flat palette `C` and the widths `SW` (outline) and `DETAIL` (inner lines) from `tokens.ts`. Theme-only icons may add
-  colours in the local `T` palette of `themes/art.tsx`. Own art only: never trace official Murdoku artwork.
+Every object is a block model (SLAY-17.4, the A2 look): the full reference is [docs/design/looks.md](../design/looks.md), section
+"How to draw a new object". In short:
+
+- One grid cell is 100 x 100 units; x right, y toward the viewer (south), z up. A footprint of `cols x rows` cells is drawn in a
+  `cols*100` by `rows*100` box, facing south (the front of the object is at the bottom); the renderer turns it for the other 7
+  orientations.
+- Everything stays inside the cells of the footprint and below `MAX_Z` (96). For an L shape or other non-rectangular footprints,
+  stay inside the occupied cells only. `src/render/looks/looks.test.tsx` measures this in all 8 orientations.
+- Use the primitives from `src/render/looks/models.ts` (`box`, `cyl`, `ball`, `disc`, `onTop`, `onFront`, `legs`, `shiftY`) and
+  its `COLORS`. Own art only: never trace official Murdoku artwork.
 - Art never shows whether an object is occupiable; the legend groups by the catalog flag.
 
 ## D. Add a scene theme

@@ -132,7 +132,7 @@ export interface SolidGlyphProps {
 
 /**
  * One object on its own (the legend swatch, the contact sheet): shadow, then blocks. In model units with the footprint's top-left at 0,0.
- * The board draws its objects with SceneObjectIcons, which adds the room clip.
+ * The board draws its objects with SceneObjectIcons, in the painter's order of `drawOrder.ts` (nothing clipped).
  */
 export function SolidGlyph({ solid }: SolidGlyphProps) {
   const filterId = `solid-shadow-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`

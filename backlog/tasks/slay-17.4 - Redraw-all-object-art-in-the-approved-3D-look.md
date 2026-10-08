@@ -4,7 +4,7 @@ title: Redraw all object art in the approved 3D look
 status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 17:09'
+updated_date: '2026-10-08 17:24'
 labels:
   - needs-owner-review
 dependencies:
@@ -73,4 +73,8 @@ Owner decision 2026-10-08: this story takes everything, including the extra them
 Owner feedback on the A2 PoC (2026-10-08): 'elementen lijken over andere vakjes heen te lopen en sommige items zijn nog niet in dezelfde stijl zoals het toilet en de wasbak'. Screenshot: docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png. The PoC only drew chair, sofa, bed, bookshelf, table, rug and plant, so the flat items are expected; the overflow across walls is a real A2 issue to solve here (headroom of the blocks versus walls).
 
 Review gate (dipsaus-ai:story-reviewer): pass, no scope violations, no findings. Verification: bun docs/verification/looks.ts 88/88 checks on 360/390/768/1024; verify:phone legend+screens 1278 checks, 0 failures; full suite 3597 tests green.
+
+Owner decision 2026-10-08 on criterion #11 (recorded after two rejected clip attempts; the criterion text predates it): no clipping and no height cap. Painter's order instead: walls, doors and windows are painted under every object, objects flat first and then by the row of their front edge and column (src/render/looks/drawOrder.ts), each with its own shadow; a block may rise over the wall behind it and into the cell above, which is the intended A2 look. The overflow the criterion targets (blocks spilling sideways into the neighbouring room's floor, docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png) is gone because every model stays inside its own footprint (looks.test.tsx, all 8 orientations) and the projection only moves height up and 0.22 per unit to the left. Documented in docs/design/looks.md and docs/handoff.md.
+
+Verification on the merged head (c20001e plus the doc fixes of the review round, 2026-10-08): bun run lint and bun run typecheck pass; bun run verify:phone 3108 checks, 0 failures on 360x640, 390x844, 430x932, 844x390, 1024x768 and 768x1024 (drive 127 per viewport, the complete-but-wrong board at 844x390 included, board rect top 24 bottom 382, cells 34px; locale 44 per viewport with the Dutch EXPECT_NL table; legend 101-105; screens 110); bun docs/verification/looks.ts 142 checks pass at 360/390/768/1024 plus the desktop windows; the drive suite repeated alone at 844x390: 127/127. The full unit suite (bun run test --maxWorkers=1) runs in the orchestrator's worktree on the same head.
 <!-- SECTION:NOTES:END -->

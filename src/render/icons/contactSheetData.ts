@@ -31,6 +31,6 @@ export const CONFUSABLE_GROUPS: readonly { title: string; items: readonly { type
   { title: 'Seats: chair, sofa, bench', items: [{ type: 'chair', variant: '1x1' }, { type: 'sofa', variant: '2x1' }, { type: 'bench', variant: '2x1' }] },
   { title: 'Lying flat: rug, oil slick, framed painting, flowers', items: [{ type: 'rug', variant: '1x1' }, { type: 'oilSlick', variant: '1x1' }, { type: 'framedPainting', variant: '1x1' }, { type: 'flowers', variant: '1x1' }] },
   { title: 'Greenery: plant, tree, flowers', items: [{ type: 'plant', variant: '1x1' }, { type: 'tree', variant: '1x1' }, { type: 'flowers', variant: '1x1' }] },
-  { title: 'Screens: tv, easel, framed painting', items: [{ type: 'tv', variant: '1x1' }, { type: 'easel', variant: '1x1' }, { type: 'statue', variant: '1x1' }] },
+  { title: 'Upright faces: tv, easel, statue', items: [{ type: 'tv', variant: '1x1' }, { type: 'easel', variant: '1x1' }, { type: 'statue', variant: '1x1' }] },
 ]
 
