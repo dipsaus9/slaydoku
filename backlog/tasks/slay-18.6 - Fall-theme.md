@@ -4,7 +4,7 @@ title: Fall theme
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:22'
-updated_date: '2026-10-08 19:27'
+updated_date: '2026-10-08 19:31'
 labels:
   - needs-owner-review
 dependencies:
@@ -51,4 +51,6 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 Plan change 2026-10-08: the four seasonal themes no longer run as a chain. After SLAY-18.11 each theme only touches its own module and icon files, so 18.6 to 18.9 can be built in parallel.
 
 Built from the SLAY-18.5 draft (deviations listed in src/content/themes/fall.ts and docs/themes/seasonal/fall.theme.ts). Art file is fallArt.ts, not .tsx: the generator worker may import no .tsx module (src/ui/lab/worker.test.ts) and the icon sets reach it through themes/types.ts; the other three seasonal stubs (<id>Art.tsx) will hit the same test. BLOCKER for AC 4/5: registering a seasonal theme makes themeOf() pick it for committed schedule days in its window (2026-10-01..16 and November are baked with rotation themes), so src/schedule/schedule.test.ts ('follows the picker', 'cheap schedule checks', 44 problems) and src/schedule/calendar.test.ts ('themeOf gives the committed theme') fail. Past days must stay byte-identical (SLAY-18.10), so these shared tests/gates need a rule for seasonal-window days baked before the theme registered; not done here because the files are shared by all four seasonal stories.
+
+Plan change (orchestrator, 2026-10-08): the theme is NOT registered in this story. fall.ts exports the complete theme as fallTheme; FALL_THEME (what index.ts registered(...) reads) stays undefined with a comment, and SLAY-18.10 flips it to fallTheme together with the regenerated days. fall.rooms.test.ts tests fallTheme directly (data, Dutch nouns, one chair, allow-list sweep over 200 scenes, caps, block art in 8 orientations) and checks the calendar as it will be once registered; it also asserts FALL_THEME is undefined, which SLAY-18.10 must flip. The schedule is untouched and src/content, src/render, src/ui/lab and src/schedule tests are green (1233). The blocker in the earlier note is resolved by this change. AC 4 (registration) moves to SLAY-18.10.
 <!-- SECTION:NOTES:END -->
