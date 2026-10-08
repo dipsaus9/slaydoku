@@ -41,3 +41,27 @@ export function writeLocale(storage: StorageLike | null, locale: Locale): void {
     // The choice just resets next time; nothing to recover here.
   }
 }
+
+/** Where the chosen object look lives (SLAY-17.8 preview only). Same pattern as the language. */
+export const LOOK_KEY = 'slaydoku:look'
+
+/** Reads the stored look back ('now' | 'a2' | 'a3'). Null for no storage, nothing stored, or an unusable value. */
+export function readLook(storage: StorageLike | null): 'now' | 'a2' | 'a3' | null {
+  if (!storage) return null
+  try {
+    const raw = storage.getItem(LOOK_KEY)
+    return raw === 'now' || raw === 'a2' || raw === 'a3' ? raw : null
+  } catch {
+    return null
+  }
+}
+
+/** Writes the chosen look. Silently does nothing when storage refuses. */
+export function writeLook(storage: StorageLike | null, look: 'now' | 'a2' | 'a3'): void {
+  if (!storage) return
+  try {
+    storage.setItem(LOOK_KEY, look)
+  } catch {
+    // The choice just resets next time.
+  }
+}

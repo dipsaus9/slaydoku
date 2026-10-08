@@ -1,6 +1,7 @@
 import { useId, type MouseEvent, type ReactNode } from 'react'
 import type { Cell, Scene } from '../../engine/model/index.ts'
 import type { Locale } from '../../locale/types.ts'
+import type { Look } from '../looks/look.ts'
 import { createGeometry, type SceneGeometry } from './geometry.ts'
 import { AxisLabels } from './layers/AxisLabels.tsx'
 import { EdgeFeatures } from './layers/EdgeFeatures.tsx'
@@ -22,10 +23,21 @@ export interface SceneViewProps {
   roomStyles?: Partial<Record<string, FloorPattern>>
   /** Slot for object icons (story 4.10). */
   objectsLayer?: LayerContent
-  /** Slot for player notes and marks (crosses, candidates). */
+  /**
+   * Slot for 3D blocks (SLAY-17.8 looks 'a2' and 'a3'); gets the geometry with `project`. Drawn with the objects on a square grid, and above the
+   * walls on a diamond grid, where the blocks stand up and must cover the walls behind them.
+   */
+  solidsLayer?: LayerContent
+  /** Slot for what lies on the floor: crosses, hints, the press ring. Skewed with the floor on a diamond grid. */
   marksLayer?: LayerContent
-  /** Slot for placed people. */
+  /** Slot for candidate letters. Gets the upright geometry: on a diamond grid the letters stay straight. */
+  notesLayer?: LayerContent
+  /** Slot for placed people (upright geometry). */
   peopleLayer?: LayerContent
+  /** Slot for the Legend's pointer, drawn over the people and lying on the floor like the marks. */
+  flashLayer?: LayerContent
+  /** The object look (SLAY-17.8). 'a3' lays the grid out as a diamond; the default 'now' and 'a2' keep the square grid. */
+  look?: Look
   onCellClick?: (cell: Cell, event: MouseEvent<SVGRectElement>) => void
   className?: string
   /** Accessible name of the drawing. */
@@ -50,16 +62,21 @@ export function SceneView({
   roomStyles,
   objectsLayer,
   marksLayer,
+  solidsLayer,
+  notesLayer,
+  flashLayer,
   peopleLayer,
+  look = 'now',
   onCellClick,
   className,
   title = 'Crime scene',
   locale = 'en',
 }: SceneViewProps) {
-  const geometry = createGeometry(scene, { axisLabels: showAxisLabels })
+  const geometry = createGeometry(scene, { axisLabels: showAxisLabels, look })
   const idPrefix = `scene-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   const styles = resolveRoomStyles(scene, roomStyles)
   const { width, height } = geometry.viewBox
+  const upright = geometry.upright
 
   return (
     <svg
@@ -74,23 +91,64 @@ export function SceneView({
       data-columns={scene.width}
       data-rows={scene.height}
     >
-      <Shadow geometry={geometry} />
-      <Floors scene={scene} geometry={geometry} styles={styles} idPrefix={idPrefix} />
-      <GridLines geometry={geometry} />
-      <g data-layer="objects" pointerEvents="none">
-        {objectsLayer && resolve(objectsLayer, geometry)}
-      </g>
-      <Walls scene={scene} geometry={geometry} />
-      <EdgeFeatures scene={scene} geometry={geometry} />
-      <g data-layer="marks" pointerEvents="none">
-        {marksLayer && resolve(marksLayer, geometry)}
-      </g>
-      <g data-layer="people" pointerEvents="none">
-        {peopleLayer && resolve(peopleLayer, geometry)}
-      </g>
-      <RoomLabels scene={scene} geometry={geometry} locale={locale} />
-      {showAxisLabels && <AxisLabels geometry={geometry} />}
-      <HitLayer geometry={geometry} onCellClick={onCellClick} />
+      {look === 'a3' ? (
+        <>
+          <g transform={geometry.planeTransform} data-layer="plane">
+            <Shadow geometry={geometry} />
+            <Floors scene={scene} geometry={geometry} styles={styles} idPrefix={idPrefix} />
+            <GridLines geometry={geometry} />
+            <g data-layer="objects" pointerEvents="none">
+              {objectsLayer && resolve(objectsLayer, geometry)}
+            </g>
+            <Walls scene={scene} geometry={geometry} />
+            <EdgeFeatures scene={scene} geometry={geometry} />
+          </g>
+          <g data-layer="solids" pointerEvents="none">
+            {solidsLayer && resolve(solidsLayer, geometry)}
+          </g>
+          <g transform={geometry.planeTransform} data-layer="marks" pointerEvents="none">
+            {marksLayer && resolve(marksLayer, geometry)}
+          </g>
+          <g data-layer="marks" pointerEvents="none">
+            {notesLayer && resolve(notesLayer, upright)}
+          </g>
+          <g data-layer="people" pointerEvents="none">
+            {peopleLayer && resolve(peopleLayer, upright)}
+          </g>
+          <g transform={geometry.planeTransform} data-layer="flash-plane" pointerEvents="none">
+            {flashLayer && resolve(flashLayer, geometry)}
+          </g>
+        </>
+      ) : (
+        <>
+          <Shadow geometry={geometry} />
+          <Floors scene={scene} geometry={geometry} styles={styles} idPrefix={idPrefix} />
+          <GridLines geometry={geometry} />
+          <g data-layer="objects" pointerEvents="none">
+            {objectsLayer && resolve(objectsLayer, geometry)}
+            {solidsLayer && resolve(solidsLayer, geometry)}
+          </g>
+          <Walls scene={scene} geometry={geometry} />
+          <EdgeFeatures scene={scene} geometry={geometry} />
+          <g data-layer="marks" pointerEvents="none">
+            {marksLayer && resolve(marksLayer, geometry)}
+            {notesLayer && resolve(notesLayer, geometry)}
+          </g>
+          <g data-layer="people" pointerEvents="none">
+            {peopleLayer && resolve(peopleLayer, geometry)}
+            {flashLayer && resolve(flashLayer, geometry)}
+          </g>
+        </>
+      )}
+      <RoomLabels scene={scene} geometry={upright} locale={locale} />
+      {showAxisLabels && <AxisLabels geometry={upright} />}
+      {look === 'a3' ? (
+        <g transform={geometry.planeTransform} data-layer="hit-plane">
+          <HitLayer geometry={geometry} onCellClick={onCellClick} />
+        </g>
+      ) : (
+        <HitLayer geometry={geometry} onCellClick={onCellClick} />
+      )}
     </svg>
   )
 }
