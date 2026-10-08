@@ -1,9 +1,10 @@
 ---
 id: SLAY-18.1
 title: Seasonal calendar rules and rotation guard
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-08 09:21'
+updated_date: '2026-10-08 10:33'
 labels:
   - story
 dependencies:
@@ -15,6 +16,7 @@ references:
   - src/schedule/pick.test.ts
   - src/content/themes/types.ts
   - src/content/themes/index.ts
+  - src/schedule/index.ts
 parent_task_id: SLAY-18
 type: feature
 ordinal: 125000
@@ -30,10 +32,22 @@ Branch: SLAY-18.1/seasonal-calendar
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 src/schedule/calendar.ts holds the rules as data (yearly month/day windows, Simpshouse date list, priority order); adding a Simpshouse date is a one-line change
-- [ ] #2 Themes flagged seasonal are excluded from the rotation cycle; for every date in the committed schedule outside a seasonal window the theme equals the one in the schedule JSON (test)
-- [ ] #3 A rule applies only when its theme is registered; with none registered themeOf equals today's output for all days
-- [ ] #4 Overlaps resolve by the priority order, tested for 2026-10-14, 2026-11-11, 2026-10-17, 2026-12-01 and a plain day
-- [ ] #5 Windows repeat yearly (tested for 2027) and the leap day does not break them
-- [ ] #6 bun run lint, typecheck and test --maxWorkers=1 pass
+- [x] #1 src/schedule/calendar.ts holds the rules as data (yearly month/day windows, Simpshouse date list, priority order); adding a Simpshouse date is a one-line change
+- [x] #2 Themes flagged seasonal are excluded from the rotation cycle; for every date in the committed schedule outside a seasonal window the theme equals the one in the schedule JSON (test)
+- [x] #3 A rule applies only when its theme is registered; with none registered themeOf equals today's output for all days
+- [x] #4 Overlaps resolve by the priority order, tested for 2026-10-14, 2026-11-11, 2026-10-17, 2026-12-01 and a plain day
+- [x] #5 Windows repeat yearly (tested for 2027) and the leap day does not break them
+- [x] #6 bun run lint, typecheck and test --maxWorkers=1 pass
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Review: round 1 blocked on scope (src/schedule/index.ts barrel export); References widened, round 2 pass.
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added src/schedule/calendar.ts (seasonal rules as data, priority order, registered-theme guard), a seasonal flag and five new ThemeIds, and themeOf now applies seasonal rules before the 5-theme rotation, which excludes seasonal themes. Tests cover priority, yearly repeat, leap year and the committed schedule.
+<!-- SECTION:FINAL_SUMMARY:END -->
