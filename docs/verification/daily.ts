@@ -12,8 +12,8 @@ const schedule = readSchedule()
 export const DAYS: readonly ScheduleDay[] = schedule.days
 export const INDEX = schedule.index
 
-/** A date with a puzzle that the drive, zoom and offline runs play (puzzle #4, hard 9x9). */
-export const PLAY_DATE = process.env.PLAY_DATE ?? '2026-11-21'
+/** A date with a puzzle that the drive, zoom and offline runs play (puzzle #19, medium 9x9). */
+export const PLAY_DATE = process.env.PLAY_DATE ?? '2026-10-15'
 /** A date before the launch date: "Slaydoku starts on 27 September". */
 export const PRELAUNCH_DATE = '2026-09-16'
 /** The day after the last scheduled day: "New puzzles are coming soon". */
@@ -30,6 +30,9 @@ export const DATE_KEY = 'slaydoku:dev-date'
 /** Storage key of the results of solved days. */
 export const RESULTS_KEY = 'slaydoku:daily-results'
 export const HELP_SEEN_KEY = 'slaydoku:help-seen'
+/** Storage key of the home-screen install notice's dismissal (src/pwa/install.ts). Headless Chrome with mobile emulation
+ * fires `beforeinstallprompt`, and the notice then covers the start screen's top bar (language switch, Help). */
+export const INSTALL_DISMISSED_KEY = 'slaydoku:install-dismissed'
 
 /**
  * JavaScript to run in the page: set the date override, mark the how-it-works card as seen (or it covers the
@@ -39,6 +42,8 @@ export const HELP_SEEN_KEY = 'slaydoku:help-seen'
 export const seedStorage = (date: string, helpSeen = true, locale?: Locale): string =>
   [
     `localStorage.setItem(${JSON.stringify(DATE_KEY)}, ${JSON.stringify(date)})`,
+    // Dismissed "far in the future", so the notice stays away whatever clock the date override sets.
+    `localStorage.setItem(${JSON.stringify(INSTALL_DISMISSED_KEY)}, '{"at":4102444800000}')`,
     ...(helpSeen ? [`localStorage.setItem(${JSON.stringify(HELP_SEEN_KEY)}, '{"version":${help.version}}')`] : []),
     ...(locale ? [`localStorage.setItem(${JSON.stringify(LOCALE_KEY)}, ${JSON.stringify(locale)})`] : []),
   ].join('; ')

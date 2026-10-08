@@ -3,7 +3,7 @@
 // protocol through the whole offline story:
 //   1. first visit: the worker installs, precaches the build and takes control of the page (no second load needed);
 //   2. Network.emulateNetworkConditions offline (and a fetch that must fail, so the offline mode is real), then reload on
-//      /, /play and /about: the start screen opens, today's puzzle (date override 2026-11-21; its month file is a lazily loaded
+//      /, /play and /about: the start screen opens, today's puzzle (date override PLAY_DATE (daily.ts); its month file is a lazily loaded
 //      chunk, and every month chunk of the schedule is in the precache) plays and the About page shows (from the precache);
 //   3. a new deploy (the start screen subtitle gets " (v2)" for one build, restored afterwards): back online, the next visit
 //      keeps showing the cached build, the notice "New version available" + "Reload" appears, the reload
@@ -134,7 +134,7 @@ try {
   await goto(`/?date=${PLAY_DATE}`) // the dev-only date override (localhost only), copied into localStorage
   check('first visit: the start screen shows today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date))
   const chunks = (await evaluate(`performance.getEntriesByType('resource').map(e => new URL(e.name).pathname).filter(p => /\\/assets\\/\\d{4}-\\d{2}-/.test(p)).join(',')`)) as string
-  check('first visit: the page itself fetched only the month file that holds today (lazy chunk)', chunks.split(',').filter(Boolean).length === 1 && chunks.includes('/assets/2026-11-'), chunks || 'none')
+  check('first visit: the page itself fetched only the month file that holds today (lazy chunk)', chunks.split(',').filter(Boolean).length === 1 && chunks.includes(`/assets/${PLAY_DATE.slice(0, 7)}-`), chunks || 'none')
   check('first visit: no update notice on a fresh install', (await count('[data-update-notice]')) === 0)
   check('the worker takes control of the page without a second load', await until('navigator.serviceWorker.controller !== null', 15000))
   const sw = (await evaluate(`fetch('/sw.js').then(r => r.text().then(t => JSON.stringify({ status: r.status, type: r.headers.get('content-type'), size: t.length })))`)) as string

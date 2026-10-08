@@ -1,9 +1,10 @@
 ---
 id: SLAY-17.10
 title: 'Repair the stale verify:phone drive and locale suites'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-08 14:13'
+updated_date: '2026-10-08 15:16'
 labels:
   - story
 dependencies: []
@@ -13,6 +14,9 @@ references:
   - docs/verification/phone.ts
   - docs/verification/report.md
   - docs/handoff.md
+  - docs/verification/daily.ts
+  - docs/verification/stats.ts
+  - docs/verification/offline.ts
 parent_task_id: SLAY-17
 type: chore
 ordinal: 138000
@@ -28,11 +32,11 @@ Branch: SLAY-17.10/repair-stale-drivers
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 docs/verification/drive.ts plays a full day through to the result screen with the current flow (victim placed by the player, hints, check, share) and passes at the verify:phone sizes
-- [ ] #2 docs/verification/locale.ts finds the Dutch menu entry and passes in both locales
-- [ ] #3 bun run verify:phone exits 0 (all suites: drive, legend, screens, zoom, locale and the rest)
-- [ ] #4 The 'stale driver' lines in docs/handoff.md are updated; servers use an unusual port and no headless Chrome or shell is left behind
-- [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass
+- [x] #1 docs/verification/drive.ts plays a full day through to the result screen with the current flow (victim placed by the player, hints, check, share) and passes at the verify:phone sizes
+- [x] #2 docs/verification/locale.ts finds the Dutch menu entry and passes in both locales
+- [x] #3 bun run verify:phone exits 0 (all suites: drive, legend, screens, zoom, locale and the rest)
+- [x] #4 The 'stale driver' lines in docs/handoff.md are updated; servers use an unusual port and no headless Chrome or shell is left behind
+- [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -40,3 +44,9 @@ Branch: SLAY-17.10/repair-stale-drivers
 <!-- SECTION:NOTES:BEGIN -->
 Use the dev date override (?date=2026-10-15, docs/daily-flow.md). Run the suites in the foreground with a generous timeout (verify:phone takes about 8 minutes). Do not change app behaviour to make a driver pass; fix the driver.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Repaired the drive, locale, stats and offline drivers against the current app (install notice dismissed in seedStorage, victim placed by the player, no Ends-at line, six About sections, Kopieren label, header quick tools from 641px, two-row landscape header, PLAY_DATE 2026-10-15 default). verify:phone: 3108 checks, 0 failures.
+<!-- SECTION:FINAL_SUMMARY:END -->
