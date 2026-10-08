@@ -46,9 +46,8 @@ describe('room labels drop the article of a stored room name', () => {
     const moved = roomLabelLayout(demoScene, room.id, 'en', onLabel)!
     const placed = new Set(onLabel.map(cellKey))
     const free = cells.some((c) => !placed.has(cellKey(c)) && !demoScene.objects.some((o) => o.cells.some((oc) => cellKey(oc) === cellKey(c))))
-    if (free) {
-      for (let col = moved.run.fromCol; col <= moved.run.toCol; col++) expect(placed.has(cellKey({ row: moved.run.row, col }))).toBe(false)
-    }
+    expect(free).toBe(true)
+    for (let col = moved.run.fromCol; col <= moved.run.toCol; col++) expect(placed.has(cellKey({ row: moved.run.row, col }))).toBe(false)
   })
 
   it('still places a label when every free square holds a person', () => {
