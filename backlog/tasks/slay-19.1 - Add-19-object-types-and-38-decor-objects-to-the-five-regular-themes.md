@@ -1,9 +1,10 @@
 ---
 id: SLAY-19.1
 title: Add 19 object types and 38 decor objects to the five regular themes
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-08 14:58'
+updated_date: '2026-10-08 18:36'
 labels:
   - needs-owner-review
 dependencies:
@@ -17,14 +18,21 @@ references:
   - src/render/icons/registry.tsx
   - src/render/icons/art/decor.tsx
   - src/render/looks/decorModels.ts
+  - src/render/looks/registry.ts
+  - src/render/looks/looks.test.tsx
+  - src/render/icons/contactSheetData.ts
   - src/content/themes/home.ts
   - src/content/themes/office.ts
   - src/content/themes/school.ts
   - src/content/themes/park.ts
   - src/content/themes/shop.ts
   - src/content/themes/decor.test.ts
+  - src/content/themes/themes.test.ts
   - src/content/objectClues.test.ts
   - docs/design/looks.md
+  - docs/authoring/room-rules.md
+  - docs/handoff.md
+  - docs/design/looks-shots/slay-19.1/
 parent_task_id: SLAY-19
 type: feature
 ordinal: 141000
@@ -59,8 +67,16 @@ Branch: SLAY-19.1/decor-objects
 - [ ] #7 Owner has seen screenshots of the contact sheet and generated boards of each theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Engine: 19 ObjectTypes (blocking, footprint hints) in types.ts/catalog.ts; EN words (en.ts) and NL nouns (nl.ts); icon footprints (icons/registry.tsx); catalog and clue tests updated. 2. Block models in src/render/looks/decorModels.ts (A2 look, all 8 orientations, painter's order), wired in ENGINE_MODELS; bathtub moves from MODEL_ONLY to the engine type; contact sheet checked per batch; new confusable groups. 3. Theme wiring: new kinds with nameNl, allowedRoomTypes, favours, maxPerRoom in home/office/school/park/shop; one lamp kind per theme because every lamp kind draws the engine lamp (table lamp folded into floor lamp, desk lamp is a floor lamp, school drinking fountain is a water cooler). No new facing rule: a 1x1 front stays toward the viewer. 4. decor.test.ts (variety baseline vs after, room rules, clue text EN/NL), docs (looks.md, room-rules.md, handoff), screenshots under docs/design/looks-shots/slay-19.1/, PR with the Dutch name table, label needs-owner-review, stop.
+<!-- SECTION:PLAN:END -->
+
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it. Follow docs/design/looks.md 'How to draw a new object' from SLAY-17.4. Keep new art in new files (src/render/icons/art/decor.tsx, src/render/looks/decorModels.ts) so SLAY-18.x theme stories under src/render/icons/themes/ do not collide. The final regeneration of all future days is SLAY-18.10; do not regenerate the schedule here. If something in the list cannot be drawn clearly at one cell, say so in the PR and propose a replacement rather than shipping a confusable icon.
+
+Delivered on PR #165 (branch SLAY-19.1/decor-objects), label needs-owner-review; waiting for the owner's visual approval before the full suite, verify:phone and the review gate. 31 new kinds (3 of the listed 38 are the existing houseplant, 4 dropped for honest naming: table lamp, laundry basket, lab table, bird bath). Variety 200 scenes: distinct kinds per room home 2.45→2.78, office 2.64→2.85, school 2.53→2.70, park 2.92→3.00, shop 2.67→2.72; chairs ≤13.3%. No new facing rule. Dev server for the owner: http://localhost:5519/ (/lab generates boards with the new kinds).
 <!-- SECTION:NOTES:END -->
