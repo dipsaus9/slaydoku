@@ -1,10 +1,10 @@
 ---
 id: SLAY-18.7
 title: Carnaval theme (Oeteldonk)
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 09:22'
-updated_date: '2026-10-08 19:49'
+updated_date: '2026-10-08 19:59'
 labels:
   - needs-owner-review
 dependencies:
@@ -40,7 +40,7 @@ Branch: SLAY-18.7/carnaval-theme
 - [x] #3 Dutch room and object names are real Dutch carnival words; no trademarks or real brand logos
 - [x] #4 bun run lint, typecheck and test --maxWorkers=1 pass
 - [x] #5 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
-- [ ] #6 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
+- [x] #6 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
 - [x] #7 Ready to register as seasonal, not registered (coordinator decision 2026-10-08): carnavalTheme is exported and CARNAVAL_THEME stays undefined so no day changes; the calendar tests (picked on 11 November, nothing else changes) are written in carnaval.registered.test.ts and skipped until SLAY-18.10 registers the theme and regenerates 11 November
 <!-- AC:END -->
 
@@ -58,4 +58,6 @@ Coordinator decision: 18.7 does not register carnaval. carnavalTheme is exported
 AC 4 (registered, picked on 11 November) moved to SLAY-18.10 by coordinator decision; replaced by the last criterion. Owner approval is now criterion #6. References widened to the renamed art file, the registered test and the screenshot folder.
 
 Review gate (dipsaus-ai:story-reviewer, round 1): pass, criteria 1-5 and 7 met, no scope violations. Advisories: shared completeness.test.tsx covers carnaval only once SLAY-18.10 registers it (the rooms test runs the same check meanwhile); the dropped potted plant is now listed in the carnaval.ts header. Full suite: 3645 passed, 4 skipped.
+
+Owner approval in chat (2026-10-08): "the rest is approved" (after the frog request) and "de kikker is akkoord" (frog green with a red, white and yellow scarf). Ticked by the orchestrator. Verified on head 0f5fb36 by the worker: full suite 3645 passed/4 skipped, verify:phone 3108/0, looks driver 142, review pass. Registration of carnaval moves to SLAY-18.10.
 <!-- SECTION:NOTES:END -->
