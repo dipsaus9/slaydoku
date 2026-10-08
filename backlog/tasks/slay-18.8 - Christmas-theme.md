@@ -1,10 +1,10 @@
 ---
 id: SLAY-18.8
 title: Christmas theme
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 09:22'
-updated_date: '2026-10-08 20:09'
+updated_date: '2026-10-08 20:10'
 labels:
   - needs-owner-review
 dependencies:
@@ -41,7 +41,7 @@ Branch: SLAY-18.8/christmas-theme
 - [x] #4 Registered as seasonal; the calendar picks it for 1-31 December and nothing else changes (test)
 - [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass
 - [x] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
-- [ ] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
+- [x] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -62,4 +62,6 @@ Registration deferred to SLAY-18.10 (coordinator 2026-10-08): registering now br
 Review gate (story-reviewer, round 1): pass. Criteria 1-6 met, with criterion 4 met as amended (registration deferred to SLAY-18.10). No scope violations. Advisory: the December room-set test only checks the first seed of each day's window, so SLAY-18.10 should repeat the consecutive-room-set check on the committed December after regeneration.
 
 Full verification after the owner approved: bun run test --maxWorkers=1 passed 3654 tests with 1 skipped; verify:phone passed 3108 checks with 0 failures; docs/verification/looks.ts passed all checks. Criterion 4 is met as amended (registration in SLAY-18.10). Criterion 7 is left for the orchestrator to tick.
+
+Owner approval in chat (2026-10-08): "Kerst is approved" (the pale-blue water floor of the snowy outdoor rooms was part of the question and stays). Ticked by the orchestrator. Verified on head 63db42d by the worker: full suite 3654 passed/1 skipped, verify:phone 3108/0, looks driver green, review pass. Registration moves to SLAY-18.10.
 <!-- SECTION:NOTES:END -->
