@@ -1,0 +1,407 @@
+<title>Slaydoku Objecten Drie Dimensies</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one review sheet. Settings (extrusion), then (1) Nu / A / A2 / A3 side by side, (2) all 8 orientations of one variant, (3) the furnished floor with the same footprints as the comparison, (4) real footprints (1x1 chair, 2x1 sofa, 2x2 bed, 3x1 bookshelf) at tablet and phone size, (5) the pick line. */
+:root {
+  --bg: #f7f2e6; --fg: #2a2a36; --muted: #6b6a74; --surface: #fdf8ec; --line: #cbb994; --accent: #b3413e;
+  --board: #f1d9b5; --board-line: rgba(160, 120, 80, .35);
+  --font-display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-body: 'Instrument Sans', 'Avenir Next', 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1f1d24; --fg: #efe9dc; --muted: #a39f9a; --surface: #2a2730; --line: #4a4450; --accent: #e07b77; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #1f1d24; --fg: #efe9dc; --muted: #a39f9a; --surface: #2a2730; --line: #4a4450; --accent: #e07b77; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); padding-inline: 16px; padding-block: 28px 64px; margin: 0; }
+.wrap { max-width: 1100px; margin: 0 auto; display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.1; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1rem; }
+p { margin: 0; max-width: 68ch; line-height: 1.5; }
+.lead { color: var(--muted); }
+.tag { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; }
+.ctl { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+input[type=range] { width: 100%; accent-color: var(--accent); min-height: 28px; }
+output { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 4ch; text-align: right; }
+.grid { display: grid; gap: 12px 14px; align-items: end; overflow-x: auto; padding-bottom: 6px; }
+.grid > .h { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.grid > .n { font-weight: 600; align-self: center; }
+.cmp { grid-template-columns: 100px repeat(4, minmax(210px, 1fr)); }
+.ori { grid-template-columns: 90px repeat(8, 190px); }
+.cellbox { display: flex; align-items: flex-end; min-height: 60px; padding-bottom: 8px; }
+.tile { position: relative; flex: none; background-color: var(--board); border: 1px solid var(--board-line);
+  background-image: linear-gradient(var(--board-line) 1px, transparent 1px), linear-gradient(90deg, var(--board-line) 1px, transparent 1px); }
+.tile svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.floor { background-color: #f2d6ae; }
+.s3 { display: block; flex: none; }
+.strip { overflow-x: auto; }
+.vdesc { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.vdesc div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 4px; font-size: .92rem; line-height: 1.4; }
+.vdesc b { font-family: var(--font-display); }
+.pair { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+.pick { display: grid; gap: 10px; }
+fieldset { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+label { display: inline-flex; gap: 6px; align-items: center; min-height: 32px; cursor: pointer; }
+input[type=radio], input[type=checkbox] { accent-color: var(--accent); width: 18px; height: 18px; }
+.out { padding: 10px 12px; border-radius: 8px; border: 1px dashed var(--line); font-variant-numeric: tabular-nums; }
+button { font: inherit; font-weight: 600; padding: 8px 14px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; width: fit-content; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:10px">
+    <span class="tag">Objecten, vierde ronde</span>
+    <h1>Blokken met een echte kijkhoek</h1>
+    <p class="lead">A (Blok) bleek de goede richting. Hier zijn twee verfijningen met een echt 3D-model per object: A2 kijkt schuin van voren en van boven, A3 kijkt isometrisch (30 graden). Elk object is opgebouwd uit blokken met een bovenkant, een voorkant en een zijkant. De draaiing en spiegeling gebeuren eerst op het model, daarna wordt geprojecteerd: het licht blijft linksboven en de schaduw valt rechtsonder, ook als een object gedraaid is. B en C zijn afgevallen en staan niet meer op de pagina.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-set">
+    <h2 id="h-set">Hoe hoog?</h2>
+    <div class="ctl"><span class="lead">Lager</span><input id="scale" type="range" min="40" max="160" value="100" aria-label="Hoogte"><span class="lead">Hoger</span></div>
+    <p class="lead">Schaalt de hoogte van de blokken in A, A2 en A3. Stand <output id="scaleOut">100</output> procent.</p>
+    <div class="vdesc">
+      <div><b>Nu</b><span>De huidige diepte: rand, schaduw, plat vanaf boven.</span></div>
+      <div><b>A. Blok</b><span>De tekening van nu, vanaf boven, met een donkere zijkant naar rechtsonder. De vorige ronde.</span></div>
+      <div><b>A2. Schuin</b><span>Vast kijkpunt van voren en van boven: je ziet bovenkant, voorkant en rechterzijkant. De vloer blijft een gewoon raster van vierkante cellen, hogere delen steken omhoog over de cel erachter.</span></div>
+      <div><b>A3. Isometrisch</b><span>Hetzelfde model onder 30 graden: cellen worden ruiten, alles is even groot in alle richtingen. Het sterkste 3D-effect, maar het hele bord verandert.</span></div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-cmp">
+    <h2 id="h-cmp">Naast elkaar</h2>
+    <p class="lead">Dezelfde objecten en voetafdruk (1x1, 2x1), ongedraaid. De cellen eronder zijn de voetafdruk op het bord.</p>
+    <div class="panel"><div class="grid cmp" id="cmp"></div></div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-ori">
+    <h2 id="h-ori">Alle 8 standen</h2>
+    <fieldset><legend>Variant</legend>
+      <label><input type="radio" name="v" value="now">Nu</label>
+      <label><input type="radio" name="v" value="A">A. Blok</label>
+      <label><input type="radio" name="v" value="A2" checked>A2. Schuin</label>
+      <label><input type="radio" name="v" value="A3">A3. Isometrisch</label>
+    </fieldset>
+    <p class="lead">Per rij: 4 draaiingen, links gewoon en rechts gespiegeld. Bij A2 en A3 wordt het model gedraaid en daarna pas getekend: een stoel met de rugleuning naar voren laat de achterkant van de leuning zien.</p>
+    <div class="panel"><div class="grid ori" id="ori"></div></div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-floor">
+    <h2 id="h-floor">Op een kamervloer</h2>
+    <p class="lead">Dezelfde variant als hierboven gekozen, dezelfde voetafdrukken als in de vergelijking. Bij A2 en A3 worden objecten van achter naar voren getekend.</p>
+    <div class="panel strip"><div id="floor"></div></div>
+  </section>
+
+  <section style="display:grid;gap:12px" aria-labelledby="h-real">
+    <h2 id="h-real">Echte maten: stoel 1x1, bank 2x1, bed 2x2, boekenkast 3x1</h2>
+    <p class="lead">Een ingerichte vloer van 8 bij 5 cellen in A2 en A3, op tabletmaat (72 px per cel) en op telefoonmaat (40 px per cel). Vink de voetafdruk aan om te zien op welke cellen elk object echt staat en hoe ver het over de cel erachter heen steekt.</p>
+    <label><input type="checkbox" id="foot">Toon voetafdruk (stippellijn)</label>
+    <div class="panel strip"><div class="pair" id="real"></div></div>
+  </section>
+
+  <section class="panel pick" aria-labelledby="h-pick">
+    <h2 id="h-pick">Jouw oordeel</h2>
+    <fieldset><legend>Richting</legend>
+      <label><input type="radio" name="r" value="A" checked>A. Blok (vorige ronde)</label>
+      <label><input type="radio" name="r" value="A2">A2. Schuin</label>
+      <label><input type="radio" name="r" value="A3">A3. Isometrisch</label>
+      <label><input type="radio" name="r" value="none">Geen, blijf bij nu</label>
+      <label><input type="radio" name="r" value="other">Anders</label>
+    </fieldset>
+    <div class="out" id="out"></div>
+    <button type="button" id="copy">Kopieer</button>
+    <p class="lead">Plak de regel in het gesprek en zeg erbij wat je wilt veranderen.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var C = { ink:'#29211d', white:'#fbfbf8', cream:'#f2e9d4', creamLight:'#fef7e7', creamDark:'#d8c9a6', wood:'#a2795a', woodLight:'#be9f7d', woodDark:'#78553d', woodDeep:'#5b3f2b', gold:'#cea657', yellow:'#e1ca73', yellowLight:'#ecdc9a', green:'#629b62', greenLight:'#8dba82', greenDark:'#3f7048', terracotta:'#ae644a', terraDark:'#8a4a36', soil:'#5a3a2b', red:'#c6706d', purple:'#ad9bc4', sky:'#d1e5eb', teal:'#5f8a9a', tealLight:'#7fa6b4', tealDark:'#41697a', rug:'#b5524f', rugLight:'#d98b7a', blue:'#8eaed0', blueDark:'#6b8cb3' };
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function B(x, y, w, h, r, fill, sw, op) { return { t:'box', x:x, y:y, w:w, h:h, r:r, fill:fill, sw:sw === undefined ? 5 : sw, op:op, z:0 }; }
+  function D(x, y, r, fill, sw, op) { return { t:'disc', x:x, y:y, r:r, fill:fill, sw:sw === undefined ? 5 : sw, op:op, z:0 }; }
+  function P(d, fill, sw, op, stroke) { return { t:'path', d:d, fill:fill, sw:sw === undefined ? 4 : sw, op:op, stroke:stroke, z:0 }; }
+  function L(x1, y1, x2, y2, stroke, sw, op) { return { t:'line', x1:x1, y1:y1, x2:x2, y2:y2, stroke:stroke, sw:sw, op:op, z:0 }; }
+  function Z(z, p) { p.z = z; return p; }
+  var NONE = 'none';
+
+  // ---- art: detail inside, feet at the corners, no light or shadow baked in. z = part height in icon units (used by B); H = block thickness (used by A). ----
+  var ART = {
+    chair: { c:1, r:1, H:9, prims: [
+      B(9, 88, 13, 9, 3, C.woodDeep, 3), B(78, 88, 13, 9, 3, C.woodDeep, 3), B(9, 3, 13, 9, 3, C.woodDeep, 3), B(78, 3, 13, 9, 3, C.woodDeep, 3),
+      Z(6, B(26, 38, 48, 50, 10, C.creamLight)),
+      Z(10, B(6, 24, 22, 68, 10, C.cream)), Z(10, B(72, 24, 22, 68, 10, C.cream)),
+      Z(14, B(14, 6, 72, 34, 16, C.cream)), Z(16, B(22, 12, 56, 24, 10, C.creamLight, 3)),
+      L(50, 44, 50, 84, C.creamDark, 2.5), L(32, 62, 68, 62, C.creamDark, 2.5, .8),
+      L(17, 34, 17, 80, C.white, 3, .8), L(83, 34, 83, 80, C.white, 3, .8)
+    ] },
+    rug: { c:2, r:1, H:2.5, prims: [
+      Z(2.5, B(8, 10, 184, 80, 6, C.rug)), B(16, 18, 168, 64, 3, NONE, 3, 1), B(24, 26, 152, 48, 2, C.rugLight, 2.5),
+      P('M 100 30 L 130 50 L 100 70 L 70 50 Z', C.cream, 3), D(100, 50, 7, C.rug, 2.5),
+      L(2, 20, 8, 20, C.cream, 3), L(2, 38, 8, 38, C.cream, 3), L(2, 56, 8, 56, C.cream, 3), L(2, 74, 8, 74, C.cream, 3),
+      L(192, 20, 198, 20, C.cream, 3), L(192, 38, 198, 38, C.cream, 3), L(192, 56, 198, 56, C.cream, 3), L(192, 74, 198, 74, C.cream, 3)
+    ] },
+    table: { c:2, r:1, H:11, prims: [
+      B(10, 84, 11, 11, 3, C.woodDeep, 3), B(179, 84, 11, 11, 3, C.woodDeep, 3), B(10, 5, 11, 11, 3, C.woodDeep, 3), B(179, 5, 11, 11, 3, C.woodDeep, 3),
+      Z(12, B(8, 8, 184, 84, 8, C.yellow)), B(18, 18, 164, 64, 4, NONE, 3, 1), B(24, 24, 152, 52, 2, C.yellowLight, 2.5),
+      L(30, 32, 170, 32, C.white, 3, .7)
+    ] },
+    shelf: { c:2, r:1, H:12, prims: (function () {
+      var o = [B(5, 88, 12, 8, 3, C.woodDeep, 3), B(183, 88, 12, 8, 3, C.woodDeep, 3), B(5, 4, 12, 8, 3, C.woodDeep, 3), B(183, 4, 12, 8, 3, C.woodDeep, 3), Z(14, B(6, 6, 188, 88, 7, C.wood)), B(13, 13, 174, 74, 3, C.woodDeep, 3)];
+      var cols = [C.red, C.cream, C.green, C.gold, C.purple, C.sky, '#e4aab8'], step = 168 / 11, s, k;
+      for (s = 0; s < 3; s++) for (k = 0; k < 11; k++) { var drop = ((k * 2 + s) % 4) * 2.5; o.push(Z(4, B(r1(16 + k * step + .8), r1(16 + s * 23.5 + drop), r1(step - 2.2), r1(20 - drop), 1.5, cols[(k + s * 3) % 7], 2))); }
+      o.push(L(13, 38.5, 187, 38.5, C.woodLight, 3.5), L(13, 62, 187, 62, C.woodLight, 3.5), L(13, 86, 187, 86, C.woodLight, 3.5), L(18, 11, 182, 11, C.white, 3, .55));
+      return o;
+    })() },
+    plant: { c:1, r:1, H:9, prims: (function () {
+      var o = [Z(3, D(50, 50, 33, C.terraDark, 3, .9))];
+      for (var k = 0; k < 8; k++) {
+        var a = k * Math.PI / 4 + Math.PI / 8, ca = Math.cos(a), sa = Math.sin(a), tip = 41, mid = 26, wing = 11;
+        var c1 = [50 + ca * mid - sa * wing, 50 + sa * mid + ca * wing], c2 = [50 + ca * mid + sa * wing, 50 + sa * mid - ca * wing], t = [50 + ca * tip, 50 + sa * tip];
+        o.push(Z(7, P('M 50 50 Q ' + r1(c1[0]) + ' ' + r1(c1[1]) + ' ' + r1(t[0]) + ' ' + r1(t[1]) + ' Q ' + r1(c2[0]) + ' ' + r1(c2[1]) + ' 50 50 Z', k % 2 ? C.greenLight : C.green, 3.5)));
+        o.push(L(r1(50 + ca * 10), r1(50 + sa * 10), r1(50 + ca * 34), r1(50 + sa * 34), C.greenDark, 2.2, .85));
+      }
+      o.push(Z(10, D(50, 50, 14, C.terracotta, 4)), D(50, 50, 8.5, C.soil, 2.5), D(46, 46, 2.5, C.wood, 0));
+      return o;
+    })() },
+    sofa: { c:2, r:1, H:10, prims: [
+      B(10, 86, 12, 9, 3, C.woodDeep, 3), B(178, 86, 12, 9, 3, C.woodDeep, 3), B(10, 5, 12, 9, 3, C.woodDeep, 3), B(178, 5, 12, 9, 3, C.woodDeep, 3),
+      Z(6, B(6, 8, 188, 86, 12, C.teal)),
+      Z(8, B(32, 38, 66, 52, 9, C.tealLight)), Z(8, B(102, 38, 66, 52, 9, C.tealLight)),
+      Z(12, B(6, 8, 188, 30, 12, C.tealDark)), Z(10, B(6, 8, 26, 86, 12, C.tealDark)), Z(10, B(168, 8, 26, 86, 12, C.tealDark)),
+      L(100, 42, 100, 86, C.tealDark, 2.5), L(40, 46, 90, 46, C.white, 3, .5), L(110, 46, 160, 46, C.white, 3, .5)
+    ] },
+    bed: { c:2, r:1, H:10, prims: [
+      B(6, 90, 12, 8, 3, C.woodDeep, 3), B(182, 90, 12, 8, 3, C.woodDeep, 3),
+      Z(7, B(4, 6, 192, 88, 8, C.woodDark)), Z(9, B(12, 12, 178, 76, 6, C.white)),
+      Z(11, B(70, 12, 120, 76, 6, C.blue)), L(78, 22, 78, 78, C.blueDark, 2.5), L(86, 26, 184, 26, C.white, 3, .5),
+      Z(13, B(18, 20, 40, 28, 11, C.creamLight, 3.5)), Z(13, B(18, 52, 40, 28, 11, C.creamLight, 3.5)),
+      Z(18, B(4, 6, 10, 88, 4, C.wood))
+    ] },
+    lamp: { c:1, r:1, H:12, prims: [
+      B(14, 78, 10, 8, 3, C.woodDeep, 3), B(76, 78, 10, 8, 3, C.woodDeep, 3), B(14, 14, 10, 8, 3, C.woodDeep, 3), B(76, 14, 10, 8, 3, C.woodDeep, 3),
+      Z(3, D(50, 50, 32, C.woodDark, 4)),
+      Z(16, D(50, 50, 37, C.yellowLight, 4)), D(50, 50, 27, C.yellow, 2.5), D(50, 50, 18, C.yellowLight, 2.5), D(50, 50, 6, C.white, 0)
+    ] },
+    tub: { c:2, r:1, H:10, prims: [
+      Z(12, B(6, 8, 188, 84, 28, C.white)), B(18, 20, 164, 60, 22, C.sky, 3.5),
+      L(40, 38, 120, 38, C.white, 3.5, .85), D(34, 50, 5, C.creamDark, 2),
+      Z(4, B(162, 40, 20, 20, 5, C.gold, 3.5)), D(172, 50, 4, C.goldDark || '#a98438', 0)
+    ] }
+  };
+  var ORDER = [['chair','Stoel'], ['rug','Kleed'], ['table','Tafel'], ['shelf','Boekenkast'], ['plant','Plant'], ['sofa','Bank'], ['bed','Bed'], ['lamp','Lamp'], ['tub','Bad']];
+
+  // ---- renderer ----
+  function dark(hex, f) {
+    if (hex.charAt(0) !== '#') return hex;
+    var v = parseInt(hex.slice(1), 16), r = v >> 16 & 255, g = v >> 8 & 255, b = v & 255;
+    return 'rgb(' + Math.round(r * f) + ',' + Math.round(g * f * .96) + ',' + Math.round(b * f * .94) + ')';
+  }
+  function el(p, wall) {
+    var sw = p.sw, st = p.stroke || C.ink, off = sw === 0 || st === 'none', op = p.op === undefined ? 1 : p.op;
+    var fill = p.fill;
+    if (wall) fill = dark(fill, .68);
+    var common = ' stroke="' + (off ? 'none' : st) + '" stroke-width="' + (off ? 0 : sw) + '" stroke-linejoin="round" stroke-linecap="round"';
+    if (p.t === 'box') return '<rect x="' + p.x + '" y="' + p.y + '" width="' + p.w + '" height="' + p.h + '" rx="' + p.r + '" fill="' + fill + '"' + common + (op < 1 ? ' opacity="' + op + '"' : '') + '/>';
+    if (p.t === 'disc') return '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + p.r + '" fill="' + fill + '"' + common + (op < 1 ? ' opacity="' + op + '"' : '') + '/>';
+    if (p.t === 'path') return '<path d="' + p.d + '" fill="' + fill + '"' + common + '/>';
+    return '<line x1="' + p.x1 + '" y1="' + p.y1 + '" x2="' + p.x2 + '" y2="' + p.y2 + '" stroke="' + p.stroke + '" stroke-width="' + p.sw + '" stroke-linecap="round"' + (op < 1 ? ' stroke-opacity="' + op + '"' : '') + '/>';
+  }
+  var HI = '<feOffset in="SourceAlpha" dx="2.9" dy="2.9" result="dr"/><feComposite in="SourceAlpha" in2="dr" operator="out" result="rimTL"/><feGaussianBlur in="rimTL" stdDeviation=".8" result="rimTLb"/><feFlood flood-color="#fff" flood-opacity=".48"/><feComposite in2="rimTLb" operator="in" result="hi"/>';
+  var SH = '<feOffset in="SourceAlpha" dx="-2.9" dy="-2.9" result="ul"/><feComposite in="SourceAlpha" in2="ul" operator="out" result="rimBR"/><feGaussianBlur in="rimBR" stdDeviation="1" result="rimBRb"/><feFlood flood-color="#2a1a10" flood-opacity=".27"/><feComposite in2="rimBRb" operator="in" result="sh"/>';
+  function ground(dx, dy, op) { return '<feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="gb"/><feOffset in="gb" dx="' + dx + '" dy="' + dy + '" result="go"/><feFlood flood-color="#2a1a10" flood-opacity="' + op + '"/><feComposite in2="go" operator="in" result="gs"/>'; }
+  // orientation: mirror first, then clockwise rotation, as in src/render/icons/orientation.ts
+  function tf(cols, rows, rot, mirror) {
+    var m = mirror ? 'scale(-1 1) translate(-' + cols * 100 + ' 0) ' : '';
+    var r = rot === 90 ? 'translate(' + rows * 100 + ' 0) rotate(90) ' : rot === 180 ? 'translate(' + cols * 100 + ' ' + rows * 100 + ') rotate(180) ' : rot === 270 ? 'translate(0 ' + cols * 100 + ') rotate(270) ' : '';
+    return r + m;
+  }
+
+  // ---- A: the 2D art with a block extruded toward bottom-right (one SVG filter) ----
+  function filterDef(id, v, H) {
+    var open = '<filter id="' + id + '" x="-25%" y="-25%" width="165%" height="' + (190 + H * 2) + '%" color-interpolation-filters="sRGB">';
+    if (v === 'now') return open + HI + SH + ground(2.4, 5.3, .29) + '<feMerge><feMergeNode in="gs"/><feMergeNode in="SourceGraphic"/><feMergeNode in="hi"/><feMergeNode in="sh"/></feMerge></filter>';
+    var ex = '<feColorMatrix in="SourceGraphic" type="matrix" values=".55 0 0 0 0  0 .5 0 0 0  0 0 .48 0 0  0 0 0 1 0" result="dk"/>', mg = '<feMergeNode in="gs"/>', k, steps = Math.max(1, Math.ceil(H / 2));
+    for (k = steps; k >= 1; k--) { ex += '<feOffset in="dk" dx="' + r1(.5 * H * k / steps) + '" dy="' + r1(H * k / steps) + '" result="e' + k + '"/>'; mg += '<feMergeNode in="e' + k + '"/>'; }
+    return open + ground(2.4 + .5 * H, 5.3 + H, .3) + ex + HI + '<feMerge>' + mg + '<feMergeNode in="SourceGraphic"/><feMergeNode in="hi"/></feMerge></filter>';
+  }
+  var n = 0, SCALE = 1;
+  function svgOf(art, rot, mirror, v) {
+    var id = 'f' + (n++), cols = art.c, rows = art.r, H = art.H * SCALE;
+    var body = '<g transform="' + tf(cols, rows, rot, mirror) + '">' + art.prims.map(function (q) { return el(q); }).join('') + '</g>';
+    var w = rot % 180 ? rows : cols, h = rot % 180 ? cols : rows;
+    return { svg: '<svg viewBox="0 0 ' + w * 100 + ' ' + h * 100 + '" aria-hidden="true"><defs>' + filterDef(id, v, H) + '</defs><g filter="url(#' + id + ')">' + body + '</g></svg>', w: w, h: h };
+  }
+  function tile(art, rot, mirror, v, cell, label) {
+    var s = svgOf(art, rot, mirror, v);
+    return '<div class="tile" style="width:' + s.w * cell + 'px;height:' + s.h * cell + 'px;background-size:' + cell + 'px ' + cell + 'px" role="img" aria-label="' + label + '">' + s.svg + '</div>';
+  }
+
+  // ---- A2 / A3: a real 3D model per object (blocks and cylinders), rotated and mirrored in 3D first, projected afterwards ----
+  // Model space: x to the right, y toward the viewer (front), z up; 100 units per cell; the footprint is cols*100 by rows*100.
+  // The camera looks from +x, +y, +z, so the visible faces are top, front (+y) and right (+x). Light is top-left: top brightest, front darker, right darkest.
+  function bx(x, y, w, d, z0, h, col) { return { k:'b', x0:x, y0:y, x1:x + w, y1:y + d, z0:z0, z1:z0 + h, col:col }; }
+  function cy(x, y, r, z0, h, col) { return { k:'c', x:x, y:y, r:r, x0:x - r, y0:y - r, x1:x + r, y1:y + r, z0:z0, z1:z0 + h, col:col }; }
+  function mdl(c, r, items, flat) { return { c:c, r:r, items:items, flat:!!flat }; }
+  function legs(W, H, z, y0, y1, col) { return [bx(10, y0, 11, 11, 0, z, col), bx(W - 21, y0, 11, 11, 0, z, col), bx(10, y1, 11, 11, 0, z, col), bx(W - 21, y1, 11, 11, 0, z, col)]; }
+  function shelf3(cols) {
+    var W = cols * 100, o = [bx(6, 6, W - 12, 6, 0, 84, C.woodDeep), bx(6, 6, 8, 88, 0, 84, C.wood), bx(W - 14, 6, 8, 88, 0, 84, C.wood)], s, k, z, nb = Math.floor((W - 32) / 13.5), colr = [C.red, C.cream, C.green, C.gold, C.purple, C.sky, '#e4aab8'];
+    for (s = 0; s < 4; s++) { z = s === 3 ? 78 : s * 26; o.push(bx(6, 6, W - 12, 88, z, 6, C.wood)); }
+    for (s = 0; s < 3; s++) for (k = 0; k < nb; k++) o.push(bx(16 + k * 13.5, 24, 12, 62, 6 + s * 26, 12 + ((k * 2 + s) % 4) * 2.4, colr[(k + s * 3) % 7]));
+    return mdl(cols, 1, o);
+  }
+  function bed3(cols, rows) {
+    var W = cols * 100, H = rows * 100, o = [bx(4, 6, W - 8, H - 12, 0, 16, C.woodDark), bx(10, 12, W - 20, H - 24, 16, 14, C.white), bx(W * .36, 12, W * .64 - 10, H - 24, 30, 5, C.blue)], i, ph = (H - 24) / rows;
+    for (i = 0; i < rows; i++) o.push(bx(16, 12 + i * ph + 5, 38, ph - 10, 30, 9, C.creamLight));
+    o.push(bx(4, 6, 10, H - 12, 16, 44, C.wood));
+    return mdl(cols, rows, o);
+  }
+  var M3 = {
+    chair: mdl(1, 1, legs(100, 100, 30, 10, 78, C.woodDeep).concat([bx(14, 22, 72, 64, 30, 10, C.cream), bx(18, 26, 64, 56, 40, 6, C.creamLight), bx(10, 8, 80, 13, 34, 44, C.cream)])),
+    rug: mdl(2, 1, [bx(8, 10, 184, 80, 0, 3, C.rug), bx(22, 24, 156, 52, 3, .8, C.rugLight), bx(84, 38, 32, 24, 3.8, .8, C.cream)], true),
+    table: mdl(2, 1, legs(200, 100, 40, 14, 72, C.woodDeep).concat([bx(8, 10, 184, 80, 40, 10, C.yellow), bx(20, 22, 160, 56, 50, 1.5, C.yellowLight)])),
+    shelf: shelf3(2),
+    plant: mdl(1, 1, [cy(50, 50, 22, 0, 26, C.terracotta), cy(50, 50, 38, 26, 12, C.green), cy(50, 50, 27, 38, 12, C.greenLight), cy(50, 50, 15, 50, 10, C.green)]),
+    sofa: mdl(2, 1, legs(200, 100, 8, 12, 78, C.woodDeep).concat([bx(6, 10, 188, 84, 8, 22, C.teal), bx(32, 38, 66, 54, 30, 10, C.tealLight), bx(102, 38, 66, 54, 30, 10, C.tealLight), bx(6, 10, 188, 26, 30, 34, C.tealDark), bx(6, 36, 26, 58, 30, 16, C.tealDark), bx(168, 36, 26, 58, 30, 16, C.tealDark)])),
+    bed: bed3(2, 1),
+    lamp: mdl(1, 1, [cy(50, 50, 22, 0, 6, C.woodDark), cy(50, 50, 4, 6, 64, C.woodDeep), cy(50, 50, 30, 70, 24, C.yellowLight), cy(50, 50, 20, 94, 2, C.yellow)]),
+    tub: mdl(2, 1, [bx(6, 8, 188, 84, 0, 36, C.white), bx(18, 20, 164, 60, 36, 1.5, C.sky), bx(166, 40, 16, 20, 37, 12, C.gold)])
+  };
+  var PROJ = {
+    A2: function (x, y, z) { return [x - .22 * z, y - .7 * z]; },
+    A3: function (x, y, z) { return [(x - y) * .693, ((x + y) * .5 - z) * .8]; }
+  };
+  function orient(x, y, c, r, rot, mir) {
+    if (mir) x = c * 100 - x;
+    if (rot === 90) return [r * 100 - y, x];
+    if (rot === 180) return [c * 100 - x, r * 100 - y];
+    if (rot === 270) return [y, c * 100 - x];
+    return [x, y];
+  }
+  // back to front: A goes before B when A is entirely behind, left of or below B and not the other way round (camera at +x, +y, +z)
+  function sortBF(a) {
+    var m = a.length, i, j, before = [], indeg = [], res = [], used = [], EP = .01;
+    for (i = 0; i < m; i++) { before.push([]); indeg.push(0); }
+    for (i = 0; i < m; i++) for (j = 0; j < m; j++) if (i !== j) {
+      var A = a[i], B = a[j], f = A.x1 <= B.x0 + EP || A.y1 <= B.y0 + EP || A.z1 <= B.z0 + EP, rv = B.x1 <= A.x0 + EP || B.y1 <= A.y0 + EP || B.z1 <= A.z0 + EP;
+      if (f && !rv) { before[i].push(j); indeg[j]++; }
+    }
+    function key(t) { return a[t].x0 + a[t].y0 + a[t].z0; }
+    while (res.length < m) {
+      var best = -1;
+      for (i = 0; i < m; i++) if (!used[i] && indeg[i] === 0 && (best < 0 || key(i) < key(best))) best = i;
+      if (best < 0) for (i = 0; i < m; i++) if (!used[i] && (best < 0 || key(i) < key(best))) best = i;
+      used[best] = true; res.push(a[best]);
+      before[best].forEach(function (t) { indeg[t]--; });
+    }
+    return res;
+  }
+  function scene3(items, v, o) {
+    var P = PROJ[v], pts = [], gid = 'g' + (n++), cells = '', body = '', i, k;
+    function pr(x, y, z) { var q = P(x, y, z); pts.push(q); return q; }
+    function poly(arr, fill, stroke, sw, extra) { return '<polygon points="' + arr.map(function (q) { return r1(q[0]) + ',' + r1(q[1]); }).join(' ') + '" fill="' + fill + '" stroke="' + (stroke || 'none') + '" stroke-width="' + (sw || 0) + '" stroke-linejoin="round"' + (extra || '') + '/>'; }
+    var cx, cyy, cols = o.cols, rows = o.rows;
+    for (cyy = 0; cyy < rows; cyy++) for (cx = 0; cx < cols; cx++)
+      cells += poly([pr(cx * 100, cyy * 100, 0), pr(cx * 100 + 100, cyy * 100, 0), pr(cx * 100 + 100, cyy * 100 + 100, 0), pr(cx * 100, cyy * 100 + 100, 0)], o.floor || '#f1d9b5', 'rgba(160,120,80,.45)', 1.2);
+    var objs = items.map(function (it) {
+      var m = it.m, fw = it.rot % 180 ? m.r : m.c, fh = it.rot % 180 ? m.c : m.r, prims = m.items.map(function (p) {
+        var a = orient(p.x0, p.y0, m.c, m.r, it.rot, it.mir), b = orient(p.x1, p.y1, m.c, m.r, it.rot, it.mir), q = { k:p.k, col:p.col, r:p.r };
+        q.x0 = it.ox + Math.min(a[0], b[0]); q.x1 = it.ox + Math.max(a[0], b[0]); q.y0 = it.oy + Math.min(a[1], b[1]); q.y1 = it.oy + Math.max(a[1], b[1]);
+        q.z0 = p.z0 * SCALE; q.z1 = p.z1 * SCALE; if (p.k === 'c') { q.x = (q.x0 + q.x1) / 2; q.y = (q.y0 + q.y1) / 2; }
+        return q;
+      });
+      return { x0:it.ox, y0:it.oy, x1:it.ox + fw * 100, y1:it.oy + fh * 100, z0:0, z1:m.flat ? 1 : 2, prims:sortBF(prims), flat:m.flat };
+    });
+    var flat = objs.filter(function (q) { return q.flat; }), tall = sortBF(objs.filter(function (q) { return !q.flat; }));
+    flat.concat(tall).forEach(function (ob) {
+      var pr0, side, sh = 'rgba(42,26,16,.2)';
+      if (!ob.flat) body += '<g filter="url(#' + gid + ')">' + poly([pr(ob.x0 + 14, ob.y0 + 10, 0), pr(ob.x1 + 8, ob.y0 + 10, 0), pr(ob.x1 + 8, ob.y1 + 4, 0), pr(ob.x0 + 14, ob.y1 + 4, 0)], sh, 'none', 0) + '</g>';
+      if (o.foot) body += poly([pr(ob.x0, ob.y0, 0), pr(ob.x1, ob.y0, 0), pr(ob.x1, ob.y1, 0), pr(ob.x0, ob.y1, 0)], 'rgba(179,65,62,.12)', '#b3413e', 2.5, ' stroke-dasharray="6 5"');
+      ob.prims.forEach(function (p) {
+        var top = p.col, fr = dark(p.col, .8), rt = dark(p.col, .62), sw = 3;
+        if (p.k === 'b') {
+          body += poly([pr(p.x0, p.y1, p.z0), pr(p.x1, p.y1, p.z0), pr(p.x1, p.y1, p.z1), pr(p.x0, p.y1, p.z1)], fr, C.ink, sw);
+          body += poly([pr(p.x1, p.y0, p.z0), pr(p.x1, p.y1, p.z0), pr(p.x1, p.y1, p.z1), pr(p.x1, p.y0, p.z1)], rt, C.ink, sw);
+          body += poly([pr(p.x0, p.y0, p.z1), pr(p.x1, p.y0, p.z1), pr(p.x1, p.y1, p.z1), pr(p.x0, p.y1, p.z1)], top, C.ink, sw);
+        } else {
+          var ring = function (z) { var a = [], t; for (t = 0; t < 24; t++) a.push(pr(p.x + Math.cos(t * Math.PI / 12) * p.r, p.y + Math.sin(t * Math.PI / 12) * p.r, z)); return a; };
+          var lo = ring(p.z0), hi = ring(p.z1), all = lo.concat(hi).sort(function (u, w) { return u[0] - w[0] || u[1] - w[1]; }), lower = [], upper = [], t;
+          function cross(a, b, c) { return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]); }
+          for (t = 0; t < all.length; t++) { while (lower.length > 1 && cross(lower[lower.length - 2], lower[lower.length - 1], all[t]) <= 0) lower.pop(); lower.push(all[t]); }
+          for (t = all.length - 1; t >= 0; t--) { while (upper.length > 1 && cross(upper[upper.length - 2], upper[upper.length - 1], all[t]) <= 0) upper.pop(); upper.push(all[t]); }
+          body += poly(lower.slice(0, -1).concat(upper.slice(0, -1)), fr, C.ink, sw) + poly(hi, top, C.ink, sw);
+        }
+      });
+    });
+    var xs = pts.map(function (q) { return q[0]; }), ys = pts.map(function (q) { return q[1]; }), pad = 8, minx = Math.min.apply(null, xs) - pad, miny = Math.min.apply(null, ys) - pad, w = Math.max.apply(null, xs) + pad + 8 - minx, h = Math.max.apply(null, ys) + pad + 8 - miny;
+    var blur = '<defs><filter id="' + gid + '" x="-20%" y="-20%" width="150%" height="150%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+    return { svg: '<svg class="s3" width="' + r1(w * o.ppu) + '" height="' + r1(h * o.ppu) + '" viewBox="' + r1(minx) + ' ' + r1(miny) + ' ' + r1(w) + ' ' + r1(h) + '" aria-hidden="true">' + blur + cells + body + '</svg>' };
+  }
+  function tile3(key, rot, mir, v, cell, label) {
+    var m = M3[key];
+    return '<div role="img" aria-label="' + label + '" style="flex:none">' + scene3([{ m:m, ox:0, oy:0, rot:rot, mir:mir }], v, { cols:rot % 180 ? m.r : m.c, rows:rot % 180 ? m.c : m.r, ppu:cell / 100 }).svg + '</div>';
+  }
+  function drawVar(key, rot, mir, v, cell, label) {
+    if (v === 'A2' || v === 'A3') return tile3(key, rot, mir, v, cell, label);
+    return tile(ART[key], rot, mir, v, cell, label);
+  }
+
+  var VN = { now: 'Nu', A: 'A. Blok', A2: 'A2. Schuin', A3: 'A3. Isometrisch' };
+  var ORI = [[0,false,'0°'],[90,false,'90°'],[180,false,'180°'],[270,false,'270°'],[0,true,'gespiegeld'],[90,true,'90° gesp.'],[180,true,'180° gesp.'],[270,true,'270° gesp.']];
+  var cmp = document.getElementById('cmp'), ori = document.getElementById('ori'), floor = document.getElementById('floor'), real = document.getElementById('real'), foot = document.getElementById('foot');
+  function curV() { return document.querySelector('input[name=v]:checked').value; }
+  // floor items: [model key, cell x, cell y, rotation, mirror]
+  function place(parts, v, cell, cols, rows, foots, floorCol) {
+    var items = parts.map(function (p) { var m = typeof p[0] === 'string' ? M3[p[0]] : p[0]; return { m:m, ox:p[1] * 100, oy:p[2] * 100, rot:p[3], mir:!!p[4] }; });
+    return scene3(items, v, { cols:cols, rows:rows, ppu:cell / 100, foot:foots, floor:floorCol }).svg;
+  }
+  var SMALL = [['rug',3,1,0,0], ['sofa',0,0,0,0], ['shelf',2,0,0,0], ['lamp',4,0,0,0], ['bed',5,0,90,0], ['plant',7,0,0,0], ['chair',3,1,0,0], ['chair',4,1,180,1], ['table',0,2,0,0], ['tub',2,2,0,0], ['chair',4,2,90,0], ['lamp',5,2,0,0], ['plant',7,2,0,1], ['sofa',6,1,0,1]];
+  var BIG = [['shelf',0,0,0,0], ['plant',3,0,0,0], ['lamp',4,0,0,0], [bed3(2, 2),6,0,0,0], ['sofa',0,1,0,0], ['lamp',2,1,0,0], ['tub',0,3,0,0], ['chair',3,2,0,0], ['chair',4,2,0,1], ['rug',3,3,0,0], ['table',3,3,0,0], ['chair',3,4,180,0], ['chair',4,4,180,1], ['lamp',6,2,0,0], ['sofa',7,3,90,0], ['plant',6,4,0,0]];
+  BIG[0][0] = shelf3(3);
+  function draw() {
+    var html = '<span class="h"></span>', v, vs = ['now','A','A2','A3'];
+    vs.forEach(function (k) { html += '<span class="h">' + VN[k] + '</span>'; });
+    ORDER.forEach(function (row) {
+      html += '<span class="n">' + row[1] + '</span>';
+      vs.forEach(function (k) { html += '<div class="cellbox">' + drawVar(row[0], 0, false, k, 72, row[1] + ', ' + VN[k]) + '</div>'; });
+    });
+    cmp.innerHTML = html;
+    v = curV();
+    html = '<span class="h"></span>' + ORI.map(function (o) { return '<span class="h">' + o[2] + '</span>'; }).join('');
+    ORDER.forEach(function (row) {
+      html += '<span class="n">' + row[1] + '</span>';
+      ORI.forEach(function (o) { html += '<div class="cellbox">' + drawVar(row[0], o[0], o[1], v, 48, row[1] + ', ' + o[2]) + '</div>'; });
+    });
+    ori.innerHTML = html;
+    if (v === 'A2' || v === 'A3') floor.innerHTML = place(SMALL, v, 72, 8, 3, false);
+    else {
+      var CELL = 72, s = '<div class="tile floor" style="width:' + 8 * CELL + 'px;height:' + 3 * CELL + 'px;background-size:' + CELL + 'px ' + CELL + 'px" role="img" aria-label="Kamervloer met alle objecten">';
+      SMALL.forEach(function (p) {
+        var one = svgOf(ART[p[0]], p[3], !!p[4], v);
+        s += '<div style="position:absolute;left:' + p[1] * CELL + 'px;top:' + p[2] * CELL + 'px;width:' + one.w * CELL + 'px;height:' + one.h * CELL + 'px">' + one.svg.replace('<svg ', '<svg style="position:absolute;inset:0;width:100%;height:100%;overflow:visible" ') + '</div>';
+      });
+      floor.innerHTML = s + '</div>';
+    }
+    real.innerHTML = ['A2', 'A3'].map(function (k) {
+      return '<div style="display:grid;gap:6px"><h3>' + VN[k] + ', 72 px per cel</h3>' + place(BIG, k, 72, 8, 5, foot.checked) + '</div><div style="display:grid;gap:6px"><h3>' + VN[k] + ', telefoon (40 px)</h3>' + place(BIG, k, 40, 8, 5, foot.checked) + '</div>';
+    }).join('');
+    upd();
+  }
+  var scale = document.getElementById('scale'), scaleOut = document.getElementById('scaleOut');
+  scale.addEventListener('input', function () { SCALE = scale.value / 100; scaleOut.textContent = scale.value; draw(); });
+  document.querySelectorAll('input[name=v]').forEach(function (e) { e.addEventListener('change', draw); });
+  foot.addEventListener('change', draw);
+
+  var out = document.getElementById('out');
+  var LBL = { A: 'A. Blok', A2: 'A2. Schuin', A3: 'A3. Isometrisch', none: 'geen, blijf bij nu', other: 'anders' };
+  function line() { var r = document.querySelector('input[name=r]:checked'); return 'Hoogte ' + scale.value + '% · ' + LBL[r ? r.value : 'A']; }
+  function upd() { out.textContent = line(); }
+  document.querySelectorAll('input[name=r]').forEach(function (e) { e.addEventListener('change', upd); });
+  document.getElementById('copy').addEventListener('click', function () {
+    var b = this;
+    function done(ok) { b.textContent = ok ? 'Gekopieerd' : 'Selecteer de regel hierboven'; setTimeout(function () { b.textContent = 'Kopieer'; }, 1800); }
+    try { navigator.clipboard.writeText(line()).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+  });
+  draw();
+})();
+</script>
