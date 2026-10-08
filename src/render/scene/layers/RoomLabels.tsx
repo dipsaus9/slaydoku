@@ -14,33 +14,26 @@ export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; g
         const label = roomLabelLayout(scene, room.id, locale)
         if (!label) return null
         const centre = geometry.toPoint(label.center.x, label.center.y)
-        const w = round(label.width * size)
-        const h = round(label.height * size)
         const font = round(label.fontSize * size)
         const lineGap = round(font * LABEL_LINE_HEIGHT)
         const firstLineY = -((label.lines.length - 1) * lineGap) / 2
+        // No pill: the paper-coloured halo around the text keeps it readable over marks and people (SLAY-17.5).
         return (
           <g
             key={room.id}
             data-room-label={room.id}
             transform={`translate(${centre.x} ${centre.y})`}
           >
-            <rect
-              x={-w / 2}
-              y={-h / 2}
-              width={w}
-              height={h}
-              rx={Math.min(h / 2, 10)}
-              fill={THEME.labelFill}
-              stroke={THEME.wall}
-              strokeWidth={1.5}
-            />
             <text
               textAnchor="middle"
               fontFamily={THEME.fontFamily}
               fontWeight={800}
               fontSize={font}
               fill={THEME.labelInk}
+              stroke={THEME.labelFill}
+              strokeWidth={font * 0.32}
+              strokeLinejoin="round"
+              paintOrder="stroke"
             >
               {label.lines.map((line, i) => (
                 <tspan key={line} x={0} y={round(firstLineY + i * lineGap)} dy="0.35em">
