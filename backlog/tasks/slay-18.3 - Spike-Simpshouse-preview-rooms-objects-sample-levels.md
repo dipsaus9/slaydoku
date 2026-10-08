@@ -4,7 +4,7 @@ title: 'Spike: Simpshouse preview (rooms, objects, sample levels)'
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 11:34'
+updated_date: '2026-10-08 11:42'
 labels:
   - needs-owner-review
 dependencies:
@@ -44,4 +44,6 @@ Preview: docs/themes/simpshouse/preview.html (static, open the file directly; ?l
 Round 1: card binder shelf, card trading table, glam vanity, disco ball, karaoke stage, arcade cabinet, bubble bath. Round 2 (owner: much more party): rabbit hutch (Balcony), red carpet, champagne tower, gold mirror, glitter shoe wall, photo wall, DJ booth, dance floor, confetti cannon, balloons, snack table, cocktail bar, photo booth, lava lamp; rooms Balcony, Dance Floor, Cocktail Lounge, Photo Studio, Glam Room. Round 3 (owner): Salmari (dark liquorice liqueur bottle with shot glasses on a tray, no label) in the new Shot Bar room; Card Room with card binder shelf, card trading table, card display case and reading corner; a Pikachu plush (owner decision 2026-10-08, third-party character, go-public checklist line added in docs/launch.md). Beanbag and plain bookcase dropped (plain chair is the only chair look). New RoomTypes needed in src by the theme story: party, outdoor (draft casts them). Floor styles for the new room names need NAME_HINTS entries in roomStyles.ts.
 
 Finding for the owner: clues name an object by engine type (arcade cabinet reads as television, disco ball and mannequin as statue, card table and bubble bath as table). Review gates: pass (advisory: re-check borrowed engineTypes in the SLAY-18.4 clue pass). AC 4 is the owner's and stays unchecked; story stays In Progress.
+
+Round 3 review gate: pass.
 <!-- SECTION:NOTES:END -->
