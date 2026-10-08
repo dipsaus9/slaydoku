@@ -11,7 +11,7 @@
 // Usage (from the repo root):
 //   bun run build && bunx vite preview --port 5471 &
 //   BASE=http://localhost:5471/ CDP_PORT=9571 OUT=/private/tmp/regen-days bun docs/verification/regen-days.ts
-// Env: BASE, CDP_PORT, OUT (screenshots and the Chrome profile; never inside the repo), CHROME, SAMPLE (days per theme, default 2), FIRST (first date, default 2026-10-09).
+// Env: BASE, CDP_PORT, OUT (screenshots and a fresh Chrome profile per run, so no service worker cache of an older build is served; never inside the repo), CHROME, SAMPLE (days per theme, default 2), FIRST (first date, default 2026-10-09).
 // Writes $OUT/shots/<date>-<theme>-<w>x<h>.png. Exits non-zero when a check fails. Stop the preview server and Chrome afterwards.
 import { spawn } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
@@ -77,7 +77,7 @@ const sample: ScheduleDay[] = THEMES.flatMap((t) => {
 console.log('sample', sample.map((d) => `${d.date} ${d.theme} ${d.size}x${d.size} ${d.tier}`).join(', '))
 
 // --- browser ---------------------------------------------------------------------------------------------------
-const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--remote-debugging-port=${PORT}`, `--user-data-dir=${join(OUT, 'profile')}`, 'about:blank'], { stdio: 'ignore' })
+const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--remote-debugging-port=${PORT}`, `--user-data-dir=${join(OUT, `profile-${Date.now()}`)}`, 'about:blank'], { stdio: 'ignore' })
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 async function connect() {
   for (let i = 0; i < 60; i++) {

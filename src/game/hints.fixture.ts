@@ -2,6 +2,8 @@ import { buildEntry, seedBase } from '../content/packs/build.ts'
 import type { CatalogClue } from '../engine/clues/index.ts'
 import type { Puzzle } from '../engine/model/index.ts'
 import { solveHuman } from '../engine/solver/human/index.ts'
+import { walkHints as auditWalkOf } from '../validation/walk.ts'
+import type { WalkStep } from '../validation/walk.ts'
 import { hasMark, hasNote, isPlaced } from './board.ts'
 import { getHint, nextStep } from './hints.ts'
 import type { NextStep } from './hints.ts'
@@ -72,6 +74,12 @@ export function hardPuzzle(): Puzzle {
     const { scene, people, clues } = built.entry.puzzle
     const steps = solveHuman(scene, people, clues as CatalogClue[]).steps
     if (!steps.some((s) => s.technique === 'intersect' && s.placed === undefined)) continue
+    // The house-style tests (explanations.test.ts) cap an explanation at 330 characters, in English and in Dutch.
+    const short = (locale: 'en' | 'nl') => solveHuman(scene, people, clues as CatalogClue[], { locale }).steps.every((s) => s.explanation.length <= 330)
+    if (!short('en') || !short('nl')) continue
+    // The audit tests (src/validation/hints.test.ts) want the walk to hold a note, a crossing and a placement.
+    const walk: WalkStep[] = auditWalkOf(built.entry.puzzle).steps
+    if (!walk.some((w: WalkStep) => !w.next.placement && !w.next.focus) || !walk.some((w: WalkStep) => w.next.placement)) continue
     return (hard = built.entry.puzzle)
   }
   throw new Error('no hard 6x6 puzzle with a note as its first hint in 100 seeds')

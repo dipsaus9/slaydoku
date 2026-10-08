@@ -45,6 +45,10 @@ One chair look: officeChair, beanbag and poof are gone. Every chair kind (meetin
 
 The committed schedule files are baked and unchanged; rebuilding a day from its seed now gives a different scene (new rooms and rules change every draw), so the tests no longer compare a rebuild byte for byte with the committed day.
 
+## Variety (SLAY-17.6)
+
+Besides the allow-list, `placeObjects` keeps a room varied: a kind appears at most 3 times in one room (`MAX_KIND_PER_ROOM`, no exception, plants included); a chair kind (engine type chair) at most 2 times unless the extra chair touches a table, desk or counter (`MAX_FREE_CHAIRS_PER_ROOM`, `SEAT_AT_TYPES`), and a chair next to such an object is likelier; a kind the room does not have yet is 3 times likelier and every copy already there multiplies the weight by 0.35. Chair weights are low in every theme and the decor kinds (plants, rugs, bookcases, chests, easels, statues) a bit higher. Measured on 200 scenes per theme (sizes 6, 7, 9, 12): chairs were 18% to 54% of the placed objects (37% overall), now 10% to 14% (12%); distinct kinds per room went from 2.0-2.3 to 2.5-2.9. Fast test: `src/engine/scenegen/variety.test.ts`; sweep: `variety.slow.test.ts`. Lamps and other new decor need new engine types and are a separate story.
+
 ## Adding a kind or a room
 
 1. Give the room `roomTypes` and the kind `allowedRoomTypes`.

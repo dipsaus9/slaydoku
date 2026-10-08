@@ -31,22 +31,22 @@ export const PARK_THEME: SceneTheme = {
   ],
   objects: [
     // Occupiable
-    themeObject({ kind: 'gardenChair', name: 'garden chair', engineType: 'chair', weight: 8, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['garden', 'living'] }),
-    themeObject({ kind: 'picnicBlanket', name: 'picnic blanket', engineType: 'rug', themeIcon: 'picnicBlanket', weight: 3, footprints: [rect(2, 1), rect(2, 2)], placement: 'centre', allowedRoomTypes: ['garden'] }),
+    themeObject({ kind: 'gardenChair', name: 'garden chair', engineType: 'chair', weight: 3, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['garden', 'living'] }),
+    themeObject({ kind: 'picnicBlanket', name: 'picnic blanket', engineType: 'rug', themeIcon: 'picnicBlanket', weight: 4, footprints: [rect(2, 1), rect(2, 2)], placement: 'centre', allowedRoomTypes: ['garden'] }),
     themeObject({ kind: 'hammock', name: 'hammock', engineType: 'bed', themeIcon: 'hammock', weight: 2, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['sleeping'] }),
     themeObject({ kind: 'sunLounger', name: 'sun lounger', engineType: 'bed', weight: 1.5, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 2, allowedRoomTypes: ['sleeping'] }),
     themeObject({ kind: 'sandbox', name: 'sandbox', engineType: 'rug', themeIcon: 'sandbox', weight: 1.5, footprints: [rect(2, 1), rect(2, 2)], placement: 'centre', maxPerRoom: 1, allowedRoomTypes: ['play'] }),
     themeObject({ kind: 'loungeSofa', name: 'lounge sofa', engineType: 'sofa', weight: 2, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['living'] }),
     themeObject({ kind: 'car', name: 'car', engineType: 'car', weight: 2, footprints: [rect(1, 2)], placement: 'wall', maxPerRoom: 3, allowedRoomTypes: ['garage'] }),
     // Blocking
-    themeObject({ kind: 'tree', name: 'tree', engineType: 'tree', weight: 10, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['garden'] }),
+    themeObject({ kind: 'tree', name: 'tree', engineType: 'tree', weight: 8, footprints: [rect(1, 1)], placement: 'anywhere', allowedRoomTypes: ['garden'] }),
     themeObject({ kind: 'flowerBed', name: 'flower bed', engineType: 'flowers', weight: 6, footprints: [rect(1, 1)], placement: 'wall', allowedRoomTypes: ['garden'] }),
     themeObject({ kind: 'picnicTable', name: 'picnic table', engineType: 'gardenTable', weight: 3, footprints: [rect(1, 1), rect(2, 1), rect(2, 2, 0.5)], placement: 'centre', maxPerRoom: 2, allowedRoomTypes: ['garden', 'living'] }),
-    themeObject({ kind: 'bench', name: 'bench', engineType: 'bench', weight: 4, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', allowedRoomTypes: ['garden'] }),
-    themeObject({ kind: 'statue', name: 'statue', engineType: 'statue', weight: 1.5, footprints: [rect(1, 1)], placement: 'centre', maxPerRoom: 1, allowedRoomTypes: ['garden'] }),
+    themeObject({ kind: 'bench', name: 'bench', engineType: 'bench', weight: 5, footprints: [rect(2, 1), rect(3, 1)], placement: 'wall', allowedRoomTypes: ['garden'] }),
+    themeObject({ kind: 'statue', name: 'statue', engineType: 'statue', weight: 2.5, footprints: [rect(1, 1)], placement: 'centre', maxPerRoom: 1, allowedRoomTypes: ['garden'] }),
     themeObject({ kind: 'fountain', name: 'fountain', engineType: 'statue', themeIcon: 'fountain', weight: 1, footprints: [rect(1, 1), rect(2, 2, 0.5)], placement: 'centre', maxPerRoom: 1, allowedRoomTypes: ['water'] }),
     themeObject({ kind: 'bush', name: 'bush', engineType: 'plant', weight: 6, footprints: [rect(1, 1)], placement: 'corner', allowedRoomTypes: ['garden'] }),
     themeObject({ kind: 'bicycle', name: 'bicycle', engineType: 'bicycle', weight: 2, footprints: [rect(2, 1)], placement: 'wall', allowedRoomTypes: ['garage', 'storage'] }),
-    themeObject({ kind: 'paintingEasel', name: 'painting easel', engineType: 'easel', weight: 0.5, footprints: [rect(1, 1)], placement: 'anywhere', maxPerRoom: 1, allowedRoomTypes: ['garden', 'living'] }),
+    themeObject({ kind: 'paintingEasel', name: 'painting easel', engineType: 'easel', weight: 2, footprints: [rect(1, 1)], placement: 'anywhere', maxPerRoom: 1, allowedRoomTypes: ['garden', 'living'] }),
   ],
 }
