@@ -11,7 +11,7 @@ Objects on the board and in the legend are drawn with a screen-space SVG depth f
 
 Open items found by the SLAY-16.9 check, not fixed there (details in docs/design/depth.md):
 - Legend swatches clipped the ground shadow: fixed in SLAY-16.10 (padded viewBox, see docs/design/depth.md).
-- nl only, 12x12 day 2026-11-30: the room label "Speelgoedafdeling" is wider than its room and covers parts of the bookshelf (C10) and checkout counter (C12); en grazes by 1.3 px. A label-layout question (`src/render/scene/labels.ts`), not an art one.
+- Room labels on crowded rooms (the 2026-11-30 "Speelgoedafdeling" case): fixed in SLAY-17.5. `roomLabelLayout` now also considers column runs (the label is turned a quarter along a one-cell-wide strip) and picks the run that gives the biggest font; a single long word breaks in two lines with a hyphen (SPEELGOED-/AFDELING). Data check: `bun docs/verification/labels.ts` (60 of 1382 labels over an object before, 9 after, all in one- or two-cell rooms); rendered check: `docs/verification/labelshots.ts`. Owner approval of the screenshots is still pending.
 - Board shadow at the viewBox edge: fine (margin 12 against about 7). Performance: no task over 100 ms; the filter roughly doubles to triples raster time on software raster, see the design doc.
 - `bun run verify:phone`: the `drive` suite is stale on main (it fails at the result screen, known since SLAY-9.13/9.15); `legend`, `screens` and `zoom` pass at 360, 390, 768 and 1024; `locale` is stale too (cannot find the Dutch "Meer" tool). Both stale drivers need their own repair story.
 - When running drivers, start the preview server on a port nobody else uses: port 5231 was another worker's dev server and silently served its code.

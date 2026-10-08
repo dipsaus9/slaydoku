@@ -23,7 +23,7 @@ export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; g
           <g
             key={room.id}
             data-room-label={room.id}
-            transform={`translate(${centre.x} ${centre.y})`}
+            transform={`translate(${centre.x} ${centre.y})${label.vertical ? ' rotate(-90)' : ''}`}
           >
             <rect
               x={-w / 2}
