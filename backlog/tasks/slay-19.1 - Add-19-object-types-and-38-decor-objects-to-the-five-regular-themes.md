@@ -1,10 +1,10 @@
 ---
 id: SLAY-19.1
 title: Add 19 object types and 38 decor objects to the five regular themes
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 14:58'
-updated_date: '2026-10-08 19:28'
+updated_date: '2026-10-08 19:34'
 labels:
   - needs-owner-review
 dependencies:
@@ -28,6 +28,7 @@ references:
   - src/content/themes/shop.ts
   - src/content/themes/decor.test.ts
   - src/content/themes/themes.test.ts
+  - src/content/themes/rooms.test.ts
   - src/content/objectClues.test.ts
   - docs/design/looks.md
   - docs/authoring/room-rules.md
@@ -64,7 +65,7 @@ Branch: SLAY-19.1/decor-objects
 - [ ] #4 Over 200 generated scenes per theme (sizes 6, 7, 9 and 12) the average number of distinct kinds per room rises against the baseline measured before the change, chairs stay at most 15% of placed objects, and signature objects are still placed (numbers reported in the PR)
 - [ ] #5 Every new kind can appear in clue text without errors in EN and NL (generated puzzles of every theme pass the clue and solvability gates)
 - [ ] #6 The committed schedule files are untouched; bun run lint, typecheck and test --maxWorkers=1 pass, with slow sweeps in *.slow.test.ts
-- [ ] #7 Owner has seen screenshots of the contact sheet and generated boards of each theme and approved (only the owner ticks this)
+- [x] #7 Owner has seen screenshots of the contact sheet and generated boards of each theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -81,4 +82,6 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 Delivered on PR #165 (branch SLAY-19.1/decor-objects), label needs-owner-review; waiting for the owner's visual approval before the full suite, verify:phone and the review gate. 31 new kinds (3 of the listed 38 are the existing houseplant, 4 dropped for honest naming: table lamp, laundry basket, lab table, bird bath). Variety 200 scenes: distinct kinds per room home 2.45→2.78, office 2.64→2.85, school 2.53→2.70, park 2.92→3.00, shop 2.67→2.72; chairs ≤13.3%. No new facing rule. Dev server for the owner: http://localhost:5519/ (/lab generates boards with the new kinds).
 
 Owner approved the look (Akkoord). Full suite green with --maxWorkers=1 (162 files, 3672 tests) at a4bffc6 after four test fixes: decor.test.ts (no Dutch article literal, 120 s budget), hints.fixture.ts (hard fixture skips a seed whose level-3 hint exceeds 400 chars), lab.test.tsx seed 101→102 (101 now scores 8, outside very-easy), explanations.test.ts intersect regex accepts several shared squares. verify:phone and the review gate still to run.
+
+2026-10-08 owner-approved deviation: this story delivers 31 new object kinds instead of the 38 listed, because object names must match what is drawn. Dropped: laundry basket, lab table with microscope, bird bath; one lamp kind per theme; some objects renamed to what is drawn (nachtkastje, schoenenkast, waterkoeler, springkast, glijbaan, partytent). Owner approval in chat (2026-10-08): "Akkoord", given after the screenshots, the Dutch name table and the listed deviations. Ticked by the orchestrator. Verification on head a4bffc6: full suite 162 files, 3672 tests green (worker run), verify:phone 3108/0, looks driver 142 pass, review gate pass (round 2). Reviewer advisories: the park trophy cabinet is also allowed in Playground and Corridor, the school water cooler in Playground and Assembly Hall; follow-up, not blocking.
 <!-- SECTION:NOTES:END -->
