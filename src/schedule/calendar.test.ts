@@ -90,6 +90,10 @@ describe('rotation guard against the committed schedule', () => {
     for (const theme of SCENE_THEMES.filter((t) => t.seasonal)) expect(rotation.has(theme.id)).toBe(false)
   })
 
+  it('themeOf gives the committed theme for every scheduled day, with the seasonal stubs present (SLAY-18.11)', () => {
+    for (const day of days) expect(themeOf(day.date), day.date).toBe(day.theme)
+  })
+
   it('every committed day outside a seasonal window keeps the scheduled theme', () => {
     let checked = 0
     for (const day of days) {

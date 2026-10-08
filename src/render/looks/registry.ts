@@ -6,6 +6,7 @@ import * as living from './modelsLiving.ts'
 import * as outdoor from './modelsOutdoor.ts'
 import * as simps from './modelsSimpshouse.ts'
 import * as theme from './modelsTheme.ts'
+import { SEASONAL_ICON_SETS } from '../icons/themes/sets.ts'
 
 /**
  * Every drawing of the game is a block model: one builder per engine object type and one per theme-only icon. Both tables list every id
@@ -45,7 +46,7 @@ export const ENGINE_MODELS: Record<IconObjectType, ModelBuilder> = {
   bench: (c) => outdoor.bench(c),
 }
 
-export const THEME_MODELS: Record<ThemeIconId, ModelBuilder> = {
+const CORE_THEME_MODELS = {
   picnicBlanket: (c, r) => theme.picnicBlanket(c, r),
   hammock: () => theme.hammock(),
   sandbox: (c, r) => theme.sandbox(c, r),
@@ -82,7 +83,10 @@ export const THEME_MODELS: Record<ThemeIconId, ModelBuilder> = {
   cardDisplayCase: (c) => simps.cardDisplayCase(c),
   readingNook: (c, r) => simps.readingNook(c, r),
   yellowPlush: () => simps.yellowPlush(),
-}
+} as const satisfies Record<string, ModelBuilder>
+
+/** The core models plus those of every seasonal set (SLAY-18.11), keyed by icon id. */
+export const THEME_MODELS = Object.assign({}, CORE_THEME_MODELS, ...SEASONAL_ICON_SETS.map((s) => s.models)) as Record<ThemeIconId, ModelBuilder>
 
 /**
  * Models that are not an object kind of the app: a bathtub (the app has no bath kind; the Simpshouse `bubbleBath` is the only tub) and a

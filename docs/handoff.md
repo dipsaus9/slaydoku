@@ -9,6 +9,10 @@ open items here get resolved.
 
 The seasonal theme `simpshouse` (src/content/themes/simpshouse.ts, block models in src/render/looks/modelsSimpshouse.ts since SLAY-17.4) is registered and 2026-10-14 is regenerated as a 12x12 Simpshouse puzzle (only that day changed). Owner decisions applied: Iris repeats from 2026-10-13 (the pairwise gate allows one shared name next to a day with its own cast pool, `THEMED_DAY_SHARED_NAMES` in src/schedule/gates.ts); Pikachu plush is the only third-party name. Deviation from the approved preview: the glam vanity is now 2x1 and 3x1 (its engine type `desk` needs 2-3 cells). Screenshots: docs/verification/simpshouse-day/. Must be merged and deployed before 2026-10-14 UTC. `PLAY_DATE=2026-10-14` overrides the date the drivers play (default 2026-10-15); the drive suite is repaired again (SLAY-17.10).
 
+## Theme registry in per-theme modules (SLAY-18.11)
+
+Fall, carnaval, christmas and halloween each have stub files (`src/content/themes/<id>.ts`, `src/render/icons/themes/<id>Icons.ts`, `<id>Art.tsx`) that register nothing; the shared registries merge them, so a theme story edits only its own files. Recipe: `docs/authoring/add-theme.md`.
+
 ## Preview deployments (SLAY-17.7)
 
 Vercel builds `main` plus branches named `*/preview-*` (for example `SLAY-17.8/preview-look-poc`), so the owner can test on a phone; all other branches stay skipped (hobby deploy limit, one deploy per push). Rule: `ignoreCommand` in `vercel.json`, tested in `tools/vercel-ignore.test.ts`. Delete preview branches once the owner has decided. Owner decision 2026-10-08, recorded in CLAUDE.md.

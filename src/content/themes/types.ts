@@ -1,4 +1,5 @@
 import type { Cell, ObjectType } from '../../engine/model/index.ts'
+import type { FloorPattern } from '../../render/scene/roomStyles.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 
 /** Where in a room the random scene generator (CAD-4.21) should try to put an object. */
@@ -76,6 +77,8 @@ export interface ThemeRoom {
   outdoor?: boolean
   /** Room types (see `RoomType`) this room belongs to, for hard placement exclusions. */
   roomTypes?: RoomType[]
+  /** Floor pattern of this room (SLAY-18.11); absent: the name hints of roomStyles.ts decide. */
+  floor?: FloorPattern
 }
 
 /**
@@ -107,6 +110,14 @@ export type RoomType =
   | 'checkout'
   | 'party'
   | 'outdoor'
+  // Seasonal room types (SLAY-18.11), used by the draft themes in docs/themes/seasonal/.
+  | 'workshop'
+  | 'stable'
+  | 'market'
+  | 'farm'
+  | 'chapel'
+  | 'haunted'
+  | 'grave'
 
 /** The five rotation themes plus the seasonal ones (SLAY-18), which stay out of the rotation and are picked by the calendar (src/schedule/calendar.ts). */
 export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop' | 'simpshouse' | 'carnaval' | 'christmas' | 'halloween' | 'fall'

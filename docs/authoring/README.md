@@ -11,6 +11,7 @@ How to add content to Slaydoku without the original author. Every command in the
 | Build or regenerate puzzle packs | [regenerate-packs.md](regenerate-packs.md) |
 | Measure the generator on fresh seeds, see how many more puzzles a cell can give, extend the pack safely | [scaling.md](scaling.md) |
 | Add a scene theme, an object type or an object icon | [theme-and-icons.md](theme-and-icons.md) |
+| Add a seasonal theme (which files, and only those) | [add-theme.md](add-theme.md) |
 | Control which object may stand in which room (hard room rules) | [room-rules.md](room-rules.md) |
 | Understand or change the cast: name pool, `castFor`, gates, portraits | [cast.md](cast.md) |
 | Generate, extend or check the daily schedule (one puzzle per UTC day) | [schedule.md](schedule.md) |
