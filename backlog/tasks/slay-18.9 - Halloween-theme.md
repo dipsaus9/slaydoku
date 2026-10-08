@@ -4,7 +4,7 @@ title: Halloween theme
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:23'
-updated_date: '2026-10-08 19:30'
+updated_date: '2026-10-08 20:30'
 labels:
   - needs-owner-review
 dependencies:
@@ -17,6 +17,7 @@ references:
   - src/content/themes/halloween.rooms.test.ts
   - src/content/themes/halloween.registered.test.ts
   - src/render/icons/themes/halloweenArt.ts
+  - src/render/icons/themes/halloweenArt.tsx
   - src/render/icons/themes/halloweenIcons.ts
   - docs/design/looks-shots/slay-18.9/
 parent_task_id: SLAY-18
@@ -53,4 +54,6 @@ Plan change 2026-10-08: the four seasonal themes no longer run as a chain. After
 Art file is halloweenArt.ts (not .tsx): types.ts imports sets.ts at runtime, so a .tsx art module enters the generator worker graph and fails src/ui/lab/worker.test.ts ('imports no .tsx module'). The same applies to fall/carnaval/christmas. Registering the theme fails shared schedule tests (calendar.test 'themeOf gives the committed theme for every scheduled day', schedule.test plan/check for the committed 2026-10-17..31 days, pick.test 'never repeats a theme two days in a row' and 'never two consecutive days the same size, tier and theme', e.g. 2027-10-19 9/hard/halloween twice); those files are outside this story and need an orchestrator decision (SLAY-18.10 regenerates the window).
 
 Coordinator decision 2026-10-08: the theme is NOT registered in this story. halloweenTheme is exported and tested on its own (halloween.rooms.test.ts); HALLOWEEN_THEME stays undefined (registered by SLAY-18.10). The calendar/committed-day checks are in halloween.registered.test.ts (describe.skip), which 18.10 un-skips together with the picker re-roll for repeated size/tier/theme days. Schedule byte-identical; lint, typecheck and theme/looks/icons/schedule/worker tests green. docs/authoring/add-theme.md still says <id>Art.tsx; not in this story's References, flagged in the PR.
+
+Verification on merged main (owner approved): lint/typecheck clean; bun run test 3656 passed, 7 skipped, 0 failed; verify:phone 3108 checks, 0 failures; looks driver all checks passed; schedule byte-identical; theme still unregistered. Review round 1: block on scope only (deleted stub halloweenArt.tsx not a Reference) -> ref added; advisory (outdoor check by room name) fixed.
 <!-- SECTION:NOTES:END -->
