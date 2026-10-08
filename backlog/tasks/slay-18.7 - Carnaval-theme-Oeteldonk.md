@@ -4,7 +4,7 @@ title: Carnaval theme (Oeteldonk)
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:22'
-updated_date: '2026-10-08 19:28'
+updated_date: '2026-10-08 19:34'
 labels:
   - needs-owner-review
 dependencies:
@@ -49,4 +49,6 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 Plan change 2026-10-08: the four seasonal themes no longer run as a chain. After SLAY-18.11 each theme only touches its own module and icon files, so 18.6 to 18.9 can be built in parallel.
 
 Built on PR #169 (needs-owner-review). Seven new block models (frog, beerBarrel, drum, confettiPile, floatCart, beerCrate, barCounter); bar stool became the plain chair; stairs and houseplant dropped; the art module is carnavalArt.ts (the generator worker may import no .tsx). Open: registering carnaval moves 2026-11-11 from shop to carnaval in the picker, so 3 schedule tests fail on that date until SLAY-18.10 regenerates it; merge together with or after that regeneration. Screenshots: docs/design/looks-shots/slay-18.7/.
+
+Coordinator decision: 18.7 does not register carnaval. carnavalTheme is exported, CARNAVAL_THEME stays undefined (SLAY-18.10 sets it, regenerates 11 November and un-skips carnaval.registered.test.ts). Full suite green, schedule unchanged. Preview pages in docs/design/looks-shots/slay-18.7/index.html.
 <!-- SECTION:NOTES:END -->
