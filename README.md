@@ -48,7 +48,7 @@ puzzle file), `bun run pack` (the puzzle pack pipeline), `bun run validate:gener
 
 ## Deploy
 
-The site is a static Vite build on its own Vercel project (`slaydoku`); `vercel.json` describes the setup and only `main` builds. The site is not open for
+The site is a static Vite build on its own Vercel project (`slaydoku`); `vercel.json` describes the setup and only `main` and branches named `*/preview-*` build (the latter for phone testing before a feature rolls out). The site is not open for
 search engines yet: one switch (`src/brand/site.json`, flipped with `bun tools/indexing.ts on`) controls the robots meta tag, `robots.txt`, `sitemap.xml` and the
 `X-Robots-Tag` header together, see [docs/launch.md](docs/launch.md). `bun tools/check-share.ts <url>` checks the share tags, the icons, the manifest, the deep
 links and the indexing setup of a deployed site. Brand images (the magnifying glass over a grid, the favicons and the share image) are generated from
