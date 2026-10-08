@@ -4,15 +4,15 @@ import { tutorialPuzzle } from '../../engine/model/tutorial.fixture.ts'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { cardLookOf } from '../../render/cards/index.ts'
 import { readSchedule } from '../../schedule/schedule.testing.ts'
-import { castFor as castFor2, colorsFor, formatTime, GIFT_TAG, noteTags, withCastNames } from './people.ts'
+import { castFor as castFor2, colorsFor, formatTime, VICTIM_TAG, noteTags, withCastNames } from './people.ts'
 import { DEMO_VICTIM_CELLS, demoScene } from '../../content/demo/scene.ts'
 import { castFor } from '../../content/cast/index.ts'
 
 const person = (id: string, label: string) => ({ id, kind: 'suspect' as const, label })
 
 describe('noteTags', () => {
-  it('keeps letters as they are and gives the gift a glyph', () => {
-    expect(noteTags(makePeople(4))).toEqual({ V: GIFT_TAG, A: 'A', B: 'B', C: 'C' })
+  it('keeps letters as they are and gives the victim the skull tag', () => {
+    expect(noteTags(makePeople(4))).toEqual({ V: VICTIM_TAG, A: 'A', B: 'B', C: 'C' })
   })
 
   it('uses initials, and unclaimed letters of the name on a clash', () => {

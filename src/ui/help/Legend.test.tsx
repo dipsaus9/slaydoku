@@ -281,7 +281,7 @@ describe('<Legend/>', () => {
 
   it('explains the room label, the four marks and the gift rule', () => {
     const html = renderLegend(houses[0]!.puzzle)
-    for (const id of ['room-label', 'mark-note', 'mark-cross', 'mark-person', 'mark-gift']) expect(html).toContain(`data-legend="${id}"`)
+    for (const id of ['room-label', 'mark-note', 'mark-cross', 'mark-person', 'mark-gift', 'mark-victim-note']) expect(html).toContain(`data-legend="${id}"`)
     expect(html).toContain(help.legend.rule)
     expect(html).toContain('The victim')
     expect(html).toContain(help.legend.canOccupy)
@@ -296,5 +296,7 @@ describe('<Legend/>', () => {
     expect(html).toMatch(/data-mark-sample="cross"[\s\S]*?<path d="M24 24 L76 76 M76 24 L24 76"/)
     expect(html).toContain('data-mark-sample="person"')
     expect(html).toContain('data-mark-sample="gift"')
+    expect(html).toContain('data-victim-note="skull"')
+    expect(html).not.toMatch(/\u{1F381}/u)
   })
 })

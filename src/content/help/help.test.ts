@@ -83,7 +83,7 @@ describe.each(['en', 'nl'] as const)('help content (%s)', (locale) => {
       expect(text.trim()).not.toBe('')
       expect(text.length).toBeLessThanOrEqual(80)
     }
-    for (const item of [t.door, t.window, t.roomLabel, t.note, t.cross, t.person, t.gift]) {
+    for (const item of [t.door, t.window, t.roomLabel, t.note, t.cross, t.person, t.gift, t.victimNote]) {
       expect(item.noun.trim()).not.toBe('')
       expect(item.noun.length).toBeLessThanOrEqual(40)
       expect(item.text.trim()).not.toBe('')

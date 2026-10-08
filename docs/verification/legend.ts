@@ -200,7 +200,7 @@ async function scenario(subject: Subject, zoomed: boolean) {
   const expected = legend.objects.map((r) => ({ key: r.key, occ: r.occupiable ? 'yes' : 'no', noun: r.noun, flag: r.occupiable ? help.legend.canOccupy : help.legend.blocked }))
   check(`${label}: one row per object kind of the scene, right noun and flag`, JSON.stringify(onScreen) === JSON.stringify(expected), onScreen.map((r) => `${r.noun}:${r.occ}`).join(' '))
   check(`${label}: door and window rows match the scene`, JSON.stringify(await evaluate(`JSON.stringify([...document.querySelectorAll('[data-legend-list=edges] button')].map(b => b.dataset.legend))`)) === JSON.stringify(JSON.stringify(legend.edges.map((e) => e.kind))))
-  check(`${label}: room label, four marks and the gift rule are there`, (await count('[data-legend=room-label], [data-legend=mark-note], [data-legend=mark-cross], [data-legend=mark-person], [data-legend=mark-gift]')) === 5 && (await evaluate(`document.querySelector('.play-legend__rule')?.textContent`)) === help.legend.rule)
+  check(`${label}: room label, five marks and the gift rule are there`, (await count('[data-legend=room-label], [data-legend=mark-note], [data-legend=mark-cross], [data-legend=mark-person], [data-legend=mark-gift], [data-legend=mark-victim-note]')) === 6 && (await evaluate(`document.querySelector('.play-legend__rule')?.textContent`)) === help.legend.rule)
   const iconsOk = await evaluate(`[...document.querySelectorAll('[data-legend-list=objects] .play-legend__icon')].every(s => { const b = s.getBoundingClientRect(); return b.width > 20 && b.height > 20 && s.querySelector('g[data-icon], g[data-theme-icon]') })`)
   check(`${label}: every object row shows its drawn icon`, iconsOk === true)
   const p = await panelProbe()
