@@ -46,8 +46,16 @@ const committed = dayLines(join(SCHEDULE_DIR, '2026-09.json'))
  * greedy search now accepts a different, still-valid clue set under the looser cap (11 clues
  * instead of 12) -- not a bug, the day just predates the size-banding this story adds. Excluded
  * for the same already-played reason as the two days above.
+ *
+ * 2026-09-27 (n=1, office) joins them in SLAY-17.2: the office, school, park and shop themes got
+ * allow-lists and new rooms, which changes every random draw of a rebuilt scene (committed days
+ * are baked and untouched). With that, all four days of the window are rebuilt from the changed
+ * themes; the comparison keeps the plan of each day (n, date, size, tier, theme) and the
+ * jobs-independence, which is what the committed days can still vouch for. The schedule files
+ * themselves stay byte-identical (checked by `schedule.test.ts` and the diff of this story).
  */
-const KNOWN_DIVERGED_DAYS = new Set(['2026-09-28', '2026-09-29', '2026-09-30'])
+const KNOWN_DIVERGED_DAYS = new Set(['2026-09-27', '2026-09-28', '2026-09-29', '2026-09-30'])
+const planOf = (lines: string[]) => lines.map((l) => { const d = JSON.parse(bare(l)); return { n: d.n, date: d.date, size: d.size, tier: d.tier, theme: d.theme } })
 const withoutKnownDiverged = (lines: string[]): string[] => lines.filter((l) => !KNOWN_DIVERGED_DAYS.has(JSON.parse(bare(l)).date))
 
 describe('bun run schedule', () => {
@@ -57,6 +65,7 @@ describe('bun run schedule', () => {
     expect(schedule(one, ['--start', '2026-09-27', '--days', '4', '--jobs', '1']).code).toBe(0)
     expect(schedule(many, ['--start', '2026-09-27', '--days', '4', '--jobs', '3']).code).toBe(0)
     for (const name of ['2026-09.json', 'index.json']) expect(readFileSync(join(one, name), 'utf8'), name).toBe(readFileSync(join(many, name), 'utf8'))
+    expect(planOf(dayLines(join(one, '2026-09.json')))).toEqual(planOf(committed.slice(0, 4)))
     expect(withoutKnownDiverged(dayLines(join(one, '2026-09.json')).map(bare))).toEqual(withoutKnownDiverged(committed.slice(0, 4).map(bare)))
     const index = JSON.parse(readFileSync(join(one, 'index.json'), 'utf8'))
     expect(index).toMatchObject({ launch: '2026-09-27', first: '2026-09-27', last: '2026-09-30', count: 4 })
@@ -70,6 +79,7 @@ describe('bun run schedule', () => {
     expect(schedule(dir, ['--days', '2', '--jobs', '2']).code).toBe(0)
     const days = dayLines(join(dir, '2026-09.json'))
     expect(days.length).toBe(4)
+    expect(planOf(days)).toEqual(planOf(committed.slice(0, 4)))
     expect(withoutKnownDiverged(days.map(bare))).toEqual(withoutKnownDiverged(committed.slice(0, 4).map(bare)))
 
     const gap = schedule(dir, ['--start', '2026-10-05', '--days', '1'])

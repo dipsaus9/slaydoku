@@ -29,14 +29,18 @@ describe('buildDay', () => {
     expect(dayProblems(a.day)).toEqual([])
     expect(a.day.puzzle.people.filter((p) => p.kind === 'suspect').map((p) => p.label)).toEqual(nominalCast(plan.date).names)
   })
-  it('lists every rejected seed with the gate that rejected it, and rebuilds a committed day byte for byte', { timeout: 60_000 }, () => {
+  it('lists every rejected seed with the gate that rejected it, and rebuilds a day with the same plan the same way twice', { timeout: 60_000 }, () => {
     const retried = readSchedule().days.filter((d) => d.attempts > 1 && d.fallbackFrom === undefined).sort((x, y) => x.size - y.size)[0]!
     const plan = planDay(retried.date)
     const built = buildDay(plan, plan.size, nominalCast(plan.date))
     expect(built.ok).toBe(true)
     if (!built.ok) return
-    expect(JSON.stringify(built.day)).toBe(JSON.stringify(retried))
-    expect(built.rejected.length).toBe(retried.attempts - 1)
+    // Not byte for byte against the committed day any more: the themes have been revised since (SLAY-17.1, SLAY-17.2),
+    // which changes every random draw of a rebuilt scene. The committed files are baked and stay as they are.
+    expect(built.day).toMatchObject({ n: retried.n, date: retried.date, size: retried.size, tier: retried.tier, theme: retried.theme })
+    const again = buildDay(plan, plan.size, nominalCast(plan.date))
+    expect(again.ok && JSON.stringify(again.day)).toBe(JSON.stringify(built.day))
+    expect(built.rejected.length).toBe(built.day.attempts - 1)
     built.rejected.forEach((r, k) => {
       expect(r.seed).toBe(plan.seed + k)
       expect(r.gate.length).toBeGreaterThan(0)
