@@ -83,7 +83,11 @@ export function MarksLayer({ geometry, puzzle, board, selectedId, tags, colors, 
     const r = geometry.cellRect({ row, col })
     nodes.push(<XMarkGlyph key={`x-${key}`} markKey={key} x={r.x} y={r.y} size={size} color={colors[selectedId] ?? '#c0392b'} />)
   }
+  // A placed person covers the letters of their square: the notes are drawn above the people and the room
+  // labels (SceneView, SLAY-20), so the letters of an occupied square are left out instead of drawn over the disc.
+  const occupied = new Set(Object.values(board.placements).map((c) => `${c.row},${c.col}`))
   for (const [key, ids] of show === 'crosses' ? [] : Object.entries(board.notes)) {
+    if (occupied.has(key)) continue
     const [row, col] = key.split(',').map(Number) as [number, number]
     const r = geometry.cellRect({ row, col })
     const font = Math.min((r.width / cols) * 0.95, (r.height / rows) * 0.95, 24)

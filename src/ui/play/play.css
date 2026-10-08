@@ -2,7 +2,8 @@
  * Play screen. Light mode only, like the rest of the app. Built for iPad Safari:
  *  - every control is at least 44px, nothing depends on hover;
  *  - the whole screen sets `touch-action: manipulation` (no double-tap zoom, no 300ms delay);
- *  - the board sets `touch-action: none` so a drag paints notes instead of scrolling the page;
+ *  - the board lets a vertical swipe scroll the page (`touch-action: pan-y`) and takes every touch
+ *    itself only when zoomed (`none`, it pans there); a swipe never sets a note (SLAY-20);
  *  - user-select / -webkit-touch-callout are off so a long press never selects text or opens
  *    Safari's callout menu (the JS side also cancels `contextmenu`).
  * Portrait: board with the toolbar as a column beside it, cards in a strip underneath.
@@ -327,8 +328,9 @@
 
 .play-board {
   position: relative;
-  /* The finger paints here: no page scroll, no zoom, no text selection, no callout. */
-  touch-action: none;
+  /* A vertical swipe scrolls the page (SLAY-20: it never sets a note); no browser zoom (the board
+     pinches itself, useBoardZoom.ts), no text selection, no callout. */
+  touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -344,6 +346,8 @@
 
 .play-board[data-zoomed] {
   overflow: hidden;
+  /* zoomed: every finger is the board's own (one taps, two pinch and pan) */
+  touch-action: none;
 }
 
 .play-board svg {
