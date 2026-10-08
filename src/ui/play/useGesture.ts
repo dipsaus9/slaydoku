@@ -13,19 +13,17 @@ import {
 export interface GestureHandlers {
   onTap?: (cell: Cell) => void
   onLongPress?: (cell: Cell) => void
-  onPaintStart?: (cell: Cell) => void
-  onPaintEnter?: (cell: Cell) => void
-  onPaintEnd?: () => void
 }
 
 /**
  * Binds the pure gesture machine (gesture.ts) to pointer events.
  *
- * Pointer events, not touch or click: one code path for finger, Pencil and mouse. The element
- * must have `touch-action: none` (see play.css), otherwise Safari starts scrolling or zooming
- * mid-drag and cancels the stream with `pointercancel`. The wrapper also sets
+ * Pointer events, not touch or click: one code path for finger, Pencil and mouse. A press that
+ * moves is a scroll or a swipe and sets nothing (SLAY-20): on an unzoomed board the browser may
+ * scroll the page (`touch-action: pan-y`, see play.css) and then cancels the stream with
+ * `pointercancel`, which the machine treats as nothing too. The wrapper also sets
  * `-webkit-touch-callout: none` / `user-select: none`, and we cancel `contextmenu`, so a long
- * press never opens Safari's callout or selects text. We take pointer capture so a drag that
+ * press never opens Safari's callout or selects text. We take pointer capture so a press that
  * leaves the element keeps reporting, and look the cell up with `elementFromPoint`, because
  * with capture the event target is always the wrapper.
  *
@@ -56,9 +54,6 @@ export function useGesture(
       switch (effect.type) {
         case 'tap': h.onTap?.(effect.cell); break
         case 'longPress': h.onLongPress?.(effect.cell); break
-        case 'paintStart': h.onPaintStart?.(effect.cell); break
-        case 'paintEnter': h.onPaintEnter?.(effect.cell); break
-        case 'paintEnd': h.onPaintEnd?.(); break
       }
     }
   }, [])
@@ -77,7 +72,7 @@ export function useGesture(
 
   useEffect(() => clearTimer, [])
 
-  /** Abandons the gesture in progress (a second finger landed): no tap, no long press, a drag ends. */
+  /** Abandons the gesture in progress (a second finger landed): no tap, no long press. */
   const cancel = useCallback(() => {
     const running = state.current
     if (running.phase !== 'idle') feed({ type: 'cancel', pointerId: running.pointerId })
@@ -104,18 +99,8 @@ export function useGesture(
       },
       onPointerMove(e: ReactPointerEvent<HTMLElement>) {
         if (state.current.phase === 'idle') return
-        // Coalesced events keep a fast swipe from skipping cells on 120 Hz iPads.
-        const points = e.nativeEvent.getCoalescedEvents?.() ?? []
-        for (const p of points.length > 0 ? points : [e.nativeEvent]) {
-          feed({
-            type: 'move',
-            pointerId: e.pointerId,
-            cell: latest.current.cellAt(p.clientX, p.clientY),
-            x: p.clientX,
-            y: p.clientY,
-            at: performance.now(),
-          })
-        }
+        // Only the distance counts (past the slop the press is a scroll); the cell is not looked up.
+        feed({ type: 'move', pointerId: e.pointerId, cell: null, x: e.clientX, y: e.clientY, at: performance.now() })
       },
       onPointerUp(e: ReactPointerEvent<HTMLElement>) {
         feed({ type: 'up', pointerId: e.pointerId, at: performance.now() })

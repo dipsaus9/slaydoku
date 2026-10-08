@@ -8,7 +8,7 @@ import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 import { createGeometry, SceneView, type FloorPattern } from '../../render/scene/index.ts'
 import { FlashLayer, HintLayer, MarksLayer, PeopleLayer, PressRing } from './BoardLayers.tsx'
 import { hintCells } from './hintCells.ts'
-import { gestureIntent, paintIntent, paintModeFor, type Intent, type PaintMode, type Tool } from './intent.ts'
+import { gestureIntent, type Intent, type Tool } from './intent.ts'
 import { usePlayStrings } from './strings.ts'
 import { useBoardZoom } from './useBoardZoom.ts'
 import { cellAtPoint, useGesture } from './useGesture.ts'
@@ -29,7 +29,7 @@ export interface BoardProps {
   /** R1..Rn / C1..Cn along the left and top edge. */
   showAxisLabels?: boolean
   dispatch: (action: GameAction) => void
-  /** The store’s board right now (not a render snapshot): a drag changes it many times per frame. */
+  /** The store’s board right now (not a render snapshot). */
   getBoard: () => BoardData
   /** Called with a hint for the player ("pick a suspect first") instead of an action. */
   onMessage: (message: 'pickSuspect') => void
@@ -46,18 +46,17 @@ const NO_CELLS: readonly Cell[] = []
 
 /**
  * The scene with the player's notes, X marks and people drawn on top, and the finger gestures:
- * tap, long press and drag (see gesture.ts / intent.ts for the rules, useGesture.ts for how
+ * tap and long press, one square at a time; a swipe sets nothing (SLAY-20) (see gesture.ts / intent.ts for the rules, useGesture.ts for how
  * pointer events are wired and why Safari leaves them alone).
  *
  * Zoom (CAD-10.4): the frame (.play-board) stays put and takes every pointer event; the pane inside
- * it carries the scale and shift. One finger is a cell gesture as before; `elementFromPoint` sees the
+ * it carries the scale and shift. One finger is a cell gesture (tap or long press); `elementFromPoint` sees the
  * transformed hit rects, so a spot on screen still resolves to the square drawn under it. Two fingers
  * pinch and pan (useBoardZoom.ts) and cancel the one-finger gesture.
  */
 export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hint, roomStyles, themeIcons, showAxisLabels = true, dispatch, getBoard, onMessage, onPlaced, view, onView, flash = NO_CELLS }: BoardProps) {
   const t = usePlayStrings()
   const { locale } = useLocale()
-  const stroke = useRef<{ mode: PaintMode } | null>(null)
   const run = (intent: Intent) => {
     if (!intent) return
     if ('message' in intent) return onMessage(intent.message)
@@ -68,16 +67,6 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
   const { bind, pressed, cancel } = useGesture(cellAtPoint, {
     onTap: (cell: Cell) => run(gestureIntent(tool, 'tap', selectedId, cell, getBoard())),
     onLongPress: (cell: Cell) => run(gestureIntent(tool, 'longPress', selectedId, cell, getBoard())),
-    onPaintStart: (cell: Cell) => {
-      stroke.current = { mode: paintModeFor(tool, selectedId, cell, getBoard()) }
-      run(paintIntent(tool, stroke.current.mode, selectedId, cell, getBoard()))
-    },
-    onPaintEnter: (cell: Cell) => {
-      if (stroke.current) run(paintIntent(tool, stroke.current.mode, selectedId, cell, getBoard()))
-    },
-    onPaintEnd: () => {
-      stroke.current = null
-    },
   })
 
   const frame = useRef<HTMLDivElement>(null)
