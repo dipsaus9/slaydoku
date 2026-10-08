@@ -1,4 +1,4 @@
-import { ball, box, C, cyl, legs, model, onFront, onTop, shiftY, type Prim, type SolidModel } from '../../looks/models.ts'
+import { ball, box, C, cyl, disc, legs, model, onFront, onTop, shiftY, type Prim, type SolidModel } from '../../looks/models.ts'
 
 /**
  * Block models of the Halloween theme (SLAY-18.9), built from the owner-approved draft art of SLAY-18.5 (docs/themes/seasonal/art.tsx) in
@@ -29,20 +29,19 @@ const H = {
   berry: '#c0394a',
 } as const
 
-/** Jack-o'-lantern: a ribbed orange pumpkin with a green stem and a glowing carved face (two triangle eyes, a toothy grin) on the front. */
+/** Jack-o'-lantern: a ribbed orange pumpkin with a green stem and a leaf, and a glowing carved face (two eyes, a grin) on its upper front, where the oblique view sees it. */
 export function jackOLantern(): SolidModel {
   return model(1, 1, [
-    ball(30, 54, 26, 20, H.orangeDark),
-    ball(70, 54, 26, 20, H.orangeDark),
-    ball(50, 54, 28, 26, H.orange),
-    cyl(50, 52, 4, 50, 12, C.greenDark),
-    box(54, 46, 12, 6, 56, 2, C.green, 1.5),
-    // the face, lit from inside
-    box(36, 78, 9, 3, 34, 7, H.glow, 1),
-    box(55, 78, 9, 3, 34, 7, H.glow, 1),
-    box(38, 79, 24, 3, 20, 6, H.glow, 1),
-    box(42, 81, 4, 2, 24, 3, H.orangeDark, 0),
-    box(54, 81, 4, 2, 24, 3, H.orangeDark, 0),
+    ball(28, 50, 30, 20, H.orangeDark),
+    ball(72, 50, 30, 20, H.orangeDark),
+    ball(50, 46, 34, 28, H.orange),
+    cyl(50, 44, 5, 58, 12, C.greenDark),
+    box(54, 38, 14, 7, 64, 2, C.green, 1.5),
+    ball(39, 66, 50, 5.5, H.glow),
+    ball(61, 66, 50, 5.5, H.glow),
+    ball(38, 70, 42, 4, H.glow),
+    ball(50, 72, 39, 4.5, H.glow),
+    ball(62, 70, 42, 4, H.glow),
   ])
 }
 
@@ -67,28 +66,31 @@ export function cauldron(): SolidModel {
   return model(1, 1, prims)
 }
 
-/** Friendly ghost: a white sheet with a round head, a wavy hem of little bumps, stubby arms, big dark eyes and a small round "boo" mouth. */
+/** Friendly ghost: a white sheet flaring out to the floor, a big round head, two stubby arms, and a cheerful face high on the front of the head, where the view from above sees it (oval eyes, a round "boo" mouth, pink cheeks). */
 export function ghost(): SolidModel {
-  const prims: Prim[] = [cyl(50, 54, 28, 0, 44, H.sheet, 21), ball(50, 54, 52, 24, H.sheet)]
-  for (let k = 0; k < 8; k++) {
-    const a = (Math.PI * 2 * k) / 8
-    prims.push(ball(50 + 26 * Math.cos(a), 54 + 26 * Math.sin(a), 5, 6, H.sheet))
-  }
-  prims.push(ball(26, 56, 38, 7, H.sheet), ball(74, 56, 38, 7, H.sheet))
-  prims.push(ball(41, 70, 66, 4.5, C.ink), ball(59, 70, 66, 4.5, C.ink), ball(50, 76, 56, 4, C.ink), ball(34, 72, 60, 3, C.pink), ball(66, 72, 60, 3, C.pink))
-  return model(1, 1, prims)
+  return model(1, 1, [
+    cyl(50, 50, 30, 0, 46, H.sheet, 22),
+    ball(50, 50, 58, 26, H.sheet),
+    ball(23, 54, 44, 7, H.sheet),
+    ball(77, 54, 44, 7, H.sheet),
+    ball(40, 62, 81, 4.5, C.ink),
+    ball(60, 62, 81, 4.5, C.ink),
+    ball(50, 70, 73, 4, C.ink),
+    ball(31, 66, 74, 3.2, C.pink),
+    ball(69, 66, 74, 3.2, C.pink),
+  ])
 }
 
 /** Tombstone: a grey stepped-arch slab on a stone base with a carved cross on the front, moss at its foot and a little orange flower. */
 export function tombstone(): SolidModel {
   return model(1, 1, [
-    box(14, 44, 72, 40, 0, 6, H.tombDark),
-    box(22, 46, 56, 18, 6, 44, H.tomb),
-    box(26, 46, 48, 18, 50, 7, H.tomb),
-    box(34, 46, 32, 18, 57, 6, H.tomb),
-    box(42, 46, 16, 18, 63, 4, H.tomb),
-    onFront(47, 64, 6, 22, 30, C.steelDark),
-    onFront(39, 64, 22, 40, 6, C.steelDark),
+    box(14, 40, 72, 44, 0, 6, H.tombDark),
+    box(24, 44, 52, 14, 6, 54, H.tomb),
+    box(28, 44, 44, 14, 60, 7, H.tomb),
+    box(35, 44, 30, 14, 67, 5, H.tomb),
+    box(43, 44, 14, 14, 72, 3, H.tomb),
+    box(46, 58, 8, 2, 22, 36, C.steelDark, 1),
+    box(36, 58, 28, 2, 44, 8, C.steelDark, 1),
     ball(26, 72, 8, 7, C.green),
     ball(36, 76, 7, 5, C.greenLight),
     ball(70, 74, 8, 6, C.greenDark),
@@ -183,19 +185,24 @@ export function candyBowl(): SolidModel {
   return model(1, 1, prims)
 }
 
-/** Bare tree: a grey-brown crooked trunk with stubby bare branches, one left orange leaf and a round hollow knot on the front. */
+/** Bare tree: a dark crooked trunk on a root foot, bare branches spreading left, right and up with twigs on their ends, a few last orange leaves and a hollow knot on the front. */
 export function deadTree(): SolidModel {
+  const b = H.bark
   return model(1, 1, [
-    cyl(50, 56, 22, 0, 6, H.bark, 14),
-    cyl(50, 56, 12, 0, 54, H.bark, 8),
-    box(18, 50, 30, 8, 46, 8, H.bark),
-    box(16, 50, 8, 8, 54, 18, H.bark),
-    box(52, 54, 30, 8, 58, 8, H.bark),
-    box(76, 54, 8, 8, 66, 16, H.bark),
-    box(44, 52, 10, 8, 54, 28, H.bark),
-    box(50, 52, 16, 6, 78, 6, H.bark),
-    ball(80, 58, 84, 5, H.orange),
-    ball(50, 67, 30, 4.5, C.ink),
+    cyl(50, 56, 20, 0, 6, b, 12),
+    cyl(50, 56, 9, 0, 80, b, 6),
+    box(14, 52, 36, 7, 50, 7, b),
+    box(12, 52, 7, 7, 57, 22, b),
+    box(22, 52, 6, 7, 57, 12, b),
+    box(50, 54, 36, 7, 62, 7, b),
+    box(80, 54, 7, 7, 69, 20, b),
+    box(66, 54, 6, 7, 69, 12, b),
+    box(36, 50, 18, 6, 78, 5, b),
+    box(34, 50, 5, 6, 83, 10, b),
+    ball(12, 55, 82, 4.5, H.orange),
+    ball(84, 57, 91, 4.5, H.orangeDark),
+    ball(26, 56, 72, 4, H.orange),
+    disc('xz', 50, 64.5, 30, 4.5, C.ink),
   ])
 }
 
@@ -287,11 +294,11 @@ export function feastTable(cols: number, rows: number): SolidModel {
   const W = cols * 100
   const D = rows * 100
   const prims: Prim[] = [
-    box(14, 16, 10, 10, 0, 20, C.woodDeep),
-    box(W - 24, 16, 10, 10, 0, 20, C.woodDeep),
-    box(14, D - 26, 10, 10, 0, 20, C.woodDeep),
-    box(W - 24, D - 26, 10, 10, 0, 20, C.woodDeep),
-    box(8, 10, W - 16, D - 20, 20, 24, H.orange),
+    box(14, 16, 10, 10, 0, 34, C.woodDeep),
+    box(W - 24, 16, 10, 10, 0, 34, C.woodDeep),
+    box(14, D - 26, 10, 10, 0, 34, C.woodDeep),
+    box(W - 24, D - 26, 10, 10, 0, 34, C.woodDeep),
+    box(8, 10, W - 16, D - 20, 34, 10, H.orange),
     onTop(W / 2 - 14, 12, 28, D - 24, 44, C.ink),
   ]
   const cx = W / 2
