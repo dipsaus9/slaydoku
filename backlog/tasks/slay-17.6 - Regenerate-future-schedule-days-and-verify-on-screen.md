@@ -4,7 +4,7 @@ title: Regenerate future schedule days and verify on screen
 status: To Do
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 09:00'
+updated_date: '2026-10-08 09:23'
 labels:
   - needs-owner-review
 dependencies:
@@ -12,6 +12,7 @@ dependencies:
   - SLAY-17.2
   - SLAY-17.4
   - SLAY-17.5
+  - SLAY-18.4
 references:
   - src/content/schedule/
   - docs/authoring/schedule.md
