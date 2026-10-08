@@ -4,11 +4,16 @@ title: Regenerate seasonal windows and verify on screen
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:23'
+updated_date: '2026-10-08 14:14'
 labels:
   - needs-owner-review
 dependencies:
+  - SLAY-18.6
+  - SLAY-18.7
+  - SLAY-18.8
   - SLAY-18.9
   - SLAY-17.6
+  - SLAY-17.10
 references:
   - src/content/schedule/
   - docs/authoring/schedule.md
