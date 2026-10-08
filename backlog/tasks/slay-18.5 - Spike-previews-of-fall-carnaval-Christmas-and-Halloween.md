@@ -11,6 +11,7 @@ dependencies:
   - SLAY-17.1
 references:
   - docs/themes/seasonal/
+  - tools/seasonal-previews.tsx
 parent_task_id: SLAY-18
 type: spike
 ordinal: 129000
