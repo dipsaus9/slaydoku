@@ -4,7 +4,7 @@ title: Branch preview deployments for branches named <id>/preview-*
 status: Done
 assignee: []
 created_date: '2026-10-08 09:44'
-updated_date: '2026-10-08 10:10'
+updated_date: '2026-10-08 10:11'
 labels:
   - story
 dependencies: []
@@ -44,6 +44,8 @@ Branch: SLAY-17.7/preview-branch-deploys
 Note for the deploy limit: previews use one deploy per push to a preview-* branch; delete preview branches after the owner decides. Do not use --admin or bypass branch protection.
 
 Live check: SLAY-17.7/preview-check got a Vercel Preview deployment (success); SLAY-17.7/skip-check got 'Canceled by Ignored Build Step'; both branches deleted. AC3 caveat: the preview URL sits behind Vercel deployment protection (SSO redirect), so check:share cannot run against it unauthenticated; check:share passed 66/66 against a local build, and the noindex headers come from vercel.json which applies to all deployments.
+
+Review: pass, no scope violations; advisory: substring assertion in check-share.test.ts is weak (behaviour covered by vercel-ignore.test.ts).
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
