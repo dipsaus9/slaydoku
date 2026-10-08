@@ -1,10 +1,10 @@
 ---
 id: SLAY-18.6
 title: Fall theme
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-08 09:22'
-updated_date: '2026-10-08 14:14'
+updated_date: '2026-10-08 19:27'
 labels:
   - needs-owner-review
 dependencies:
@@ -15,8 +15,10 @@ dependencies:
 references:
   - src/content/themes/fall.ts
   - src/content/themes/fall.rooms.test.ts
-  - src/render/icons/themes/fallArt.tsx
+  - src/render/icons/themes/fallArt.ts
   - src/render/icons/themes/fallIcons.ts
+  - docs/design/looks-shots/slay-18.6/
+  - docs/themes/seasonal/fall.theme.ts
 parent_task_id: SLAY-18
 type: feature
 ordinal: 130000
@@ -33,11 +35,11 @@ Branch: SLAY-18.6/fall-theme
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 The theme matches the owner-approved fall preview of SLAY-18.5
-- [ ] #2 Every kind has an allow-list and an allowed room; a sweep over many seeds finds no out-of-room placement (src/content/themes/fall.rooms.test.ts)
-- [ ] #3 New art follows the look chosen in SLAY-17.3/17.4 and the plain chair is the only chair
+- [x] #2 Every kind has an allow-list and an allowed room; a sweep over many seeds finds no out-of-room placement (src/content/themes/fall.rooms.test.ts)
+- [x] #3 New art follows the look chosen in SLAY-17.3/17.4 and the plain chair is the only chair
 - [ ] #4 Registered as seasonal; the calendar picks it for fall days and the themes of all other days are unchanged (test)
 - [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass
-- [ ] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
+- [x] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
 - [ ] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
@@ -47,4 +49,6 @@ Branch: SLAY-18.6/fall-theme
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it.
 
 Plan change 2026-10-08: the four seasonal themes no longer run as a chain. After SLAY-18.11 each theme only touches its own module and icon files, so 18.6 to 18.9 can be built in parallel.
+
+Built from the SLAY-18.5 draft (deviations listed in src/content/themes/fall.ts and docs/themes/seasonal/fall.theme.ts). Art file is fallArt.ts, not .tsx: the generator worker may import no .tsx module (src/ui/lab/worker.test.ts) and the icon sets reach it through themes/types.ts; the other three seasonal stubs (<id>Art.tsx) will hit the same test. BLOCKER for AC 4/5: registering a seasonal theme makes themeOf() pick it for committed schedule days in its window (2026-10-01..16 and November are baked with rotation themes), so src/schedule/schedule.test.ts ('follows the picker', 'cheap schedule checks', 44 problems) and src/schedule/calendar.test.ts ('themeOf gives the committed theme') fail. Past days must stay byte-identical (SLAY-18.10), so these shared tests/gates need a rule for seasonal-window days baked before the theme registered; not done here because the files are shared by all four seasonal stories.
 <!-- SECTION:NOTES:END -->
