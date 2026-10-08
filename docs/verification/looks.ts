@@ -11,7 +11,7 @@
 //     the finish overlay;
 //   - desktop windows (1280x720, 1366x768, 1440x900, 1920x1080, 1280x600) with 6x6, 9x9 and 12x12 boards, row and column numbers on and off: the whole board
 //     (headroom and bottom numbers included) lies inside the window, no page scroll (ONLY=desktop runs just these);
-//   - the room labels draw above people, crosses and notes (DOM order) on a crowded board; screenshots of it.
+//   - the room labels draw above people and crosses, the notes above the labels (DOM order, SLAY-20) on a crowded board; screenshots of it.
 // Usage (repo root):
 //   bun run build && bunx vite preview --port 5461 &
 //   BASE=http://localhost:5461/ CDP_PORT=9561 OUT=/private/tmp/claude-501/w-17.4 bun docs/verification/looks.ts
@@ -273,9 +273,11 @@ async function labels(date: string, w: number, h: number) {
   await seed(date, `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(JSON.stringify(save))})`)
   await load('play')
   await sleep(600)
-  // Room labels are later in the document than people, crosses and notes, so they paint on top (SLAY-17.5).
-  const order = (await evaluate(`(() => { const all = [...document.querySelectorAll('[data-person], [data-mark], [data-note], [data-room-label]')]; const lastMark = Math.max(...all.map((e, i) => (e.hasAttribute('data-room-label') ? -1 : i))); const firstLabel = all.findIndex((e) => e.hasAttribute('data-room-label')); return { lastMark, firstLabel, people: document.querySelectorAll('[data-person]').length, marks: document.querySelectorAll('[data-mark]').length, notes: document.querySelectorAll('[data-note]').length } })()`)) as { lastMark: number; firstLabel: number; people: number; marks: number; notes: number }
-  check(`crowded room ${roomId}: labels paint above ${order.people} people, ${order.marks} crosses, ${order.notes} notes`, order.people === 3 && order.firstLabel > order.lastMark, JSON.stringify(order))
+  // Room labels are later in the document than people and crosses, so they paint on top (SLAY-17.5); notes come after the labels (SLAY-20).
+  const order = (await evaluate(`(() => { const all = [...document.querySelectorAll('[data-person], [data-mark], [data-room-label]')]; const lastMark = Math.max(...all.map((e, i) => (e.hasAttribute('data-room-label') ? -1 : i))); const firstLabel = all.findIndex((e) => e.hasAttribute('data-room-label')); return { lastMark, firstLabel, people: document.querySelectorAll('[data-person]').length, marks: document.querySelectorAll('[data-mark]').length, notes: document.querySelectorAll('[data-note]').length } })()`)) as { lastMark: number; firstLabel: number; people: number; marks: number; notes: number }
+  check(`crowded room ${roomId}: labels paint above ${order.people} people and ${order.marks} crosses`, order.people === 3 && order.firstLabel > order.lastMark, JSON.stringify(order))
+  const notesAbove = (await evaluate(`(() => { const labels = document.querySelector('.play-board [data-layer=room-labels]'); const notes = [...document.querySelectorAll('.play-board [data-note]')]; return notes.length > 0 && notes.every((n) => labels.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING) })()`)) as boolean
+  check(`crowded room ${roomId}: ${order.notes} notes paint above the labels (SLAY-20)`, notesAbove)
   await shotBoard(`${LOOK}-${w}x${h}-crowded`)
 }
 

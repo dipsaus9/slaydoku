@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Dispatch, type PointerEvent as ReactPointerEvent, type SetStateAction } from 'react'
+import { useEffect, useMemo, useRef, type Dispatch, type PointerEvent as ReactPointerEvent, type SetStateAction } from 'react'
 import type { Cell, Puzzle } from '../../engine/model/index.ts'
 import type { Board as BoardData, GameAction, Hint } from '../../game/index.ts'
 import { useLocale } from '../../locale/index.ts'
@@ -106,6 +106,11 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
   }, [flash, puzzle, showAxisLabels, onView])
 
   const layerProps = { puzzle, board, selectedId, tags, colors }
+  // Squares whose notes are drawn: a room name over one of them fades back (SLAY-20).
+  const notedCells = useMemo(() => {
+    const occupied = new Set(Object.values(board.placements).map((c) => `${c.row},${c.col}`))
+    return new Set(Object.entries(board.notes).flatMap(([key, ids]) => (ids.length > 0 && !occupied.has(key) ? [key] : [])))
+  }, [board.notes, board.placements])
   return (
     <div
       ref={frame}
@@ -131,6 +136,7 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
             </>
           )}
           notesLayer={(g) => <MarksLayer geometry={g} {...layerProps} show="notes" />}
+          notedCells={notedCells}
           peopleLayer={(g) => <PeopleLayer geometry={g} {...layerProps} cast={cast} />}
           flashLayer={(g) => <FlashLayer geometry={g} cells={flash} />}
         />
