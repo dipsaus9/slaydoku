@@ -38,4 +38,6 @@ Branch: SLAY-17.3/look-3d-prototype
 Owner visual check (label needs-owner-review): present the prototype, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it.
 
 Prototype: docs/design/looks-prototype.html (A block, B steps, C relief, 9 objects, 8 orientations). Recommendation B at reduced scale; A as fallback; skip C. AC 3 left for the owner.
+
+Review: pass (AC 3 pending owner, advisory: Dutch labels in prototype are fine).
 <!-- SECTION:NOTES:END -->
