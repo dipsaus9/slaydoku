@@ -1,9 +1,10 @@
 ---
 id: SLAY-18.3
 title: 'Spike: Simpshouse preview (rooms, objects, sample levels)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-08 09:21'
+updated_date: '2026-10-08 10:33'
 labels:
   - needs-owner-review
 dependencies:
@@ -26,9 +27,9 @@ Branch: SLAY-18.3/simpshouse-preview
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 docs/themes/simpshouse/preview.html shows rooms (EN and NL), objects with art and allowed rooms, and at least 3 rendered sample levels from the real generator
-- [ ] #2 Draft theme data lives in docs/themes/simpshouse/ and is written so the theme story can promote it unchanged
-- [ ] #3 The page opens without a build step; screenshots are in the PR
+- [x] #1 docs/themes/simpshouse/preview.html shows rooms (EN and NL), objects with art and allowed rooms, and at least 3 rendered sample levels from the real generator
+- [x] #2 Draft theme data lives in docs/themes/simpshouse/ and is written so the theme story can promote it unchanged
+- [x] #3 The page opens without a build step; screenshots are in the PR
 - [ ] #4 Owner has seen the preview and approved or listed changes (only the owner ticks this)
 <!-- AC:END -->
 
@@ -36,4 +37,6 @@ Branch: SLAY-18.3/simpshouse-preview
 
 <!-- SECTION:NOTES:BEGIN -->
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it. The next story (SLAY-18.4) builds to the approved preview. Time matters: Simpshouse must ship before 2026-10-14.
+
+Preview built: docs/themes/simpshouse/preview.html (static, open the file directly; ?lang=nl starts in Dutch). 19 rooms, 31 objects (7 new drawings: card binder shelf, card trading table, glam vanity, disco ball, karaoke stage, arcade cabinet, bubble bath), 4 sample levels (6x6, 9x9, two 12x12) from generateScene on the draft theme. Draft data: theme.ts (final SceneTheme shape, room rules of SLAY-17.1; only the draft themeIcon ids and OBJECT_NAMES_NL are draft-only), art.tsx. Regenerate with: bun docs/themes/simpshouse/build-preview.tsx. Finding for the owner: clues name an object by engine type (arcade cabinet reads as television, disco ball and mannequin as statue, card table and bubble bath as table). AC 4 is the owner's and stays unchecked; story stays In Progress.
 <!-- SECTION:NOTES:END -->
