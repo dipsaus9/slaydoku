@@ -6,7 +6,7 @@ import type { RoomType, SceneTheme, ThemeObject, ThemeRoom } from './types.ts'
 /**
  * The Halloween theme (SLAY-18.9), built from the owner-approved SLAY-18.5 draft (docs/themes/seasonal/halloween.theme.ts): a cheerful
  * haunted house party for 17-31 October. Playful, never gory: friendly ghosts, carved pumpkins, a bubbling cauldron, cobwebs and a lot of
- * candy. Seasonal: picked by the calendar (src/schedule/calendar.ts), never part of the rotation.
+ * candy. Seasonal: picked by the calendar (src/schedule/calendar.ts) once registered (SLAY-18.10), never part of the rotation.
  *
  * Changes from the draft, each forced by a rule that came after it: the plain chair is the only chair (the draft's "creaky chair" is the
  * Home chair); every kind is named in Dutch by exactly what it draws, so a kind with engine art takes the engine noun (Home chair, sofa,
@@ -82,7 +82,8 @@ export const HALLOWEEN_OBJECTS: ThemeObject[] = [
   reuse(PARK_THEME, 'flowerBed', ['grave', OUTDOOR]),
 ]
 
-export const HALLOWEEN_THEME: SceneTheme | undefined = {
+/** The finished theme, tested on its own (halloween.rooms.test.ts). Not registered yet: see `HALLOWEEN_THEME`. */
+export const halloweenTheme: SceneTheme = {
   id: 'halloween',
   seasonal: true,
   name: 'Haunted house party',
@@ -90,3 +91,10 @@ export const HALLOWEEN_THEME: SceneTheme | undefined = {
   rooms: HALLOWEEN_ROOMS,
   objects: HALLOWEEN_OBJECTS,
 }
+
+/**
+ * What index.ts registers. It stays `undefined` until SLAY-18.10 (registered by SLAY-18.10): registering makes the calendar give the theme to
+ * 17-31 October, while the committed schedule still has the rotation theme on those days, so 18.10 flips this to `halloweenTheme` in the same
+ * change that regenerates the window.
+ */
+export const HALLOWEEN_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10

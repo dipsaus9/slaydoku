@@ -1,21 +1,90 @@
 import { describe, expect, it } from 'vitest'
+import { OBJECT_WORDS } from '../../engine/clues/en.ts'
+import { OBJECT_WORDS_NL } from '../../engine/clues/nl.ts'
+import { OBJECT_CATALOG, checkScene } from '../../engine/model/index.ts'
 import { generateScene } from '../../engine/scenegen/generate.ts'
+import { ORIENTATIONS, orientCells } from '../../render/icons/orientation.ts'
+import { solidFor } from '../../render/looks/solid.ts'
 import { MAX_FREE_CHAIRS_PER_ROOM, MAX_KIND_PER_ROOM, SEAT_AT_TYPES } from '../../engine/scenegen/objects.ts'
-import { addDays } from '../../schedule/dates.ts'
-import { themeOf } from '../../schedule/pick.ts'
-import { readSchedule } from '../../schedule/schedule.testing.ts'
-import { HALLOWEEN_THEME } from './halloween.ts'
-import { SCENE_THEMES, getTheme } from './index.ts'
+import { ENGINE_ICON, kindNoun } from './drawn.ts'
+import { HALLOWEEN_THEME, halloweenTheme } from './halloween.ts'
+import { SCENE_THEMES } from './index.ts'
 
-/** The Halloween theme (SLAY-18.9): its rooms, its Dutch nouns, the hard room rule, the chair and kind caps, and its calendar window. */
-const theme = HALLOWEEN_THEME!
+/**
+ * The Halloween theme (SLAY-18.9), tested on its own: it is not registered until SLAY-18.10 (see `HALLOWEEN_THEME`), so the shared theme
+ * tests (themes.test.ts, rooms.test.ts, looks/completeness.test.tsx) do not see it yet. This file runs their checks on `halloweenTheme`
+ * directly; the checks that need the registration are in halloween.registered.test.ts, skipped until SLAY-18.10 enables it.
+ */
+const theme = halloweenTheme
 const kindOf = (id: string): string => id.replace(/-\d+$/, '')
 
 describe('Halloween theme (SLAY-18.9)', () => {
-  it('is registered as a seasonal theme', () => {
-    expect(SCENE_THEMES).toContain(theme)
-    expect(getTheme('halloween')).toBe(theme)
+  it('is a seasonal theme, not registered yet, so every committed day keeps its theme (SLAY-18.10 registers it)', () => {
     expect(theme.seasonal).toBe(true)
+    expect(HALLOWEEN_THEME).toBeUndefined()
+    expect(SCENE_THEMES.some((t) => t.id === 'halloween')).toBe(false)
+  })
+
+  it('passes the shared theme checks: 6+ occupiable and blocking kinds, no stairs, unique kinds, catalog flags and sizes', () => {
+    expect(theme.objects.filter((o) => o.occupiable).length).toBeGreaterThanOrEqual(6)
+    expect(theme.objects.filter((o) => !o.occupiable).length).toBeGreaterThanOrEqual(6)
+    expect(theme.objects.filter((o) => o.engineType === 'stairs')).toEqual([])
+    expect(new Set(theme.objects.map((o) => o.kind)).size).toBe(theme.objects.length)
+    expect(theme.rooms.length).toBeGreaterThanOrEqual(16)
+    expect(new Set(theme.rooms.map((r) => r.nameNl.toLowerCase())).size).toBe(theme.rooms.length)
+    for (const o of theme.objects) {
+      expect(o.occupiable, o.kind).toBe(OBJECT_CATALOG[o.engineType].occupiable)
+      expect(o.nameNl, o.kind).toBe(o.nameNl.toLowerCase())
+      expect(/^(de|het|een) /.test(o.nameNl), o.kind).toBe(false)
+      expect(o.nameNl === kindNoun(o), o.kind).toBe(false)
+      const range = OBJECT_CATALOG[o.engineType].footprint
+      for (const f of o.footprints) if (range) expect(f.cells.length, `${o.kind} ${f.id}`).toBeGreaterThanOrEqual(range.minCells)
+    }
+    for (const room of theme.rooms) for (const k of room.favours) expect(theme.objects.some((o) => o.kind === k), `${room.name} favours ${k}`).toBe(true)
+  })
+
+  it('gives kinds drawn differently different nouns, and never the generic noun to a kind with its own art', () => {
+    for (const type of new Set(theme.objects.map((o) => o.engineType))) {
+      const kinds = theme.objects.filter((o) => o.engineType === type)
+      for (const lang of ['nl', 'en'] as const) {
+        const byNoun = new Map<string, Set<string>>()
+        for (const o of kinds) {
+          const noun = lang === 'nl' ? o.nameNl : kindNoun(o)
+          byNoun.set(noun, (byNoun.get(noun) ?? new Set()).add(o.themeIcon ?? ENGINE_ICON))
+        }
+        for (const [noun, icons] of byNoun) expect([...icons], `${type} "${noun}"`).toHaveLength(1)
+      }
+      for (const o of kinds.filter((o) => o.themeIcon)) {
+        expect(o.nameNl, o.kind).not.toBe(OBJECT_WORDS_NL[type].noun)
+        expect(kindNoun(o), o.kind).not.toBe(OBJECT_WORDS[type].noun)
+      }
+    }
+  })
+
+  it('keeps a kind shared with a registered theme identical (nouns, engine type, art)', () => {
+    for (const o of theme.objects) {
+      for (const other of SCENE_THEMES.flatMap((t) => t.objects).filter((x) => x.kind === o.kind)) {
+        expect([other.name, other.clueNoun, other.nameNl, other.engineType, other.themeIcon], o.kind).toEqual([o.name, o.clueNoun, o.nameNl, o.engineType, o.themeIcon])
+      }
+    }
+  })
+
+  it('has block art for every kind at every footprint in all 8 orientations (the look-completeness check)', () => {
+    for (const o of theme.objects) {
+      for (const f of o.footprints) {
+        const cols = Math.max(...f.cells.map((c) => c.col)) + 1
+        const rows = Math.max(...f.cells.map((c) => c.row)) + 1
+        for (const or of ORIENTATIONS) {
+          const solid = solidFor(o.engineType, o.themeIcon, orientCells(f.cells, cols, rows, or), or)
+          expect(solid, `${o.kind} ${f.id} ${or.rotation}${or.mirror ? 'm' : ''}`).not.toBeNull()
+          expect(solid!.prims.length).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
+  it('builds valid scenes', () => {
+    for (const size of [6, 9, 12]) expect(checkScene(generateScene({ width: size, height: size, theme, seed: 7 })), `${size}`).toEqual([])
   })
 
   it('has the rooms of the approved draft in English and Dutch, each with room types and a floor', () => {
@@ -95,7 +164,7 @@ describe('Halloween theme (SLAY-18.9)', () => {
     let placed = 0
     for (const size of [6, 7, 9, 12]) {
       for (let seed = 1; seed <= 50; seed++) {
-        const scene = generateScene({ width: size, height: size, theme: 'halloween', seed })
+        const scene = generateScene({ width: size, height: size, theme, seed })
         const where = `${size}x${size} seed ${seed}`
         const typeAt = new Map<string, string>()
         for (const object of scene.objects) for (const c of object.cells) typeAt.set(`${c.row},${c.col}`, object.type)
@@ -127,24 +196,4 @@ describe('Halloween theme (SLAY-18.9)', () => {
     expect(placed).toBeGreaterThan(1000)
   })
 
-  it('is the theme of 17-31 October every year, and of no day outside that window', () => {
-    for (const year of ['2027', '2028']) {
-      for (let d = `${year}-10-17`; d <= `${year}-10-31`; d = addDays(d, 1)) expect(themeOf(d), d).toBe('halloween')
-      for (let d = `${year}-01-01`, i = 0; i < 366; d = addDays(d, 1), i++) {
-        const md = d.slice(5)
-        if (md < '10-17' || md > '10-31') expect(themeOf(d), d).not.toBe('halloween')
-      }
-    }
-  })
-
-  it('leaves the theme of every committed day outside 17-31 October unchanged', () => {
-    let checked = 0
-    for (const day of readSchedule().days) {
-      const md = day.date.slice(5)
-      if (md >= '10-17' && md <= '10-31') continue
-      expect(themeOf(day.date), day.date).toBe(day.theme)
-      checked++
-    }
-    expect(checked).toBeGreaterThan(50)
-  })
 })
