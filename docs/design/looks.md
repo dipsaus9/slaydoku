@@ -109,3 +109,59 @@ Feedback on the A2 PoC, to be solved in SLAY-17.4 (screenshot: `docs/design/look
 
 - Blocks run over other cells: the extra height of A2 paints over the wall into the neighbouring cell. An object must never paint outside its own room.
 - Some items are not in the same style yet (toilet, washbasin, washing machine, dryer, kitchen counter, stairs). Expected, the PoC only draws chair, sofa, bed, bookshelf, table, rug and plant; SLAY-17.4 draws every kind.
+
+## Delivered in SLAY-17.4: A2 is the only look
+
+The Look switch (Options entry, the stored `slaydoku:look`, the preview-host logic), the isometric A3 code (`planeTransform`, diamond layout, `upright`, the A3 glue) and the flat 'Now' art are gone from `main`; they stay in git history (SLAY-17.8) and in this file. Everything on the board, in the Legend and on the contact sheet is a block model.
+
+- **Code:** `src/render/looks/` (`models.ts` the model language, `modelsLiving.ts`, `modelsHouse.ts`, `modelsOutdoor.ts`, `modelsTheme.ts`, `modelsSimpshouse.ts` the drawings, `registry.ts` one builder per engine type and per theme icon, `Solids.tsx` the SVG, `roomClip.ts`, `project.ts` the projection). The board layer is `SceneObjectIcons` (`src/render/icons/`), the legend swatch and contact sheet tile is `SolidSvg`.
+- **Footprint, facing:** a scene object has only its cells, no facing. Models are built facing south and turned in 3D with the footprint matrix, all 8 orientations draw and are tested. Where several turns fit, the board shows the readable one: front toward the viewer on a wide or square footprint, toward the right (east) on a tall one (`solidOf`).
+
+### How the wall overflow was solved
+
+The owner's screenshot (`docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png`): a tall block rose over the wall into the room behind it. Chosen: **clip every room's objects to the squares of that room** and keep the walls above the objects. Per room one `<g clip-path>` holds its rugs, shadows and tall objects (`SceneObjectIcons`, `roomClipPath` in `roomClip.ts`); the clip is the union of the room's squares, grown only where the grid has nothing else: by the headroom above the top row and by the margin at the other three outer edges. So a block may rise over the room's own cells (a chair back over the squares above it in the same room) and over the outer top edge, and is cut flat at a wall, which the wall line then covers.
+
+Why not the alternatives: capping the height at the room edge would make every object against a wall short, and most objects stand against a wall; drawing walls with a front face above the objects hides floor that the player must tap. A test (`SceneObjectIcons.test.tsx`) proves for a board with three rooms that no square of another room lies inside a room's clip, and `docs/verification/looks.ts` checks in the browser that every object sits inside the clip group of its room. The shadow is clipped the same way.
+
+### Audit: confusable pairs and what was done
+
+Contact sheet at phone size (36 px per cell), section "Easily mistaken for each other" (`CONFUSABLE_GROUPS` in `src/render/icons/contactSheetData.ts`, `bun tools/icon-sheet.ts`). Found and fixed:
+
+| Pair | Problem | Fix |
+|---|---|---|
+| bookshelf, wardrobe, cabinet (all tall brown boxes) | Top face of a 90 high box is as big as its front; turned away, three look the same | Shallow depth (bookshelf 52, cabinet 56, wardrobe 64) centred in the cell; bookshelf has books and a plant on top (visible from every side) and open shelves with spines; cabinet is light wood with cream doors and a cream top; wardrobe is dark with a crown and two doors per cell |
+| rug, table, bookshelf | Rug and table both a flat rectangle from above | Rug is 3 high with a coloured border, fringe and medallion and no legs; table stands on four legs with a thick gold top; bookshelf is tall with books (all three side by side on the sheet) |
+| table, dining table, garden table, desk | Four tops on legs | Colour and one clear object each: gold inlay, pale top with fruit bowl and plates, green metal (round on one cell), desk with a monitor and a drawer pedestal |
+| washing machine, dryer | Same box | Cool white body, blue porthole, dial and drawer vs warm cream body, amber porthole, vent slats, lint trap on top |
+| toilet, sink, shower | Small white things | Cistern and round bowl vs vanity with a basin and tap vs tray with tiled half-walls, pole and head |
+| rug, oil slick, framed painting, flowers | Four things that lie flat | Textile with fringe, dark puddle with sheen, gold frame with a picture, flower bed with tall blooms |
+| plant, tree, flowers | Green round things | Pot with a leafy crown, trunk with a big crown, bed with bright blooms on stems |
+| bubble bath, bathtub model | Water must read as water | Blue block under the rim, light sheen strip, foam balls (tested in `looks.test.tsx`) |
+
+The app has **no bath object kind** (nothing was added): the bathtub model lives in `modelsHouse.ts` (`MODEL_ONLY` in the registry) and shows on the contact sheet; the Simpshouse `bubbleBath` is the only tub on a board and uses the same water.
+
+Known limit of the view: a tall piece turned so that its long side runs north to south shows its top and a narrow right side (the oblique view skews by 0.22), so doors and shelves on that side are slivers; hence the things on top and the colours above.
+
+## How to draw a new object
+
+For the theme stories SLAY-18.6 to 18.9 and anything after. Do the steps in this order; the look-completeness test (`src/render/looks/completeness.test.tsx`) fails by kind name until step 3 is done.
+
+1. **Footprints.** Add the id to `THEME_ICON_IDS` (`src/render/icons/themes/types.ts`) and its footprints to `THEME_ICON_DEFINITIONS` (`themes/registry.ts`), and the `ThemeObject` with `themeIcon` in the theme. An object with no own art uses the model of its `engineType`.
+2. **Draw the model** in a `models*.ts` file as a function `(cols, rows) => SolidModel` and list it in `THEME_MODELS` (or `ENGINE_MODELS`): the type checker fails a missing id.
+3. **Check the sheet:** `bun tools/icon-sheet.ts /tmp/sheet.html`, open it. Your kind must show in all 8 orientations (section per footprint), in its theme card and, if it can be mistaken for something, in the phone-size strip (add a group to `CONFUSABLE_GROUPS`).
+
+The block model (`models.ts`):
+- **Space:** 100 units per cell, x right, y toward the viewer (south), z up. Draw it facing south: the back, head, tank or headboard on the north side (small y). The renderer turns it in 3D for the other 7 orientations, so a chair turned half a turn shows the back of its backrest. Everything must stay inside `0..cols*100` by `0..rows*100`; `looks.test.tsx` checks it for all 8 orientations.
+- **Primitives:** `box(x, y, w, d, z0, h, color)`, `cyl(x, y, r, z0, h, color, rTop?)` (a post, bowl, bucket or cone), `ball(x, y, z, r, color)`, `disc(plane, x, y, z, r, color, ring?)` (an upright round face: porthole, wheel; plane 'xz' faces south, 'yz' faces east), and the helpers `onTop`, `onFront` (thin sheets with no outline: a screen, a door, a pattern), `legs`, `shiftY` (centre a shallow piece in its cell).
+- **Heights:** at most `MAX_Z` = 96 (tested). The projection is `screen = (x - 0.22 z, y - 0.7 z)`: the floor stays square, height moves up and a little left. Rough scale: chair seat 30, table 40 to 50, counter 58 to 64, bookshelf 74 plus what stands on it, wardrobe 96. Lying flat (rug, mat, carpet, floor tiles): at most 6, then the model is `flat`: drawn first, no shadow.
+- **Depth:** a big tall box shows a big top. Give tall furniture a real depth (50 to 65) and `shiftY` it to the middle of the cell instead of filling the cell.
+- **Colour:** use `COLORS` (`models.ts`); the top keeps the colour, the front is 80 percent and the right side 62 percent (light from the top left, `Solids.tsx`), and the shadow falls to the bottom right. A pale line is drawn inside the top edge of big blocks.
+- **Details that must show from every side** go on the top or are made of boxes, not of a sheet on the front: from the right only a sliver of the east side is visible.
+- **One drawing per kind.** Do not reuse another theme's art for a kind that has its own look; share only colours.
+
+Where it lands and what you do not have to do:
+- **Board margin / headroom:** the grid has `HEADROOM` (44 drawing units, `project.ts`, used by `geometry.ts`) above it, enough for 96 high blocks in the top row. Left and right overspill is at most 13 units and is clipped by the margin. Nothing to do per object.
+- **Walls:** each room's objects are clipped to the room (see above); nothing to do per object, but do not draw anything that must show beyond the room.
+- **Legend swatch:** `SolidSvg` crops the svg to everything the model covers (blocks, outline, shadow), so a tall block or its shadow is never clipped. Padding is automatic; the legend row and the check in `docs/verification/looks.ts` fail a clipped swatch.
+- **Orientations:** all 8 are generated; the board shows front-south on wide and square footprints, front-east on tall ones.
+- **Tests that run for you:** model inside footprint and below `MAX_Z` in all 8 orientations (`looks.test.tsx`), the look-completeness test for every kind of every registered theme and every object of the baked schedule, the contact sheet lists every kind with no gaps.

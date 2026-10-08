@@ -1,16 +1,19 @@
-// Rendered check of the three object looks (SLAY-17.8): Now, A2 (oblique blocks on the square grid) and A3 (isometric blocks on a diamond
-// grid), each at 360, 390, 768 and 1024 wide. Per look and width:
-//   - layout: no sideways overflow, the board inside the viewport, which layers the look draws;
-//   - hit test: for EVERY cell of a 9x9 and a 12x12 board, the centre, points just inside each of the four corners and just inside each edge
-//     midpoint resolve (document.elementFromPoint) to that same cell -- the corners are where a diamond grid can go wrong;
-//   - tap target sizes (screen px of the middle cell: bounding box, and the diameter of the biggest circle that fits in it);
-//   - the play loop through real touch events: a note, undo, an X, a placement, hints 1-3, the Options entry 'Look' (shown on localhost) and
-//     switching it, a complete-but-wrong board, the solved board and the finish overlay;
+// Rendered check of the one object look (SLAY-17.4): oblique 3D blocks on the square grid (owner pick A2, docs/design/looks.md), at 360, 390,
+// 768 and 1024 wide. Per width:
+//   - layout: no sideways overflow, the board inside the viewport, every object drawn as blocks inside the clip of its room;
+//   - hit test: for EVERY cell of a 9x9 and a 12x12 board, the centre, points just inside each corner and each edge midpoint resolve
+//     (document.elementFromPoint) to that same cell (the headroom and the tall blocks never take a tap);
+//   - tap target sizes (screen px of the middle cell);
+//   - walls: nothing an object draws leaves its room (the screenshot of a crowded board and the clip groups are checked);
+//   - the Options panel has no Look entry any more, and no look is stored or read;
+//   - the Legend swatches show every object whole (no block, no shadow clipped at the svg edge);
+//   - the play loop through real touch events: a note, undo, an X, a placement, hints 1-3, a complete-but-wrong board, the solved board and
+//     the finish overlay;
 //   - the room labels draw above people, crosses and notes (DOM order) on a crowded board; screenshots of it.
 // Usage (repo root):
-//   bun run build && bunx vite preview --port 5441 &
-//   BASE=http://localhost:5441/ CDP_PORT=9541 OUT=/private/tmp/claude-501/w-17.8 bun docs/verification/looks.ts
-// Env: VIEWPORTS (default 360x640,390x844,768x1024,1024x768), LOOKS (default now,a2,a3), BASE, CDP_PORT, OUT, CHROME.
+//   bun run build && bunx vite preview --port 5461 &
+//   BASE=http://localhost:5461/ CDP_PORT=9561 OUT=/private/tmp/claude-501/w-17.4 bun docs/verification/looks.ts
+// Env: VIEWPORTS (default 360x640,390x844,768x1024,1024x768), BASE, CDP_PORT, OUT, CHROME.
 // Writes screenshots to $OUT/shots and a table of tap sizes to $OUT/tap-sizes.md. Exits non-zero when a check fails.
 import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync } from 'node:fs'
@@ -21,17 +24,16 @@ import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
 import { saveKey, SAVE_VERSION } from '../../src/game/persistence.ts'
 import { dailyId } from '../../src/game/daily/ids.ts'
 import { roomLabelLayout } from '../../src/render/scene/labels.ts'
-import { LOOK_KEY } from '../../src/locale/storage.ts'
 import { PLAY_DATE, dayOn, seedStorage } from './daily.ts'
 
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const PORT = Number(process.env.CDP_PORT ?? 9541)
-const BASE = process.env.BASE ?? 'http://localhost:5441/'
+const PORT = Number(process.env.CDP_PORT ?? 9561)
+const BASE = process.env.BASE ?? 'http://localhost:5461/'
 const OUT = process.env.OUT ?? join(tmpdir(), 'slaydoku-looks')
 const SHOTS = join(OUT, 'shots')
 mkdirSync(SHOTS, { recursive: true })
 const VIEWPORTS = (process.env.VIEWPORTS ?? '360x640,390x844,768x1024,1024x768').split(',').map((v) => v.split('x').map(Number) as [number, number])
-const LOOKS = (process.env.LOOKS ?? 'now,a2,a3').split(',')
+const LOOK = 'a2'
 const BIG_DATE = '2026-10-08' // a 12x12 day with chairs, sofas, beds, bookshelves, tables, rugs and plants
 const SMALL_DATE = PLAY_DATE // a 9x9 day, played end to end
 
@@ -106,11 +108,11 @@ async function load(path: string) {
   await send('Page.navigate', { url: new URL(path, BASE).href })
   await sleep(1800)
 }
-/** Fresh storage for a visitor on `date` with the given look chosen. */
-async function seed(date: string, look: string, extra = '') {
+/** Fresh storage for a visitor on `date`. */
+async function seed(date: string, extra = '') {
   await send('Page.navigate', { url: new URL('about', BASE).href })
   await sleep(500)
-  await evaluate(`localStorage.clear(); ${seedStorage(date, true, 'en')}; localStorage.setItem(${JSON.stringify(LOOK_KEY)}, ${JSON.stringify(look)}); ${extra}`)
+  await evaluate(`localStorage.clear(); ${seedStorage(date, true, 'en')}; ${extra}`)
 }
 let nShot = 0
 const shotBoard = async (name: string, whole = false) => {
@@ -169,24 +171,23 @@ const hitProbe = () =>
     }
     const board = document.querySelector('.play-board')?.getBoundingClientRect()
     return { cells: rects.length, probes, skipped, bad: bad.slice(0, 6), badCount: bad.length, mid, sw: document.documentElement.scrollWidth, iw: innerWidth, board: board ? { l: board.left, r: board.right, w: board.width, h: board.height } : null,
-      layers: { plane: !!document.querySelector('[data-layer=plane]'), solids: document.querySelectorAll('[data-solid]').length, flat: document.querySelectorAll('[data-layer=objects] [data-icon]').length } }
-  })()`) as Promise<{ cells: number; probes: number; skipped: number; bad: string[]; badCount: number; mid: { w: number; h: number; circle: number } | null; sw: number; iw: number; board: { l: number; r: number; w: number; h: number } | null; layers: { plane: boolean; solids: number; flat: number } } | null>
+      layers: { objects: document.querySelectorAll('[data-layer=objects] [data-object]').length, clips: document.querySelectorAll('[data-layer=objects] [data-room-objects][clip-path]').length, unclipped: document.querySelectorAll('[data-layer=objects] [data-object]:not([data-room-objects] [data-object])').length } }
+  })()`) as Promise<{ cells: number; probes: number; skipped: number; bad: string[]; badCount: number; mid: { w: number; h: number; circle: number } | null; sw: number; iw: number; board: { l: number; r: number; w: number; h: number } | null; layers: { objects: number; clips: number; unclipped: number } } | null>
 
 const sizes: string[] = []
 
-async function hitAndSize(date: string, look: string, w: number, h: number) {
-  await seed(date, look)
+async function hitAndSize(date: string, w: number, h: number) {
+  await seed(date)
   await load('play')
   await sleep(500)
   const day = dayOn(date)
   const p = await hitProbe()
   if (!p) return check(`${day.size}x${day.size} board renders`, false)
-  const expectPlane = look === 'a3'
   check(`${day.size}x${day.size}: no sideways overflow, board inside the viewport`, p.sw <= p.iw && !!p.board && p.board.l >= -0.5 && p.board.r <= p.iw + 0.5, JSON.stringify({ sw: p.sw, iw: p.iw, board: p.board }))
-  check(`${day.size}x${day.size}: layers of the look (plane ${expectPlane}, solids ${look !== 'now'})`, p.layers.plane === expectPlane && (look === 'now' ? p.layers.solids === 0 : p.layers.solids > 0), JSON.stringify(p.layers))
+  check(`${day.size}x${day.size}: every object is blocks inside the clip group of its room`, p.layers.objects > 0 && p.layers.clips > 0 && p.layers.unclipped === 0, JSON.stringify(p.layers))
   check(`${day.size}x${day.size}: every cell resolves from its centre, corners and edges (${p.probes} probes, ${p.skipped} off screen)`, p.badCount === 0 && p.probes > p.cells * 7 * 0.5, JSON.stringify(p.bad))
-  if (p.mid) sizes.push(`| ${look} | ${w}x${h} | ${day.size}x${day.size} | ${Math.round(p.mid.w)} x ${Math.round(p.mid.h)} | ${Math.round(p.mid.circle)} |`)
-  await shotBoard(`${look}-${w}x${h}-${day.size}x${day.size}`)
+  if (p.mid) sizes.push(`| ${w}x${h} | ${day.size}x${day.size} | ${Math.round(p.mid.w)} x ${Math.round(p.mid.h)} | ${Math.round(p.mid.circle)} |`)
+  await shotBoard(`${LOOK}-${w}x${h}-${day.size}x${day.size}`)
 }
 
 /** A board with a crowded room (people, crosses, notes) as labelshots.ts builds it. */
@@ -210,15 +211,41 @@ function crowdedBoard(date: string) {
   return { key: saveKey(dailyId(day.n)), save, roomId: room.id }
 }
 
-async function labels(date: string, look: string, w: number, h: number) {
+async function labels(date: string, w: number, h: number) {
   const { key, save, roomId } = crowdedBoard(date)
-  await seed(date, look, `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(JSON.stringify(save))})`)
+  await seed(date, `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(JSON.stringify(save))})`)
   await load('play')
   await sleep(600)
-  // Room labels are later in the document than people, crosses and notes, so they paint on top (SLAY-17.5), in every look.
+  // Room labels are later in the document than people, crosses and notes, so they paint on top (SLAY-17.5).
   const order = (await evaluate(`(() => { const all = [...document.querySelectorAll('[data-person], [data-mark], [data-note], [data-room-label]')]; const lastMark = Math.max(...all.map((e, i) => (e.hasAttribute('data-room-label') ? -1 : i))); const firstLabel = all.findIndex((e) => e.hasAttribute('data-room-label')); return { lastMark, firstLabel, people: document.querySelectorAll('[data-person]').length, marks: document.querySelectorAll('[data-mark]').length, notes: document.querySelectorAll('[data-note]').length } })()`)) as { lastMark: number; firstLabel: number; people: number; marks: number; notes: number }
   check(`crowded room ${roomId}: labels paint above ${order.people} people, ${order.marks} crosses, ${order.notes} notes`, order.people === 3 && order.firstLabel > order.lastMark, JSON.stringify(order))
-  await shotBoard(`${look}-${w}x${h}-crowded`)
+  await shotBoard(`${LOOK}-${w}x${h}-crowded`)
+}
+
+/** Opens the Legend and checks that every object swatch draws whole: the glyph's box lies inside the svg's viewBox, so nothing is cut at the edge. */
+async function legendWhole(w: number, h: number) {
+  await seed(BIG_DATE)
+  await load('play')
+  await sleep(400)
+  const wide = (await evaluate(`[...document.querySelectorAll('.play-tool, .play-header__legend')].some(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === 'Legend' && b.offsetParent !== null)`)) as boolean
+  if (!wide) await tool('More')
+  await tool('Legend')
+  const r = (await evaluate(`(() => {
+    const out = { swatches: 0, clipped: [], tiny: [] }
+    for (const svg of document.querySelectorAll('[data-legend-list=objects] .play-legend__icon')) {
+      out.swatches++
+      const g = svg.querySelector('g[data-solid]')
+      const vb = svg.viewBox.baseVal
+      const b = g.getBBox()
+      const pad = 1.5
+      if (b.x < vb.x - pad || b.y < vb.y - pad || b.x + b.width > vb.x + vb.width + pad || b.y + b.height > vb.y + vb.height + pad) out.clipped.push(svg.dataset.icon)
+      const s = svg.getBoundingClientRect()
+      if (s.width < 20 || s.height < 20) out.tiny.push(svg.dataset.icon)
+    }
+    return out
+  })()`)) as { swatches: number; clipped: string[]; tiny: string[] }
+  check(`Legend: ${r.swatches} object swatches, none clipped, none tiny`, r.swatches > 0 && r.clipped.length === 0 && r.tiny.length === 0, JSON.stringify(r))
+  await shotBoard(`${LOOK}-${w}x${h}-legend`, true)
 }
 
 interface PuzzleJson {
@@ -270,8 +297,8 @@ async function pinchOut(cx: number, cy: number) {
 }
 
 /** On a pinched 12x12 board a tap still lands on the square drawn under the finger (the hit squares are zoomed with the board). */
-async function zoomPlay(look: string) {
-  await seed(BIG_DATE, look)
+async function zoomPlay() {
+  await seed(BIG_DATE)
   await load('play')
   await sleep(400)
   const f = (await evaluate(`(() => { const r = document.querySelector('.play-board').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as P
@@ -293,19 +320,19 @@ async function zoomPlay(look: string) {
     const added = (await count('[data-note]')) - before
     check(`zoomed tap at (${dx},${dy}) hits ${under}: the note lands there${added === 0 ? ' (blocked square, none written)' : ''}`, !!under && (added === 0 || (added === 1 && key.includes(`${r},${c}:`))), key)
   }
-  await shotBoard(`${look}-zoomed`, true)
+  await shotBoard(`${LOOK}-zoomed`, true)
 }
 
-async function playLoop(look: string, w: number, h: number) {
+async function playLoop(w: number, h: number) {
   const day = dayOn(SMALL_DATE)
   const puzzle = day.puzzle as unknown as PuzzleJson
-  await seed(SMALL_DATE, look)
+  await seed(SMALL_DATE)
   await load('play')
   await sleep(400)
   const spot = puzzle.solution[2]!.cell
   await tapSel(cellSel(spot.row, spot.col))
   check('tap writes a note', (await count('[data-note]')) === 1, `notes=${await count('[data-note]')}`)
-  await shotBoard(`${look}-${w}x${h}-note`)
+  await shotBoard(`${LOOK}-${w}x${h}-note`)
   await tool('Undo')
   check('undo removes the note', (await count('[data-note]')) === 0)
   await tool('X')
@@ -324,7 +351,7 @@ async function playLoop(look: string, w: number, h: number) {
   await sleep(300)
   check('long-press places the selected suspect', (await count('[data-person]')) >= 1)
   check('no stray note from the long-press', (await count('[data-note]')) === 0)
-  await shotBoard(`${look}-${w}x${h}-placed`)
+  await shotBoard(`${LOOK}-${w}x${h}-placed`)
   await tool('Undo')
   // Hints 1..3.
   await tool('Hint')
@@ -334,21 +361,14 @@ async function playLoop(look: string, w: number, h: number) {
   const h3 = await evaluate(`document.querySelector('.play-hint')?.dataset.level`)
   check('hint opens at level 1 and steps to 3', h1 === '1' && h3 === '3', `${h1} -> ${h3}`)
   check('hint level 3 rings squares on the board', (await count('.play-hint-ring')) >= 1)
-  await shotBoard(`${look}-${w}x${h}-hint3`, true)
+  await shotBoard(`${LOOK}-${w}x${h}-hint3`, true)
   await tapSel('.play-hint__actions .play-btn:not(.play-btn--primary)')
-  // Options: the Look entry shows on localhost with the current look pressed; switching changes the board at once.
+  // Options: there is no Look entry any more and nothing is stored under the old key.
   const wide = (await toolRect('Options')) !== null && (await evaluate(`[...document.querySelectorAll('.play-tool')].some(b => b.getAttribute('aria-label') === 'Options' && b.offsetParent !== null)`))
   if (!wide) await tool('More')
   await tool('Options')
-  check('Options shows the Look entry with the chosen look pressed', (await count('[data-look-entry]')) === 1 && (await evaluate(`document.querySelector('[data-look-option=${look}]')?.getAttribute('aria-pressed')`)) === 'true')
-  const other = look === 'a3' ? 'a2' : 'a3'
-  await tapSel(`[data-look-option=${other}]`)
-  await sleep(300)
-  check(`switching the look to ${other} redraws the board`, (await evaluate(`localStorage.getItem(${JSON.stringify(LOOK_KEY)})`)) === other && ((await count('[data-layer=plane]')) > 0) === (other === 'a3'))
-  await tapSel(`[data-look-option=${look}]`)
-  await sleep(300)
-  check(`switching back to ${look} restores it, and the choice is stored`, (await evaluate(`localStorage.getItem(${JSON.stringify(LOOK_KEY)})`)) === look && ((await count('[data-layer=plane]')) > 0) === (look === 'a3'))
-  await shotBoard(`${look}-${w}x${h}-options`, true)
+  check('Options has no Look entry and nothing is stored under slaydoku:look', (await count('[data-look-entry]')) === 0 && (await evaluate("localStorage.getItem('slaydoku:look')")) === null)
+  await shotBoard(`${LOOK}-${w}x${h}-options`, true)
   await tap(3, 3)
   await sleep(400)
   // Wrong board, then the solved board.
@@ -363,30 +383,29 @@ async function playLoop(look: string, w: number, h: number) {
   await placeAll(puzzle, true)
   await sleep(400)
   check('complete-but-wrong board shows "Not right yet"', (await count('[data-result=wrong]')) === 1, JSON.stringify({ people: await count('[data-person]'), result: await evaluate("document.querySelector('[data-result]')?.dataset.result ?? document.querySelector('.play-result')?.innerText ?? null") }))
-  await shotBoard(`${look}-${w}x${h}-wrong`, true)
+  await shotBoard(`${LOOK}-${w}x${h}-wrong`, true)
   await tapSel('.play-result .play-btn--primary')
   await clearAll()
   check('board reset after the wrong attempt', (await count('[data-person]')) === 0)
   const ok = await placeAll(puzzle)
   await sleep(900)
   check('solving pops the finish overlay', ok && (await count('[data-result=solved]')) === 1)
-  await shotBoard(`${look}-${w}x${h}-solved`, true)
+  await shotBoard(`${LOOK}-${w}x${h}-solved`, true)
 }
 
-for (const look of LOOKS) {
-  for (const [w, h] of VIEWPORTS) {
-    ctx = `${look} ${w}x${h}`
-    await setViewport(w, h)
-    await send('Page.enable')
-    await send('Runtime.enable')
-    await hitAndSize(SMALL_DATE, look, w, h)
-    await hitAndSize(BIG_DATE, look, w, h)
-    await labels(BIG_DATE, look, w, h)
-    await playLoop(look, w, h)
-    if (w <= 390) await zoomPlay(look)
-  }
+for (const [w, h] of VIEWPORTS) {
+  ctx = `${w}x${h}`
+  await setViewport(w, h)
+  await send('Page.enable')
+  await send('Runtime.enable')
+  await hitAndSize(SMALL_DATE, w, h)
+  await hitAndSize(BIG_DATE, w, h)
+  await labels(BIG_DATE, w, h)
+  await legendWhole(w, h)
+  await playLoop(w, h)
+  if (w <= 390) await zoomPlay()
 }
-await Bun.write(join(OUT, 'tap-sizes.md'), ['| look | viewport | board | middle cell, screen px (w x h) | biggest circle in it, px |', '|---|---|---|---|---|', ...sizes, ''].join('\n'))
+await Bun.write(join(OUT, 'tap-sizes.md'), ['| viewport | board | middle cell, screen px (w x h) | biggest circle in it, px |', '|---|---|---|---|', ...sizes, ''].join('\n'))
 console.log(`\n${failures.length ? 'FAILURES:\n' + failures.join('\n') : 'all checks passed'}`)
 chrome.kill()
 process.exit(failures.length ? 1 : 0)
