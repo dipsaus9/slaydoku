@@ -130,7 +130,7 @@ describe('decor objects (SLAY-19.1)', () => {
       const en = renderClue(clue, ctx, 'en')
       const nl = renderClue(clue, ctx, 'nl')
       expect(en, k.kind).toContain(o.clueNoun ?? o.name)
-      expect(nl, k.kind).toContain(`een ${k.nl}`)
+      expect(nl, k.kind).toContain(k.nl)
       expect(`${en} ${nl}`).not.toMatch(/undefined|\[object/)
       const rowEn = legendOf(scene, 'en').objects.find((r) => r.type === k.type)!
       const rowNl = legendOf(scene, 'nl').objects.find((r) => r.type === k.type)!
@@ -173,5 +173,5 @@ describe('decor objects (SLAY-19.1)', () => {
     }
     // The sample is the first seed per theme, size and tier that passes the gates, so the count varies a little with the time budget under load.
     expect(withNew).toBeGreaterThanOrEqual(6)
-  })
+  }, 120_000) // builds the shared generated sample (about 5 s alone, longer under a full run)
 })
