@@ -1,5 +1,7 @@
 # Add a theme, an object type or an icon
 
+> Seasonal themes: see [add-theme.md](add-theme.md) for the per-theme files (SLAY-18.11).
+
 Three separate jobs, from small to large:
 
 | Job | Touches |

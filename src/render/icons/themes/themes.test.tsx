@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { renderContactSheet } from '../contactSheet.ts'
 import { ORIENTATIONS } from '../orientation.ts'
 import { SCENE_THEMES } from '../../../content/themes/index.ts'
+import { THEME_MODELS } from '../../looks/registry.ts'
 import { THEME_ICON_DEFINITIONS } from './registry.ts'
+import { SEASONAL_ICON_SETS } from './sets.ts'
 import { resolveThemeObjectIcon } from './resolve.ts'
-import { THEME_ICON_IDS } from './types.ts'
+import { CORE_THEME_ICON_IDS, THEME_ICON_IDS } from './types.ts'
 
 describe('theme icon registry', () => {
   it('defines every id, each with at least one footprint and no duplicates', () => {
@@ -13,6 +15,18 @@ describe('theme icon registry', () => {
       const { variants } = THEME_ICON_DEFINITIONS[id]
       expect(variants.length, id).toBeGreaterThan(0)
       expect(new Set(variants.map((v) => v.id)).size, id).toBe(variants.length)
+    }
+  })
+
+  it('merges the per-theme icon sets with unique ids and lands each in both registries (SLAY-18.11)', () => {
+    const all = [...CORE_THEME_ICON_IDS, ...SEASONAL_ICON_SETS.flatMap((s) => s.ids)]
+    expect(new Set(all).size).toBe(all.length)
+    expect([...THEME_ICON_IDS]).toEqual(all)
+    for (const set of SEASONAL_ICON_SETS) {
+      for (const id of set.ids) {
+        expect(THEME_ICON_DEFINITIONS[id as keyof typeof THEME_ICON_DEFINITIONS], id).toBe(set.definitions[id])
+        expect(THEME_MODELS[id as keyof typeof THEME_MODELS], id).toBe(set.models[id])
+      }
     }
   })
 

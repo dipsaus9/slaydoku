@@ -1,4 +1,5 @@
 import type { Scene } from '../../engine/model/index.ts'
+import { roomFloorOf } from '../../content/themes/index.ts'
 
 export type FloorPattern = 'wood' | 'tiles' | 'grass' | 'water' | 'stone' | 'carpet'
 
@@ -77,7 +78,7 @@ const NAME_HINTS: [FloorPattern, RegExp][] = [
 ]
 
 export function styleForName(name: string): FloorPattern | undefined {
-  return NAME_HINTS.find(([, re]) => re.test(name))?.[0]
+  return roomFloorOf(name) ?? NAME_HINTS.find(([, re]) => re.test(name))?.[0]
 }
 
 export interface ResolvedRoomStyle {
@@ -89,8 +90,8 @@ export interface ResolvedRoomStyle {
 }
 
 /**
- * One floor style per room: an explicit override wins, then a name hint
- * (kitchen -> tiles, garden -> grass ...), then a cycle through the kinds.
+ * One floor style per room: an explicit override wins, then the floor a theme gave the room
+ * name, then a name hint (kitchen -> tiles, garden -> grass ...), then a cycle through the kinds.
  * A pattern used again switches tone, so neighbours stay distinguishable.
  */
 export function resolveRoomStyles(
