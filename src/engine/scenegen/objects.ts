@@ -12,8 +12,24 @@ export const MIN_FREE_SHARE = 0.5
 /** Extra chance for objects the theme says belong in this kind of room. */
 const FAVOUR_BOOST = 4
 
+/** Variety (SLAY-17.6): a kind the room does not have yet is this much likelier, and each copy already in the room multiplies the weight by `REPEAT_FACTOR`. */
+const NEW_KIND_BOOST = 3
+const REPEAT_FACTOR = 0.35
+
 /** Chance boost when a spot fits the object's placement hint. */
 const HINT_BOOST = 8
+
+/** No kind appears more than this often in one room (SLAY-17.6), whatever its own `maxPerRoom`. Plants and other structural kinds are not exempt: they carry no clue and three is plenty. */
+export const MAX_KIND_PER_ROOM = 3
+
+/** A chair kind (engine type chair) is capped at this many per room, unless the extra chair sits next to a table-like object (SLAY-17.6). */
+export const MAX_FREE_CHAIRS_PER_ROOM = 2
+
+/** The engine types a chair can sit at: a third and later chair must touch one of these. */
+export const SEAT_AT_TYPES: ReadonlySet<string> = new Set(['table', 'diningTable', 'gardenTable', 'desk', 'kitchenCounter'])
+
+/** Chance boost for a chair spot next to a table, desk or counter (companion placement). */
+const COMPANION_BOOST = 3
 
 export interface PlaceObjectsInput {
   width: number
@@ -90,6 +106,9 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
     (isWall(c.row, c.col, 0, -1) || isWall(c.row, c.col, 0, 1))
 
   const objects: PlacedObject[] = []
+  const cellType = new Map<string, string>()
+  const nextToSeatable = (c: Cell): boolean =>
+    [[-1, 0], [1, 0], [0, -1], [0, 1]].some(([dr, dc]) => SEAT_AT_TYPES.has(cellType.get(`${c.row + dr!},${c.col + dc!}`) ?? ''))
   const counter = new Map<string, number>()
 
   for (const room of shuffle(random, roomIds)) {
@@ -102,6 +121,7 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
     const favoured = new Set(input.favours[room] ?? [])
     const roomTypes = new Set(input.roomTypes[room] ?? [])
     const perKind = new Map<string, number>()
+    let chairs = 0
     const target = Math.max(1, Math.round(size * (0.22 + random() * 0.22)))
     let covered = 0
     let misses = 0
@@ -129,6 +149,7 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
       if (!footprint) return undefined
       const shape = pick(random, orientations(footprint))
       const spots: { cells: Cell[]; score: number }[] = []
+      const isChair = object.engineType === 'chair'
       for (const anchor of cells) {
         const placed = shape.map((c) => ({ row: anchor.row + c.row, col: anchor.col + c.col }))
         if (!fits(placed, object)) continue
@@ -140,14 +161,18 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
               : object.placement === 'centre'
                 ? !placed.some(onBoundary)
                 : true
-        spots.push({ cells: placed, score: good && object.placement !== 'anywhere' ? HINT_BOOST : 1 })
+        const companion = isChair && placed.some(nextToSeatable)
+        if (isChair && chairs >= MAX_FREE_CHAIRS_PER_ROOM && !companion) continue
+        spots.push({ cells: placed, score: (good && object.placement !== 'anywhere' ? HINT_BOOST : 1) * (companion ? COMPANION_BOOST : 1) })
       }
       const spot = pickWeighted(random, spots, (s) => s.score)
       if (!spot) return undefined
       const n = (counter.get(object.kind) ?? 0) + 1
       counter.set(object.kind, n)
       objects.push({ id: `${object.kind}-${n}`, type: object.engineType, cells: spot.cells })
+      if (isChair) chairs++
       for (const c of spot.cells) {
+        cellType.set(`${c.row},${c.col}`, object.engineType)
         taken[c.row]![c.col] = true
         if (!object.occupiable) {
           rowFree[c.row]!--
@@ -164,12 +189,15 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
       const onlyFavoured = signature > 0
       const candidates = theme.objects.filter(
         (o) =>
-          (perKind.get(o.kind) ?? 0) < (o.maxPerRoom ?? Infinity) &&
+          (perKind.get(o.kind) ?? 0) < Math.min(o.maxPerRoom ?? Infinity, MAX_KIND_PER_ROOM) &&
           (!onlyFavoured || favoured.has(o.kind)) &&
           !o.excludeRoomTypes?.some((t) => roomTypes.has(t)) &&
           (!o.allowedRoomTypes || o.allowedRoomTypes.some((t) => roomTypes.has(t))),
       )
-      const object = pickWeighted(random, candidates, (o) => o.weight * (favoured.has(o.kind) ? FAVOUR_BOOST : 1))
+      const object = pickWeighted(random, candidates, (o) => {
+        const have = perKind.get(o.kind) ?? 0
+        return o.weight * (favoured.has(o.kind) ? FAVOUR_BOOST : 1) * (have === 0 ? NEW_KIND_BOOST : REPEAT_FACTOR ** have)
+      })
       if (!object) break
       const placed = tryPlace(object)
       if (!placed) {

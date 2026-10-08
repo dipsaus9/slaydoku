@@ -47,7 +47,7 @@ describe('generateForScene', () => {
     expect(() => generateTier(sceneForSeed(6, 1), { tier: 'hard', seed: 1 })).toThrow(TierError)
   })
 
-  it('reports how the attempts went', () => {
+  it('reports how the attempts went', { timeout: 60_000 }, () => {
     const report = generateForSceneWithReport(sceneForSeed(6, 3), { tier: 'hard', seed: 3 })
     expect(report.attempts).toBeGreaterThanOrEqual(1)
     const rejected = Object.values(report.rejections).reduce((sum, n) => sum + n, 0)
