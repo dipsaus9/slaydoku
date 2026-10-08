@@ -100,3 +100,12 @@ A3
 Bathtub water (owner remark): in the prototype the water was a pale slab on a white box. The model in `models.ts` is a hollow tub: four walls, the water a saturated blue block (`#3f9fd6`) standing below the rim so the inner wall shows above it, a light sheen strip and three foam bubbles on the surface. Checked in a contact render in A2 and A3 (blue clearly separated from the white tub and the beige floor). The app has no bathtub object kind yet, so this only lands on the board when SLAY-17.4 adds one.
 
 Re-run: `bun run build && bunx vite preview --port 5441 &`, then `BASE=http://localhost:5441/ CDP_PORT=9541 OUT=/private/tmp/claude-501/w-17.8 bun docs/verification/looks.ts` (about 8 minutes for all looks and widths, screenshots in `$OUT/shots`).
+
+## Owner pick (2026-10-08)
+
+The owner tested the PoC and chose **A2** (oblique blocks on the unchanged square grid). A3 (isometric) is not carried forward; the SLAY-17.8 code stays in git history.
+
+Feedback on the A2 PoC, to be solved in SLAY-17.4 (screenshot: `docs/design/looks-feedback/2026-10-08-a2-poc-overflow-and-flat-items.png`):
+
+- Blocks run over other cells: the extra height of A2 paints over the wall into the neighbouring cell. An object must never paint outside its own room.
+- Some items are not in the same style yet (toilet, washbasin, washing machine, dryer, kitchen counter, stairs). Expected, the PoC only draws chair, sofa, bed, bookshelf, table, rug and plant; SLAY-17.4 draws every kind.
