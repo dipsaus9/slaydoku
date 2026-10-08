@@ -54,9 +54,13 @@ Scope widened 2026-10-08: besides the seasonal windows this story regenerates AL
 
 Plan change 2026-10-08: waits for SLAY-20 (UI feedback) and SLAY-21 (object density cap) so the final regeneration uses the capped generator.
 
+Findings from the theme workers (2026-10-08), all for this story: (1) Registration moved here: flip the four exports in src/content/themes/index.ts consumers (FALL_THEME, CARNAVAL_THEME, CHRISTMAS_THEME, HALLOWEEN_THEME from undefined to fallTheme, carnavalTheme, christmasTheme, halloweenTheme), un-skip *.registered.test.ts / it.skip(SLAY-18.10 enables) tests, flip the fall test that asserts FALL_THEME === undefined. (2) The pair gate in src/schedule/gates.ts rejects two consecutive days with the same size, tier and theme, but inside a seasonal window the picker plans exactly that (e.g. 2026-12-12/13 6x6 easy-medium christmas, 2027-10-19 9x9 hard halloween twice); another seed cannot fix it: make the rule "a different set of rooms" for consecutive days of one seasonal window (or re-roll size/tier in the picker for window days). (3) pick.test.ts "never repeats a theme two days in a row" must exempt seasonal windows. (4) objectClues.test.ts expects a lower-case noun after "than a": "a Christmas tree" (christmas) will fail once registered; fix the test or the noun casing. (5) Shared look-completeness test covers the seasonal themes only once registered. (6) calendar.test.ts themeOf-for-every-scheduled-day and schedule.test.ts follow the picker after regeneration. (7) Days up to 2026-10-08 and 2026-10-14 stay byte-identical; regenerate the rest once, after SLAY-20 (tints/notes/no swipe) and SLAY-21 (object density cap).
+
 Plan change 2026-10-08: also waits for SLAY-22 (first 100 levels max 9x9, hard from day one) so the final regeneration uses the new size and tier rules.
 
 SLAY-21 (object density cap) was merged into SLAY-22 on 2026-10-08 so the generator rules are measured, swept and approved once.
 
 From the Christmas review: the December test only checks the first seed of each day; after regenerating, check that no two consecutive December days share a set of rooms in the committed schedule.
+
+From the SLAY-20 review: the minimum difference of 8.0 between touching rooms (roomStyles.test.ts, TINT_CHROMA_SCALE 0.4) sits just under the closest pair of the current schedule (8.02); after the regeneration this test can fail on a new closest pair: re-check it and choose the palette or the threshold from the regenerated days, not the other way round.
 <!-- SECTION:NOTES:END -->
