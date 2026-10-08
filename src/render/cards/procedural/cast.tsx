@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
-import { castFor, traitsOf, portraitsFor, slotGenders, MAX_CAST_SIZE, poolEntry, type Cast, type PortraitLook } from '../../../content/cast/index.ts'
+import { MONKEY_DESIGN, boundPortrait, castFor, traitsOf, portraitsFor, slotGenders, MAX_CAST_SIZE, poolEntry, type Cast, type PortraitLook } from '../../../content/cast/index.ts'
 import type { Gender } from '../../../engine/model/index.ts'
 import { lighten } from './color.ts'
+import { MonkeyAvatar } from './MonkeyAvatar.tsx'
 import { ProceduralAvatar } from './ProceduralAvatar.tsx'
 
 /** What a polaroid needs to show one person. */
@@ -38,7 +39,10 @@ export const suspectsForSize = (size: number) => size - 1
 /** The polaroid look of one portrait: the drawing, a pale tint of the shirt colour behind it and a paler one for the clue bubble. */
 export function cardLookOf(look: PortraitLook, title?: string): CardLook {
   return {
-    portrait: <ProceduralAvatar traits={traitsOf(look)} title={title} decorative />,
+    portrait:
+      look.design === MONKEY_DESIGN
+        ? <MonkeyAvatar fur={look.skin} clothes={look.clothesColor} title={title} decorative />
+        : <ProceduralAvatar traits={traitsOf(look)} title={title} decorative />,
     photo: lighten(look.clothesColor, 0.62),
     bubble: lighten(look.clothesColor, 0.8),
   }
@@ -50,7 +54,8 @@ export function cardLookOf(look: PortraitLook, title?: string): CardLook {
  */
 export function buildCastFromPeople(people: readonly { name: string; gender?: Gender | undefined }[], seed: string | number = 'slaydoku'): BuiltCast {
   const genders = slotGenders(people.map((p) => p.gender ?? poolEntry(p.name)?.gender))
-  const portraits = portraitsFor(genders, seed)
+  // A name bound to a portrait (Biko, Simpshouse only) keeps it whatever the slot; every other name takes its slot portrait.
+  const portraits = portraitsFor(genders, seed).map((slot, i) => boundPortrait(people[i]!.name, slot) ?? slot)
   const entries: CastEntry[] = people.map((p, i) => ({ name: p.name, gender: genders[i], look: cardLookOf(portraits[i]!, p.name) }))
   const byName = new Map(entries.map((e) => [e.name.toLowerCase(), e.look]))
   return {

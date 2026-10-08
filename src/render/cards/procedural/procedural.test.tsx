@@ -1,10 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { CAST_POOL, PORTRAIT_DESIGNS, castFor, portraitsFor, traitsOf } from '../../../content/cast/index.ts'
+import { MONKEY_FUR, CAST_POOL, PORTRAIT_DESIGNS, castFor, portraitsFor, traitsOf } from '../../../content/cast/index.ts'
 import type { Person } from '../../../engine/model/index.ts'
 import { CardGrid } from '../CardGrid.tsx'
 import { SuspectCard } from '../SuspectCard.tsx'
-import { buildCast, buildCastForBoard, buildCastFromPeople, MAX_SUSPECTS, suspectsForSize } from './cast.tsx'
+import { buildCast, buildCastForBoard, buildCastFromPeople, cardLookOf, MAX_SUSPECTS, suspectsForSize } from './cast.tsx'
 import { ProceduralAvatar } from './ProceduralAvatar.tsx'
 import { createRng } from './rng.ts'
 import { traitDistance } from './traits.ts'
@@ -154,5 +154,23 @@ describe('SuspectCard with a look', () => {
     )
     expect(html.match(/class="polaroid /g)).toHaveLength(16)
     expect(html).not.toContain('</text>')
+  })
+})
+
+describe('the monkey Biko', () => {
+  const people = [{ name: 'Anne', gender: 'woman' as const }, { name: 'Biko', gender: 'man' as const }, { name: 'Ruben', gender: 'man' as const }]
+  it('is a monkey on every cast build, and only Biko is', () => {
+    for (const seed of ['a', 'b', 'c']) {
+      const built = buildCastFromPeople(people, seed)
+      const html = (n: string) => renderToStaticMarkup(<>{built.lookFor(n)!.portrait}</>)
+      expect(html('Biko')).toContain(MONKEY_FUR)
+      expect(html('Anne')).not.toContain(MONKEY_FUR)
+      expect(html('Ruben')).not.toContain(MONKEY_FUR)
+    }
+  })
+  it('renders from a baked look too', () => {
+    const cast = castFor(12, 'monkey-seed', [], 'simpshouse')
+    const i = cast.names.indexOf('Biko')
+    if (i >= 0) expect(renderToStaticMarkup(<>{cardLookOf(cast.portraits[i]!, 'Biko').portrait}</>)).toContain('<svg')
   })
 })

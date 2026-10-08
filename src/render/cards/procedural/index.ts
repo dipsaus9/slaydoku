@@ -12,3 +12,4 @@ export {
   type CastEntry,
 } from './cast.tsx'
 export { type ProceduralTraits } from './traits.ts'
+export { MonkeyAvatar, type MonkeyAvatarProps } from './MonkeyAvatar.tsx'
