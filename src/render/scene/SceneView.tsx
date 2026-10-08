@@ -47,7 +47,7 @@ function resolve(content: LayerContent, geometry: SceneGeometry): ReactNode {
  * width). Paint order, bottom to top: shadow, floors, grid, objects, walls, edge features,
  * marks, people, room labels, axis labels, per-cell hit rects. Room labels sit
  * on top of marks and people (SLAY-17.5) with a paper-coloured halo and no pill, so the name stays readable in a room the player has filled in.
- * The grid has headroom above it (geometry.ts) for the tall parts of objects in the top row.
+ * Objects are cut at the walls and at the outer edge of the grid (objectClip.ts), so there is no headroom above the grid.
  */
 export function SceneView({
   scene,

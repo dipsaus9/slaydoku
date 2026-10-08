@@ -8,7 +8,6 @@ import {
   cellLabel,
   createGeometry,
 } from './geometry.ts'
-import { HEADROOM } from '../looks/project.ts'
 import { roomLabelLayout } from './labels.ts'
 import { resolveRoomStyles, styleForName } from './roomStyles.ts'
 import { sample9x9 } from './sample.fixture.ts'
@@ -20,10 +19,10 @@ describe('createGeometry', () => {
     const g = createGeometry({ width: 6, height: 4 })
     const a = g.cellRect({ row: 0, col: 0 })
     const b = g.cellRect({ row: 3, col: 5 })
-    expect(a).toEqual({ x: MARGIN, y: MARGIN + HEADROOM, width: CELL_SIZE, height: CELL_SIZE })
+    expect(a).toEqual({ x: MARGIN, y: MARGIN, width: CELL_SIZE, height: CELL_SIZE })
     expect(b.x).toBe(MARGIN + 5 * CELL_SIZE)
-    expect(b.y).toBe(MARGIN + HEADROOM + 3 * CELL_SIZE)
-    expect(g.viewBox).toEqual({ width: 2 * MARGIN + 6 * CELL_SIZE, height: 2 * MARGIN + HEADROOM + 4 * CELL_SIZE })
+    expect(b.y).toBe(MARGIN + 3 * CELL_SIZE)
+    expect(g.viewBox).toEqual({ width: 2 * MARGIN + 6 * CELL_SIZE, height: 2 * MARGIN + 4 * CELL_SIZE })
   })
 
   it('reserves a gutter for axis labels only when asked', () => {
@@ -37,14 +36,8 @@ describe('createGeometry', () => {
     const g = createGeometry({ width: 4, height: 4 })
     expect(g.cellCenter({ row: 1, col: 2 })).toEqual({
       x: MARGIN + 2.5 * CELL_SIZE,
-      y: MARGIN + HEADROOM + 1.5 * CELL_SIZE,
+      y: MARGIN + 1.5 * CELL_SIZE,
     })
-  })
-
-  it('leaves headroom above the grid for the tall parts of the objects in the top row', () => {
-    const g = createGeometry({ width: 4, height: 4 })
-    expect(g.origin.y).toBe(MARGIN + HEADROOM)
-    expect(HEADROOM).toBeGreaterThan(30)
   })
 
   it('formats 1-based cell labels', () => {
@@ -62,7 +55,7 @@ describe('edgeFeatureSpots', () => {
       kind: 'window',
       rotation: 90,
       x: MARGIN + 4 * CELL_SIZE,
-      y: MARGIN + HEADROOM + 2.5 * CELL_SIZE,
+      y: MARGIN + 2.5 * CELL_SIZE,
     })
   })
 
@@ -80,7 +73,7 @@ describe('edgeFeatureSpots', () => {
   it('puts horizontal-line features at rotation 0 on the line between the rows', () => {
     const g = createGeometry(sample9x9)
     const door = edgeFeatureSpots(sample9x9, g).find((s) => s.kind === 'door')
-    expect(door).toMatchObject({ rotation: 0, x: MARGIN + 3.5 * CELL_SIZE, y: MARGIN + HEADROOM + 5 * CELL_SIZE })
+    expect(door).toMatchObject({ rotation: 0, x: MARGIN + 3.5 * CELL_SIZE, y: MARGIN + 5 * CELL_SIZE })
   })
 })
 
