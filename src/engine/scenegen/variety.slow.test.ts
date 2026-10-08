@@ -11,7 +11,7 @@ describe('object variety sweep (SLAY-17.6)', () => {
       expect(chairShare(s)).toBeLessThanOrEqual(0.15)
       expect(s.violations).toEqual([])
       expect(s.crowded).toEqual([])
-      expect(s.bare).toBeLessThanOrEqual(2)
+      expect(s.bare).toBe(0)
       expect(distinctPerRoom(s)).toBeGreaterThan(2.3)
       expect(topKindShare(s).share).toBeLessThanOrEqual(0.22)
       expect(s.neverPlaced).toEqual([])

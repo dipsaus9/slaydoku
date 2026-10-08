@@ -81,11 +81,11 @@ const KINDS: readonly { theme: ThemeId; kind: string; type: ObjectType; rooms: r
  */
 const BASELINE_DISTINCT_SHARE: Record<(typeof REGULAR_THEMES)[number], number> = { home: 0.982, office: 0.949, school: 0.924, park: 0.955, shop: 0.885 }
 
-/**
- * Distinct kinds per room on the fast sample (12 scenes per size, `measureVariety(theme, 12)`), measured on main at d501e50 before this
- * story; the 200-scene numbers (2.45, 2.64, 2.53, 2.92, 2.67 before; 2.78, 2.85, 2.70, 3.00, 2.72 after) are in the PR and in docs/authoring/room-rules.md.
+/*
+ * The SLAY-19.1 check was distinct kinds per room on the fast sample against main at d501e50 (home 2.463, office 2.647, school 2.514,
+ * park 2.892, shop 2.734; 200-scene numbers 2.45, 2.64, 2.53, 2.92, 2.67 before 19.1 and 2.78, 2.85, 2.70, 3.00, 2.72 after). Under the
+ * SLAY-22 cap park and shop fall below it (200 scenes: 2.69 and 2.60): an open owner decision on the SLAY-22 PR.
  */
-const BASELINE_DISTINCT_PER_ROOM: Record<(typeof REGULAR_THEMES)[number], number> = { home: 2.463, office: 2.647, school: 2.514, park: 2.892, shop: 2.734 }
 
 const roomsAllowing = (theme: ThemeId, kind: string): string[] => {
   const t = getTheme(theme)
@@ -151,11 +151,11 @@ describe('decor objects (SLAY-19.1)', () => {
   it('raises the variety in every theme against the baseline, keeps chairs at most 15% and still places the signature objects', () => {
     for (const theme of REGULAR_THEMES) {
       const s = measureVariety(theme, 12)
-      // Before the SLAY-22 density cap: distinct kinds per room above the pre-19.1 numbers. Now: the distinct share of a room's objects
+      // Before the SLAY-22 density cap: distinct kinds per room above the pre-19.1 numbers (see above; park and shop
+      // now fall below them, an open owner decision on the SLAY-22 PR). Now: the distinct share of a room's objects
       // above the uncapped share, and still more than 2.4 distinct kinds per room.
       expect(s.distinctKinds / s.objects, theme).toBeGreaterThan(BASELINE_DISTINCT_SHARE[theme])
       expect(distinctPerRoom(s), theme).toBeGreaterThan(2.4)
-      expect(BASELINE_DISTINCT_PER_ROOM[theme], theme).toBeGreaterThan(2.4)
       expect(chairShare(s), theme).toBeLessThanOrEqual(0.15)
       expect(s.violations, theme).toEqual([])
       const signature = new Set(getTheme(theme).rooms.flatMap((r) => r.favours))
