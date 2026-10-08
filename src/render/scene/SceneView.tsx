@@ -32,6 +32,8 @@ export interface SceneViewProps {
   title?: string
   /** Language the room labels draw in (SLAY-5.2). Default 'en'. */
   locale?: Locale
+  /** Squares that hold a placed person: room labels keep clear of them when they can. */
+  labelAvoid?: readonly Cell[]
 }
 
 function resolve(content: LayerContent, geometry: SceneGeometry): ReactNode {
@@ -42,7 +44,8 @@ function resolve(content: LayerContent, geometry: SceneGeometry): ReactNode {
  * Draws a Scene as one scalable SVG (viewBox based, fills its container's
  * width). Paint order, bottom to top: shadow, floors, grid, objects, walls, edge features,
  * room labels, marks, people, axis labels, per-cell hit rects. Room labels sit
- * under marks and people so a suspect placed on a label cell stays visible.
+ * on top of marks and people (SLAY-17.5) so the name stays readable in a room the player has filled in; they keep clear of placed
+ * people when the room has other free squares (`labelAvoid`), and the pill is see-through so a person under it still shows.
  */
 export function SceneView({
   scene,
@@ -52,6 +55,7 @@ export function SceneView({
   marksLayer,
   peopleLayer,
   onCellClick,
+  labelAvoid,
   className,
   title = 'Crime scene',
   locale = 'en',
@@ -82,13 +86,13 @@ export function SceneView({
       </g>
       <Walls scene={scene} geometry={geometry} />
       <EdgeFeatures scene={scene} geometry={geometry} />
-      <RoomLabels scene={scene} geometry={geometry} locale={locale} />
       <g data-layer="marks" pointerEvents="none">
         {marksLayer && resolve(marksLayer, geometry)}
       </g>
       <g data-layer="people" pointerEvents="none">
         {peopleLayer && resolve(peopleLayer, geometry)}
       </g>
+      <RoomLabels scene={scene} geometry={geometry} locale={locale} avoid={labelAvoid} />
       {showAxisLabels && <AxisLabels geometry={geometry} />}
       <HitLayer geometry={geometry} onCellClick={onCellClick} />
     </svg>

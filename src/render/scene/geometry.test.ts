@@ -84,22 +84,20 @@ describe('roomLabelLayout', () => {
         const label = roomLabelLayout(scene, room.id)
         expect(label).toBeDefined()
         if (!label) continue
-        const { line, from, to } = label.run
-        for (let i = from; i <= to; i++) {
-          expect(label.vertical ? scene.cellRooms[i]?.[line] : scene.cellRooms[line]?.[i]).toBe(room.id)
+        const { row, fromCol, toCol } = label.run
+        for (let col = fromCol; col <= toCol; col++) {
+          expect(scene.cellRooms[row]?.[col]).toBe(room.id)
         }
-        // pill stays within the run of cells (along the run: its width, or its height turned a quarter)
-        const half = label.width / 2
-        const mid = label.vertical ? label.center.y : label.center.x
-        expect(mid - half).toBeGreaterThanOrEqual(from)
-        expect(mid + half).toBeLessThanOrEqual(to + 1)
+        // pill stays within the run of cells
+        expect(label.center.x - label.width / 2).toBeGreaterThanOrEqual(fromCol)
+        expect(label.center.x + label.width / 2).toBeLessThanOrEqual(toCol + 1)
       }
     }
   })
 
   it('avoids cells covered by objects when it can', () => {
     const label = roomLabelLayout(tutorial, 'living')
-    expect(label?.run).toEqual({ line: 1, from: 1, to: 3 })
+    expect(label?.run).toEqual({ row: 1, fromCol: 1, toCol: 3 })
   })
 
   it('wraps a long name over two lines on a short run', () => {

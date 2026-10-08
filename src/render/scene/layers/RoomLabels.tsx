@@ -1,17 +1,20 @@
-import type { Scene } from '../../../engine/model/index.ts'
+import type { Cell, Scene } from '../../../engine/model/index.ts'
 import type { Locale } from '../../../locale/types.ts'
 import type { SceneGeometry } from '../geometry.ts'
 import { LABEL_LINE_HEIGHT, roomLabelLayout } from '../labels.ts'
 import { THEME } from '../theme.ts'
 
+/** The pill lets a placed person under it show through; the text carries its own halo, so it reads either way. */
+const PILL_OPACITY = 0.78
+
 const round = (n: number) => Math.round(n * 100) / 100
 
-export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; geometry: SceneGeometry; locale?: Locale }) {
+export function RoomLabels({ scene, geometry, locale = 'en', avoid }: { scene: Scene; geometry: SceneGeometry; locale?: Locale; avoid?: readonly Cell[] }) {
   const size = geometry.cellSize
   return (
     <g data-layer="room-labels" pointerEvents="none">
       {scene.rooms.map((room) => {
-        const label = roomLabelLayout(scene, room.id, locale)
+        const label = roomLabelLayout(scene, room.id, locale, avoid)
         if (!label) return null
         const centre = geometry.toPoint(label.center.x, label.center.y)
         const w = round(label.width * size)
@@ -23,7 +26,7 @@ export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; g
           <g
             key={room.id}
             data-room-label={room.id}
-            transform={`translate(${centre.x} ${centre.y})${label.vertical ? ' rotate(-90)' : ''}`}
+            transform={`translate(${centre.x} ${centre.y})`}
           >
             <rect
               x={-w / 2}
@@ -32,6 +35,7 @@ export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; g
               height={h}
               rx={Math.min(h / 2, 10)}
               fill={THEME.labelFill}
+              fillOpacity={PILL_OPACITY}
               stroke={THEME.wall}
               strokeWidth={1.5}
             />
@@ -41,6 +45,10 @@ export function RoomLabels({ scene, geometry, locale = 'en' }: { scene: Scene; g
               fontWeight={800}
               fontSize={font}
               fill={THEME.labelInk}
+              stroke={THEME.labelFill}
+              strokeWidth={font * 0.2}
+              strokeLinejoin="round"
+              paintOrder="stroke"
             >
               {label.lines.map((line, i) => (
                 <tspan key={line} x={0} y={round(firstLineY + i * lineGap)} dy="0.35em">

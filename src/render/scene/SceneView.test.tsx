@@ -85,9 +85,9 @@ describe('SceneView', () => {
     expect(html).not.toContain('>R5<')
   })
 
-  it('always exposes the overlay layers, in paint order below the hit rects', () => {
+  it('always exposes the overlay layers, in paint order below the hit rects; room labels sit above marks and people (SLAY-17.5)', () => {
     const html = render({ scene: tutorial })
-    const order = ['objects', 'room-labels', 'marks', 'people', 'hit'].map((l) =>
+    const order = ['objects', 'marks', 'people', 'room-labels', 'hit'].map((l) =>
       html.indexOf(`data-layer="${l}"`),
     )
     expect(order.every((i) => i >= 0)).toBe(true)
