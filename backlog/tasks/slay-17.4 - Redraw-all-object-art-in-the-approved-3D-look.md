@@ -4,13 +4,14 @@ title: Redraw all object art in the approved 3D look
 status: To Do
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 09:23'
+updated_date: '2026-10-08 09:45'
 labels:
   - needs-owner-review
 dependencies:
   - SLAY-17.2
   - SLAY-17.3
   - SLAY-18.4
+  - SLAY-17.8
 references:
   - src/render/icons/
   - src/ui/help/legend.ts
