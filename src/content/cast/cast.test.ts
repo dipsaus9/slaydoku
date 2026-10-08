@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { MONKEY_DESIGN, SIMPSHOUSE_POOL } from './index.ts'
 import { CAST_LETTERS, CAST_POOL, MAX_CAST_SIZE, castFor, castProblems, initialOf, namesFor, poolEntry, sharedNames } from './index.ts'
 
 const SIZES = [6, 7, 8, 9, 10, 11, 12]
@@ -125,5 +126,56 @@ describe('castProblems', () => {
     expect(castProblems(['Alice', 'Chloe', 'Emma', 'Grace'])).toEqual([expect.stringContaining('not balanced: 4 women, 0 men')])
     expect(castProblems(['Alice', 'Ben'], ['man', 'man'])).toEqual([expect.stringContaining('"Alice" is a woman in the pool, not man')])
     expect(castProblems(['Alice', 'Ben'], ['woman'])).toContain('2 names but 1 genders')
+  })
+})
+
+describe('the Simpshouse pool', () => {
+  const SIMPS_SIZES = [5, 6, 7, 8, 9, 10, 11, 12]
+  const NAMES = ['Dennis', 'Duncan', 'Elodie', 'Romy', 'Emma', 'Iris', 'Jolie', 'Sander', 'Anne', 'Biko', 'Eveline', 'Junior', 'Marnica', 'Ralph', 'Ruben', 'Sven', 'Tijn', 'Cait']
+
+  it('holds the 18 names with their genders in one file, 11 first letters', () => {
+    expect(SIMPSHOUSE_POOL.map((n) => n.name).sort()).toEqual([...NAMES].sort())
+    expect(new Set(SIMPSHOUSE_POOL.map((n) => initialOf(n.name))).size).toBe(11)
+    expect(poolEntry('Biko')).toEqual({ name: 'Biko', gender: 'man' })
+    expect(poolEntry('Cait')?.gender).toBe('woman')
+  })
+
+  it.each(SIMPS_SIZES)('draws a valid %s-person cast: unique letters, pool genders, balanced, never Dennis with Duncan', (size) => {
+    for (let seed = 0; seed < 150; seed++) {
+      const { names, genders, portraits } = castFor(size, `s${seed}`, [], 'simpshouse')
+      expect(names, `seed ${seed}`).toHaveLength(size - 1)
+      expect(portraits).toHaveLength(size - 1)
+      expect(castProblems(names, genders), `seed ${seed}`).toEqual([])
+      expect(names.every((n) => SIMPSHOUSE_POOL.some((p) => p.name === n))).toBe(true)
+      expect(names.includes('Dennis') && names.includes('Duncan')).toBe(false)
+    }
+  })
+
+  it('is seeded: the same seed gives the same cast, other seeds other combinations', () => {
+    expect(castFor(9, 'x', [], 'simpshouse')).toEqual(castFor(9, 'x', [], 'simpshouse'))
+    expect(new Set(Array.from({ length: 40 }, (_, i) => castFor(9, i, [], 'simpshouse').names.join())).size).toBeGreaterThan(20)
+  })
+
+  it('refuses more than 11 suspects and keeps previous names out when it can', () => {
+    expect(() => castFor(13, 1, [], 'simpshouse')).toThrow(RangeError)
+    const next = castFor(8, 'p', ['Emma', 'Eveline', 'Dennis', 'Ralph'], 'simpshouse')
+    expect(next.names).not.toContain('Dennis')
+    expect(next.names).not.toContain('Ralph')
+  })
+
+  it('draws plain themes from the regular pool exactly as before', () => {
+    expect(castFor(9, 'k', ['Ben'], 'fall')).toEqual(castFor(9, 'k', ['Ben']))
+  })
+
+  it('binds Biko to the monkey portrait and nobody else', () => {
+    let seen = 0
+    for (let seed = 0; seed < 100; seed++) {
+      const cast = castFor(12, `m${seed}`, [], 'simpshouse')
+      cast.names.forEach((name, i) => {
+        if (name === 'Biko') { seen++; expect(cast.portraits[i]!.design).toBe(MONKEY_DESIGN) }
+        else expect(cast.portraits[i]!.design).not.toBe(MONKEY_DESIGN)
+      })
+    }
+    expect(seen).toBeGreaterThan(0)
   })
 })
