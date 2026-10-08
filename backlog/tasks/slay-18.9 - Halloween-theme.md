@@ -4,6 +4,7 @@ title: Halloween theme
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:23'
+updated_date: '2026-10-08 12:29'
 labels:
   - needs-owner-review
 dependencies:
@@ -33,7 +34,8 @@ Branch: SLAY-18.9/halloween-theme
 - [ ] #3 Nothing gory or scary beyond a playful tone (fits a daily puzzle for everyone)
 - [ ] #4 Registered as seasonal; the calendar picks it for 17-31 October, except days with a higher-priority rule (test)
 - [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass
-- [ ] #6 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
+- [ ] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
+- [ ] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Notes
