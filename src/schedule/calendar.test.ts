@@ -82,7 +82,6 @@ describe('a rule only applies when its theme is registered', () => {
 
 describe('rotation guard against the committed schedule', () => {
   const { days } = readSchedule()
-  const registered = new Set<ThemeId>(SCENE_THEMES.map((t) => t.id))
 
   it('keeps the five-theme cycle: seasonal themes are not in the rotation', () => {
     const rotation = new Set<ThemeId>()
@@ -102,9 +101,10 @@ describe('rotation guard against the committed schedule', () => {
     expect(checked).toBeGreaterThan(20)
   })
 
-  it('with no seasonal theme registered, themeOf equals the committed schedule for all days', () => {
-    if (SCENE_THEMES.some((t) => t.seasonal)) return
-    expect([...registered].some((id) => seasonalThemeOf('2026-10-14', (x) => x === id))).toBe(false)
-    for (const day of days) expect(themeOf(day.date), day.date).toBe(day.theme)
+  it('with no seasonal theme registered, the rotation alone equals the committed schedule for all days', () => {
+    for (const day of days) {
+      expect(seasonalThemeOf(day.date, none), day.date).toBeUndefined()
+      expect(rotationThemeOf(day.date), day.date).toBe(day.theme)
+    }
   })
 })
