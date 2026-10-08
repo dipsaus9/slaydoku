@@ -4,7 +4,7 @@ title: Add 19 object types and 38 decor objects to the five regular themes
 status: In Progress
 assignee: []
 created_date: '2026-10-08 14:58'
-updated_date: '2026-10-08 18:36'
+updated_date: '2026-10-08 19:28'
 labels:
   - needs-owner-review
 dependencies:
@@ -79,4 +79,6 @@ Branch: SLAY-19.1/decor-objects
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it. Follow docs/design/looks.md 'How to draw a new object' from SLAY-17.4. Keep new art in new files (src/render/icons/art/decor.tsx, src/render/looks/decorModels.ts) so SLAY-18.x theme stories under src/render/icons/themes/ do not collide. The final regeneration of all future days is SLAY-18.10; do not regenerate the schedule here. If something in the list cannot be drawn clearly at one cell, say so in the PR and propose a replacement rather than shipping a confusable icon.
 
 Delivered on PR #165 (branch SLAY-19.1/decor-objects), label needs-owner-review; waiting for the owner's visual approval before the full suite, verify:phone and the review gate. 31 new kinds (3 of the listed 38 are the existing houseplant, 4 dropped for honest naming: table lamp, laundry basket, lab table, bird bath). Variety 200 scenes: distinct kinds per room home 2.45→2.78, office 2.64→2.85, school 2.53→2.70, park 2.92→3.00, shop 2.67→2.72; chairs ≤13.3%. No new facing rule. Dev server for the owner: http://localhost:5519/ (/lab generates boards with the new kinds).
+
+Owner approved the look (Akkoord). Full suite green with --maxWorkers=1 (162 files, 3672 tests) at a4bffc6 after four test fixes: decor.test.ts (no Dutch article literal, 120 s budget), hints.fixture.ts (hard fixture skips a seed whose level-3 hint exceeds 400 chars), lab.test.tsx seed 101→102 (101 now scores 8, outside very-easy), explanations.test.ts intersect regex accepts several shared squares. verify:phone and the review gate still to run.
 <!-- SECTION:NOTES:END -->
