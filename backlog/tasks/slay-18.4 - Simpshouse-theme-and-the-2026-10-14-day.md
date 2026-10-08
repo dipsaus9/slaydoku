@@ -4,7 +4,7 @@ title: Simpshouse theme and the 2026-10-14 day
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 13:37'
+updated_date: '2026-10-08 13:38'
 labels:
   - needs-owner-review
 dependencies:
@@ -65,4 +65,6 @@ AC 2 says no Pokemon names or logos anywhere; the owner decided on 2026-10-08 th
 Ships before the approved 3D look (deadline 2026-10-14) in the current look; SLAY-17.4 redraws its art afterwards, so keep each new object a separate, self-contained drawing.
 
 Deviation: vanity footprints 2x1/3x1 (desk needs 2-3 cells). Gate: THEMED_DAY_SHARED_NAMES=1. Screenshots in docs/verification/simpshouse-day/. Owner approval (AC 6) left open.
+
+Review gate: pass. Advisory: THEMED_DAY_SHARED_NAMES applies to any themed cast pool, not only Simpshouse; owner to confirm.
 <!-- SECTION:NOTES:END -->
