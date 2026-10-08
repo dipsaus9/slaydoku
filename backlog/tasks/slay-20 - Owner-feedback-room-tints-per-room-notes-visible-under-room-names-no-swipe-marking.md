@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-10-08 19:19'
-updated_date: '2026-10-08 19:49'
+updated_date: '2026-10-08 20:04'
 labels:
   - story
   - needs-owner-review
@@ -14,6 +14,7 @@ dependencies: []
 references:
   - src/render/scene/roomStyles.ts
   - src/render/scene/roomStyles.test.ts
+  - src/render/scene/geometry.test.ts
   - src/render/scene/layers/
   - src/render/scene/labels.ts
   - src/render/scene/labels.test.ts
@@ -66,4 +67,6 @@ Gesture: drop the painting phase from gesture.ts (a press past the slop does not
 
 <!-- SECTION:NOTES:BEGIN -->
 Quick-fix-first pass (2026-10-08): tints by room-map colouring, notes in their own layer above room names with a name over noted squares fading to 0.5, multi-square swipe removed (unzoomed board touch-action pan-y). Lint, typecheck and the tests of src/render, src/ui, src/share, src/content/help green (1309). docs/verification/slay20.ts: 54 checks green on 6 days (9x9 shop/home/park, 12x12 simpshouse/school/park) at 360, 390, 1280. Full suite, verify:phone (AC 3, 5) and the review gate wait for the owner's approval.
+
+Owner round 2 on PR #171 (tints too alike): shared 13-tint Lab lattice (>= 18 delta E apart, hue shifts), greedy most-constrained colouring with FAR_ENOUGH 26; schedule test requires every touching pair >= 18 (closest 26.5). slay20.ts 54/54 again; screenshots re-rendered with a before/after pair.
 <!-- SECTION:NOTES:END -->
