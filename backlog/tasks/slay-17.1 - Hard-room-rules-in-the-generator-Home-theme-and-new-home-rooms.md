@@ -15,6 +15,9 @@ references:
   - src/engine/scenegen/
   - src/content/themes/rooms.test.ts
   - docs/authoring/
+  - src/game/hints.fixture.ts
+  - src/game/hints.test.ts
+  - src/ui/lab/lab.test.tsx
 parent_task_id: SLAY-17
 type: feature
 ordinal: 118000
