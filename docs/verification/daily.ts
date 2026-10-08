@@ -44,7 +44,7 @@ export const seedStorage = (date: string, helpSeen = true, locale?: Locale): str
     `localStorage.setItem(${JSON.stringify(DATE_KEY)}, ${JSON.stringify(date)})`,
     // Dismissed "far in the future", so the notice stays away whatever clock the date override sets.
     `localStorage.setItem(${JSON.stringify(INSTALL_DISMISSED_KEY)}, '{"at":4102444800000}')`,
-    ...(helpSeen ?[`localStorage.setItem(${JSON.stringify(HELP_SEEN_KEY)}, '{"version":${help.version}}')`] : []),
+    ...(helpSeen ? [`localStorage.setItem(${JSON.stringify(HELP_SEEN_KEY)}, '{"version":${help.version}}')`] : []),
     ...(locale ? [`localStorage.setItem(${JSON.stringify(LOCALE_KEY)}, ${JSON.stringify(locale)})`] : []),
   ].join('; ')
 
