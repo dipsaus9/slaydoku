@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-10-08 20:03'
-updated_date: '2026-10-08 21:34'
+updated_date: '2026-10-08 22:06'
 labels:
   - story
   - needs-owner-review
@@ -29,6 +29,14 @@ references:
   - docs/design/looks-shots/
   - docs/launch.md
   - CLAUDE.md
+  - docs/handoff.md
+  - src/content/themes/decor.test.ts
+  - src/engine/solvable/tiers.ts
+  - src/engine/solvable/tiers.test.ts
+  - src/schedule/cast.simpshouse.test.ts
+  - src/schedule/check.ts
+  - src/schedule/gates.ts
+  - src/schedule/schedule.test.ts
 type: feature
 ordinal: 143000
 ---
@@ -65,4 +73,6 @@ MERGED 2026-10-08 (owner: optimise stories, merge to avoid generating and testin
 
 <!-- SECTION:NOTES:BEGIN -->
 Generation sweep (validate:generation --seeds 10 --start 52000 --sizes 6,7,8,9 --tiers all --themes all): 1189/1440 seeds pass every gate, 0 wrong puzzles; hard 6x6 57/60, 7x7 55/60, 8x8 48/60; only 9-very-easy-park under the tool's 25% (2/10; 30 seeds: 20% vs 33% on main, variety gate). 9x9 very-easy yield fell for park/school/shop with the cap (main 33/57/60% -> 20/37/33% on 30 seeds), rose for home/office/simpshouse; with 50 seeds per day a day runs dry with p ~ 1e-5. Rendered hint walk of a 6x6 hard park puzzle: 11 hints, on-screen text equals the mirrored nextStep every step, solved. Planned table levels 1-100: 6x6 16, 7x7 34, 8x8 27, 9x9 21, 12x12 2 (played day 12 and kept 2026-10-14); very-easy 11, easy 24, easy-medium 26, medium 18, hard 8, expert 13.
+
+Review (story-reviewer, round 1): BLOCK on AC8 only: distinct kinds per room fell below the SLAY-19.1 baseline in park (2.69 vs 2.89) and shop (2.60 vs 2.73) because the cap leaves fewer objects per room (park 2.75 objects/room cannot hold 2.89 distinct kinds). Needs an owner decision: accept the distinct-share metric (rose in every theme) or loosen the cap. ACs 1-7 and 9 met, no scope violations after widening References (check.ts, gates.ts, schedule/cast tests, tiers.ts/test, decor.test.ts, handoff). Advisories fixed in ba7c13a (constant assertion removed, slow sweep bare==0, handoff notes on 9x9 very-easy yield and closets). Verification: lint, typecheck, test (3703 passed), schedule:check (108 days) green; verify:phone 3074 checks + zoom 844x390 rerun 40/40 (first run crashed, transient); test:slow 66/67, the failure (16x16 benchmark fixture byte-for-byte regeneration) fails on main 0650617 too.
 <!-- SECTION:NOTES:END -->
