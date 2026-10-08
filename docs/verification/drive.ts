@@ -1,6 +1,5 @@
 // Verification driver for the daily flow (SLAY-1.5; About page checks added in SLAY-1.10).
-// Drives headless Chrome over the DevTools protocol with touch emulation. The app runs on the dev-only date override (2026-11-21 = puzzle
-// #4, see daily.ts): it checks the start screen in its states (new day, continue, solved, before the launch, after the last day, the
+// Drives headless Chrome over the DevTools protocol with touch emulation. The app runs on the dev-only date override (PLAY_DATE of daily.ts, 2026-10-15): it checks the start screen in its states (new day, continue, solved, before the launch, after the last day, the
 // override refused on another host), the clean URLs (/, /play, /play/<n>, old /level/... paths, unknown paths, old #/ links), the
 // first-visit help card on the first Play, and plays that day end to end through the real UI (notes, undo, X, placement, hints, help,
 // options, reload, rotation, clear-all, a wrong board, the solve), then checks the result written for the day and that a solved day
@@ -17,6 +16,7 @@ import { mkdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { deriveMurderer } from '../../src/engine/model/index.ts'
+import { addDays } from '../../src/schedule/dates.ts'
 import { DAILY_STRINGS } from '../../src/ui/daily/strings.ts'
 import { AFTER_DATE, DATE_KEY, PLAY_DATE, PRELAUNCH_DATE, RESULTS_KEY, dayOn, seedStorage } from './daily.ts'
 
@@ -163,9 +163,11 @@ interface PuzzleJson {
 }
 // The puzzle of the day under test, from the committed schedule (names are baked into the day: the screens show the same names).
 const puzzle = DAY.puzzle as unknown as PuzzleJson
+/** The day after the day under test: the rollover target and the "next day" scenario. */
+const NEXT_DATE = addDays(DAY.date, 1)
 
 const selectedName = () =>
-  evaluate(`(document.querySelector('.play-cards[data-victim-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
+  evaluate(`(document.querySelector('.polaroid--victim[data-selected]') ? 'The victim' : document.querySelector('.polaroid[data-selected] .polaroid__name')?.textContent) ?? 'NONE'`) as Promise<string>
 // A suspect's own card, scrolled into view first (the cards column can be a small touch-scrolled
 // area): used only to recover the selection (see placeAll below), since a normal placement follows
 // whichever card the app already auto-advanced to.
@@ -217,8 +219,20 @@ async function placeAll(puzzle: PuzzleJson, swap = false, limit = Infinity) {
     remaining.delete(pid)
     placed++
   }
+  // The victim is placed by the player too (SLAY-9.24): once every suspect stands on the grid the selection moves to the victim's
+  // card, and a long press on the victim's own solution square puts them there. That completes the board, so the app checks it.
+  if (placed === suspects.length) {
+    const victim = puzzle.people.find((p) => p.kind === 'victim')
+    const cell = victim && cellOf.get(victim.id)
+    if (!cell) return false
+    if ((await count('.polaroid--victim[data-selected]')) !== 1) return false
+    const r = await rectOf(cellSel(cell.row, cell.col))
+    if (!r) return false
+    await hold(r.x, r.y, 650)
+    await sleep(200)
+    if ((await count('.play-cards[data-victim-placed]')) !== 1) return false
+  }
   await sleep(700)
-  if (swap && placed === suspects.length && (await count('.play-cards[data-victim-placed]')) !== 1) return false
   return true
 }
 
@@ -277,7 +291,9 @@ async function checkHeaderLayout(label: string) {
   const { back, title, timer } = h.parts
   const act0 = names.find((n) => n.startsWith('action'))
   if (back && title && timer && act0) {
-    if (h.iw <= 640 && h.ih > h.iw) check(`${label}: phone layout is two rows (back + icons above, title + timer below)`, title.t >= back.b - 1 && timer.t >= h.parts[act0].b - 1, JSON.stringify(h.parts))
+    // Two rows on a portrait phone and in a short landscape column (SLAY-14.4, play.css); one row from 641px otherwise.
+    const twoRows = (h.iw <= 640 && h.ih > h.iw) || (h.iw > h.ih && h.ih <= 500)
+    if (twoRows) check(`${label}: phone layout is two rows (back + icons above, title + timer below)`, title.t >= back.b - 1 && timer.t >= h.parts[act0].b - 1, JSON.stringify(h.parts))
     else if (h.iw >= 641) check(`${label}: desktop layout is one row`, Math.abs((title.t + title.b) / 2 - (back.t + back.b) / 2) < 8 && Math.abs((timer.t + timer.b) / 2 - (back.t + back.b) / 2) < 8, JSON.stringify(h.parts))
   }
   if (h.moreVisible) check(`${label}: the More trigger carries a visible label, not a bare "..." icon`, !!h.moreLabel && h.moreLabel.trim().length > 0, JSON.stringify(h.moreLabel))
@@ -308,7 +324,7 @@ async function startScreen() {
   await load('')
   // The byline no longer carries a second, always-English long-date segment alongside the puzzle
   // label (SLAY-9.15): the label itself already spells the date ("Puzzle of 21 November").
-  check('start screen: puzzle label, difficulty and grid size', (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date) && /^Difficulty: Hard$/.test(await textOf('[data-tier]')) && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
+  check('start screen: puzzle label, difficulty and grid size', (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date) && (await textOf('[data-tier]')) === `${DAILY_STRINGS.en.difficulty}: ${DAILY_STRINGS.en.tier[DAY.tier!]}` && (await textOf('[data-size]')) === `${DAY.size} \u00d7 ${DAY.size} grid`, `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')}`)
   const play = await rectOf('[data-action=play]')
   check('start screen: one Play button, a big touch target', (await count('[data-action]')) === 1 && (await textOf('[data-action]')) === 'Play' && !!play && play.h >= 44 && play.w >= 44, JSON.stringify(play))
   check('start screen: no puzzle board and no how-it-works card before Play', (await count('.play-board')) === 0 && (await count('.play-modal')) === 0)
@@ -319,10 +335,8 @@ async function startScreen() {
   check('start screen: the countdown ticks every second', t0 !== null && t1 !== null && t0 - t1 >= 2 && t0 - t1 <= 4, `${t0} -> ${t1}`)
   const timer = (await evaluate(`(() => { const t = document.querySelector('[data-countdown=ends] time'); return { role: t.getAttribute('role'), label: t.getAttribute('aria-label'), live: t.getAttribute('aria-live') } })()`)) as { role: string; label: string; live: string }
   check('start screen: the countdown is a timer with a spoken label, not announced every second', timer.role === 'timer' && /^11 hours.* left$/.test(timer.label) && timer.live === 'off', JSON.stringify(timer))
-  const untilText = await textOf('[data-until]')
-  // Reference instant: one day after PLAY_DATE at midnight UTC, same as the page's own dayEnd — must stay in the same DST season as PLAY_DATE.
-  const localWant = (await evaluate(`new Date(Date.UTC(2026, 10, 22, 0, 0)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })`)) as string
-  check('start screen: "Ends at 00:00 UTC (HH:MM Amsterdam time)", the same for every visitor', untilText === (localWant === '00:00' ? 'Ends at 00:00 UTC' : `Ends at 00:00 UTC (${localWant} Amsterdam time)`), `${untilText} (Amsterdam says ${localWant})`)
+  // SLAY-14.2: the unsolved screen no longer prints the "Ends at 00:00 UTC (HH:MM Amsterdam time)" line; only the countdown stays.
+  check('start screen: no "Ends at 00:00 UTC" line on the unsolved screen, only the countdown', (await count('[data-until]')) === 0 && (await count('[data-countdown=ends]')) === 1, await textOf('[data-countdown=ends]'))
   const lay = await layoutProbe()
   check('start screen fits the viewport, no sideways scroll', lay.sw <= lay.iw, `scrollWidth=${lay.sw} innerWidth=${lay.iw}`)
   check('start screen keeps the About link and the Help link', (await evaluate(`document.querySelector('.daily__about')?.getAttribute('href')`)) === '/about' && (await count('.daily__help')) === 1)
@@ -420,9 +434,9 @@ async function routing() {
   // The About page (SLAY-1.10): its five sections (a Support section since SLAY-9.22), the credit, the privacy line, the licence, and it fits the screen.
   const aboutText = (await evaluate(`document.querySelector('.about').innerText`)) as string
   check(
-    'About page: title, tagline and the sections How it works, Credit, Privacy, Open source and Support',
-    ['About Slaydoku', 'A new murder mystery puzzle every day', 'How it works', 'Credit', 'Privacy', 'Open source', 'Support Slaydoku'].every((t) => aboutText.includes(t)) &&
-      (await count('.about__section')) === 5,
+    'About page: title, tagline and the sections How it works, Credit, Privacy, Daily reminder, Open source and Support',
+    ['About Slaydoku', 'A new murder mystery puzzle every day', 'How it works', 'Credit', 'Privacy', 'Daily reminder', 'Open source', 'Support Slaydoku'].every((t) => aboutText.includes(t)) &&
+      (await count('.about__section')) === 6,
   )
   check(
     'About page: credits Murdoku by Manuel Garand, states the anonymous-counting privacy line, names the MIT license',
@@ -759,8 +773,8 @@ async function playDay(first: boolean, w: number, h: number) {
   check('the stored result did not change after reopening the solved day', JSON.stringify(again) === JSON.stringify(result))
 
   // The next day: a new puzzle, the result of the day before stays.
-  const next = dayOn('2026-11-22')
-  await evaluate(`localStorage.setItem(${JSON.stringify(DATE_KEY)}, '2026-11-22')`)
+  const next = dayOn(NEXT_DATE)
+  await evaluate(`localStorage.setItem(${JSON.stringify(DATE_KEY)}, ${JSON.stringify(NEXT_DATE)})`)
   await load('')
   check(`the next day shows a new puzzle (${next.date}), not solved`, (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && (await count('[data-action]')) === 1 && (await count('[data-result=solved]')) === 0, await textOf('[data-puzzle-number]'))
   const kept = JSON.parse(String(await evaluate(`localStorage.getItem(${JSON.stringify(RESULTS_KEY)})`))).results[String(DAY.n)]
@@ -771,10 +785,10 @@ async function playDay(first: boolean, w: number, h: number) {
 // Midnight rollover (SLAY-1.5): the clock starts 5 seconds before 00:00 UTC of the next day (date override with a time) and passes it while the page is open.
 async function rollover() {
   ctx.level = 'rollover'
-  const next = dayOn('2026-11-22')
+  const next = dayOn(NEXT_DATE)
   const key = `slaydoku:game:daily-${DAY.n}`
   // (1) In the middle of a puzzle: the player keeps the puzzle, the notice offers the new one.
-  await resetStorage('2026-11-21T23:59:55', true)
+  await resetStorage(`${DAY.date}T23:59:55`, true)
   await load('play')
   const spot = puzzle.solution[2]!.cell
   await tapSel(cellSel(spot.row, spot.col))
@@ -804,7 +818,7 @@ async function rollover() {
   check('Play now opens the new puzzle', (await path()) === '/play' && (await textOf('[data-play-title]')) === DAILY_STRINGS.en.puzzleLabel(next.date) && (await count('[data-note]')) === 0)
 
   // (2) On the start screen with a solved day: the result stays, the notice loads the new day.
-  await resetStorage('2026-11-21T23:59:55', true)
+  await resetStorage(`${DAY.date}T23:59:55`, true)
   await evaluate(`localStorage.setItem(${JSON.stringify(RESULTS_KEY)}, JSON.stringify({ version: 1, results: { ${DAY.n}: { n: ${DAY.n}, date: ${JSON.stringify(DAY.date)}, fp: ${JSON.stringify(DAY.fp)}, elapsedMs: 754000, hints: 2, wrongChecks: 1, murdererId: ${JSON.stringify(deriveMurderer(DAY.puzzle, DAY.puzzle.solution))} } } }))`)
   await load('')
   check('start screen of a solved day before midnight: the result shows', (await count('[data-result=solved]')) === 1 && /Time: 12:34/.test(await startText()) && /2 hints/.test(await startText()))

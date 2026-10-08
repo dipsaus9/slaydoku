@@ -213,7 +213,9 @@ async function checkHeaderLayout(label: string) {
   const { back, title, timer } = h.parts
   const act0 = names.find((n) => n.startsWith('action'))
   if (back && title && timer && act0) {
-    if (h.iw <= 640 && h.ih > h.iw) check(`${label}: phone layout is two rows (back + icons above, title + timer below)`, title.t >= back.b - 1 && timer.t >= h.parts[act0].b - 1, JSON.stringify(h.parts))
+    // Two rows on a portrait phone and in a short landscape column (SLAY-14.4, play.css); one row from 641px otherwise.
+    const twoRows = (h.iw <= 640 && h.ih > h.iw) || (h.iw > h.ih && h.ih <= 500)
+    if (twoRows) check(`${label}: phone layout is two rows (back + icons above, title + timer below)`, title.t >= back.b - 1 && timer.t >= h.parts[act0].b - 1, JSON.stringify(h.parts))
     else if (h.iw >= 641) check(`${label}: desktop layout is one row`, Math.abs((title.t + title.b) / 2 - (back.t + back.b) / 2) < 8 && Math.abs((timer.t + timer.b) / 2 - (back.t + back.b) / 2) < 8, JSON.stringify(h.parts))
   }
   if (h.moreVisible) check(`${label}: the More trigger carries a visible label, not a bare "..." icon`, !!h.moreLabel && h.moreLabel.trim().length > 0, JSON.stringify(h.moreLabel))
@@ -254,7 +256,7 @@ await sleep(1500)
 // open over the toolbar on the first Play and swallow every tap below it.
 await evaluate(`localStorage.clear(); ${seedStorage(PLAY_DATE, true, 'en')}`)
 await load('')
-check('baseline: start screen loads in English', (await textOf('[data-action=play]')) === 'Play' && (await textOf('[data-tier]')) === 'Difficulty: Hard')
+check('baseline: start screen loads in English', (await textOf('[data-action=play]')) === 'Play' && (await textOf('[data-tier]')) === `Difficulty: ${DAILY_STRINGS.en.tier[DAY.tier!]}`)
 // SLAY-9.22: the footer's About and Support links, English baseline (the Dutch switch is checked further down).
 check(
   'baseline footer: About Slaydoku and Support Slaydoku, in English',
@@ -275,14 +277,14 @@ check('switching the toggle persists the choice (localStorage)', (await localeKe
 check(
   'start screen reads in Dutch after the switch: puzzle label, difficulty, size, Play button',
   (await textOf('[data-puzzle-number]')) === DAILY_STRINGS.nl.puzzleLabel(DAY.date) &&
-    (await textOf('[data-tier]')) === 'Moeilijkheid: Moeilijk' &&
+    (await textOf('[data-tier]')) === `Moeilijkheid: ${DAILY_STRINGS.nl.tier[DAY.tier!]}` &&
     (await textOf('[data-size]')) === `${DAY.size} × ${DAY.size} raster` &&
     (await textOf('[data-action=play]')) === 'Spelen',
   `${await textOf('[data-puzzle-number]')} | ${await textOf('[data-tier]')} | ${await textOf('[data-size]')} | ${await textOf('[data-action=play]')}`,
 )
 check(
   'no leftover English on the switched start screen',
-  (await textOf('[data-tier]')) !== 'Difficulty: Hard' && (await textOf('[data-action=play]')) !== 'Play',
+  (await textOf('[data-tier]')) !== `Difficulty: ${DAILY_STRINGS.en.tier[DAY.tier!]}` && (await textOf('[data-action=play]')) !== 'Play',
 )
 // SLAY-9.22: the footer reads in Dutch after the switch too, same quiet weight (same class), same GitHub Sponsors URL.
 check(
@@ -351,11 +353,15 @@ check('the hint bar closes', (await count('.play-hint')) === 0)
 // SLAY-9.25: the unsolved header (timer, Legend, More), in Dutch.
 await checkHeaderLayout('unsolved (3-icon), Dutch')
 
-await tool('Meer')
-const moreLabels = (await evaluate(`JSON.stringify([...document.querySelectorAll('.play-more .play-tool__label')].map(l => l.textContent))`).then((s) => JSON.parse(s as string))) as string[]
+// From 641px the More trigger is hidden and Options/Help sit directly in the header (SLAY-9.2); below that they are behind "Meer".
+const moreBehindTrigger = (await evaluate(`(() => { const e = document.querySelector('.play-header__more'); return !!e && e.offsetParent !== null })()`)) as boolean
+if (moreBehindTrigger) await tool('Meer')
+const moreLabels = (await evaluate(`JSON.stringify([...document.querySelectorAll(${JSON.stringify(moreBehindTrigger ? '.play-more .play-tool__label' : '.play-header__quick .play-tool__label')})].map(l => l.textContent))`).then((s) => JSON.parse(s as string))) as string[]
 check("the header's settings sheet reads in Dutch: Opties, Help (Legenda has its own header icon, SLAY-8.2)", JSON.stringify(moreLabels) === JSON.stringify(['Opties', 'Help']), moreLabels.join())
-await tap(3, 3)
-await sleep(300)
+if (moreBehindTrigger) {
+  await tap(3, 3)
+  await sleep(300)
+}
 
 // SLAY-9.25: the header's 4-icon state (once solved and dismissed, the persistent Share icon joins
 // timer/Legend/More), in Dutch -- reached by seeding a fully-correct saved board directly
@@ -367,6 +373,8 @@ const solvedFp = puzzleFingerprint(DAY.puzzle)
 const solvedPlacements: Record<string, { row: number; col: number }> = {}
 for (const s of DAY.puzzle.solution) solvedPlacements[s.personId] = s.cell
 const solvedSave = JSON.stringify({ version: SAVE_VERSION, levelId: solvedId, fp: solvedFp, board: { placements: solvedPlacements, notes: {}, marks: {} }, elapsedMs: 754000 })
+// Leave the play screen first: it saves its own board when the page goes away, which would overwrite the seed (the header checks above ran on it).
+await load('about')
 await evaluate(`localStorage.setItem(${JSON.stringify(saveKey(solvedId))}, ${JSON.stringify(solvedSave)})`)
 await load('play')
 check('the seeded board opens already solved, in Dutch ("Opgelost!")', (await count('[data-result=solved]')) === 1 && (await textOf('.play-modal__title')) === 'Opgelost!')
@@ -426,14 +434,14 @@ await tapSel('[data-slot=share] [data-action=share]')
 check(
   'the reopened Share panel reads in Dutch: title, the fallback buttons (no navigator.share in headless Chrome), the privacy note',
   (await textOf('.share__title')) === 'Deel je resultaat' &&
-    (await textOf('[data-action=copy]')) === 'Tekst kopiëren' &&
+    (await textOf('[data-action=copy]')) === 'Kopiëren' &&
     (await textOf('[data-action=download]')) === 'Afbeelding downloaden' &&
     (await textOf('.share__note')) === 'Er verlaat niets je apparaat, tenzij je het deelt.',
   `title="${await textOf('.share__title')}" copy="${await textOf('[data-action=copy]')}" download="${await textOf('[data-action=download]')}"`,
 )
 check(
   'no leftover English on the Share panel',
-  (await textOf('.share__title')) !== 'Share your result' && (await textOf('[data-action=copy]')) !== 'Copy text' && (await textOf('[data-action=download]')) !== 'Download image',
+  (await textOf('.share__title')) !== 'Share your result' && (await textOf('[data-action=copy]')) !== 'Copy' && (await textOf('[data-action=download]')) !== 'Download image',
 )
 
 // 6. Object nouns (SLAY-6.2): real Dutch, not the drawn object's English noun, on more than one
