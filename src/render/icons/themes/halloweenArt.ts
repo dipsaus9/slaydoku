@@ -23,7 +23,7 @@ const H = {
   mint: '#9fdcc4',
   straw: '#ead28a',
   strawDark: '#c4a550',
-  sheet: '#fbfbf8',
+  sheet: '#f4f3fb',
   bark: '#6b5a52',
   thorn: '#3f5a3c',
   berry: '#c0394a',
@@ -73,11 +73,11 @@ export function ghost(): SolidModel {
     ball(50, 50, 58, 26, H.sheet),
     ball(23, 54, 44, 7, H.sheet),
     ball(77, 54, 44, 7, H.sheet),
-    ball(40, 62, 81, 4.5, C.ink),
-    ball(60, 62, 81, 4.5, C.ink),
-    ball(50, 70, 73, 4, C.ink),
-    ball(31, 66, 74, 3.2, C.pink),
-    ball(69, 66, 74, 3.2, C.pink),
+    ball(41, 63, 81, 3.2, C.ink),
+    ball(59, 63, 81, 3.2, C.ink),
+    ball(50, 71, 72, 2.6, C.redDark),
+    ball(32, 67, 74, 4.2, C.pink),
+    ball(68, 67, 74, 4.2, C.pink),
   ])
 }
 
