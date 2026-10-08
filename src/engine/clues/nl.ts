@@ -1,3 +1,4 @@
+import { drawnKinds, specificNoun } from '../../content/themes/drawn.ts'
 import { roomNameNlOf } from '../../content/themes/index.ts'
 import type { ObjectType, Side } from '../model/index.ts'
 import { isRelationalClue } from './relational/types.ts'
@@ -12,17 +13,15 @@ import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './type
  * house style: short sentences, no gendered pronoun (gender is a noun, "man"/"vrouw"), squares
  * counted "rij 3, kolom 4" from the top and the left, the same as the board's axis labels.
  *
- * Object nouns are real Dutch as of SLAY-6.2 (`OBJECT_WORDS_NL`, `nounNl` below): every mention of
- * an `ObjectType` in a Dutch sentence names its one real Dutch noun ("stoel", "boekenkast", ...),
- * regardless of which specific kind the board drew there. This is deliberately simpler than `en.ts`: English
- * distinguishes the *specific* theme kind a room draws when more than one look-alike exists
- * ("a garden chair or a poof", `objectNouns`) because every theme kind's own name is real English;
- * no theme kind has a Dutch name yet (the Legend and the noun audit, `objectNames.ts`, are
- * English-only), so a Dutch sentence naming that same specific kind would have to say it in
- * English — the previous, pre-SLAY-6.2 behaviour this story reverses. Naming the type's own generic
- * Dutch noun instead, always, keeps every Dutch clue and hint in real Dutch; giving Dutch its own
- * per-kind theme nouns (so it can draw the same "which one" distinction English does) is a
- * follow-up story's job, not this one's (see the story's implementation notes). Room nouns are
+ * Object nouns are real Dutch (SLAY-6.2, SLAY-17.4) and follow what the board draws, exactly like
+ * `en.ts`'s `objectNouns`: every theme kind carries its own Dutch noun (`ThemeObject.nameNl`), so a
+ * Dutch sentence names the specific kind the room drew ("naast een lavalamp", "een leeskleed of een
+ * sportmat", `objectNounsNl`), and the type's one generic Dutch noun (`OBJECT_WORDS_NL`:
+ * "stoel", "kleed", ...) is used only where English uses its generic noun too: for a group of
+ * kinds drawn alike, for a plain engine object (a house level) and for a bare scene without
+ * objects. Before SLAY-17.4 Dutch always said the generic noun, which made a lava lamp read as
+ * "plant" and a filing cabinet as "kast" (owner report). The Legend (`ui/help/legend.ts`) and the
+ * noun audit (`objectNames.ts`) use the same nouns, in both languages. Room nouns are
  * real Dutch (`roomNameNl` below, SLAY-5.2): a `Scene` carries no `themeId` (adding one would
  * change the committed, byte-identical schedule data), so the room's stored English `name` is
  * looked up in `roomNameNlOf` (content/themes/index.ts, built from every theme's
@@ -62,7 +61,7 @@ const OBJECT_NOUNS_NL: Record<ObjectType, { noun: string; gender: 'de' | 'het' }
   bookshelf: { noun: 'boekenkast', gender: 'de' },
   chest: { noun: 'kist', gender: 'de' },
   tree: { noun: 'boom', gender: 'de' },
-  flowers: { noun: 'bloembed', gender: 'het' },
+  flowers: { noun: 'bloemperk', gender: 'het' },
   easel: { noun: 'schildersezel', gender: 'de' },
   statue: { noun: 'standbeeld', gender: 'het' },
   washingMachine: { noun: 'wasmachine', gender: 'de' },
@@ -70,7 +69,8 @@ const OBJECT_NOUNS_NL: Record<ObjectType, { noun: string; gender: 'de' | 'het' }
   cabinet: { noun: 'kast', gender: 'de' },
   stairs: { noun: 'trap', gender: 'de' },
   toilet: { noun: 'wc', gender: 'de' },
-  sink: { noun: 'gootsteen', gender: 'de' },
+  // The sink art is a bathroom basin with a tap (a washbasin), not a kitchen sink: "wasbak", never "gootsteen".
+  sink: { noun: 'wasbak', gender: 'de' },
   shower: { noun: 'douche', gender: 'de' },
   desk: { noun: 'bureau', gender: 'het' },
   wardrobe: { noun: 'kledingkast', gender: 'de' },
@@ -78,7 +78,8 @@ const OBJECT_NOUNS_NL: Record<ObjectType, { noun: string; gender: 'de' | 'het' }
   kitchenCounter: { noun: 'aanrecht', gender: 'het' },
   bicycle: { noun: 'fiets', gender: 'de' },
   gardenTable: { noun: 'tuintafel', gender: 'de' },
-  bench: { noun: 'tuinbank', gender: 'de' },
+  // A plain bench to sit on; "bankje" (not "bank", which is the sofa) so the two engine types never share a word.
+  bench: { noun: 'bankje', gender: 'het' },
 }
 
 /** The Dutch counterpart of `OBJECT_WORDS`: real Dutch noun and gender (`OBJECT_NOUNS_NL`), translated preposition and verb. */
@@ -133,18 +134,27 @@ const COUNT_WORDS_NL = ['nul', 'een', 'twee', 'drie', 'vier', 'vijf', 'zes', 'ze
 export const countWordNl = (n: number): string => COUNT_WORDS_NL[n] ?? String(n)
 
 /**
- * The Dutch noun of an `ObjectType`, always the real generic word (`OBJECT_WORDS_NL`) — see file
- * header for why Dutch never names the specific theme kind the board drew, unlike `en.ts`'s
- * `objectNouns`. `anObjectNl`/`bareObjectNl` still take `ctx` (unused) so every call site keeps the
- * same shape as its `en.ts` counterpart.
+ * The Dutch nouns that name the objects of engine type `type` on the board, one per differently
+ * drawn kind: ["leeskleed", "sportmat"]. The Dutch counterpart of `objectNouns` (en.ts), built from
+ * the same drawn groups (`drawnKinds`): a group of kinds that look alike, a plain engine object
+ * and a scene without the type get the generic noun (`OBJECT_WORDS_NL`).
  */
-const nounNl = (type: ObjectType): string => OBJECT_WORDS_NL[type].noun
+export function objectNounsNl(objects: RenderContext['scene']['objects'], type: ObjectType): string[] {
+  const generic = OBJECT_WORDS_NL[type].noun
+  const nouns = drawnKinds(objects ?? [], type).map((group) => specificNoun(group, 'nl') ?? generic)
+  return nouns.length > 0 ? [...new Set(nouns)] : [generic]
+}
 
-/** "een stoel": the object's Dutch noun with its article. */
-const anObjectNl = (_ctx: RenderContext, type: ObjectType): string => withArticleNl(nounNl(type))
+/** "leeskleed", "leeskleed of sportmat", "stoel, kruk of poef". */
+function joinOfNl(words: string[]): string {
+  return words.length < 2 ? (words[0] ?? '') : `${words.slice(0, -1).join(', ')} of ${words[words.length - 1]}`
+}
 
-/** The noun without an article, for "precies één stoel". */
-const bareObjectNl = (_ctx: RenderContext, type: ObjectType): string => nounNl(type)
+/** "een stoel", "een leeskleed of een sportmat": every drawn kind of the type, each with its article. */
+const anObjectNl = (ctx: RenderContext, type: ObjectType): string => joinOfNl(objectNounsNl(ctx.scene.objects, type).map(withArticleNl))
+
+/** The nouns without an article, for "precies één leeskleed of sportmat". */
+const bareObjectNl = (ctx: RenderContext, type: ObjectType): string => joinOfNl(objectNounsNl(ctx.scene.objects, type))
 
 /**
  * A person's Dutch display name. Every stored label is used as-is, except the one exact string

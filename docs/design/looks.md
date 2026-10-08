@@ -159,7 +159,7 @@ Known limit of the view: a tall piece turned so that its long side runs north to
 
 For the theme stories SLAY-18.6 to 18.9 and anything after. Do the steps in this order; the look-completeness test (`src/render/looks/completeness.test.tsx`) fails by kind name until step 3 is done.
 
-1. **Footprints.** Add the id to `THEME_ICON_IDS` (`src/render/icons/themes/types.ts`) and its footprints to `THEME_ICON_DEFINITIONS` (`themes/registry.ts`), and the `ThemeObject` with `themeIcon` in the theme. An object with no own art uses the model of its `engineType`.
+1. **Footprints and names.** Add the id to `THEME_ICON_IDS` (`src/render/icons/themes/types.ts`) and its footprints to `THEME_ICON_DEFINITIONS` (`themes/registry.ts`), and the `ThemeObject` with `themeIcon` in the theme. An object with no own art uses the model of its `engineType`. The `ThemeObject` needs an English `name` and a Dutch `nameNl` (required, SLAY-17.4): the real noun of exactly what you draw, singular, no article ("lavalamp", not "plant"; see `docs/authoring/theme-and-icons.md`, job A). The Dutch cards and the Dutch Legend say that word; `themes.test.ts` fails a kind without it.
 2. **Draw the model** in a `models*.ts` file as a function `(cols, rows) => SolidModel` and list it in `THEME_MODELS` (or `ENGINE_MODELS`): the type checker fails a missing id.
 3. **Check the sheet:** `bun tools/icon-sheet.ts /tmp/sheet.html`, open it. Your kind must show in all 8 orientations (section per footprint), in its theme card and, if it can be mistaken for something, in the phone-size strip (add a group to `CONFUSABLE_GROUPS`).
 

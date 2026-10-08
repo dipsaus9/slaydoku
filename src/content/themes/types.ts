@@ -35,6 +35,14 @@ export interface ThemeObject {
   kind: string
   /** Display name, for legends and clue text. */
   name: string
+  /**
+   * The real Dutch noun of this kind (SLAY-17.4), singular, lower case, no article, as a Dutch clue
+   * says it after "een" and the Dutch Legend shows it: "lavalamp", "archiefkast", "kluisje" for
+   * `lockers`. The counterpart of `clueNoun ?? name`, never of the engine type's generic noun
+   * (`OBJECT_WORDS_NL`): it must name exactly what the board draws for this kind, so a lava lamp
+   * never reads as "plant". `themes.test.ts` requires one for every kind.
+   */
+  nameNl: string
   engineType: ObjectType
   /** Copied from the engine catalog for `engineType`; a person can stand on it. */
   occupiable: boolean

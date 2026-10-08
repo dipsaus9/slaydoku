@@ -58,9 +58,10 @@ export function toSceneTheme(draft: SeasonalTheme): SceneTheme {
 }
 
 /**
- * Dutch words for the object kinds. The engine has none per kind yet (`ThemeObject` has no
- * `nameNl`, Dutch clues use the engine type's generic noun, SLAY-6.2); the previews show these so
- * the owner can judge the words, and a follow-up story can give `ThemeObject` the field.
+ * Dutch words for the object kinds, for the previews. Since SLAY-17.4 `ThemeObject.nameNl` is a
+ * required field (Dutch clues and the Dutch Legend name the drawn kind, `docs/authoring/theme-and-icons.md`
+ * job A): when a draft is promoted to `src/content/themes/`, copy each word here into its kind's
+ * `nameNl` (singular, lower case, no article) and let `themes.test.ts` check them.
  */
 export const OBJECT_NAMES_NL: Record<string, string> = {
   rockingChair: 'schommelstoel', hayBale: 'hooibaal', leafPile: 'bladerhoop', wovenRug: 'geweven kleed', bed: 'bed', sofa: 'bank',

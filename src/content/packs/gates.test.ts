@@ -127,6 +127,8 @@ describe('entryProblems: the ladder gates of the tiers very easy to medium (CAD-
     const missing = OBJECT_TYPES.find((type) => !bad.puzzle.scene.objects.some((o) => o.type === type))!
     const card = bad.puzzle.clues.find((c) => (c.args as { objectType?: string } | undefined)?.objectType !== undefined)!
     ;(card.args as { objectType: string }).objectType = missing
-    expect(entryProblems(bad).some((p) => p.startsWith(`${bad.id}: clue noun: card `))).toBe(true)
+    // reported in both languages (SLAY-17.4: the Dutch nouns pass the same audit)
+    expect(entryProblems(bad).some((p) => p.startsWith(`${bad.id}: clue noun: en: card `))).toBe(true)
+    expect(entryProblems(bad).some((p) => p.startsWith(`${bad.id}: clue noun: nl: card `))).toBe(true)
   })
 })

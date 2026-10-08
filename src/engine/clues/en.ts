@@ -24,8 +24,8 @@ import type { BothClue, CatalogClue, LinePosition, StructuralClue } from './type
  * from the left.
  *
  * Objects are named by what the board draws: the theme object noun ("a garden chair", "a
- * poof"), never a group noun that hides differently drawn kinds. See `objectNouns`. Both
- * locales use the same noun — see `nl.ts`'s header for why.
+ * poof"), never a group noun that hides differently drawn kinds. See `objectNouns`; `nl.ts`'s
+ * `objectNounsNl` does the same with every kind's own Dutch noun (SLAY-17.4).
  */
 
 interface ObjectWords {

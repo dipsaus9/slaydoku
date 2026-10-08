@@ -39,17 +39,41 @@ import { bareRoomName } from '../../src/render/scene/labels.ts'
 import { DAILY_STRINGS } from '../../src/ui/daily/strings.ts'
 import { DAYS, PLAY_DATE, RESULTS_KEY, dayOn, seedStorage } from './daily.ts'
 
-/** Independent of `OBJECT_WORDS_NL`: pinned here so a regression in the dictionary this driver is
- * meant to catch (SLAY-6.2) cannot also make its own check pass. A handful of Dutch words happen to
- * spell the same as their English counterpart ("bed", "plant", "tv") — left out, since "no leftover
- * English" cannot be checked for those (there is nothing to tell apart). */
-const EXPECT_NL: Partial<Record<ObjectType, string>> = {
-  chair: 'stoel', rug: 'kleed', sofa: 'bank', car: 'auto', table: 'tafel', bookshelf: 'boekenkast',
-  tree: 'boom', easel: 'schildersezel', desk: 'bureau', wardrobe: 'kledingkast', diningTable: 'eettafel',
-  kitchenCounter: 'aanrecht', bicycle: 'fiets', gardenTable: 'tuintafel', bench: 'tuinbank', toilet: 'wc',
-  sink: 'gootsteen', shower: 'douche', cabinet: 'kast', stairs: 'trap', dryer: 'droger',
-  washingMachine: 'wasmachine', statue: 'standbeeld', flowers: 'bloembed', chest: 'kist', oilSlick: 'olievlek',
-  framedPainting: 'ingelijst schilderij',
+/** Independent of `OBJECT_WORDS_NL` and of the themes' `nameNl`: pinned here so a regression in the
+ * dictionary this driver is meant to catch (SLAY-6.2) cannot also make its own check pass. Per type
+ * the generic Dutch noun first, then the Dutch noun of every theme kind of that type (SLAY-17.4: a
+ * Dutch card names the drawn kind, "tuinstoel", not only "stoel"); a card may say any of them. A
+ * handful of Dutch words happen to spell the same as their English counterpart ("bed", "plant",
+ * "tv") — left out, since "no leftover English" cannot be checked for those (there is nothing to
+ * tell apart). */
+const EXPECT_NL: Partial<Record<ObjectType, string[]>> = {
+  chair: ['stoel', 'vergaderstoel', 'tuinstoel', 'schoolstoel', 'paskruk'],
+  rug: ['kleed', 'sportmat', 'loper', 'vloerkleed', 'picknickkleed', 'zandbak', 'leeskleed', 'showroomkleed', 'karaokepodium', 'rode loper', 'dansvloer', 'leeshoek'],
+  sofa: ['bank', 'hoekbank', 'wachtbank', 'loungebank', 'leesbank', 'showroomhoekbank'],
+  car: ['auto', 'bedrijfsauto', 'schoolbus', 'bestelbus'],
+  table: ['tafel', 'salontafel', 'uitstaltafel', 'kaartentafel', 'bubbelbad', 'dj-booth', 'snacktafel', 'shotjesblad'],
+  diningTable: ['eettafel', 'vergadertafel'],
+  bookshelf: ['boekenkast', 'stelling', 'mappenkast', 'schoenenwand'],
+  chest: ['kist', 'speelgoedkist', 'krat', 'konijnenhok'],
+  wardrobe: ['kledingkast', 'garderobekast', 'kluisje', 'kledingrek', 'fotohokje'],
+  cabinet: ['kast', 'dressoir', 'archiefkast', 'printer', 'snackautomaat', 'vitrine', 'gouden spiegel', 'kaartenvitrine'],
+  desk: ['bureau', 'schooltafel', 'lerarenbureau', 'kaptafel'],
+  kitchenCounter: ['aanrecht', 'koffiebar', 'receptiebalie', 'keukenblok', 'kassa', 'cocktailbar'],
+  washingMachine: ['wasmachine'],
+  dryer: ['droger'],
+  toilet: ['wc'],
+  sink: ['wasbak', 'wastafel'],
+  shower: ['douche'],
+  bicycle: ['fiets', 'fietsenrek'],
+  easel: ['schildersezel', 'flipover', 'schoolbord', 'fotowand'],
+  tree: ['boom'],
+  flowers: ['bloemperk'],
+  gardenTable: ['tuintafel', 'picknicktafel'],
+  bench: ['bankje', 'parkbank'],
+  statue: ['standbeeld', 'fontein', 'paspop', 'discobal', 'champagnetoren', 'confettikanon', 'knuffel'],
+  oilSlick: ['olievlek'],
+  framedPainting: ['ingelijst schilderij'],
+  stairs: ['trap'],
 }
 
 /** The `objectType` a clue names, `both`'s two parts included (`bothParts`, `types.ts`: never nested). */
@@ -460,10 +484,10 @@ check(`the puzzle opens (theme "home", ${homeDay.date})`, (await count('.play-bo
 const homeCardLines = (await evaluate(
   `JSON.stringify([...document.querySelectorAll('.play-cards .polaroid__line')].map(el => el.textContent ?? ''))`,
 ).then((s) => JSON.parse(s as string))) as string[]
-const homeExpected = EXPECT_NL[homeDay.type]
+const homeExpected = EXPECT_NL[homeDay.type] ?? []
 check(
-  `theme "home" (${homeDay.date}): a rendered clue card names the real Dutch noun for "${homeDay.type}" ("${homeExpected}"), no leftover English ("${OBJECT_WORDS[homeDay.type].noun}")`,
-  !!homeExpected && homeCardLines.some((l) => wordIn(l, homeExpected)) && !homeCardLines.some((l) => wordIn(l, OBJECT_WORDS[homeDay.type].noun)),
+  `theme "home" (${homeDay.date}): a rendered clue card names a real Dutch noun for "${homeDay.type}" (one of ${homeExpected.join('/')}), no leftover English ("${OBJECT_WORDS[homeDay.type].noun}")`,
+  homeExpected.length > 0 && homeCardLines.some((l) => homeExpected.some((w) => wordIn(l, w))) && !homeCardLines.some((l) => wordIn(l, OBJECT_WORDS[homeDay.type].noun)),
   homeCardLines.join(' | '),
 )
 
@@ -475,11 +499,11 @@ for (const theme of SCENE_THEMES.map((t) => t.id)) {
   const day = dayOn(date)
   const dctx: RenderContext = { scene: day.puzzle.scene, people: day.puzzle.people }
   const lines = day.puzzle.clues.map((c) => renderClue(c as CatalogClue, dctx, 'nl'))
-  const expected = EXPECT_NL[type]
+  const expected = EXPECT_NL[type] ?? []
   check(
-    `theme "${theme}" (${date}): renderClue(..., 'nl') uses the real Dutch noun for "${type}" ("${expected}"), no leftover English ("${OBJECT_WORDS[type].noun}")`,
-    !!expected && lines.some((l) => wordIn(l, expected)) && !lines.some((l) => wordIn(l, OBJECT_WORDS[type].noun)),
-    lines.find((l) => wordIn(l, expected ?? '')) ?? lines.join(' | '),
+    `theme "${theme}" (${date}): renderClue(..., 'nl') uses a real Dutch noun for "${type}" (one of ${expected.join('/')}), no leftover English ("${OBJECT_WORDS[type].noun}")`,
+    expected.length > 0 && lines.some((l) => expected.some((w) => wordIn(l, w))) && !lines.some((l) => wordIn(l, OBJECT_WORDS[type].noun)),
+    lines.find((l) => expected.some((w) => wordIn(l, w))) ?? lines.join(' | '),
   )
 }
 

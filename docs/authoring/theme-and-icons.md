@@ -44,7 +44,7 @@ Themes live in `src/content/themes/<theme>.ts` ([office.ts](../../src/content/th
 with `themeObject({...})`:
 
 ```ts
-themeObject({ kind: 'meetingChair', name: 'meeting chair', engineType: 'chair',
+themeObject({ kind: 'meetingChair', name: 'meeting chair', nameNl: 'vergaderstoel', engineType: 'chair',
               weight: 16, footprints: [rect(1, 1)], placement: 'anywhere',
               allowedRoomTypes: ['meeting', 'study', 'dining', 'living', 'circulation', 'kitchen'] }),
 ```
@@ -53,6 +53,7 @@ themeObject({ kind: 'meetingChair', name: 'meeting chair', engineType: 'chair',
 |---|---|
 | `kind` | Theme-local id, unique in the theme. Rooms refer to it in `favours`. |
 | `name` | Display name (singular noun; a plural such as "lockers" also sets `clueNoun: 'locker'`). Clue text says "an office chair", so it must read after "a/an". |
+| `nameNl` | **Required** (SLAY-17.4). The real Dutch noun of exactly what is drawn: singular, lower case, no article, as it reads after "een" ("lavalamp", "archiefkast", "kluisje" for `lockers`, "tros ballonnen" for `balloons`). Never the generic noun of the engine type (a lava lamp is engine type plant, but a Dutch card must say "lavalamp", not "plant"). Dutch clue cards and the Dutch Legend use it the way English uses `name`/`clueNoun`. `themes.test.ts` fails a kind without one, a kind whose Dutch noun is also used by a kind of the same type drawn differently, and a kind with own art that takes the generic noun (`OBJECT_WORDS_NL` in `src/engine/clues/nl.ts`). |
 | `engineType` | The engine `ObjectType` it becomes in a scene. This decides occupiable or blocking (the flag is copied from the catalog, never typed by hand). |
 | `themeIcon` | Optional own art ([job B](#b-add-a-theme-only-icon)). Without it the engine icon of `engineType` is drawn. |
 | `weight` | Relative chance among objects of the same class (occupiable, blocking). |
@@ -92,8 +93,9 @@ Use this when the object should exist in house scenes, in clues ("next to a bicy
    bed, sofa, car, oil slick, painting); everything else blocks. Do not change the flag of an existing type: the
    committed puzzles depend on it.
 3. `src/engine/clues/en.ts`: add to `OBJECT_WORDS` (for `bicycle`): `{ noun: 'bicycle', prep: 'on', verb: 'stood' }`. `prep` is `on` or
-   `in` ("in a car", "on a bed"), `verb` is `stood`, `sat` or `lay`. The article ("a bicycle", "an easel") is added for you. This is
-   the only file with clue text.
+   `in` ("in a car", "on a bed"), `verb` is `stood`, `sat` or `lay`. The article ("a bicycle", "an easel") is added for you. Then
+   `src/engine/clues/nl.ts`: add the real Dutch generic noun and its gender to `OBJECT_NOUNS_NL` (`{ noun: 'fiets', gender: 'de' }`);
+   this generic noun is what a Dutch card says for a plain engine object or for kinds drawn alike, each theme kind has its own `nameNl`.
 4. Art in `src/render/icons/art/house.tsx`, `living.tsx` or `outdoor.tsx`, and its footprints in `src/render/icons/registry.tsx`:
 
    ```ts
@@ -127,11 +129,11 @@ regenerating ([regenerate-packs.md](regenerate-packs.md)).
 ## D. Add a scene theme
 
 1. `src/content/themes/types.ts`: add the id to the `ThemeId` union.
-2. New file `src/content/themes/<id>.ts` exporting a `SceneTheme` (`id`, `name` shown in pack titles, `rooms`, `objects`); copy
+2. New file `src/content/themes/<id>.ts` exporting a `SceneTheme` (`id`, `name` shown in pack titles, `nameNl`, `rooms`, `objects`); copy
    [office.ts](../../src/content/themes/office.ts). Requirements, all tested by
    [themes.test.ts](../../src/content/themes/themes.test.ts):
-   - at least 16 unique room names, bare and natural after "in the" ("Kitchen", "Meeting Room") (a 16x16 board uses up to that many); each room lists the object kinds it `favours`;
-   - at least 6 occupiable and 6 blocking object kinds;
+   - at least 16 unique room names, bare and natural after "in the" ("Kitchen", "Meeting Room") (a 16x16 board uses up to that many), each with its Dutch `nameNl`; each room lists the object kinds it `favours`;
+   - at least 6 occupiable and 6 blocking object kinds, every one with an English `name` and a Dutch `nameNl` (job A);
    - the rules of job A for every object.
 3. Register it in `src/content/themes/index.ts` (`SCENE_THEMES`, and the export list).
 4. `src/content/themes/themes.test.ts`: the list `REQUIRED` and the test name "defines the five required themes" name all themes exactly;

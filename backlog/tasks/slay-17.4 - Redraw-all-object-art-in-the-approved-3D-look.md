@@ -4,7 +4,7 @@ title: Redraw all object art in the approved 3D look
 status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 15:15'
+updated_date: '2026-10-08 17:09'
 labels:
   - needs-owner-review
 dependencies:
@@ -25,6 +25,12 @@ references:
   - docs/verification/
   - docs/handoff.md
   - tools/seasonal-previews.tsx
+  - src/content/themes/
+  - src/engine/clues/
+  - src/content/packs/gates.ts
+  - src/content/packs/gates.test.ts
+  - docs/authoring/theme-and-icons.md
+  - docs/themes/seasonal/common.ts
 parent_task_id: SLAY-17
 type: feature
 ordinal: 121000
@@ -54,6 +60,7 @@ Branch: SLAY-17.4/object-art-3d
 - [x] #12 Every kind is in the A2 style, with no flat leftovers: named in the owner's feedback are toilet, washbasin (sink), washing machine, dryer, kitchen counter and stairs; a rendered contact sheet of all kinds proves it
 - [x] #13 A chair faces the nearest object people sit at (table, dining table, desk, kitchen counter, garden table) when it touches one (4 neighbours, stable order), else away from the nearest wall into the room, else the default; a render-only pure function with unit tests, working with the block orientation matrix; a board with tables and chairs in the PR screenshots
 - [ ] #14 Owner has seen screenshots in the PR and approved (only the owner ticks this)
+- [ ] #15 Every object kind of every registered theme has a required Dutch noun (ThemeObject.nameNl) naming exactly what is drawn (a lava lamp is 'lavalamp', not 'plant'; a filing cabinet 'archiefkast', not 'kast'); Dutch clue cards, the Dutch Legend (with its 'ook' siblings) and the clue-noun audit use it the way English uses name/clueNoun, the audit runs in both languages in the pack gate, a test fails when a kind lacks a Dutch noun, and the authoring docs say the field is required
 <!-- AC:END -->
 
 ## Implementation Notes

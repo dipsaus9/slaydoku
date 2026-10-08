@@ -2,7 +2,7 @@ import { cellKey, cellsBesideFeature, isOccupiableType, OBJECT_TYPES } from '../
 import type { Cell, EdgeFeatureKind, ObjectType, PlacedObject, Scene } from '../../engine/model/index.ts'
 import { OBJECT_WORDS } from '../../engine/clues/en.ts'
 import { OBJECT_WORDS_NL } from '../../engine/clues/nl.ts'
-import { drawnKinds, specificNoun, themeObjectOf } from '../../content/themes/drawn.ts'
+import { drawnKinds, groupNouns, specificNoun, themeObjectOf } from '../../content/themes/drawn.ts'
 import type { DrawnKind } from '../../content/themes/drawn.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 import type { Locale } from '../../locale/index.ts'
@@ -57,16 +57,17 @@ function uniqueCells(cells: readonly Cell[]): Cell[] {
 }
 
 /**
- * The noun (and, for English, the "also" siblings) the Legend shows for one drawn group of a
- * type. English distinguishes the specific theme kind a room drew ("garden chair" vs "poof")
- * because every theme kind's own name is real English (`specificNoun`); Dutch never does — no
- * theme kind has a Dutch name yet (see `nl.ts`'s file header, SLAY-6.2) — so a Dutch row always
- * uses the type's one generic Dutch noun, and there is nothing left to list as "also".
+ * The noun and the "also" siblings the Legend shows for one drawn group of a type, in `locale`:
+ * the specific theme kind a room drew ("garden chair" / "tuinstoel") when the group holds one kind,
+ * else the type's generic noun with the kinds drawn alike listed as "also". Every theme kind has a
+ * noun in both languages (`name`/`clueNoun` and `nameNl`, SLAY-17.4), so the two locales work the
+ * same way and the row's noun is the one the Dutch or English clue cards use (`objectNouns`,
+ * `objectNounsNl`).
  */
 function objectRowWords(locale: Locale, type: ObjectType, group: DrawnKind): { noun: string; alsoNouns: string[] } {
-  if (locale === 'nl') return { noun: OBJECT_WORDS_NL[type].noun, alsoNouns: [] }
-  const noun = specificNoun(group) ?? OBJECT_WORDS[type].noun
-  return { noun, alsoNouns: group.nouns.filter((n) => n !== noun) }
+  const generic = locale === 'nl' ? OBJECT_WORDS_NL[type].noun : OBJECT_WORDS[type].noun
+  const noun = specificNoun(group, locale) ?? generic
+  return { noun, alsoNouns: groupNouns(group, locale).filter((n) => n !== noun) }
 }
 
 /** What the legend says about this scene, in `locale`'s nouns (no hardcoded English word table). */

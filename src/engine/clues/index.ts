@@ -14,7 +14,7 @@ export {
   withArticle,
 } from './en.ts'
 export type { RenderContext } from './en.ts'
-export { OBJECT_WORDS_NL, VICTIM_TEXT_NL, countWordNl, objectOnNl } from './nl.ts'
+export { OBJECT_WORDS_NL, VICTIM_TEXT_NL, countWordNl, objectNounsNl, objectOnNl } from './nl.ts'
 export * from './render.ts'
 export * from './relational/index.ts'
 export * from './types.ts'
