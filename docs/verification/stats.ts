@@ -195,6 +195,15 @@ async function placeAll(puzzle: PuzzleJson) {
     await sleep(200)
     remaining.delete(pid)
   }
+  // SLAY-9.24: the victim is no longer auto-filled; the selection has advanced to it, so the player places its square too.
+  const victim = puzzle.people.find((p) => p.kind === 'victim')
+  const victimCell = victim && puzzle.solution.find((s) => s.personId === victim.id)?.cell
+  if (victimCell) {
+    const vr = await rectOf(cellSel(victimCell.row, victimCell.col))
+    if (!vr) return false
+    await hold(vr.x, vr.y, 650)
+    await sleep(200)
+  }
   await sleep(900)
   return true
 }
