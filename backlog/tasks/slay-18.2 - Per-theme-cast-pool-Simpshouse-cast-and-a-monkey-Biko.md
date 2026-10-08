@@ -4,10 +4,12 @@ title: 'Per-theme cast pool, Simpshouse cast and a monkey Biko'
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:21'
+updated_date: '2026-10-08 09:45'
 labels:
   - needs-owner-review
 dependencies:
   - SLAY-18.1
+  - SLAY-17.7
 references:
   - src/content/cast/
   - src/schedule/cast.ts
