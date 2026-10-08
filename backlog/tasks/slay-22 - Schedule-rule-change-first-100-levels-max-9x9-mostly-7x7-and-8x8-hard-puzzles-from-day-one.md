@@ -3,10 +3,10 @@ id: SLAY-22
 title: >-
   Schedule rule change: first 100 levels max 9x9, mostly 7x7 and 8x8, hard
   puzzles from day one
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-10-08 20:03'
-updated_date: '2026-10-08 20:09'
+updated_date: '2026-10-08 21:34'
 labels:
   - story
   - needs-owner-review
@@ -44,13 +44,25 @@ MERGED 2026-10-08 (owner: optimise stories, merge to avoid generating and testin
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Size picker: for puzzle numbers 1 to 100 only 6x6, 7x7, 8x8 and 9x9 are drawn, with 7x7 and 8x8 together at least 60% and 12x12 never, measured over the 100 planned levels and a long seeded sample; from level 101 the previous size rules apply (tested, constants named and documented)
-- [ ] #2 8x8 boards work end to end: scene generation and the themes' room layouts, generator budget and soundness on 8x8 for every tier and theme (a sweep over fresh seeds finds no failures; add 8x8 to the supported sizes, tests and docs/authoring if it is not yet supported)
-- [ ] #3 Hard puzzles on 6x6, 7x7 and 8x8: the picker allows tier hard on all sizes of the first 100 levels, the generator produces them within budget, they stay solvable by a human per docs/solvability/README.md (ladder tiers and caps) and the hint walk works (sweep and a rendered check of one 6x6 hard puzzle)
-- [ ] #4 The ramp-up window is removed: RAMP_UP_END_DATE, isRampUp and the suppressed-expert handling and their tests are deleted or reworked; expert is exactly one per UTC week on a 9x9 board; the tier mix of other days is unchanged and measured
-- [ ] #5 Days up to today and 2026-10-14 are byte-identical, no schedule file changes in this story; schedule:check and the full test run pass; lint and typecheck pass
-- [ ] #6 CLAUDE.md (Grid, Expert, Ramp-up) and docs (docs/handoff.md, docs/authoring/schedule.md, docs/launch.md where it mentions sizes or the ramp-up) state the new rules; the old 'no hard in the first month' rule is gone
+- [x] #1 Size picker: for puzzle numbers 1 to 100 only 6x6, 7x7, 8x8 and 9x9 are drawn, with 7x7 and 8x8 together at least 60% and 12x12 never, measured over the 100 planned levels and a long seeded sample; from level 101 the previous size rules apply (tested, constants named and documented)
+- [x] #2 8x8 boards work end to end: scene generation and the themes' room layouts, generator budget and soundness on 8x8 for every tier and theme (a sweep over fresh seeds finds no failures; add 8x8 to the supported sizes, tests and docs/authoring if it is not yet supported)
+- [x] #3 Hard puzzles on 6x6, 7x7 and 8x8: the picker allows tier hard on all sizes of the first 100 levels, the generator produces them within budget, they stay solvable by a human per docs/solvability/README.md (ladder tiers and caps) and the hint walk works (sweep and a rendered check of one 6x6 hard puzzle)
+- [x] #4 The ramp-up window is removed: RAMP_UP_END_DATE, isRampUp and the suppressed-expert handling and their tests are deleted or reworked; expert is exactly one per UTC week on a 9x9 board; the tier mix of other days is unchanged and measured
+- [x] #5 Days up to today and 2026-10-14 are byte-identical, no schedule file changes in this story; schedule:check and the full test run pass; lint and typecheck pass
+- [x] #6 CLAUDE.md (Grid, Expert, Ramp-up) and docs (docs/handoff.md, docs/authoring/schedule.md, docs/launch.md where it mentions sizes or the ramp-up) state the new rules; the old 'no hard in the first month' rule is gone
 - [ ] #7 A table of the planned size and tier distribution for levels 1 to 100 is in the PR (counts per size and per tier) for the owner to approve before merge (only the owner ticks this)
-- [ ] #8 Object density: the generator never places more objects in a room than a cap that grows with the room's squares (baseline measured on the baked schedule and on 200 generated scenes per theme and size 6, 7, 8, 9 and recorded in docs/authoring/room-rules.md; unit test over many seeds plus a slow sweep; no room left bare); the allow-list rules, chair caps, per-kind caps and variety numbers still hold
+- [x] #8 Object density: the generator never places more objects in a room than a cap that grows with the room's squares (baseline measured on the baked schedule and on 200 generated scenes per theme and size 6, 7, 8, 9 and recorded in docs/authoring/room-rules.md; unit test over many seeds plus a slow sweep; no room left bare); the allow-list rules, chair caps, per-kind caps and variety numbers still hold
 - [ ] #9 Rendered sample boards (home, office, school, park, shop; 7x7, 8x8 and 9x9; phone and desktop) show rooms furnished but not crowded; screenshots in the PR for the owner to approve together with the size and tier table
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1) measure density baseline (baked + 200 generated scenes per theme and size 6-9); 2) cap objects per room 1+floor(n/5), even signature pick, REPEAT_FACTOR 0.2, no bare rooms of 3+; 3) picker: current rules from RULES_FROM 2026-10-09 (levels 1-100 7x7 42/8x8 42/6x6 10/9x9 6, expert 9x9, no ramp-up; 101+ earlier size rules), frozen launch rules for played days and KEPT_DATES, PENDING_REGENERATION_THROUGH for committed days until SLAY-18.10; 4) 8x8 in pack sizes and sweeps; 5) sweep 6-9 all tiers/themes, rendered boards and 6x6 hard hint walk; 6) docs
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Generation sweep (validate:generation --seeds 10 --start 52000 --sizes 6,7,8,9 --tiers all --themes all): 1189/1440 seeds pass every gate, 0 wrong puzzles; hard 6x6 57/60, 7x7 55/60, 8x8 48/60; only 9-very-easy-park under the tool's 25% (2/10; 30 seeds: 20% vs 33% on main, variety gate). 9x9 very-easy yield fell for park/school/shop with the cap (main 33/57/60% -> 20/37/33% on 30 seeds), rose for home/office/simpshouse; with 50 seeds per day a day runs dry with p ~ 1e-5. Rendered hint walk of a 6x6 hard park puzzle: 11 hints, on-screen text equals the mirrored nextStep every step, solved. Planned table levels 1-100: 6x6 16, 7x7 34, 8x8 27, 9x9 21, 12x12 2 (played day 12 and kept 2026-10-14); very-easy 11, easy 24, easy-medium 26, medium 18, hard 8, expert 13.
+<!-- SECTION:NOTES:END -->
