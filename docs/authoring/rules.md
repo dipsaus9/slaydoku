@@ -129,7 +129,7 @@ Object kinds and multi-cell objects (a 2x2 bed, a 3x2 block, a 2-cell sofa or ta
 Object nouns in sentences (`OBJECT_WORDS`, one entry per object type): chair, rug, bed, sofa, car, oil slick,
 framed painting, table, TV, plant, bookshelf, chest, tree, flower bed, easel, statue, washing machine, dryer, cabinet,
 staircase, toilet, sink, shower, desk, wardrobe, dining table, kitchen counter, bicycle, garden table, bench (see `en.ts` for the
-exact words and the verb, "sat", "stood" or "lay", per object). A clue names the noun of what the board draws: "a garden chair or a poof", never a group noun that hides a differently drawn kind.
+exact words and the verb, "sat", "stood" or "lay", per object). A clue names the noun of what the board draws: "a reading rug or a gym mat", never a group noun that hides a differently drawn kind. All chair kinds draw the plain chair (SLAY-17.2), so they share the noun "chair" when they stand together.
 
 Room names are stored bare ("Kitchen", "Meeting Room") and read with "the" ("in the Kitchen"); a name that already starts with "the" is not doubled
 ([en.test.ts](../../src/engine/clues/en.test.ts) "room names").

@@ -3,8 +3,6 @@
  * objects reuse the engine catalog icons through their `engineType`).
  */
 export const THEME_ICON_IDS = [
-  'officeChair',
-  'beanbag',
   'picnicBlanket',
   'hammock',
   'sandbox',
