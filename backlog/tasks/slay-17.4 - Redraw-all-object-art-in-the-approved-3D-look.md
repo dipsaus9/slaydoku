@@ -4,11 +4,14 @@ title: Redraw all object art in the approved 3D look
 status: To Do
 assignee: []
 created_date: '2026-10-08 08:58'
+updated_date: '2026-10-08 09:59'
 labels:
   - needs-owner-review
 dependencies:
   - SLAY-17.2
   - SLAY-17.3
+  - SLAY-18.4
+  - SLAY-17.8
 references:
   - src/render/icons/
   - src/ui/help/legend.ts
@@ -35,6 +38,7 @@ Branch: SLAY-17.4/object-art-3d
 - [ ] #4 Legend swatches are not clipped
 - [ ] #5 bun run lint, typecheck and test --maxWorkers=1 pass; verify:phone legend and screens suites pass
 - [ ] #6 Owner has seen screenshots in the PR and approved (only the owner ticks this)
+- [ ] #7 The bathtub (introduced in the SLAY-17.3 prototype) is drawn with water that clearly reads as water (visible water surface, colour and highlight distinct from the tub), checked at phone size
 <!-- AC:END -->
 
 ## Implementation Notes
