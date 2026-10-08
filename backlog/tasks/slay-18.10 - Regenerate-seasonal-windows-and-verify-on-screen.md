@@ -4,7 +4,7 @@ title: Regenerate seasonal windows and verify on screen
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:23'
-updated_date: '2026-10-08 19:24'
+updated_date: '2026-10-08 20:04'
 labels:
   - needs-owner-review
 dependencies:
@@ -17,6 +17,7 @@ dependencies:
   - SLAY-19.1
   - SLAY-20
   - SLAY-21
+  - SLAY-22
 references:
   - src/content/schedule/
   - docs/authoring/schedule.md
@@ -53,4 +54,6 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 Scope widened 2026-10-08: besides the seasonal windows this story regenerates ALL future days once more, after SLAY-19.1 (decor objects) and the four seasonal themes, so players see the final content. SLAY-17.6 only does the first pass.
 
 Plan change 2026-10-08: waits for SLAY-20 (UI feedback) and SLAY-21 (object density cap) so the final regeneration uses the capped generator.
+
+Plan change 2026-10-08: also waits for SLAY-22 (first 100 levels max 9x9, hard from day one) so the final regeneration uses the new size and tier rules.
 <!-- SECTION:NOTES:END -->
