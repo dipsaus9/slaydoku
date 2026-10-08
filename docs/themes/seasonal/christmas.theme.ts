@@ -1,7 +1,14 @@
 import { lShape, rect } from '../../../src/content/themes/define.ts'
 import type { SeasonalTheme } from './common.ts'
 
-/** Christmas: all of December, so it has plenty of rooms (18). Santa's village, a chapel, a market and the snow outside. */
+/**
+ * Christmas: all of December, so it has plenty of rooms (18). Santa's village, a chapel, a market and the snow outside.
+ *
+ * The owner-approved draft (SLAY-18.5), kept as the reference. The real theme is src/content/themes/christmas.ts (SLAY-18.8), with block
+ * models in src/render/icons/themes/christmasArt.ts; its header lists every change from this draft (plain chair, reused kinds, no stairs,
+ * sleigh only in the shed, own drawings for fir, poinsettia, holly, fur rug, workbench, toy shelf, market stall and a hot chocolate counter,
+ * Elf Workshop instead of Santa's Workshop, Kerstdorp as the Dutch theme name). Screenshots: docs/design/looks-shots/slay-18.8/.
+ */
 export const CHRISTMAS_THEME: SeasonalTheme = {
   id: 'christmas',
   name: "Santa's village",
