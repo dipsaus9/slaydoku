@@ -4,7 +4,7 @@ title: Room labels readable when a room is full of people
 status: In Progress
 assignee: []
 created_date: '2026-10-08 08:58'
-updated_date: '2026-10-08 11:35'
+updated_date: '2026-10-08 11:43'
 labels:
   - needs-owner-review
 dependencies: []
@@ -58,4 +58,6 @@ Review: pass (story-reviewer). Advisories fixed (hyphenate doc placement, test l
 Redo after owner feedback: the real problem is people, X marks and notes drawn over the room label. Objects-under-label work (rotation, hyphenation) reverted. Chosen default shipped: labels above marks and people, see-through pill + halo, avoid placed-people squares (treatment D); A/B/C compared in docs/design/label-treatments. AC4 owner only.
 
 Review: pass (story-reviewer); advisory on the conditional test fixed.
+
+Treatment B shipped (halo, no pill, labels above marks and people; D-only avoid logic removed). Review: pass. Owner approval, Done and auto-merge pending direct confirmation.
 <!-- SECTION:NOTES:END -->
