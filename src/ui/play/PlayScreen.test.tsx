@@ -17,7 +17,8 @@ import { HelpPanel } from './HelpPanel.tsx'
 import { Modal } from './Modal.tsx'
 import { IDENTITY } from './zoom.ts'
 import { OptionsPanel } from './OptionsPanel.tsx'
-import { gestureIntent, paintIntent, paintModeFor, type Intent, type Tool } from './intent.ts'
+import * as intentModule from './intent.ts'
+import { gestureIntent, type Intent, type Tool } from './intent.ts'
 import { PlayScreen } from './PlayScreen.tsx'
 import { ResultOverlay } from './ResultOverlay.tsx'
 import { PLAY_STRINGS } from './strings.ts'
@@ -141,7 +142,7 @@ describe('<PlayScreen/>', () => {
   it('carries the Safari guards in css: touch-action, user-select, callout', async () => {
     const css = (await import('node:fs')).readFileSync(new URL('./play.css', import.meta.url), 'utf8')
     const board = css.match(/\.play-board \{[^}]*\}/)?.[0] ?? ''
-    expect(board).toContain('touch-action: none')
+    expect(board).toContain('touch-action: pan-y') // SLAY-20: a swipe scrolls, it never paints notes
     expect(board).toContain('-webkit-touch-callout: none')
     expect(board).toContain('user-select: none')
     expect(css).toMatch(/\.play \{[^}]*touch-action: manipulation/)
@@ -354,24 +355,11 @@ describe('gestures drive the game store', () => {
     expect(check).toEqual({ solved: false, correctCount: 2, total: 4 })
   })
 
-  it('drag painting notes then X across cells', () => {
-    const { store } = setup()
-    const A = idOf(Alice)
-    const cells = [{ row: 3, col: 0 }, { row: 3, col: 2 }, { row: 2, col: 2 }]
-    const mode = paintModeFor('note', A, cells[0]!, store.getState().board)
-    for (const cell of cells) {
-      const intent = paintIntent('note', mode, A, cell, store.getState().board)
-      if (intent && 'action' in intent) store.dispatch(intent.action)
-    }
-    expect(Object.keys(store.getState().board.notes).sort()).toEqual(['2,2', '3,0', '3,2'])
-    // a second stroke starting on a noted cell removes
-    const removing = paintModeFor('note', A, cells[0]!, store.getState().board)
-    expect(removing).toBe('remove')
-    for (const cell of cells) {
-      const intent = paintIntent('note', removing, A, cell, store.getState().board)
-      if (intent && 'action' in intent) store.dispatch(intent.action)
-    }
-    expect(store.getState().board.notes).toEqual({})
+  it('has no multi-square drag: only a tap or a long press acts, and an unzoomed board lets a swipe scroll the page (SLAY-20)', () => {
+    expect(Object.keys(intentModule).filter((k) => /paint/i.test(k))).toEqual([])
+    const css = readFileSync(new URL('./play.css', import.meta.url), 'utf8')
+    expect(css).toMatch(/\.play-board \{[^}]*touch-action: pan-y;/)
+    expect(css).toMatch(/\.play-board\[data-zoomed\] \{[^}]*touch-action: none;/)
   })
 
   it('the eraser tap clears a cell; undo brings it back', () => {

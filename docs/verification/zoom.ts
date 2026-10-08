@@ -2,8 +2,8 @@
 // Drives headless Chrome over the DevTools protocol with touch emulation and checks the board zoom of the play
 // screen on the puzzle of 2026-11-21 (date override, see daily.ts; a 9x9 board): two-finger pinch and pan (two real
 // touch points via Input.dispatchTouchEvent; the toolbar had a Zoom button once, but it's gone since SLAY-9.8 —
-// pinch/ctrl+wheel already covered it), clamping, one-finger notes / long-press placement / drag-notes on a zoomed board landing
-// on the right square, a pinch cancelling a running one-finger gesture, hints coming into view, and the reset on
+// pinch/ctrl+wheel already covered it), clamping, one-finger notes / long-press placement on a zoomed board landing
+// on the right square, a one-finger swipe setting nothing (SLAY-20: the multi-square drag is gone), a pinch cancelling a running one-finger gesture, hints coming into view, and the reset on
 // restart, on leaving the puzzle and on reload. The "right square" is computed independently of the app: from where the
 // board's svg is drawn on screen (its transformed bounding box) and the cell rects of the svg.
 //
@@ -289,23 +289,13 @@ async function run(w: number, h: number) {
   for (let i = 0; i < 4; i++) await tool('Undo')
   check('undo removes those notes', (await count('[data-note]')) === 0)
 
-  // drag-notes across cells on the zoomed board
+  // SLAY-20: a one-finger swipe across cells on the zoomed board sets nothing (the multi-square drag is gone)
   const a = { x: f.l + f.w * 0.2, y: f.t + f.h * 0.5 }
   const b = { x: f.l + f.w * 0.8, y: f.t + f.h * 0.5 }
-  const wantA = await oracle(a)
-  const wantB = await oracle(b)
   await drag(a, b, 14)
   await sleep(200)
-  const painted = (await dataOf()).map((n) => n.split(':')[0]!)
-  const expectedCells = new Set<string>()
-  // A blocked square (a table, a plant) takes no note while "no X on blocked squares" is on, so a drag over it skips it.
-  for (let col = Math.min(wantA.col, wantB.col); col <= Math.max(wantA.col, wantB.col); col++) {
-    if (!isBlocked(DAY.puzzle, { row: wantA.row, col })) expectedCells.add(`${wantA.row},${col}`)
-  }
-  check('drag-notes on the zoomed board fills the cells from the start cell to the end cell', [...expectedCells].every((k) => painted.includes(k)) && painted.every((k) => k.startsWith(`${wantA.row},`)), `wanted ${[...expectedCells].join(' ')} got ${[...new Set(painted)].join(' ')}`)
-  check('the drag did not pan the board', near(await zoomOf(), 2) && (await covers()))
-  for (let i = 0; i < 8 && (await count('[data-note]')) > 0; i++) await tool('Undo')
-  check('undo clears the stroke again', (await count('[data-note]')) === 0)
+  check('a one-finger swipe across the zoomed board sets no note and no cross', (await count('[data-note]')) === 0 && (await count('[data-mark]')) === 0, `notes ${await count('[data-note]')}`)
+  check('the swipe did not pan the board', near(await zoomOf(), 2) && (await covers()))
 
   // long-press placement on the zoomed board: pan the solution cell of the selected suspect into view first, if needed
   const name = ((await selectedName()) ?? '').trim()
@@ -391,7 +381,7 @@ async function run(w: number, h: number) {
   await touch('touchEnd', [])
   await sleep(300)
   check('a second finger cancels a pending long press (nothing placed)', (await count('[data-person]')) === nPeople && (await count('[data-note]')) === 0, `people ${await count('[data-person]')}, notes ${await count('[data-note]')}`)
-  // a drag that began as a one-finger paint ends when the second finger lands. Step sizes scale with the actual on-screen
+  // a one-finger swipe followed by a second finger (a pinch that starts late) sets nothing either. Step sizes scale with the actual on-screen
   // cell size (not a fixed pixel count): on large viewports the board is bigger, and a fixed 72px total move can land
   // inside the starting cell without ever crossing into the next one.
   const g0 = { x: fp.l + fp.w * 0.3, y: fp.t + fp.h * 0.4 }
@@ -401,15 +391,13 @@ async function run(w: number, h: number) {
   await touch('touchStart', [g0])
   for (let i = 1; i <= 6; i++) { await sleep(25); await touch('touchMove', [{ x: g0.x + i * step1, y: g0.y }]) }
   await sleep(200)
-  const painting = await count('[data-note]')
+  const swiped = await count('[data-note]')
   const gx = g0.x + 6 * step1
   await touch('touchStart', [{ x: gx, y: g0.y }, { x: gx + 128, y: g0.y + 40 }])
   for (let i = 1; i <= 6; i++) { await sleep(25); await touch('touchMove', [{ x: gx + i * step2, y: g0.y }, { x: gx + 128 + i * 10, y: g0.y + 40 }]) }
   await touch('touchEnd', [])
   await sleep(300)
-  check('a second finger stops a drag: no more notes painted after it landed', (await count('[data-note]')) === painting && painting >= 1, `notes at 2nd finger ${painting}, after ${await count('[data-note]')}`)
-  for (let i = 0; i < painting; i++) await tool('Undo')
-  check('the fingers left over after the pinch painted nothing extra (undoing the stroke clears every note)', (await count('[data-note]')) === 0, `notes left ${await count('[data-note]')}`)
+  check('a one-finger swipe and then a second finger set no note at all', swiped === 0 && (await count('[data-note]')) === 0, `notes after the swipe ${swiped}, after the pinch ${await count('[data-note]')}`)
   await pinchZoomIn() // 2x again
 
   // ---- hints on a zoomed board ----------------------------------------------------------

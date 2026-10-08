@@ -160,7 +160,7 @@ For a real phone and an iPad, in iOS Safari and Android Chrome, and again from t
 - [ ] Every card of every person is visible and the victim card is last. Try a larger system text size.
 
 **Playing**
-- [ ] Zoom: button, pinch, pan; one finger still notes, drags notes and long-press places.
+- [ ] Zoom: button, pinch, pan; one finger still notes and long-press places; a one-finger swipe sets nothing (SLAY-20).
 - [ ] Notes, X, undo, redo.
 - [ ] Hints 1 to 3: the squares they point at stay visible, also when zoomed; the hint count shows on the result.
 - [ ] Fresh start (private tab or cleared site data): "How it works" opens on the first Play, does not reopen on the second visit, and the wording reads well.

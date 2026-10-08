@@ -11,7 +11,7 @@ import {
 } from './geometry.ts'
 import { HEADROOM } from '../looks/project.ts'
 import { roomLabelLayout } from './labels.ts'
-import { resolveRoomStyles, styleForName } from './roomStyles.ts'
+import { colourDistance, MIN_NEIGHBOUR_DISTANCE, resolveRoomStyles, styleForName } from './roomStyles.ts'
 import { sample9x9 } from './sample.fixture.ts'
 
 const tutorial = tutorialPuzzle.scene
@@ -142,13 +142,14 @@ describe('resolveRoomStyles', () => {
     expect(styleForName('Zzz')).toBeUndefined()
   })
 
-  it('lets an override win and gives a repeated pattern another tone', () => {
-    const scene = { rooms: [{ id: 'a', name: 'Hall' }, { id: 'b', name: 'Kitchen' }, { id: 'c', name: 'Zzz' }] }
+  it('lets an override win and gives a touching room of the same kind another tone', () => {
+    const scene = { rooms: [{ id: 'a', name: 'Hall' }, { id: 'b', name: 'Kitchen' }, { id: 'c', name: 'Zzz' }], cellRooms: [['a', 'b', 'c']] }
     const styles = resolveRoomStyles(scene, { c: 'tiles' })
     expect(styles['c']?.pattern).toBe('tiles')
-    expect(styles['a']?.variant).toBe(0)
-    expect(styles['b']?.variant).toBe(1)
-    expect(styles['a']?.fill).not.toBe(styles['b']?.fill)
+    // b touches both, so it picks first and keeps the classic tone; its neighbours move away from it.
+    expect(styles['b']?.variant).toBe(0)
+    expect(colourDistance(styles['a']!.fill, styles['b']!.fill)).toBeGreaterThanOrEqual(MIN_NEIGHBOUR_DISTANCE)
+    expect(colourDistance(styles['c']!.fill, styles['b']!.fill)).toBeGreaterThanOrEqual(MIN_NEIGHBOUR_DISTANCE)
   })
 
   it('always resolves a style for every room', () => {
