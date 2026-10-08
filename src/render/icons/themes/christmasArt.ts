@@ -124,7 +124,7 @@ export function reindeer(): SolidModel {
 /** Gingerbread house on a white plate: brown walls, a stepped white icing roof with sweets, a chimney, a door and lit windows. */
 export function gingerbreadHouse(): SolidModel {
   return model(1, 1, [
-    cyl(50, 54, 44, 0, 3, C.white),
+    cyl(50, 56, 38, 0, 3, C.white),
     box(22, 32, 56, 46, 3, 30, X.ginger),
     onFront(43, 78, 14, 3, 18, X.gingerDark),
     onFront(42, 78.2, 16, 21, 2, C.white),
@@ -196,30 +196,32 @@ export function toyShelf(cols: number): SolidModel {
   const W = cols * 100
   const D = 48
   const prims: Prim[] = [
-    box(6, 0, W - 12, 5, 0, 70, X.redDeep),
-    box(6, 0, 8, D, 0, 70, X.red),
-    box(W - 14, 0, 8, D, 0, 70, X.red),
-    box(6, 0, W - 12, D, 0, 6, X.red),
-    box(6, 0, W - 12, D, 32, 5, X.red),
-    box(6, 0, W - 12, D, 64, 6, X.red),
+    box(6, 0, W - 12, 5, 0, 72, X.redDeep),
+    box(6, 0, 8, D, 0, 72, X.red),
+    box(W - 14, 0, 8, D, 0, 72, X.red),
+    box(6, 0, W - 12, D, 0, 5, X.red),
+    box(6, 0, W - 12, D, 35, 4, X.red),
+    box(6, 0, W - 12, D, 68, 4, X.red),
   ]
   for (let c = 0; c < cols; c++) {
     const o = c * 100
     prims.push(
-      ball(o + 34, 24, 15, 9, C.woodLight),
-      ball(o + 34, 26, 28, 6, C.woodLight),
-      ball(o + 29, 24, 33, 2.5, C.woodDark),
-      ball(o + 39, 24, 33, 2.5, C.woodDark),
-      box(o + 54, 14, 12, 12, 6, 12, C.blueDark),
-      box(o + 68, 18, 12, 12, 6, 12, C.yellow),
-      box(o + 60, 16, 12, 12, 18, 12, X.red),
-      ball(o + 34, 26, 46, 9, C.greenLight),
-      cyl(o + 66, 24, 6, 37, 16, X.red),
-      cyl(o + 66, 24, 5, 53, 3, C.white),
-      cyl(o + 66, 24, 4, 56, 7, C.ink),
+      // lower shelf: a teddy bear and a stack of coloured blocks, standing at the front
+      ball(o + 32, 34, 14, 9, C.woodLight),
+      ball(o + 32, 36, 27, 6.5, C.woodLight),
+      ball(o + 27, 36, 32, 2.5, C.woodDark),
+      ball(o + 37, 36, 32, 2.5, C.woodDark),
+      box(o + 50, 30, 12, 14, 5, 12, C.blueDark),
+      box(o + 64, 30, 12, 14, 5, 12, C.yellow),
+      box(o + 57, 30, 12, 14, 17, 12, X.red),
+      // upper shelf: a green ball and a toy soldier
+      ball(o + 32, 36, 48, 9, C.greenLight),
+      cyl(o + 64, 36, 6, 39, 15, X.red),
+      cyl(o + 64, 36, 5, 54, 3, C.white),
+      cyl(o + 64, 36, 4, 57, 8, C.ink),
     )
   }
-  prims.push(cyl(W / 2, 24, 13, 70, 12, C.white), cyl(W / 2, 24, 13, 70, 3, X.red), cyl(W / 2, 24, 13, 79, 3, X.red), box(W / 2 - 14, 22, 28, 3, 83, 2, C.woodDark, 1.5))
+  prims.push(cyl(W / 2, 26, 11, 72, 10, C.white), cyl(W / 2, 26, 11, 72, 3, X.red), cyl(W / 2, 26, 11, 79, 3, X.red))
   return model(cols, 1, shiftY(prims, 26))
 }
 
@@ -328,9 +330,10 @@ export function rockingHorse(): SolidModel {
 export function furRug(cols: number, rows: number): SolidModel {
   const W = cols * 100
   const H = rows * 100
-  const prims: Prim[] = [box(14, 18, W - 28, H - 36, 0, 3, C.creamLight), box(8, 30, W - 16, H - 60, 0, 3, C.creamLight), box(24, 10, W - 48, H - 20, 0, 3, C.creamLight)]
-  for (let y = 22; y < H - 18; y += 12) {
-    for (let x = 18 + ((y / 12) % 2) * 6; x < W - 16; x += 12) prims.push(ball(x, y, 3, 2.8, (x + y) % 3 ? C.white : C.cream))
+  // a white fleece with a thin edge, covered in fluffy curls of wool in two shades (no outline on the curls)
+  const prims: Prim[] = [box(12, 16, W - 24, H - 32, 0, 2, '#f8f4ec', 1.2)]
+  for (let y = 24, k = 0; y < H - 20; y += 11, k++) {
+    for (let x = 20 + (k % 2) * 7; x < W - 18; x += 13) prims.push(cyl(x, y, 5.5, 2, 1.2, (x + k) % 3 ? '#efe6d4' : '#ffffff', undefined, 0), cyl(x + 1.5, y - 1, 2.2, 3.2, 0.6, '#dcceb2', undefined, 0))
   }
   return model(cols, rows, prims)
 }
