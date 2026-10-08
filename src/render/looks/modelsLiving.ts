@@ -137,9 +137,9 @@ export function chest(): SolidModel {
 export function cabinet(cols: number): SolidModel {
   const W = cols * 100
   const D = 56
-  const prims: Prim[] = [...legs(W, D, 10, C.woodDeep, 10, 6), box(6, 4, W - 12, D - 8, 10, 52, C.wood), box(2, 0, W - 4, D, 62, 6, C.woodDark)]
+  const prims: Prim[] = [...legs(W, D, 10, C.woodDark, 10, 6), box(6, 4, W - 12, D - 8, 10, 52, C.woodLight), box(2, 0, W - 4, D, 62, 6, C.cream)]
   for (let i = 0; i < cols; i++) {
-    prims.push(onFront(i * 100 + 14, D - 4, 72, 16, 40, C.woodLight), onFront(i * 100 + 20, D - 3.2, 60, 22, 28, C.wood), box(i * 100 + 74, D - 5, 6, 3, 38, 8, C.gold, 1.5))
+    prims.push(onFront(i * 100 + 14, D - 4, 72, 16, 40, C.cream), onFront(i * 100 + 20, D - 3.2, 60, 22, 28, C.creamLight), box(i * 100 + 74, D - 5, 6, 3, 38, 8, C.gold, 1.5))
   }
   return model(cols, 1, shiftY(prims, 22))
 }

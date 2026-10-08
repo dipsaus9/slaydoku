@@ -5,7 +5,7 @@ import { useLocale } from '../../locale/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import { EdgeFeatureIcon } from '../../render/icons/index.ts'
 import { SolidSvg } from '../../render/looks/Solids.tsx'
-import { solidOf } from '../../render/looks/solid.ts'
+import { solidCanonicalOf } from '../../render/looks/solid.ts'
 import { NoteGlyph, PersonDisc, PortraitClip, XMarkGlyph } from '../play/BoardLayers.tsx'
 import { bareRoomName } from '../../render/scene/labels.ts'
 import { legendOf, type LegendObjectRow } from './legend.ts'
@@ -21,11 +21,11 @@ export interface LegendProps {
 }
 
 /**
- * The object as the board draws it (same block model, same facing), in an svg cropped to everything it covers: the blocks that rise over the
+ * The object as the board draws it (same block model, drawn in its canonical turn so it fills the swatch), in an svg cropped to everything it covers: the blocks that rise over the
  * footprint, their outline and the ground shadow. Nothing is clipped, however tall the object is; the box scales to fit the swatch.
  */
 function ObjectSwatch({ row }: { row: LegendObjectRow }) {
-  const solid = solidOf(row.sample, row.themeIcon ? { [row.sample.id]: row.themeIcon } : undefined)
+  const solid = solidCanonicalOf(row.sample, row.themeIcon ? { [row.sample.id]: row.themeIcon } : undefined)
   if (!solid) return null
   return <SolidSvg solid={solid} className="play-legend__icon" iconId={row.themeIcon ?? row.sample.type} />
 }

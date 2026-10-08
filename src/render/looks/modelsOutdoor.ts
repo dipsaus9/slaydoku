@@ -54,11 +54,11 @@ export function tree(): SolidModel {
   ])
 }
 
-/** Flower bed: a low frame of soil with three blooms on green stems. */
+/** Flower bed: a low frame of soil with three tall blooms on green stems and leaves. */
 export function flowers(): SolidModel {
-  const prims: Prim[] = [box(8, 14, 84, 74, 0, 8, C.woodDark), box(14, 20, 72, 62, 8, 0.8, C.soil, 0)]
-  const bloom = (x: number, y: number, h: number, color: string): Prim[] => [cyl(x, y, 2.5, 8, h, C.greenDark), ball(x, y, 8 + h + 6, 11, color), ball(x, y, 8 + h + 8, 4.5, C.yellowLight)]
-  prims.push(...bloom(30, 40, 24, C.pink), ...bloom(66, 44, 30, C.red), ...bloom(48, 68, 18, C.yellow))
+  const prims: Prim[] = [box(8, 14, 84, 74, 0, 8, C.woodDark), box(14, 20, 72, 62, 8, 0.8, C.soil, 0), ball(24, 70, 14, 9, C.greenDark), ball(78, 34, 14, 9, C.greenDark), ball(50, 30, 14, 8, C.green)]
+  const bloom = (x: number, y: number, h: number, color: string): Prim[] => [cyl(x, y, 2.5, 8, h, C.greenDark), ball(x, y, 8 + h + 8, 13, color), ball(x, y, 8 + h + 10, 5, C.yellowLight)]
+  prims.push(...bloom(30, 44, 34, C.pink), ...bloom(68, 48, 42, C.red), ...bloom(48, 70, 26, C.yellow))
   return model(1, 1, prims)
 }
 

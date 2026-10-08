@@ -1,4 +1,5 @@
 import type { Cell, PlacedObject } from '../../engine/model/index.ts'
+import type { Rotation } from '../icons/orientation.ts'
 import type { OrientationPreference } from '../icons/resolve.ts'
 import { resolveThemeObjectIcon } from '../icons/themes/resolve.ts'
 import type { ThemeIconId } from '../icons/themes/types.ts'
@@ -43,10 +44,21 @@ export function solidFor(type: IconObjectType, themeIcon: ThemeIconId | undefine
 /**
  * `solidFor` for an object of the scene; `themeIcons` names the objects that have their own theme art. A scene object has no facing, only its
  * cells, so where several turns fit the board shows the most readable one: the front toward the viewer (south) on a wide or square footprint,
- * toward the right (east, the other side that shows) on a tall one. Every one of the 8 orientations still draws (contact sheet, tests).
+ * toward the right (east, the other side that shows) on a tall one. `facing` (a chair turned toward its table, see facing.ts) wins over that. Every one of the 8 orientations still draws (contact sheet, tests).
  */
-export function solidOf(object: SolidObject, themeIcons?: Readonly<Record<string, ThemeIconId>>): Solid | null {
+export function solidOf(object: SolidObject, themeIcons?: Readonly<Record<string, ThemeIconId>>, facing?: Rotation): Solid | null {
+  if (facing !== undefined) return solidFor(object.type, themeIcons?.[object.id], object.cells, { rotation: facing })
   const rows = new Set(object.cells.map((c) => c.row)).size
   const cols = new Set(object.cells.map((c) => c.col)).size
   return solidFor(object.type, themeIcons?.[object.id], object.cells, { rotation: rows > cols ? 270 : 0 })
+}
+
+/**
+ * The object as the Legend shows it: the same model, but in its canonical turn (the way the footprint is listed in the registry, front
+ * toward the viewer, long side across), so a sofa that stands on a tall footprint on the board still shows full width in its small swatch.
+ */
+export function solidCanonicalOf(object: SolidObject, themeIcons?: Readonly<Record<string, ThemeIconId>>): Solid | null {
+  const themeIcon = themeIcons?.[object.id]
+  const icon = resolveThemeObjectIcon({ engineType: object.type, themeIcon }, object.cells)
+  return icon ? solidFor(object.type, themeIcon, icon.variant.cells) : null
 }

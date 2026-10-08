@@ -1,5 +1,6 @@
 import { useId, useMemo, type ReactNode } from 'react'
 import type { PlacedObject, Scene } from '../../engine/model/index.ts'
+import { chairFacing } from '../looks/facing.ts'
 import { sortBackToFront } from '../looks/project.ts'
 import { roomClipPath } from '../looks/roomClip.ts'
 import { ShadowFilter, SolidPrims, SolidShadow } from '../looks/Solids.tsx'
@@ -45,7 +46,8 @@ export function SceneObjectIcons({ objects, geometry, cellRooms, themeIcons }: S
   const rooms = useMemo(() => {
     const byRoom = new Map<string, Placed[]>()
     for (const object of objects) {
-      const solid = solidOf(object, themeIcons)
+      const facing = object.type === 'chair' ? chairFacing(object, objects, cellRooms) : undefined
+      const solid = solidOf(object, themeIcons, facing)
       if (!solid) continue
       const top = Math.min(...object.cells.map((c) => c.row))
       const left = Math.min(...object.cells.map((c) => c.col))
@@ -67,19 +69,20 @@ export function SceneObjectIcons({ objects, geometry, cellRooms, themeIcons }: S
   }, [objects, geometry, cellRooms, themeIcons])
   if (rooms.length === 0) return null
   const scale = CELL_SIZE / 100
+  // The object's own group carries data-object; the art inside it names its kind (data-icon, or data-theme-icon for own theme art).
   const at = (p: Placed, body: ReactNode, tag: boolean) => (
-    <g
-      key={p.id}
-      data-object={tag ? p.id : undefined}
-      data-icon={tag ? (p.solid.themeIcon ? undefined : p.solid.key) : undefined}
-      data-theme-icon={tag ? p.solid.themeIcon : undefined}
-      transform={`translate(${r1(p.x)} ${r1(p.y)}) scale(${scale})`}
-    >
-      {body}
+    <g key={p.id} data-object={tag ? p.id : undefined} transform={`translate(${r1(p.x)} ${r1(p.y)}) scale(${scale})`}>
+      {tag ? (
+        <g data-solid={p.solid.key} data-icon={p.solid.themeIcon ? undefined : p.solid.key} data-theme-icon={p.solid.themeIcon}>
+          {body}
+        </g>
+      ) : (
+        body
+      )}
     </g>
   )
   return (
-    <g data-look="a2">
+    <g>
       <defs>
         <ShadowFilter id={`${prefix}-blur`} />
         {rooms.map((room, i) => (
