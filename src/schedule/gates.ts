@@ -37,13 +37,24 @@ export function packEntryOf(day: ScheduleDay): PackEntry {
 /** Names a day with a cast pool of its own may share with a neighbouring day: its pool can be too small to avoid one (owner decision 2026-10-08, Simpshouse 12x12 and Iris). */
 export const THEMED_DAY_SHARED_NAMES = 1
 
-/** Problems with how a day relates to the day before it: no name in common (a themed-pool day or its neighbour: at most `THEMED_DAY_SHARED_NAMES`), not the same size, tier and theme together. */
+/** The room names of a day's board, sorted: two boards with the same set read as the same house. */
+export const roomSetOf = (day: Pick<ScheduleDay, 'puzzle'>): string => [...new Set(day.puzzle.scene.rooms.map((r) => r.name))].sort().join('|')
+
+const isSeasonal = (theme: ScheduleDay['theme']): boolean => SCENE_THEMES.find((t) => t.id === theme)?.seasonal === true
+
+/**
+ * Problems with how a day relates to the day before it: no name in common (a themed-pool day or its neighbour: at most
+ * `THEMED_DAY_SHARED_NAMES`), not the same size, tier and theme together. Two days of one seasonal window (Christmas runs all of December)
+ * always share the theme and their size and tier come from the date alone, so there the rule is a different set of rooms instead (SLAY-18.8).
+ */
 export function pairProblems(previous: ScheduleDay, day: ScheduleDay): string[] {
   const problems: string[] = []
   const shared = sharedNames(castOfDay(previous), castOfDay(day))
   const allowed = hasOwnCastPool(day.theme) || hasOwnCastPool(previous.theme) ? THEMED_DAY_SHARED_NAMES : 0
   if (shared.length > allowed) problems.push(`${day.date}: shares the names ${shared.join(', ')} with ${previous.date}`)
-  if (previous.size === day.size && previous.tier === day.tier && previous.theme === day.theme) {
+  if (previous.theme === day.theme && isSeasonal(day.theme)) {
+    if (roomSetOf(previous) === roomSetOf(day)) problems.push(`${day.date}: same rooms as ${previous.date} in the ${day.theme} window`)
+  } else if (previous.size === day.size && previous.tier === day.tier && previous.theme === day.theme) {
     problems.push(`${day.date}: same size, tier and theme as ${previous.date}`)
   }
   return problems

@@ -3,8 +3,18 @@ import { boardKey, puzzleKey } from '../content/packs/gates.ts'
 import { addDays, dayNumberOf, monthOf, weekStartOf } from './dates.ts'
 import { indexMonthsOf, monthFileName } from './format.ts'
 import { pairProblems } from './gates.ts'
-import { FALLBACK_SIZE, canFallBack, isExpertDay, isSuppressedExpertDay, planDay } from './pick.ts'
+import { FALLBACK_SIZE, canFallBack, isExpertDay, isSuppressedExpertDay, planDay, rotationThemeOf } from './pick.ts'
 import type { MonthFile, ScheduleDay, ScheduleIndex } from './types.ts'
+
+/**
+ * A committed day inside a seasonal window that still carries its rotation theme: the window's theme was registered after the day was
+ * baked (SLAY-18.8). A published day never changes, so such a day stays as it is; future ones get their seasonal theme when SLAY-18.10
+ * regenerates them.
+ */
+export const bakedBeforeSeason = (day: Pick<ScheduleDay, 'date' | 'theme'>): boolean => {
+  const plan = planDay(day.date).theme
+  return day.theme !== plan && day.theme === rotationThemeOf(day.date)
+}
 
 /**
  * Cheap checks of a whole schedule (no solver runs; `dayProblems` does those per day): the picker's plan is followed, the numbers and
@@ -35,7 +45,7 @@ export function scheduleProblems(index: ScheduleIndex, files: readonly MonthFile
     if (day.n !== dayNumberOf(day.date) - dayNumberOf(index.launch) + 1) at(`puzzle number ${day.n} does not count from the launch date ${index.launch}`)
     if (day.fp !== puzzleFingerprint(day.puzzle)) at('fp does not match the puzzle')
     const plan = planDay(day.date, index.launch)
-    if (day.tier !== plan.tier || day.theme !== plan.theme) at(`is ${day.tier}/${day.theme}, the picker plans ${plan.tier}/${plan.theme}`)
+    if (day.tier !== plan.tier || (day.theme !== plan.theme && !bakedBeforeSeason(day))) at(`is ${day.tier}/${day.theme}, the picker plans ${plan.tier}/${plan.theme}`)
     if (day.fallbackFrom === undefined) {
       if (day.size !== plan.size) at(`is ${day.size}x${day.size}, the picker plans ${plan.size}x${plan.size}`)
     } else if (!canFallBack(plan) || day.fallbackFrom !== plan.size || day.size !== FALLBACK_SIZE) {

@@ -101,7 +101,7 @@ describe('object clues mean the whole object', () => {
         const text = renderClue(clue, ctx)
         expect(text, name).toContain(SIDE_WORD[side])
         expect(DIRECTION_OF_OBJECT_SIDES).toContain(side)
-        expect(text, name).toMatch(/ than an? [a-zé ,]+\.$/)
+        expect(text, name).toMatch(/ than an? [A-Za-zé ,]+\.$/) // capitals for a proper adjective ("a Christmas tree")
 
         // Same rows/columns as a multi-cell object's own extent: never beyond THAT object.
         for (const o of objects) {

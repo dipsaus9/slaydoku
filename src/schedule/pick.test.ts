@@ -8,6 +8,8 @@ import {
 } from './pick.ts'
 import type { DayPlan } from './types.ts'
 
+const seasonal = new Set(SCENE_THEMES.filter((t) => t.seasonal).map((t) => t.id))
+
 /*
  * The launch date is not necessarily a Monday (it moves with the product), so a run's first and last UTC week (Monday to Sunday) can be
  * partial. `weeks()` buckets by the real week start (`weekStartOf`), not by naive 7-day chunks from day 0, so a partial head or tail week
@@ -72,13 +74,14 @@ describe('picker rules over long runs', () => {
       })
       it('rotates the five themes evenly and never repeats one two days in a row', () => {
         for (const theme of SCENE_THEMES.filter((t) => !t.seasonal)) expect(share(plans, (p) => p.theme, theme.id), theme.id).toBeGreaterThan(17)
+        // A seasonal window (Christmas: all of December) repeats its theme by design; the rooms differ instead (gates.ts, pairProblems).
         plans.forEach((p, i) => {
-          if (i > 0) expect(p.theme, p.date).not.toBe(plans[i - 1]!.theme)
+          if (i > 0 && !seasonal.has(p.theme)) expect(p.theme, p.date).not.toBe(plans[i - 1]!.theme)
         })
       })
       it('never gives two consecutive days the same size, tier and theme', () => {
         plans.forEach((p, i) => {
-          if (i > 0) expect(`${p.size}${p.tier}${p.theme}`, p.date).not.toBe(`${plans[i - 1]!.size}${plans[i - 1]!.tier}${plans[i - 1]!.theme}`)
+          if (i > 0 && !seasonal.has(p.theme)) expect(`${p.size}${p.tier}${p.theme}`, p.date).not.toBe(`${plans[i - 1]!.size}${plans[i - 1]!.tier}${plans[i - 1]!.theme}`)
         })
       })
       it('gives every day its own seed window', () => {

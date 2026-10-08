@@ -4,6 +4,7 @@ import type { ThemeId } from '../content/themes/index.ts'
 import { SEASONAL_RULES, SIMPSHOUSE_DATES, seasonalThemeOf } from './calendar.ts'
 import { addDays } from './dates.ts'
 import { rotationThemeOf, themeOf } from './pick.ts'
+import { bakedBeforeSeason } from './check.ts'
 import { readSchedule } from './schedule.testing.ts'
 
 const all = () => true
@@ -91,7 +92,14 @@ describe('rotation guard against the committed schedule', () => {
   })
 
   it('themeOf gives the committed theme for every scheduled day, with the seasonal stubs present (SLAY-18.11)', () => {
-    for (const day of days) expect(themeOf(day.date), day.date).toBe(day.theme)
+    for (const day of days) if (!bakedBeforeSeason(day)) expect(themeOf(day.date), day.date).toBe(day.theme)
+  })
+
+  it('a day baked before its seasonal theme registered keeps its rotation theme and lies in that window (SLAY-18.8)', () => {
+    for (const day of days.filter(bakedBeforeSeason)) {
+      expect(rotationThemeOf(day.date), day.date).toBe(day.theme)
+      expect(seasonalThemeOf(day.date, all), day.date).toBe(themeOf(day.date))
+    }
   })
 
   it('every committed day outside a seasonal window keeps the scheduled theme', () => {
