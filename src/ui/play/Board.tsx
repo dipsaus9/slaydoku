@@ -133,7 +133,6 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
           showAxisLabels={showAxisLabels}
           title={t.board}
           locale={locale}
-          labelAvoid={Object.values(board.placements)}
           objectsLayer={(g) => <SceneObjectIcons objects={puzzle.scene.objects} geometry={g} themeIcons={themeIcons} />}
           marksLayer={(g) => (
             <>

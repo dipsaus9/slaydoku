@@ -92,16 +92,13 @@ function fitFont(lines: string[], available: number): number {
  * text uses (`roomNameNlOf`, content/themes/index.ts) — never a second translation;
  * a name no theme defines falls back to the bare English noun, exactly as `'en'` does.
  */
-export function roomLabelLayout(scene: Scene, roomId: string, locale: Locale = 'en', avoid: readonly Cell[] = []): RoomLabelLayout | undefined {
+export function roomLabelLayout(scene: Scene, roomId: string, locale: Locale = 'en'): RoomLabelLayout | undefined {
   const room = scene.rooms.find((r) => r.id === roomId)
   const cells = cellsInRoom(scene, roomId)
   if (!room || cells.length === 0) return undefined
 
   const covered = new Set(scene.objects.flatMap((o) => o.cells.map(cellKey)))
-  // Squares the player keeps something on (placed people) are avoided as well, when the room has room for it.
-  const occupied = new Set([...covered, ...avoid.map(cellKey)])
-  let runs = rowRuns(scene, roomId, occupied)
-  if (runs.length === 0) runs = rowRuns(scene, roomId, covered)
+  let runs = rowRuns(scene, roomId, covered)
   if (runs.length === 0) runs = rowRuns(scene, roomId, new Set())
 
   const mid = centroid(cells)

@@ -1,6 +1,6 @@
 // Rendered check of the room labels (SLAY-17.5): a room the PLAYER has filled in -- people placed on its squares, X marks of the selected suspect
 // and candidate notes everywhere -- at 360, 390, 768 and 1024 wide in en and nl. Screenshots of the whole board and a crop of the crowded room's
-// label, plus a probe of the label's contrast against what is drawn under it. Drives headless Chrome over the DevTools protocol.
+// label.
 // Usage (repo root): bun run build && bunx vite preview --port 5417 &
 //   BASE=http://localhost:5417/ CDP_PORT=9477 OUT=/private/tmp/claude-501/w-17.5/after bun docs/verification/labelshots.ts
 // Env: DATES (comma list), BASE, CDP_PORT, OUT.
