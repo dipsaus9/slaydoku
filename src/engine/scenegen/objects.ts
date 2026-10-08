@@ -12,9 +12,9 @@ export const MIN_FREE_SHARE = 0.5
 /** Extra chance for objects the theme says belong in this kind of room. */
 const FAVOUR_BOOST = 4
 
-/** Variety (SLAY-17.6): a kind the room does not have yet is this much likelier, and each copy already in the room multiplies the weight by `REPEAT_FACTOR`. */
+/** Variety (SLAY-17.6): a kind the room does not have yet is this much likelier, and each copy already in the room multiplies the weight by `REPEAT_FACTOR` (0.35 until SLAY-22; 0.2 since the density cap, so a capped room spends its few objects on different kinds). */
 const NEW_KIND_BOOST = 3
-const REPEAT_FACTOR = 0.35
+const REPEAT_FACTOR = 0.2
 
 /** Chance boost when a spot fits the object's placement hint. */
 const HINT_BOOST = 8
@@ -27,6 +27,14 @@ export const MAX_FREE_CHAIRS_PER_ROOM = 2
 
 /** The engine types a chair can sit at: a third and later chair must touch one of these. */
 export const SEAT_AT_TYPES: ReadonlySet<string> = new Set(['table', 'diningTable', 'gardenTable', 'desk', 'kitchenCounter'])
+
+/**
+ * Object density (SLAY-22): a room of `squares` squares holds at most `maxObjectsInRoom(squares)` objects, structural kinds and chairs
+ * included, so a room looks furnished but not crowded. One object per `SQUARES_PER_OBJECT` squares, plus one, so even a one-square
+ * closet may hold one. Measured before/after in docs/authoring/room-rules.md ("Object density").
+ */
+export const SQUARES_PER_OBJECT = 5
+export const maxObjectsInRoom = (squares: number): number => 1 + Math.floor(squares / SQUARES_PER_OBJECT)
 
 /** Chance boost for a chair spot next to a table, desk or counter (companion placement). */
 const COMPANION_BOOST = 3
@@ -123,6 +131,8 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
     const perKind = new Map<string, number>()
     let chairs = 0
     const target = Math.max(1, Math.round(size * (0.22 + random() * 0.22)))
+    const cap = maxObjectsInRoom(size)
+    let placedHere = 0
     let covered = 0
     let misses = 0
 
@@ -185,16 +195,18 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
 
     // A room first gets one of its signature objects (the bed in a bedroom), then random ones.
     let signature = favoured.size > 0 && size >= 3 ? 4 : 0
-    while (covered < target && misses < 8) {
+    const allowed = theme.objects.filter(
+      (o) => !o.excludeRoomTypes?.some((t) => roomTypes.has(t)) && (!o.allowedRoomTypes || o.allowedRoomTypes.some((t) => roomTypes.has(t))),
+    )
+    while (covered < target && placedHere < cap && misses < 8) {
       const onlyFavoured = signature > 0
-      const candidates = theme.objects.filter(
-        (o) =>
-          (perKind.get(o.kind) ?? 0) < Math.min(o.maxPerRoom ?? Infinity, MAX_KIND_PER_ROOM) &&
-          (!onlyFavoured || favoured.has(o.kind)) &&
-          !o.excludeRoomTypes?.some((t) => roomTypes.has(t)) &&
-          (!o.allowedRoomTypes || o.allowedRoomTypes.some((t) => roomTypes.has(t))),
+      const candidates = allowed.filter(
+        (o) => (perKind.get(o.kind) ?? 0) < Math.min(o.maxPerRoom ?? Infinity, MAX_KIND_PER_ROOM) && (!onlyFavoured || favoured.has(o.kind)),
       )
+      // The signature pick is even across the favoured kinds (SLAY-22): with the density cap a small room may get only this one object, so a
+      // low-weight signature kind (the car in a garage) must not lose to a common one every time.
       const object = pickWeighted(random, candidates, (o) => {
+        if (onlyFavoured) return 1
         const have = perKind.get(o.kind) ?? 0
         return o.weight * (favoured.has(o.kind) ? FAVOUR_BOOST : 1) * (have === 0 ? NEW_KIND_BOOST : REPEAT_FACTOR ** have)
       })
@@ -206,9 +218,12 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
         continue
       }
       signature = 0
+      placedHere++
       perKind.set(object.kind, (perKind.get(object.kind) ?? 0) + 1)
       covered += placed.length
     }
+    // No bare room (SLAY-22): a room the loop above left empty tries every kind it allows once more, in a random order, until one fits.
+    if (placedHere === 0) for (const object of shuffle(random, allowed)) if (tryPlace(object)) break
   }
   return objects
 }
