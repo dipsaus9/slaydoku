@@ -7,7 +7,7 @@ import type { SimpsIconId } from './art.tsx'
 /**
  * DRAFT Simpshouse theme (SLAY-18.3, round two: much more party): a friend-group house with a lot
  * of glamour, a party floor, trading cards (generic card binders and card tables, never any real
- * card brand, name or logo), salmiak sweets and a rabbit hutch on the balcony.
+ * card brand, name or logo), a salmari (dark liquorice liqueur) shot bar and a rabbit hutch on the balcony.
  *
  * Written so the theme story (SLAY-18.4) can promote it unchanged: the final `SceneTheme` shape,
  * the room rules of SLAY-17.1 (`roomTypes` per room, `allowedRoomTypes` per object). Draft-only:
@@ -44,14 +44,14 @@ const room = (name: string, nameNl: string, roomTypes: RoomType[], favours: stri
 export const SIMPSHOUSE_ROOMS: ThemeRoom[] = [
   room('Living Room', 'Woonkamer', ['living'], ['sofa', 'cornerSofa', 'television', 'coffeeTable', 'rug', 'lavaLamp']),
   room('Glam Lounge', 'Glamourlounge', ['living'], ['discoBall', 'cornerSofa', 'mannequin', 'goldMirror', 'redCarpet']),
-  room('Glam Room', 'Glamourkamer', ['storage'], ['goldMirror', 'shoeWall', 'vanity', 'clothesRack']),
-  room('Card Room', 'Kaartenkamer', ['study'], ['cardTable', 'cardBinderShelf', 'chair', 'photoWall']),
+  room('Glam Room', 'Glamourkamer', ['storage'], ['goldMirror', 'shoeWall', 'vanity', 'clothesRack', 'yellowPlush']),
+  room('Card Room', 'Kaartenkamer', ['study'], ['cardBinderShelf', 'cardTable', 'cardDisplayCase', 'readingNook', 'yellowPlush', 'chair']),
   room('Game Room', 'Spelkamer', ['living'], ['arcadeCabinet', 'television', 'coffeeTable', 'lavaLamp']),
   room('Karaoke Room', 'Karaokekamer', ['living'], ['karaokeStage', 'discoBall', 'sofa', 'television']),
   room('Cinema Room', 'Filmzaal', ['living'], ['sofa', 'television', 'rug', 'lavaLamp']),
   room('Dance Floor', 'Dansvloer', [PARTY], ['danceFloor', 'djBooth', 'discoBall', 'confettiCannon', 'balloons']),
   room('Cocktail Lounge', 'Cocktaillounge', [PARTY], ['cocktailBar', 'champagneTower', 'sofa', 'redCarpet']),
-  room('Candy Corner', 'Snoephoek', [PARTY], ['salmiakTable', 'snackTable', 'balloons']),
+  room('Shot Bar', 'Shotjesbar', [PARTY], ['salmariBar', 'snackTable', 'balloons']),
   room('Photo Studio', 'Fotostudio', [PARTY], ['photoBooth', 'photoWall', 'redCarpet', 'goldMirror']),
   room('Balcony', 'Balkon', [OUTDOOR], ['rabbitHutch', 'houseplant', 'balloons', 'chair'], true),
   room('Kitchen', 'Keuken', ['kitchen'], ['kitchenCounter', 'diningTable', 'chair', 'snackTable']),
@@ -117,7 +117,10 @@ export const SIMPSHOUSE_OBJECTS: ThemeObject[] = [
   themeObject({ kind: 'cocktailBar', name: 'cocktail bar', engineType: 'kitchenCounter', themeIcon: draftIcon('cocktailBar'), weight: 4, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: [PARTY] }),
   themeObject({ kind: 'photoBooth', name: 'photo booth', engineType: 'wardrobe', themeIcon: draftIcon('photoBooth'), weight: 3, footprints: [rect(1, 1)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: [PARTY, 'living', 'circulation'] }),
   themeObject({ kind: 'lavaLamp', name: 'lava lamp', engineType: 'plant', themeIcon: draftIcon('lavaLamp'), weight: 2.5, footprints: [rect(1, 1)], placement: 'anywhere', maxPerRoom: 2, allowedRoomTypes: ['living', PARTY, 'sleeping', 'study'] }),
-  themeObject({ kind: 'salmiakTable', name: 'salmiak candy table', clueNoun: 'candy table', engineType: 'table', themeIcon: draftIcon('salmiakTable'), weight: 4, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'centre', maxPerRoom: 1, allowedRoomTypes: [PARTY, 'kitchen', 'dining'] }),
+  themeObject({ kind: 'cardDisplayCase', name: 'card display case', engineType: 'cabinet', themeIcon: draftIcon('cardDisplayCase'), weight: 3, footprints: [rect(1, 1), rect(2, 1)], placement: 'wall', maxPerRoom: 1, allowedRoomTypes: ['study', 'living', 'circulation'] }),
+  themeObject({ kind: 'readingNook', name: 'reading corner', engineType: 'rug', themeIcon: draftIcon('readingNook'), weight: 3, footprints: [rect(2, 2), rect(2, 1, 0.5)], placement: 'corner', maxPerRoom: 1, allowedRoomTypes: ['study', 'living'] }),
+  themeObject({ kind: 'yellowPlush', name: 'Pikachu plush', clueNoun: 'plush toy', engineType: 'statue', themeIcon: draftIcon('yellowPlush'), weight: 3, footprints: [rect(1, 1)], placement: 'anywhere', maxPerRoom: 1, allowedRoomTypes: ['study', 'sleeping', 'storage'] }),
+  themeObject({ kind: 'salmariBar', name: 'Salmari', clueNoun: 'shot tray', engineType: 'table', themeIcon: draftIcon('salmariBar'), weight: 4, footprints: [rect(2, 1), rect(3, 1, 0.5)], placement: 'centre', maxPerRoom: 1, allowedRoomTypes: [PARTY, 'kitchen', 'dining'] }),
 ]
 
 export const SIMPSHOUSE_THEME: SceneTheme = {
@@ -139,7 +142,7 @@ export const OBJECT_NAMES_NL: Record<string, string> = {
   rabbitHutch: 'konijnenhok', redCarpet: 'rode loper', champagneTower: 'champagnetoren', goldMirror: 'gouden spiegel',
   shoeWall: 'glitterschoenenwand', photoWall: 'fotowand', djBooth: 'dj-booth', danceFloor: 'dansvloer', confettiCannon: 'confettikanon',
   balloons: 'ballonnen', snackTable: 'snacktafel', cocktailBar: 'cocktailbar', photoBooth: 'fotohokje', lavaLamp: 'lavalamp',
-  salmiakTable: 'salmiaktafel',
+  salmariBar: 'Salmari-bar', cardDisplayCase: 'kaartenvitrine', readingNook: 'leeshoek', yellowPlush: 'Pikachu-knuffel',
 }
 
 /** The room types the theme story must add to `RoomType`. */

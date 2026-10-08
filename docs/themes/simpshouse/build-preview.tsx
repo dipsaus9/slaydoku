@@ -91,7 +91,7 @@ const unique = () => ({ identifierPrefix: `r${renders++}-` })
  * Floors for the new rooms: roomStyles.ts guesses a floor from the room name and falls back to a
  * cycle (which made the party rooms water). The theme story adds these names to NAME_HINTS there.
  */
-const FLOORS: Record<string, 'carpet' | 'tiles' | 'stone'> = { 'Dance Floor': 'carpet', 'Photo Studio': 'carpet', 'Candy Corner': 'tiles', Balcony: 'stone' }
+const FLOORS: Record<string, 'carpet' | 'tiles' | 'stone'> = { 'Dance Floor': 'carpet', 'Photo Studio': 'carpet', 'Shot Bar': 'tiles', Balcony: 'stone' }
 
 function renderScene(scene: Scene, lang: 'en' | 'nl', title: string): string {
   const shown: Scene = lang === 'en' ? scene : { ...scene, rooms: scene.rooms.map((r) => ({ ...r, name: SIMPSHOUSE_ROOMS.find((x) => x.name === r.name)?.nameNl ?? r.name })) }
@@ -119,7 +119,7 @@ const roomsFor = (o: ThemeObject): typeof SIMPSHOUSE_ROOMS => SIMPSHOUSE_ROOMS.f
 /* ---- sample levels: pick, per size, the seed whose scene shows the most different fun objects ---- */
 const FUN = new Set(SIMPSHOUSE_OBJECTS.filter((o) => isDraft(o) || ['beanbag', 'mannequin', 'clothesRack'].includes(o.kind)).map((o) => o.kind))
 function funScore(scene: Scene): number {
-  return new Set(scene.objects.map((o) => o.id.replace(/-\d+$/, '')).filter((k) => FUN.has(k))).size * 3 + scene.rooms.length + (scene.objects.some((o) => o.id.startsWith('rabbitHutch')) ? 6 : 0) + (scene.rooms.some((r) => r.name === 'Dance Floor') ? 4 : 0)
+  return new Set(scene.objects.map((o) => o.id.replace(/-\d+$/, '')).filter((k) => FUN.has(k))).size * 3 + scene.rooms.length + (scene.objects.some((o) => o.id.startsWith('rabbitHutch')) ? 6 : 0) + (scene.rooms.some((r) => r.name === 'Dance Floor') ? 4 : 0) + (scene.objects.some((o) => o.id.startsWith('yellowPlush')) ? 5 : 0) + (scene.rooms.some((r) => r.name === 'Card Room') ? 3 : 0)
 }
 function bestSeed(width: number, height: number, from: number): { seed: number; scene: Scene } {
   let best: { seed: number; scene: Scene; score: number } | undefined

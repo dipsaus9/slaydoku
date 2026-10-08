@@ -26,6 +26,7 @@ Tick in this order; 1 to 4 can be done while the repository is still private.
 - [x] Read `README.md` top to bottom as a stranger would. Previously known to fix, now fixed (#47): the opening no longer says "Status: work in progress, not public yet"; it opens with what the game is and a play link, and the dangling `MIGRATION.md` link is gone (`git grep -n -i migration -- . ':!docs/launch.md' ':!backlog'` finds nothing). Re-read top to bottom again 2026-09-29, after SLAY-9/SLAY-10/SLAY-11 landed: still accurate, nothing describes a feature that doesn't exist or omits one that does.
 - [ ] The README does not mention the private prototype, its language, or any person. There is no automated check for this any more; read it yourself.
 - [ ] Third-party material: there are no images, fonts or puzzle data of other products. The dependencies are React 19 and build tools (`package.json`), all MIT/Apache; the brand images are drawn in this repository (`src/brand/*.svg`).
+- [ ] Simpshouse has a Pikachu plush (third-party character); owner to decide whether to keep it before the repo goes public (IP risk accepted by the owner for now, 2026-10-08).
 
 ### 3. About page: contact placeholder
 

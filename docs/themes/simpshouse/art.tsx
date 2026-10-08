@@ -511,29 +511,99 @@ export function lavaLamp(): ReactNode {
   )
 }
 
-/** Salmiak candy table: dark liquorice diamonds in a glass jar and on a plate, a scoop, no brand. */
-export function salmiakTable(cols: number, rows: number): ReactNode {
+/** Salmari bar: a dark liquorice liqueur bottle (no label) and a row of shot glasses on a dark tray. */
+export function salmariBar(cols: number, rows: number): ReactNode {
   const w = cols * U
   const h = rows * U
-  const diamond = (x: number, y: number, s: number, k: string): ReactNode => (
-    <Shape key={k} d={`M ${x} ${y - s} L ${x + s} ${y} L ${x} ${y + s} L ${x - s} ${y} Z`} fill={P.liquorice} stroke={P.liquoriceLight} sw={1.5} />
-  )
-  const heap: ReactNode[] = []
-  for (let i = 0; i < 9; i++) heap.push(diamond(w * 0.27 + ((i % 3) - 1) * 11, h / 2 + (Math.floor(i / 3) - 1) * 11, 6, `h${i}`))
-  const plate: ReactNode[] = []
-  for (let i = 0; i < 6; i++) plate.push(diamond(w * 0.62 + ((i % 3) - 1) * 11, h / 2 - 6 + Math.floor(i / 3) * 12, 6, `p${i}`))
+  const shots: ReactNode[] = []
+  const n = cols * 2 + 1
+  for (let i = 0; i < n; i++) {
+    const x = w * 0.42 + ((i + 0.5) * (w * 0.5 - M - 6)) / n
+    const y = i % 2 ? h / 2 + 15 : h / 2 - 15
+    shots.push(<Disc key={`s${i}`} x={x} y={y} r={8} fill={C.white} sw={2} />, <Disc key={`d${i}`} x={x} y={y} r={5} fill={P.liquorice} sw={0} />)
+  }
   return (
     <>
       <Feet cols={cols} rows={rows} size={10} inset={5} />
-      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={8} fill={C.cream} />
-      <Box x={M + 6} y={M + 6} w={w - 2 * M - 12} h={h - 2 * M - 12} r={5} fill="none" stroke={P.liquoriceLight} sw={DETAIL} />
-      <Disc x={w * 0.27} y={h / 2} r={26} fill={G.mirror} sw={DETAIL} />
-      {heap}
-      <Disc x={w * 0.27} y={h / 2} r={26} fill="none" stroke={C.white} sw={2} opacity={0.8} />
-      <Disc x={w * 0.62} y={h / 2} r={24} fill={C.white} sw={DETAIL} />
-      {plate}
-      <Box x={w - M - 24} y={h / 2 - 10} w={12} h={22} r={4} fill={C.steel} sw={DETAIL} />
-      <Disc x={w - M - 18} y={h / 2 - 14} r={6} fill={C.steel} sw={DETAIL} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={8} fill={C.woodDeep} />
+      <Box x={M + 6} y={M + 6} w={w - 2 * M - 12} h={h - 2 * M - 12} r={5} fill={C.woodDark} sw={DETAIL} />
+      <Stroke x1={M + 10} y1={M + 12} x2={w - M - 10} y2={M + 12} stroke={C.gold} sw={DETAIL} />
+      <Disc x={w * 0.22} y={h / 2 + 4} r={22} fill={P.liquorice} sw={DETAIL} />
+      <Disc x={w * 0.22} y={h / 2 + 4} r={15} fill="none" stroke={P.liquoriceLight} sw={2} />
+      <Disc x={w * 0.22} y={h / 2 + 4} r={7} fill={P.liquoriceLight} sw={DETAIL} />
+      <Disc x={w * 0.22} y={h / 2 + 4} r={3} fill={C.gold} sw={1.5} />
+      <Oval x={w * 0.22 - 9} y={h / 2 - 6} rx={3} ry={5} fill={C.white} sw={0} opacity={0.5} />
+      {shots}
+    </>
+  )
+}
+
+/** Card display case: a wooden base under a glass lid, a fan of cards inside and a gold lock. */
+export function cardDisplayCase(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  const cx = w / 2
+  const fan = [-22, -7, 8, 23].map((deg, i) => (
+    <g key={deg} transform={`rotate(${deg} ${cx} ${h / 2 + 14})`}>
+      <Box x={cx - 8} y={h / 2 - 22} w={16} h={26} r={2} fill={[C.white, C.creamLight, C.white, C.creamLight][i]} sw={2} />
+      <Box x={cx - 4} y={h / 2 - 17} w={8} h={8} r={1} fill={[C.red, G.cardBlue, C.yellow, C.greenLight][i]} sw={0} />
+    </g>
+  ))
+  return (
+    <>
+      <Feet cols={cols} rows={rows} size={10} inset={5} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={6} fill={C.woodDark} />
+      <Box x={M + 8} y={M + 8} w={w - 2 * M - 16} h={h - 2 * M - 16} r={4} fill={G.mirror} sw={DETAIL} />
+      <Box x={M + 14} y={M + 14} w={w - 2 * M - 28} h={h - 2 * M - 28} r={3} fill={C.skyLight} sw={0} />
+      {fan}
+      <Stroke x1={M + 18} y1={M + 34} x2={M + 34} y2={M + 18} stroke={C.white} sw={DETAIL + 1} />
+      <Disc x={w - M - 14} y={h - M - 14} r={4} fill={C.gold} sw={2} />
+    </>
+  )
+}
+
+/** Reading corner: a soft rug with a cushion, an open book and a small lamp. A person can sit here. */
+export function readingNook(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  return (
+    <>
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={Math.min(w, h) / 4} fill={G.cardBlue} />
+      <Box x={M + 8} y={M + 8} w={w - 2 * M - 16} h={h - 2 * M - 16} r={Math.min(w, h) / 5} fill="none" stroke={C.skyLight} sw={DETAIL} />
+      <Disc x={M + 30} y={M + 32} r={17} fill={C.pink} sw={DETAIL} />
+      <Disc x={M + 30} y={M + 32} r={6} fill={C.red} sw={2} />
+      <Box x={w / 2 - 6} y={h / 2 - 8} w={22} h={28} r={2} fill={C.white} sw={DETAIL} />
+      <Box x={w / 2 + 16} y={h / 2 - 8} w={22} h={28} r={2} fill={C.creamLight} sw={DETAIL} />
+      <Stroke x1={w / 2 - 1} y1={h / 2 + 2} x2={w / 2 + 10} y2={h / 2 + 2} stroke={C.creamDark} sw={2} />
+      <Stroke x1={w / 2 + 22} y1={h / 2 + 2} x2={w / 2 + 33} y2={h / 2 + 2} stroke={C.creamDark} sw={2} />
+      <Disc x={w - M - 20} y={h - M - 20} r={11} fill={C.yellowLight} sw={DETAIL} />
+      <Disc x={w - M - 20} y={h - M - 20} r={4} fill={C.gold} sw={2} />
+    </>
+  )
+}
+
+/**
+ * Pikachu plush (owner decision, 2026-10-08): a round yellow stuffed toy with long pointed ears with
+ * dark tips, red cheeks and a lightning-bolt tail. Hand-drawn SVG, not official artwork. The only
+ * place a third-party character is named; see the go-public checklist in docs/launch.md.
+ */
+export function yellowPlush(): ReactNode {
+  return (
+    <>
+      <Shape d="M 62 62 L 78 52 L 72 66 L 88 58 L 72 84 L 74 70 L 62 76 Z" fill={C.yellow} stroke={C.ink} sw={DETAIL} />
+      <Shape d="M 24 36 L 14 8 L 40 26 Z" fill={C.yellow} />
+      <Shape d="M 60 26 L 86 8 L 76 36 Z" fill={C.yellow} />
+      <Shape d="M 14 8 L 17 19 L 24 14 Z" fill={C.ink} sw={1} />
+      <Shape d="M 86 8 L 83 19 L 76 14 Z" fill={C.ink} sw={1} />
+      <Disc x={44} y={58} r={32} fill={C.yellow} />
+      <Disc x={34} y={50} r={3.4} fill={C.ink} sw={0} />
+      <Disc x={54} y={50} r={3.4} fill={C.ink} sw={0} />
+      <Disc x={33} y={49} r={1} fill={C.white} sw={0} />
+      <Disc x={53} y={49} r={1} fill={C.white} sw={0} />
+      <Disc x={22} y={62} r={6.5} fill={P.red2} sw={0} />
+      <Disc x={66} y={62} r={6.5} fill={P.red2} sw={0} />
+      <Shape d="M 38 64 Q 44 70 50 64" stroke={C.ink} sw={2} />
+      <Disc x={44} y={57} r={1.6} fill={C.ink} sw={0} />
     </>
   )
 }
@@ -541,7 +611,7 @@ export function salmiakTable(cols: number, rows: number): ReactNode {
 export const SIMPS_ICON_IDS = [
   'cardBinderShelf', 'cardTable', 'vanity', 'discoBall', 'karaokeStage', 'arcadeCabinet', 'bubbleBath',
   'rabbitHutch', 'redCarpet', 'champagneTower', 'goldMirror', 'shoeWall', 'photoWall', 'djBooth', 'danceFloor',
-  'confettiCannon', 'balloons', 'snackTable', 'cocktailBar', 'photoBooth', 'lavaLamp', 'salmiakTable',
+  'confettiCannon', 'balloons', 'snackTable', 'cocktailBar', 'photoBooth', 'lavaLamp', 'salmariBar', 'cardDisplayCase', 'readingNook', 'yellowPlush',
 ] as const
 export type SimpsIconId = (typeof SIMPS_ICON_IDS)[number]
 
@@ -574,5 +644,8 @@ export const SIMPS_ICONS: Record<SimpsIconId, DraftIcon> = {
   cocktailBar: { id: 'cocktailBar', sizes: [[2, 1], [3, 1]], draw: cocktailBar },
   photoBooth: { id: 'photoBooth', sizes: [[1, 1]], draw: () => photoBooth() },
   lavaLamp: { id: 'lavaLamp', sizes: [[1, 1]], draw: () => lavaLamp() },
-  salmiakTable: { id: 'salmiakTable', sizes: [[2, 1], [3, 1]], draw: salmiakTable },
+  salmariBar: { id: 'salmariBar', sizes: [[2, 1], [3, 1]], draw: salmariBar },
+  cardDisplayCase: { id: 'cardDisplayCase', sizes: [[1, 1], [2, 1]], draw: cardDisplayCase },
+  readingNook: { id: 'readingNook', sizes: [[2, 1], [2, 2]], draw: readingNook },
+  yellowPlush: { id: 'yellowPlush', sizes: [[1, 1]], draw: () => yellowPlush() },
 }

@@ -4,13 +4,14 @@ title: 'Spike: Simpshouse preview (rooms, objects, sample levels)'
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 11:24'
+updated_date: '2026-10-08 11:34'
 labels:
   - needs-owner-review
 dependencies:
   - SLAY-17.1
 references:
   - docs/themes/simpshouse/
+  - docs/launch.md
 parent_task_id: SLAY-18
 type: spike
 ordinal: 127000
@@ -38,11 +39,9 @@ Branch: SLAY-18.3/simpshouse-preview
 <!-- SECTION:NOTES:BEGIN -->
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it. The next story (SLAY-18.4) builds to the approved preview. Time matters: Simpshouse must ship before 2026-10-14.
 
-Preview built: docs/themes/simpshouse/preview.html (static, open the file directly; ?lang=nl starts in Dutch). 19 rooms, 31 objects (7 new drawings: card binder shelf, card trading table, glam vanity, disco ball, karaoke stage, arcade cabinet, bubble bath), 4 sample levels (6x6, 9x9, two 12x12) from generateScene on the draft theme. Draft data: theme.ts (final SceneTheme shape, room rules of SLAY-17.1; only the draft themeIcon ids and OBJECT_NAMES_NL are draft-only), art.tsx. Regenerate with: bun docs/themes/simpshouse/build-preview.tsx. Finding for the owner: clues name an object by engine type (arcade cabinet reads as television, disco ball and mannequin as statue, card table and bubble bath as table). AC 4 is the owner's and stays unchecked; story stays In Progress.
+Preview: docs/themes/simpshouse/preview.html (static, open the file directly; ?lang=nl starts in Dutch). Regenerate with: bun docs/themes/simpshouse/build-preview.tsx. Draft data: theme.ts (final SceneTheme shape, room rules of SLAY-17.1; draft-only: themeIcon ids, OBJECT_NAMES_NL, room types party and outdoor), art.tsx. 4 sample levels (6x6, 9x9, two 12x12) from generateScene on the draft theme.
 
-Review gate: pass (no scope violations; AC 4 intentionally unchecked, owner only).
+Round 1: card binder shelf, card trading table, glam vanity, disco ball, karaoke stage, arcade cabinet, bubble bath. Round 2 (owner: much more party): rabbit hutch (Balcony), red carpet, champagne tower, gold mirror, glitter shoe wall, photo wall, DJ booth, dance floor, confetti cannon, balloons, snack table, cocktail bar, photo booth, lava lamp; rooms Balcony, Dance Floor, Cocktail Lounge, Photo Studio, Glam Room. Round 3 (owner): Salmari (dark liquorice liqueur bottle with shot glasses on a tray, no label) in the new Shot Bar room; Card Room with card binder shelf, card trading table, card display case and reading corner; a Pikachu plush (owner decision 2026-10-08, third-party character, go-public checklist line added in docs/launch.md). Beanbag and plain bookcase dropped (plain chair is the only chair look). New RoomTypes needed in src by the theme story: party, outdoor (draft casts them). Floor styles for the new room names need NAME_HINTS entries in roomStyles.ts.
 
-Round 2 (owner: much more party): draft theme now 25 rooms, 44 objects, 22 new drawings. Added rabbit hutch (Balcony), red carpet, champagne tower, gold mirror, glitter shoe wall, photo wall, DJ booth, dance floor, confetti cannon, balloons, snack table, cocktail bar, photo booth, lava lamp, salmiak candy table (generic dark liquorice, no brand); rooms Balcony, Dance Floor, Cocktail Lounge, Candy Corner, Photo Studio, Glam Room. Beanbag and bookcase dropped (plain chair is the only chair look). New RoomTypes needed in src by the theme story: party, outdoor (draft casts them). Floor styles for the new room names also need NAME_HINTS entries in roomStyles.ts. Fixed duplicate SVG ids in the preview. AC 4 stays unchecked.
-
-Round 2 review gate: pass (advisory: re-check borrowed engineTypes in SLAY-18.4 clue pass).
+Finding for the owner: clues name an object by engine type (arcade cabinet reads as television, disco ball and mannequin as statue, card table and bubble bath as table). Review gates: pass (advisory: re-check borrowed engineTypes in the SLAY-18.4 clue pass). AC 4 is the owner's and stays unchecked; story stays In Progress.
 <!-- SECTION:NOTES:END -->
