@@ -12,7 +12,7 @@ import type { RoomType, SceneTheme, ThemeObject, ThemeRoom } from './types.ts'
  * plain chair, so it is called a chair); a kind is named after what is drawn (the kroeg counter is its own bar drawing with beer taps, the
  * beer crate its own crate; the snack bar and bakery keep the kitchen counter, "aanrecht"); a parade float is a vehicle, so it stands only in
  * `garage` rooms (the float building hall, and the optocht route, which is outdoor and garage); the costume rack and dummy are the shared
- * clothes rack and mannequin. Shared room names (Dance Floor, Cloakroom) keep the floor other themes give them.
+ * clothes rack and mannequin; the stairs are dropped (no theme has stairs, CAD-8.6) and so is the potted plant (at 36 px it looked like the lime tree). Shared room names (Dance Floor, Cloakroom) keep the floor other themes give them.
  */
 
 const PARTY: RoomType = 'party'
