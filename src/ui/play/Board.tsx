@@ -3,6 +3,8 @@ import type { Cell, Puzzle } from '../../engine/model/index.ts'
 import type { Board as BoardData, GameAction, Hint } from '../../game/index.ts'
 import { useLocale } from '../../locale/index.ts'
 import { SceneObjectIcons } from '../../render/icons/index.ts'
+import type { Look } from '../../render/looks/look.ts'
+import { SceneSolids } from '../../render/looks/Solids.tsx'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import type { ThemeIconId } from '../../render/icons/themes/types.ts'
 import { createGeometry, SceneView, type FloorPattern } from '../../render/scene/index.ts'
@@ -26,6 +28,8 @@ export interface BoardProps {
   roomStyles?: Partial<Record<string, FloorPattern>>
   /** Own theme art per object id (random themed boards); see SceneObjectIcons. */
   themeIcons?: Readonly<Record<string, ThemeIconId>>
+  /** The object look (SLAY-17.8 preview): 'now' is the shipped board. */
+  look?: Look
   /** R1..Rn / C1..Cn along the left and top edge. */
   showAxisLabels?: boolean
   dispatch: (action: GameAction) => void
@@ -54,7 +58,7 @@ const NO_CELLS: readonly Cell[] = []
  * transformed hit rects, so a spot on screen still resolves to the square drawn under it. Two fingers
  * pinch and pan (useBoardZoom.ts) and cancel the one-finger gesture.
  */
-export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hint, roomStyles, themeIcons, showAxisLabels = true, dispatch, getBoard, onMessage, onPlaced, view, onView, flash = NO_CELLS }: BoardProps) {
+export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hint, roomStyles, themeIcons, look = 'now', showAxisLabels = true, dispatch, getBoard, onMessage, onPlaced, view, onView, flash = NO_CELLS }: BoardProps) {
   const t = usePlayStrings()
   const { locale } = useLocale()
   const stroke = useRef<{ mode: PaintMode } | null>(null)
@@ -105,16 +109,16 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
   // A hint opens on a zoomed board: bring the squares it points at into view.
   useEffect(() => {
     if (!hint) return
-    const box = boxAroundCells(createGeometry(puzzle.scene, { axisLabels: showAxisLabels }), hintCells(puzzle, hint))
+    const box = boxAroundCells(createGeometry(puzzle.scene, { axisLabels: showAxisLabels, look }), hintCells(puzzle, hint))
     if (box) onView((v) => revealBox(v, box))
-  }, [hint, puzzle, showAxisLabels, onView])
+  }, [hint, puzzle, showAxisLabels, look, onView])
 
   // Squares to point at on a zoomed board: bring them into view like a hint does.
   useEffect(() => {
     if (flash.length === 0) return
-    const box = boxAroundCells(createGeometry(puzzle.scene, { axisLabels: showAxisLabels }), flash)
+    const box = boxAroundCells(createGeometry(puzzle.scene, { axisLabels: showAxisLabels, look }), flash)
     if (box) onView((v) => revealBox(v, box))
-  }, [flash, puzzle, showAxisLabels, onView])
+  }, [flash, puzzle, showAxisLabels, look, onView])
 
   const layerProps = { puzzle, board, selectedId, tags, colors }
   return (
@@ -133,20 +137,23 @@ export function Board({ puzzle, board, tool, selectedId, tags, colors, cast, hin
           showAxisLabels={showAxisLabels}
           title={t.board}
           locale={locale}
-          objectsLayer={(g) => <SceneObjectIcons objects={puzzle.scene.objects} geometry={g} themeIcons={themeIcons} />}
+          look={look}
+          objectsLayer={(g) => <SceneObjectIcons objects={puzzle.scene.objects} geometry={g} themeIcons={themeIcons} look={look} />}
+          solidsLayer={
+            look === 'now'
+              ? undefined
+              : (g) => <SceneSolids objects={puzzle.scene.objects} geometry={g} look={look} themeIcons={themeIcons} />
+          }
           marksLayer={(g) => (
             <>
               <HintLayer geometry={g} puzzle={puzzle} hint={hint} />
-              <MarksLayer geometry={g} {...layerProps} />
+              <MarksLayer geometry={g} {...layerProps} show="crosses" />
               <PressRing geometry={g} cell={pressed} />
             </>
           )}
-          peopleLayer={(g) => (
-            <>
-              <PeopleLayer geometry={g} {...layerProps} cast={cast} />
-              <FlashLayer geometry={g} cells={flash} />
-            </>
-          )}
+          notesLayer={(g) => <MarksLayer geometry={g} {...layerProps} show="notes" />}
+          peopleLayer={(g) => <PeopleLayer geometry={g} {...layerProps} cast={cast} />}
+          flashLayer={(g) => <FlashLayer geometry={g} cells={flash} />}
         />
       </div>
     </div>

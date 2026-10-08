@@ -66,31 +66,32 @@ export function NoteGlyph({ x, y, fontSize, bold, color, tag, opacity = 1, noteK
  * so a letter never jumps around when others are added or removed. The selected suspect's
  * letters are bold and their X marks are drawn big over a light wash; other people's X marks
  * are not drawn (there would be no room), they show when that suspect is selected.
+ * `show` splits the two for the diamond look (SLAY-17.8): the crosses lie on the floor, the letters stay upright.
  */
-export function MarksLayer({ geometry, puzzle, board, selectedId, tags, colors }: LayerProps) {
+export function MarksLayer({ geometry, puzzle, board, selectedId, tags, colors, show = 'both' }: LayerProps & { show?: 'both' | 'crosses' | 'notes' }) {
   const people = puzzle.people
   const slots = Math.max(1, people.length)
   const cols = Math.ceil(Math.sqrt(slots))
   const rows = Math.ceil(slots / cols)
   const slotOf = new Map(people.map((p, i) => [p.id, i]))
   const size = geometry.cellSize
-  const font = Math.min((size / cols) * 0.95, (size / rows) * 0.95, 24)
 
   const nodes: ReactNode[] = []
-  for (const [key, ids] of Object.entries(board.marks)) {
+  for (const [key, ids] of show === 'notes' ? [] : Object.entries(board.marks)) {
     if (!selectedId || !ids.includes(selectedId)) continue
     const [row, col] = key.split(',').map(Number) as [number, number]
     const r = geometry.cellRect({ row, col })
     nodes.push(<XMarkGlyph key={`x-${key}`} markKey={key} x={r.x} y={r.y} size={size} color={colors[selectedId] ?? '#c0392b'} />)
   }
-  for (const [key, ids] of Object.entries(board.notes)) {
+  for (const [key, ids] of show === 'crosses' ? [] : Object.entries(board.notes)) {
     const [row, col] = key.split(',').map(Number) as [number, number]
     const r = geometry.cellRect({ row, col })
+    const font = Math.min((r.width / cols) * 0.95, (r.height / rows) * 0.95, 24)
     for (const id of ids) {
       const slot = slotOf.get(id)
       if (slot === undefined) continue
-      const x = r.x + ((slot % cols) + 0.5) * (size / cols)
-      const y = r.y + (Math.floor(slot / cols) + 0.5) * (size / rows)
+      const x = r.x + ((slot % cols) + 0.5) * (r.width / cols)
+      const y = r.y + (Math.floor(slot / cols) + 0.5) * (r.height / rows)
       const selected = id === selectedId
       nodes.push(
         <NoteGlyph

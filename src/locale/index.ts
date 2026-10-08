@@ -1,6 +1,6 @@
 export { LocaleProvider } from './LocaleProvider.tsx'
 export type { LocaleProviderProps } from './LocaleProvider.tsx'
 export { useLocale } from './useLocale.ts'
-export { LOCALE_KEY, browserLocale, defaultStorage, readLocale, writeLocale } from './storage.ts'
+export { LOCALE_KEY, LOOK_KEY, browserLocale, defaultStorage, readLocale, readLook, writeLocale, writeLook } from './storage.ts'
 export type { StorageLike } from './storage.ts'
 export type { Locale } from './types.ts'

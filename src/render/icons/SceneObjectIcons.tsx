@@ -1,4 +1,6 @@
 import type { PlacedObject } from '../../engine/model/index.ts'
+import type { Look } from '../looks/look.ts'
+import { solidOf } from '../looks/solid.ts'
 import type { SceneGeometry } from '../scene/geometry.ts'
 import { IconDepthScope, ObjectIconGlyph } from './ObjectIcon.tsx'
 import { ThemeObjectIconGlyph } from './themes/ThemeObjectIcon.tsx'
@@ -15,6 +17,8 @@ export interface SceneObjectIconsProps {
    * draw the engine icon of their type.
    */
   themeIcons?: Readonly<Record<string, ThemeIconId>>
+  /** SLAY-17.8: in 'a2' and 'a3' the objects that have a block form are drawn by SceneSolids instead; the rest stay flat here. */
+  look?: Look
 }
 
 /**
@@ -23,11 +27,12 @@ export interface SceneObjectIconsProps {
  * moved to the top-left cell of its footprint. Objects whose footprint has
  * no icon are skipped (check with `hasIcon` when validating content).
  */
-export function SceneObjectIcons({ objects, geometry, themeIcons }: SceneObjectIconsProps) {
+export function SceneObjectIcons({ objects, geometry, themeIcons, look = 'now' }: SceneObjectIconsProps) {
   return (
     <IconDepthScope>
       {objects.map((object) => {
         if (object.cells.length === 0) return null
+        if (look !== 'now' && solidOf(object, themeIcons)) return null
         const top = Math.min(...object.cells.map((c) => c.row))
         const left = Math.min(...object.cells.map((c) => c.col))
         const { x, y } = geometry.cellRect({ row: top, col: left })

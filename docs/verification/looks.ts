@@ -1,0 +1,392 @@
+// Rendered check of the three object looks (SLAY-17.8): Now, A2 (oblique blocks on the square grid) and A3 (isometric blocks on a diamond
+// grid), each at 360, 390, 768 and 1024 wide. Per look and width:
+//   - layout: no sideways overflow, the board inside the viewport, which layers the look draws;
+//   - hit test: for EVERY cell of a 9x9 and a 12x12 board, the centre, points just inside each of the four corners and just inside each edge
+//     midpoint resolve (document.elementFromPoint) to that same cell -- the corners are where a diamond grid can go wrong;
+//   - tap target sizes (screen px of the middle cell: bounding box, and the diameter of the biggest circle that fits in it);
+//   - the play loop through real touch events: a note, undo, an X, a placement, hints 1-3, the Options entry 'Look' (shown on localhost) and
+//     switching it, a complete-but-wrong board, the solved board and the finish overlay;
+//   - the room labels draw above people, crosses and notes (DOM order) on a crowded board; screenshots of it.
+// Usage (repo root):
+//   bun run build && bunx vite preview --port 5441 &
+//   BASE=http://localhost:5441/ CDP_PORT=9541 OUT=/private/tmp/claude-501/w-17.8 bun docs/verification/looks.ts
+// Env: VIEWPORTS (default 360x640,390x844,768x1024,1024x768), LOOKS (default now,a2,a3), BASE, CDP_PORT, OUT, CHROME.
+// Writes screenshots to $OUT/shots and a table of tap sizes to $OUT/tap-sizes.md. Exits non-zero when a check fails.
+import { spawn } from 'node:child_process'
+import { mkdirSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { cellKey, cellsInRoom, isOccupiable } from '../../src/engine/model/index.ts'
+import { puzzleFingerprint } from '../../src/game/fingerprint.ts'
+import { saveKey, SAVE_VERSION } from '../../src/game/persistence.ts'
+import { dailyId } from '../../src/game/daily/ids.ts'
+import { roomLabelLayout } from '../../src/render/scene/labels.ts'
+import { LOOK_KEY } from '../../src/locale/storage.ts'
+import { PLAY_DATE, dayOn, seedStorage } from './daily.ts'
+
+const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+const PORT = Number(process.env.CDP_PORT ?? 9541)
+const BASE = process.env.BASE ?? 'http://localhost:5441/'
+const OUT = process.env.OUT ?? join(tmpdir(), 'slaydoku-looks')
+const SHOTS = join(OUT, 'shots')
+mkdirSync(SHOTS, { recursive: true })
+const VIEWPORTS = (process.env.VIEWPORTS ?? '360x640,390x844,768x1024,1024x768').split(',').map((v) => v.split('x').map(Number) as [number, number])
+const LOOKS = (process.env.LOOKS ?? 'now,a2,a3').split(',')
+const BIG_DATE = '2026-10-08' // a 12x12 day with chairs, sofas, beds, bookshelves, tables, rugs and plants
+const SMALL_DATE = PLAY_DATE // a 9x9 day, played end to end
+
+const profile = mkdtempSync(join(tmpdir(), 'chrome-looks-'))
+const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' })
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+async function connect() {
+  for (let i = 0; i < 60; i++) {
+    try {
+      const list = (await (await fetch(`http://localhost:${PORT}/json/list`)).json()) as { type: string; webSocketDebuggerUrl: string }[]
+      const page = list.find((t) => t.type === 'page')
+      if (page) return page.webSocketDebuggerUrl
+    } catch {}
+    await sleep(200)
+  }
+  throw new Error('no chrome')
+}
+const ws = new WebSocket(await connect())
+await new Promise((r) => (ws.onopen = r))
+let nextId = 0
+const pending = new Map<number, (v: any) => void>()
+ws.onmessage = (m) => {
+  const msg = JSON.parse(String(m.data))
+  if (msg.id && pending.has(msg.id)) pending.get(msg.id)!(msg)
+}
+const send = (method: string, params: object = {}) =>
+  new Promise<any>((resolve) => {
+    const id = ++nextId
+    pending.set(id, (m) => resolve(m.result ?? m.error))
+    ws.send(JSON.stringify({ id, method, params }))
+  })
+const evaluate = async (expression: string) => (await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true }))?.result?.value
+const count = (sel: string) => evaluate(`document.querySelectorAll(${JSON.stringify(sel)}).length`) as Promise<number>
+
+const touch = (type: string, x: number, y: number) => send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] })
+async function tap(x: number, y: number) {
+  await touch('touchStart', x, y)
+  await sleep(60)
+  await touch('touchEnd', x, y)
+}
+async function hold(x: number, y: number, ms = 700) {
+  await touch('touchStart', x, y)
+  await sleep(ms)
+  await touch('touchEnd', x, y)
+}
+type Box = { x: number; y: number; w: number; h: number }
+const rectOf = (sel: string) =>
+  evaluate(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<Box | null>
+const toolRect = (label: string) =>
+  evaluate(`(() => { const matches = [...document.querySelectorAll('.play-tool, .play-header__more, .play-header__legend')].filter(b => (b.querySelector('.play-tool__label')?.textContent.trim() ?? b.getAttribute('aria-label')) === ${JSON.stringify(label)}); const e = matches.find(b => b.offsetParent !== null) ?? matches[0]; if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width, h: r.height } })()`) as Promise<Box | null>
+async function tool(label: string) {
+  const r = await toolRect(label)
+  if (!r) throw new Error('missing tool ' + label)
+  await tap(r.x, r.y)
+  await sleep(450)
+}
+async function tapSel(sel: string) {
+  const r = await rectOf(sel)
+  if (!r) throw new Error('missing ' + sel)
+  await tap(r.x, r.y)
+  await sleep(250)
+}
+const cellSel = (row: number, col: number) => `[data-cell=r${row + 1}c${col + 1}]`
+
+async function setViewport(w: number, h: number) {
+  await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: true })
+  await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 })
+}
+async function load(path: string) {
+  await send('Page.navigate', { url: 'about:blank' })
+  await sleep(150)
+  await send('Page.navigate', { url: new URL(path, BASE).href })
+  await sleep(1800)
+}
+/** Fresh storage for a visitor on `date` with the given look chosen. */
+async function seed(date: string, look: string, extra = '') {
+  await send('Page.navigate', { url: new URL('about', BASE).href })
+  await sleep(500)
+  await evaluate(`localStorage.clear(); ${seedStorage(date, true, 'en')}; localStorage.setItem(${JSON.stringify(LOOK_KEY)}, ${JSON.stringify(look)}); ${extra}`)
+}
+let nShot = 0
+const shotBoard = async (name: string, whole = false) => {
+  const clip = whole
+    ? undefined
+    : ((await evaluate(`(() => { const e = document.querySelector('.play-board'); if (!e) return null; const r = e.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: Math.min(r.width, innerWidth), height: Math.min(r.height, innerHeight - Math.max(0, r.y)) } })()`)) as Box | null)
+  const r = await send('Page.captureScreenshot', { format: 'png', ...(clip && 'width' in (clip as object) ? { clip: { ...(clip as object), scale: 1 } } : {}) })
+  await Bun.write(join(SHOTS, `${String(++nShot).padStart(3, '0')}-${name}.png`), Buffer.from(r.data, 'base64'))
+}
+
+let ctx = ''
+const failures: string[] = []
+function check(scenario: string, ok: boolean, detail = '') {
+  console.log(ok ? 'PASS' : 'FAIL', ctx, scenario, detail)
+  if (!ok) failures.push(`${ctx} ${scenario}`)
+}
+
+/** Probes every cell: centre, 12% inside each corner, 6% inside each edge midpoint; each must resolve to that cell. Plus size of the middle cell. */
+const hitProbe = () =>
+  evaluate(`(() => {
+    const rects = [...document.querySelectorAll('rect[data-row][data-col]')]
+    if (!rects.length) return null
+    let probes = 0, skipped = 0
+    const bad = []
+    let mid = null
+    const midRow = Math.floor(Math.max(...rects.map((r) => +r.dataset.row)) / 2), midCol = Math.floor(Math.max(...rects.map((r) => +r.dataset.col)) / 2)
+    for (const r of rects) {
+      const m = r.getScreenCTM()
+      const x = +r.getAttribute('x'), y = +r.getAttribute('y'), w = +r.getAttribute('width'), h = +r.getAttribute('height')
+      const P = (px, py) => { const p = new DOMPoint(px, py).matrixTransform(m); return [p.x, p.y] }
+      const corners = [P(x, y), P(x + w, y), P(x + w, y + h), P(x, y + h)]
+      const c = P(x + w / 2, y + h / 2)
+      const pts = [c]
+      corners.forEach((k, i) => {
+        pts.push([k[0] + (c[0] - k[0]) * 0.12, k[1] + (c[1] - k[1]) * 0.12])
+        const n = corners[(i + 1) % 4]
+        const mx = (k[0] + n[0]) / 2, my = (k[1] + n[1]) / 2
+        pts.push([mx + (c[0] - mx) * 0.06, my + (c[1] - my) * 0.06])
+      })
+      for (const [px, py] of pts) {
+        if (px < 0 || py < 0 || px > innerWidth || py > innerHeight) { skipped++; continue }
+        probes++
+        const hit = document.elementFromPoint(px, py)?.closest('[data-row][data-col]')
+        if (!hit || hit.dataset.row !== r.dataset.row || hit.dataset.col !== r.dataset.col) bad.push(r.dataset.cell + '@' + Math.round(px) + ',' + Math.round(py) + '->' + (hit?.dataset.cell ?? 'none'))
+      }
+      if (+r.dataset.row === midRow && +r.dataset.col === midCol) {
+        const xs = corners.map((k) => k[0]), ys = corners.map((k) => k[1])
+        let inscribed = Infinity
+        for (let i = 0; i < 4; i++) {
+          const a = corners[i], b = corners[(i + 1) % 4]
+          const len = Math.hypot(b[0] - a[0], b[1] - a[1])
+          inscribed = Math.min(inscribed, Math.abs((b[0] - a[0]) * (a[1] - c[1]) - (a[0] - c[0]) * (b[1] - a[1])) / len)
+        }
+        mid = { w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys), circle: 2 * inscribed }
+      }
+    }
+    const board = document.querySelector('.play-board')?.getBoundingClientRect()
+    return { cells: rects.length, probes, skipped, bad: bad.slice(0, 6), badCount: bad.length, mid, sw: document.documentElement.scrollWidth, iw: innerWidth, board: board ? { l: board.left, r: board.right, w: board.width, h: board.height } : null,
+      layers: { plane: !!document.querySelector('[data-layer=plane]'), solids: document.querySelectorAll('[data-solid]').length, flat: document.querySelectorAll('[data-layer=objects] [data-icon]').length } }
+  })()`) as Promise<{ cells: number; probes: number; skipped: number; bad: string[]; badCount: number; mid: { w: number; h: number; circle: number } | null; sw: number; iw: number; board: { l: number; r: number; w: number; h: number } | null; layers: { plane: boolean; solids: number; flat: number } } | null>
+
+const sizes: string[] = []
+
+async function hitAndSize(date: string, look: string, w: number, h: number) {
+  await seed(date, look)
+  await load('play')
+  await sleep(500)
+  const day = dayOn(date)
+  const p = await hitProbe()
+  if (!p) return check(`${day.size}x${day.size} board renders`, false)
+  const expectPlane = look === 'a3'
+  check(`${day.size}x${day.size}: no sideways overflow, board inside the viewport`, p.sw <= p.iw && !!p.board && p.board.l >= -0.5 && p.board.r <= p.iw + 0.5, JSON.stringify({ sw: p.sw, iw: p.iw, board: p.board }))
+  check(`${day.size}x${day.size}: layers of the look (plane ${expectPlane}, solids ${look !== 'now'})`, p.layers.plane === expectPlane && (look === 'now' ? p.layers.solids === 0 : p.layers.solids > 0), JSON.stringify(p.layers))
+  check(`${day.size}x${day.size}: every cell resolves from its centre, corners and edges (${p.probes} probes, ${p.skipped} off screen)`, p.badCount === 0 && p.probes > p.cells * 7 * 0.5, JSON.stringify(p.bad))
+  if (p.mid) sizes.push(`| ${look} | ${w}x${h} | ${day.size}x${day.size} | ${Math.round(p.mid.w)} x ${Math.round(p.mid.h)} | ${Math.round(p.mid.circle)} |`)
+  await shotBoard(`${look}-${w}x${h}-${day.size}x${day.size}`)
+}
+
+/** A board with a crowded room (people, crosses, notes) as labelshots.ts builds it. */
+function crowdedBoard(date: string) {
+  const day = dayOn(date)
+  const { puzzle } = day
+  const scene = puzzle.scene
+  const room = [...scene.rooms].sort((a, b) => cellsInRoom(scene, b.id).length - cellsInRoom(scene, a.id).length)[0]!
+  const label = roomLabelLayout(scene, room.id)!
+  const cells = cellsInRoom(scene, room.id).filter((c) => isOccupiable(scene, c))
+  cells.sort((a, b) => Math.hypot(a.col + 0.5 - label.center.x, a.row + 0.5 - label.center.y) - Math.hypot(b.col + 0.5 - label.center.x, b.row + 0.5 - label.center.y))
+  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+  const placed = suspects.slice(0, 3)
+  const placements = Object.fromEntries(placed.map((p, i) => [p.id, { row: cells[i]!.row, col: cells[i]!.col }]))
+  const free = cells.slice(placed.length)
+  const selected = suspects[3]!
+  const marks = Object.fromEntries(free.map((c) => [cellKey(c), [selected.id]]))
+  const noters = suspects.slice(3, 8)
+  const notes = Object.fromEntries(free.map((c) => [cellKey(c), noters.map((p) => p.id)]))
+  const save = { version: SAVE_VERSION, levelId: dailyId(day.n), fp: puzzleFingerprint(puzzle), board: { notes, marks, placements }, elapsedMs: 60000 }
+  return { key: saveKey(dailyId(day.n)), save, roomId: room.id }
+}
+
+async function labels(date: string, look: string, w: number, h: number) {
+  const { key, save, roomId } = crowdedBoard(date)
+  await seed(date, look, `localStorage.setItem(${JSON.stringify(key)}, ${JSON.stringify(JSON.stringify(save))})`)
+  await load('play')
+  await sleep(600)
+  // Room labels are later in the document than people, crosses and notes, so they paint on top (SLAY-17.5), in every look.
+  const order = (await evaluate(`(() => { const all = [...document.querySelectorAll('[data-person], [data-mark], [data-note], [data-room-label]')]; const lastMark = Math.max(...all.map((e, i) => (e.hasAttribute('data-room-label') ? -1 : i))); const firstLabel = all.findIndex((e) => e.hasAttribute('data-room-label')); return { lastMark, firstLabel, people: document.querySelectorAll('[data-person]').length, marks: document.querySelectorAll('[data-mark]').length, notes: document.querySelectorAll('[data-note]').length } })()`)) as { lastMark: number; firstLabel: number; people: number; marks: number; notes: number }
+  check(`crowded room ${roomId}: labels paint above ${order.people} people, ${order.marks} crosses, ${order.notes} notes`, order.people === 3 && order.firstLabel > order.lastMark, JSON.stringify(order))
+  await shotBoard(`${look}-${w}x${h}-crowded`)
+}
+
+interface PuzzleJson {
+  people: { id: string; label: string; kind: string }[]
+  solution: { personId: string; cell: { row: number; col: number } }[]
+}
+/** Taps each person's card, then long-presses the square (the victim is placed by hand too, since SLAY-9.x). `swap` puts the first two suspects on each other's square. */
+async function placeAll(puzzle: PuzzleJson, swap = false) {
+  const suspects = puzzle.people.filter((p) => p.kind === 'suspect')
+  const cellOf = new Map(puzzle.solution.map((s) => [s.personId, s.cell]))
+  const swapped = swap ? [suspects[0]!.id, suspects[1]!.id] : []
+  for (const person of [...suspects, ...puzzle.people.filter((p) => p.kind === 'victim')]) {
+    const sel = person.kind === 'victim' ? '.polaroid--victim' : `.polaroid:not(.polaroid--victim) .polaroid__name`
+    const card =
+      person.kind === 'victim'
+        ? await rectOf(sel)
+        : ((await evaluate(`(() => { const e = [...document.querySelectorAll('.polaroid')].find(b => b.querySelector('.polaroid__name')?.textContent.trim() === ${JSON.stringify(person.label)}); if (!e) return null; e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as Box | null)
+    if (!card) return false
+    await tap(card.x, card.y)
+    await sleep(250)
+    const target = swapped.includes(person.id) ? swapped.find((id) => id !== person.id)! : person.id
+    const cell = cellOf.get(target)!
+    const r = await rectOf(cellSel(cell.row, cell.col))
+    if (!r) return false
+    await hold(r.x, r.y, 650)
+    await sleep(200)
+  }
+  await sleep(700)
+  return true
+}
+
+type P = { x: number; y: number }
+const touches = (type: string, points: P[]) => send('Input.dispatchTouchEvent', { type, touchPoints: points.map((q, i) => ({ x: q.x, y: q.y, id: i + 1 })) })
+/** Pinch out around (cx, cy) to about 2x, as zoom.ts does. */
+async function pinchOut(cx: number, cy: number) {
+  const a = { x: cx - 30, y: cy }
+  const b = { x: cx + 30, y: cy }
+  await touches('touchStart', [a])
+  await sleep(50)
+  await touches('touchStart', [a, b])
+  for (let i = 1; i <= 12; i++) {
+    await sleep(25)
+    const t = i / 12
+    await touches('touchMove', [{ x: a.x - 30 * t, y: a.y }, { x: b.x + 30 * t, y: b.y }])
+  }
+  await sleep(50)
+  await touches('touchEnd', [{ x: a.x - 30, y: a.y }, { x: b.x + 30, y: b.y }])
+  await sleep(200)
+}
+
+/** On a pinched 12x12 board a tap still lands on the square drawn under the finger (the hit squares are zoomed with the board). */
+async function zoomPlay(look: string) {
+  await seed(BIG_DATE, look)
+  await load('play')
+  await sleep(400)
+  const f = (await evaluate(`(() => { const r = document.querySelector('.play-board').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as P
+  await pinchOut(f.x, f.y)
+  const zoom = Number(await evaluate(`document.querySelector('.play-board').dataset.zoom`))
+  check('pinch zooms the board to about 2x', zoom > 1.7 && zoom < 2.3, String(zoom))
+  // Aim at three spots; the square under each (document.elementFromPoint) must be the one that gets the note.
+  for (const [dx, dy] of [[0, 0], [60, 25], [-70, -30]] as const) {
+    await send('Page.bringToFront')
+    const target = { x: f.x + dx, y: f.y + dy }
+    const under = (await evaluate(`document.elementFromPoint(${target.x}, ${target.y})?.closest('[data-row][data-col]')?.dataset.cell ?? null`)) as string | null
+    const before = await count('[data-note]')
+    await tap(target.x, target.y)
+    await sleep(250)
+    const key = (await evaluate(`[...document.querySelectorAll('[data-note]')].map((e) => e.getAttribute('data-note')).sort().join('|')`)) as string
+    const r = under ? Number(under.match(/r(\d+)c/)![1]) - 1 : -1
+    const c = under ? Number(under.match(/c(\d+)$/)![1]) - 1 : -1
+    // A blocked square (table, plant) takes no note (option 'No X on blocked squares'): then nothing is written anywhere.
+    const added = (await count('[data-note]')) - before
+    check(`zoomed tap at (${dx},${dy}) hits ${under}: the note lands there${added === 0 ? ' (blocked square, none written)' : ''}`, !!under && (added === 0 || (added === 1 && key.includes(`${r},${c}:`))), key)
+  }
+  await shotBoard(`${look}-zoomed`, true)
+}
+
+async function playLoop(look: string, w: number, h: number) {
+  const day = dayOn(SMALL_DATE)
+  const puzzle = day.puzzle as unknown as PuzzleJson
+  await seed(SMALL_DATE, look)
+  await load('play')
+  await sleep(400)
+  const spot = puzzle.solution[2]!.cell
+  await tapSel(cellSel(spot.row, spot.col))
+  check('tap writes a note', (await count('[data-note]')) === 1, `notes=${await count('[data-note]')}`)
+  await shotBoard(`${look}-${w}x${h}-note`)
+  await tool('Undo')
+  check('undo removes the note', (await count('[data-note]')) === 0)
+  await tool('X')
+  await tapSel(cellSel(spot.row, spot.col))
+  check('X mode tap draws an X', (await count('[data-mark]')) >= 1)
+  await tool('Undo')
+  await tool('Note')
+  // Place the first suspect on its solution square.
+  const first = puzzle.people.find((p) => p.kind === 'suspect')!
+  const cardRect = (await evaluate(`(() => { const e = [...document.querySelectorAll('.polaroid')].find(b => b.querySelector('.polaroid__name')?.textContent.trim() === ${JSON.stringify(first.label)}); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as Box
+  await tap(cardRect.x, cardRect.y)
+  await sleep(250)
+  const cell0 = puzzle.solution.find((s) => s.personId === first.id)!.cell
+  const rc = (await rectOf(cellSel(cell0.row, cell0.col)))!
+  await hold(rc.x, rc.y, 650)
+  await sleep(300)
+  check('long-press places the selected suspect', (await count('[data-person]')) >= 1)
+  check('no stray note from the long-press', (await count('[data-note]')) === 0)
+  await shotBoard(`${look}-${w}x${h}-placed`)
+  await tool('Undo')
+  // Hints 1..3.
+  await tool('Hint')
+  const h1 = await evaluate(`document.querySelector('.play-hint')?.dataset.level`)
+  await tapSel('.play-hint .play-btn--primary')
+  await tapSel('.play-hint .play-btn--primary')
+  const h3 = await evaluate(`document.querySelector('.play-hint')?.dataset.level`)
+  check('hint opens at level 1 and steps to 3', h1 === '1' && h3 === '3', `${h1} -> ${h3}`)
+  check('hint level 3 rings squares on the board', (await count('.play-hint-ring')) >= 1)
+  await shotBoard(`${look}-${w}x${h}-hint3`, true)
+  await tapSel('.play-hint__actions .play-btn:not(.play-btn--primary)')
+  // Options: the Look entry shows on localhost with the current look pressed; switching changes the board at once.
+  const wide = (await toolRect('Options')) !== null && (await evaluate(`[...document.querySelectorAll('.play-tool')].some(b => b.getAttribute('aria-label') === 'Options' && b.offsetParent !== null)`))
+  if (!wide) await tool('More')
+  await tool('Options')
+  check('Options shows the Look entry with the chosen look pressed', (await count('[data-look-entry]')) === 1 && (await evaluate(`document.querySelector('[data-look-option=${look}]')?.getAttribute('aria-pressed')`)) === 'true')
+  const other = look === 'a3' ? 'a2' : 'a3'
+  await tapSel(`[data-look-option=${other}]`)
+  await sleep(300)
+  check(`switching the look to ${other} redraws the board`, (await evaluate(`localStorage.getItem(${JSON.stringify(LOOK_KEY)})`)) === other && ((await count('[data-layer=plane]')) > 0) === (other === 'a3'))
+  await tapSel(`[data-look-option=${look}]`)
+  await sleep(300)
+  check(`switching back to ${look} restores it, and the choice is stored`, (await evaluate(`localStorage.getItem(${JSON.stringify(LOOK_KEY)})`)) === look && ((await count('[data-layer=plane]')) > 0) === (look === 'a3'))
+  await shotBoard(`${look}-${w}x${h}-options`, true)
+  await tap(3, 3)
+  await sleep(400)
+  // Wrong board, then the solved board.
+  const clearAll = async () => {
+    const er = (await rectOf('.play-tool--erase'))!
+    await hold(er.x, er.y, 800)
+    await sleep(250)
+    await tapSel('.play-modal .play-btn--danger')
+  }
+  await clearAll()
+  check('clear-all empties the board', (await count('[data-person]')) + (await count('[data-note]')) + (await count('[data-mark]')) === 0)
+  await placeAll(puzzle, true)
+  await sleep(400)
+  check('complete-but-wrong board shows "Not right yet"', (await count('[data-result=wrong]')) === 1, JSON.stringify({ people: await count('[data-person]'), result: await evaluate("document.querySelector('[data-result]')?.dataset.result ?? document.querySelector('.play-result')?.innerText ?? null") }))
+  await shotBoard(`${look}-${w}x${h}-wrong`, true)
+  await tapSel('.play-result .play-btn--primary')
+  await clearAll()
+  check('board reset after the wrong attempt', (await count('[data-person]')) === 0)
+  const ok = await placeAll(puzzle)
+  await sleep(900)
+  check('solving pops the finish overlay', ok && (await count('[data-result=solved]')) === 1)
+  await shotBoard(`${look}-${w}x${h}-solved`, true)
+}
+
+for (const look of LOOKS) {
+  for (const [w, h] of VIEWPORTS) {
+    ctx = `${look} ${w}x${h}`
+    await setViewport(w, h)
+    await send('Page.enable')
+    await send('Runtime.enable')
+    await hitAndSize(SMALL_DATE, look, w, h)
+    await hitAndSize(BIG_DATE, look, w, h)
+    await labels(BIG_DATE, look, w, h)
+    await playLoop(look, w, h)
+    if (w <= 390) await zoomPlay(look)
+  }
+}
+await Bun.write(join(OUT, 'tap-sizes.md'), ['| look | viewport | board | middle cell, screen px (w x h) | biggest circle in it, px |', '|---|---|---|---|---|', ...sizes, ''].join('\n'))
+console.log(`\n${failures.length ? 'FAILURES:\n' + failures.join('\n') : 'all checks passed'}`)
+chrome.kill()
+process.exit(failures.length ? 1 : 0)
