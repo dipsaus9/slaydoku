@@ -61,7 +61,10 @@ let hard: Puzzle | null = null
  */
 export function hardPuzzle(): Puzzle {
   if (hard) return hard
-  for (let seed = seedBase('hard'); seed < seedBase('hard') + 100; seed++) {
+  // Seeds before this offset fail the filters below (measured: 33 builds and filters cost ~25 s, a CI timeout); starting at the first
+  // good seed keeps the same puzzle and the search forward still works if the generator changes.
+  const first = seedBase('hard') + 34
+  for (let seed = first; seed < first + 100; seed++) {
     const built = buildEntry(6, 'hard', 'home', seed, 60_000)
     if (!built.ok) continue
     const state = initialState({ autoXOnPlace: true, preventXOnBlocked: true, showTimer: true })
