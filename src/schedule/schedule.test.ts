@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { puzzleFingerprint } from '../game/fingerprint.ts'
-import { castProblems, sharedNames } from '../content/cast/index.ts'
+import { castProblems, hasOwnCastPool, sharedNames } from '../content/cast/index.ts'
 import { scheduleProblems } from './check.ts'
 import { addDays } from './dates.ts'
 import { monthFileName, orderedDay, parseIndex, serializeIndex, serializeMonth } from './format.ts'
@@ -90,7 +90,8 @@ describe('committed schedule: what is in it', () => {
       expect(suspects.length, day.date).toBe(day.size - 1)
       expect(castProblems(castOfDay(day), suspects.map((p) => p.gender)), day.date).toEqual([])
       expect(day.portraits.length).toBe(suspects.length)
-      if (i > 0) expect(sharedNames(castOfDay(days[i - 1]!), castOfDay(day)), day.date).toEqual([])
+      const themed = i > 0 && (hasOwnCastPool(day.theme) || hasOwnCastPool(days[i - 1]!.theme))
+      if (i > 0) expect(sharedNames(castOfDay(days[i - 1]!), castOfDay(day)).length, day.date).toBeLessThanOrEqual(themed ? 1 : 0)
     })
   })
   it('passes the cheap schedule checks (plan, expert per week, no repeated board)', () => {

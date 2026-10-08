@@ -2,6 +2,7 @@ import { HOME_THEME } from './home.ts'
 import { OFFICE_THEME } from './office.ts'
 import { PARK_THEME } from './park.ts'
 import { SCHOOL_THEME } from './school.ts'
+import { SIMPSHOUSE_THEME } from './simpshouse.ts'
 import { SHOP_THEME } from './shop.ts'
 import type { SceneTheme, ThemeId } from './types.ts'
 
@@ -12,6 +13,7 @@ export const SCENE_THEMES: readonly SceneTheme[] = [
   PARK_THEME,
   SCHOOL_THEME,
   SHOP_THEME,
+  SIMPSHOUSE_THEME,
 ]
 
 const BY_ID: ReadonlyMap<ThemeId, SceneTheme> = new Map(SCENE_THEMES.map((t) => [t.id, t]))
@@ -37,7 +39,7 @@ export function roomNameNlOf(name: string): string | undefined {
   return ROOM_NAMES_NL.get(name)
 }
 
-export { HOME_THEME, OFFICE_THEME, PARK_THEME, SCHOOL_THEME, SHOP_THEME }
+export { HOME_THEME, OFFICE_THEME, PARK_THEME, SCHOOL_THEME, SHOP_THEME, SIMPSHOUSE_THEME }
 export { lShape, rect, themeObject } from './define.ts'
 export type {
   PlacementHint,

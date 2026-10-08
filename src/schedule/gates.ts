@@ -1,6 +1,6 @@
 import { TIERS } from '../engine/generator/tiers/index.ts'
 import { puzzleFingerprint } from '../game/fingerprint.ts'
-import { sharedNames } from '../content/cast/index.ts'
+import { hasOwnCastPool, sharedNames } from '../content/cast/index.ts'
 import { SCENE_THEMES } from '../content/themes/index.ts'
 import { entryProblems, ratingOf } from '../content/packs/gates.ts'
 import { packId } from '../content/packs/ids.ts'
@@ -34,11 +34,15 @@ export function packEntryOf(day: ScheduleDay): PackEntry {
   }
 }
 
-/** Problems with how a day relates to the day before it: no name in common, not the same size, tier and theme together. */
+/** Names a day with a cast pool of its own may share with a neighbouring day: its pool can be too small to avoid one (owner decision 2026-10-08, Simpshouse 12x12 and Iris). */
+export const THEMED_DAY_SHARED_NAMES = 1
+
+/** Problems with how a day relates to the day before it: no name in common (a themed-pool day or its neighbour: at most `THEMED_DAY_SHARED_NAMES`), not the same size, tier and theme together. */
 export function pairProblems(previous: ScheduleDay, day: ScheduleDay): string[] {
   const problems: string[] = []
   const shared = sharedNames(castOfDay(previous), castOfDay(day))
-  if (shared.length > 0) problems.push(`${day.date}: shares the names ${shared.join(', ')} with ${previous.date}`)
+  const allowed = hasOwnCastPool(day.theme) || hasOwnCastPool(previous.theme) ? THEMED_DAY_SHARED_NAMES : 0
+  if (shared.length > allowed) problems.push(`${day.date}: shares the names ${shared.join(', ')} with ${previous.date}`)
   if (previous.size === day.size && previous.tier === day.tier && previous.theme === day.theme) {
     problems.push(`${day.date}: same size, tier and theme as ${previous.date}`)
   }

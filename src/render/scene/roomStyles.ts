@@ -65,6 +65,9 @@ const CYCLE: FloorPattern[] = ['wood', 'carpet', 'tiles', 'grass', 'stone', 'wat
 
 /** Name keywords that hint at a floor kind. First match wins. */
 const NAME_HINTS: [FloorPattern, RegExp][] = [
+  ['stone', /^balcony$/i],
+  ['carpet', /^(dance floor|photo studio)$/i],
+  ['tiles', /^shot bar$/i],
   ['water', /pond|pool|lake|water|fountain/i],
   ['grass', /garden|backyard|yard|lawn|park|golf|meadow|field|grove|orchard|forest|playground|zoo/i],
   ['stone', /terrace|patio|garage|driveway|courtyard|shed|path|street|parking/i],

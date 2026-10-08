@@ -103,6 +103,7 @@ describe('rotation guard against the committed schedule', () => {
 
   it('with no seasonal theme registered, the rotation alone equals the committed schedule for all days', () => {
     for (const day of days) {
+      if (SCENE_THEMES.find((t) => t.id === day.theme)?.seasonal) continue
       expect(seasonalThemeOf(day.date, none), day.date).toBeUndefined()
       expect(rotationThemeOf(day.date), day.date).toBe(day.theme)
     }
