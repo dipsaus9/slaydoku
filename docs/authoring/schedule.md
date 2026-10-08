@@ -191,6 +191,12 @@ before the problem day, so the schedule does not run dry. A red run with "Schedu
 A fallback day's cast depends on the day before it. When extending, the day before is read from the folder; if you generate into another `--out` folder, extend from a
 folder that holds it, or that fallback day may get another cast than in the committed run.
 
+### Regeneration for the new room rules (SLAY-17.6, 2026-10-08)
+
+The room rules, new rooms and the single chair look (SLAY-17) change every draw, so the future days were regenerated: 107 days, 2026-10-09 to 2027-01-24 (the `2026-10-09`..`2026-10-13` range and `2026-10-15` onward, each with `--overwrite`). Days up to and including 2026-10-08 and the owner-approved Simpshouse day 2026-10-14 are byte-identical to before (checked per day against `origin/main`). The same dates now carry other puzzles. Rule for a repeat: never pass `--overwrite` over a day up to today (UTC) or over a themed day the owner approved; run two ranges around it.
+
+The seasonal windows of themes that are not registered yet (fall, carnaval, christmas, halloween) stay on the normal five-theme rotation here. SLAY-18.10 regenerates them once their themes exist. The rendered check of the regenerated days is `docs/verification/regen-days.ts` (room rules and one chair look on sample days of the five regular themes at 390x844 and 1024x768).
+
 ### Flags of `bun run schedule`
 
 | Flag | Meaning |
