@@ -49,6 +49,20 @@ The committed schedule files are baked and unchanged; rebuilding a day from its 
 
 Besides the allow-list, `placeObjects` keeps a room varied: a kind appears at most 3 times in one room (`MAX_KIND_PER_ROOM`, no exception, plants included); a chair kind (engine type chair) at most 2 times unless the extra chair touches a table, desk or counter (`MAX_FREE_CHAIRS_PER_ROOM`, `SEAT_AT_TYPES`), and a chair next to such an object is likelier; a kind the room does not have yet is 3 times likelier and every copy already there multiplies the weight by 0.35. Chair weights are low in every theme and the decor kinds (plants, rugs, bookcases, chests, easels, statues) a bit higher. Measured on 200 scenes per theme (sizes 6, 7, 9, 12): chairs were 18% to 54% of the placed objects (37% overall), now 10% to 14% (12%); distinct kinds per room went from 2.0-2.3 to 2.5-2.9. Fast test: `src/engine/scenegen/variety.test.ts`; sweep: `variety.slow.test.ts`. Lamps and other new decor need new engine types and are a separate story.
 
+## Decor kinds (SLAY-19.1)
+
+Nineteen new engine types (lamp, mirror, coatRack, fridge, bathtub, fireplace, piano, aquarium, exerciseBike, bin, waterCooler, serverRack, globe, gymBox, playEquipment, barbecue, tent, shoppingCart, kiosk; all blocking) and 31 kinds across the five themes, each with an allow-list and most with a `maxPerRoom` of 1 or 2 (`src/content/themes/decor.test.ts` pins every kind's rooms by name):
+
+| Theme | Kinds (allowed rooms) |
+|---|---|
+| home | floor lamp (living, sleeping, study, circulation), mirror (circulation, sleeping, wet), coat rack and shoe cabinet (circulation), fridge (kitchen only), bathtub (wet only), fireplace and piano (living), aquarium (living, study), bedside cabinet (sleeping), exercise bike (fitness only), bin (kitchen, wet, study) |
+| office | water cooler (kitchen, circulation), server rack (`utility`: the Server Room is the office's only utility room), floor lamp (study), bin (study, meeting, kitchen, storage), coat rack (circulation) |
+| school | globe (study), water cooler (circulation, fitness), vaulting box (fitness), slide (`play`: the Playground now has that type), trophy cabinet (circulation) |
+| park | lantern (garden, garage), barbecue and potted plant (`living`: Terrace, Pavilion), bin (garden, play, garage), slide (play), party tent (garden, weight 1) |
+| shop | shopping cart (circulation, checkout), fitting-room mirror (fitting), self-checkout kiosk (checkout) |
+
+Variety on 200 scenes per theme (sizes 6, 7, 9, 12; `variety.testing.ts`), before → after: distinct kinds per room home 2.45 → 2.78, office 2.64 → 2.85, school 2.53 → 2.70, park 2.92 → 3.00, shop 2.67 → 2.72; chairs 11.5/13.4/13.3/9.6/13.6% → 7.2/11.3/9.0/7.4/13.3%; the most frequent kind at most 14.3% (was up to 20.6%); no rule breaches, every favoured kind placed. The chair caps of SLAY-17.6 are untouched. The committed schedule is not regenerated here (SLAY-18.10).
+
 ## Adding a kind or a room
 
 1. Give the room `roomTypes` and the kind `allowedRoomTypes`.
