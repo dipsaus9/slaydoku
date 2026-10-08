@@ -1,10 +1,10 @@
 // Rendered check of the one object look (SLAY-17.4): oblique 3D blocks on the square grid (owner pick A2, docs/design/looks.md), at 360, 390,
 // 768 and 1024 wide. Per width:
-//   - layout: no sideways overflow, the board inside the viewport, every object drawn as blocks inside its clip;
+//   - layout: no sideways overflow, the board inside the viewport, every object drawn as blocks;
 //   - hit test: for EVERY cell of a 9x9 and a 12x12 board, the centre, points just inside each corner and each edge midpoint resolve
 //     (document.elementFromPoint) to that same cell (the tall blocks never take a tap);
 //   - tap target sizes (screen px of the middle cell);
-//   - walls: every object and its shadow sit in a clip group that covers only squares of the object's own room, nothing above the top row (clip paths read from the page, compared with the rooms of the puzzle);
+//   - painter order: floors, walls (with doors and windows), objects, marks, people, room labels in that order in the page, and the objects flat first, then by front row and column, nothing clipped (the walls are always at the bottom, an object may rise over the wall behind it);
 //   - the Options panel has no Look entry any more, and no look is stored or read;
 //   - the Legend swatches show every object whole (no block, no shadow clipped at the svg edge);
 //   - the play loop through real touch events: a note, undo, an X, a placement, hints 1-3, a complete-but-wrong board, the solved board and
@@ -171,44 +171,41 @@ const hitProbe = () =>
     }
     const board = document.querySelector('.play-board')?.getBoundingClientRect()
     return { cells: rects.length, probes, skipped, bad: bad.slice(0, 6), badCount: bad.length, mid, sw: document.documentElement.scrollWidth, iw: innerWidth, board: board ? { l: board.left, r: board.right, w: board.width, h: board.height } : null,
-      layers: { objects: document.querySelectorAll('[data-layer=objects] [data-object]').length, clips: document.querySelectorAll('[data-layer=objects] [data-clip-of][clip-path]').length, unclipped: document.querySelectorAll('[data-layer=objects] [data-object]:not([data-clip-of] [data-object])').length } }
-  })()`) as Promise<{ cells: number; probes: number; skipped: number; bad: string[]; badCount: number; mid: { w: number; h: number; circle: number } | null; sw: number; iw: number; board: { l: number; r: number; w: number; h: number } | null; layers: { objects: number; clips: number; unclipped: number } } | null>
+      layers: { objects: document.querySelectorAll('[data-layer=objects] [data-object]').length, clips: document.querySelectorAll('[data-layer=objects] [clip-path]').length } }
+  })()`) as Promise<{ cells: number; probes: number; skipped: number; bad: string[]; badCount: number; mid: { w: number; h: number; circle: number } | null; sw: number; iw: number; board: { l: number; r: number; w: number; h: number } | null; layers: { objects: number; clips: number } } | null>
 
 /**
- * Walls: every clip of an object (the squares it may draw on, objectClip.ts) covers only squares of the object's own room, and an object that
- * reaches a wall or the outer edge is cut there. Reads the clip paths from the page, maps their squares through the first hit square (r1c1) and
- * compares with the rooms of the scheduled puzzle. Nothing is drawn above the first row, left of the first column or outside the grid.
+ * Painter's order (owner, SLAY-17.4): in the page the floors come first, then the walls, doors and windows, then the objects, then marks, people
+ * and the room labels; the objects are painted flat things first, then by the row of their front edge and by column (what is lower on the screen
+ * is drawn later and sits on top), with the same front rows as the puzzle's own objects. Nothing is clipped.
  */
-async function wallsHold(date: string) {
+async function paintOrder(date: string) {
   const day = dayOn(date)
   const sc = day.puzzle.scene
   const r = (await evaluate(`(() => {
-    const first = document.querySelector('rect[data-cell=r1c1]')
-    const cell = +first.getAttribute('width')
-    const ox = +first.getAttribute('x'), oy = +first.getAttribute('y')
-    const out = []
-    for (const g of document.querySelectorAll('[data-layer=objects] [data-clip-of][clip-path]')) {
-      const id = /url\\(#([^)]+)\\)/.exec(g.getAttribute('clip-path'))[1]
-      const path = document.getElementById(id)?.querySelector('path')
-      const rects = [...(path?.getAttribute('d') ?? '').matchAll(/M(-?[\\d.]+) (-?[\\d.]+)H(-?[\\d.]+)V(-?[\\d.]+)H/g)].map((m) => ({ x0: +m[1], y0: +m[2], x1: +m[3], y1: +m[4] }))
-      out.push({ object: g.dataset.clipOf, rects })
-    }
-    return { cell, ox, oy, clips: out, vb: document.querySelector('.play-board svg').viewBox.baseVal.height }
-  })()`)) as { cell: number; ox: number; oy: number; clips: { object: string; rects: { x0: number; y0: number; x1: number; y1: number }[] }[]; vb: number }
+    const idx = (sel) => { const e = document.querySelector('.play-board svg ' + sel); return e ? [...e.ownerSVGElement.querySelectorAll('*')].indexOf(e) : -1 }
+    const layers = ['[data-layer=floors]', '[data-layer=walls]', '[data-layer=edge-features]', '[data-layer=objects]', '[data-layer=marks]', '[data-layer=people]', '[data-layer=room-labels]'].map(idx)
+    const objects = [...document.querySelectorAll('[data-layer=objects] [data-object]')].map((g) => ({ id: g.dataset.object, row: +g.dataset.frontRow, flat: !g.querySelector('filter, [filter]') }))
+    const clipped = document.querySelectorAll('[data-layer=objects] [clip-path]').length
+    return { layers, objects, clipped }
+  })()`)) as { layers: number[]; objects: { id: string; row: number; flat: boolean }[]; clipped: number }
+  check(`${day.size}x${day.size}: floors, walls, doors and windows, objects, marks, people, room labels are painted in that order`, r.layers.every((i) => i >= 0) && r.layers.every((v, i) => i === 0 || v > r.layers[i - 1]!), JSON.stringify(r.layers))
+  check(`${day.size}x${day.size}: nothing of an object is clipped`, r.clipped === 0, String(r.clipped))
   const bad: string[] = []
-  for (const c of r.clips) {
-    const obj = sc.objects.find((o) => o.id === c.object)
-    if (!obj) continue
-    const home = sc.cellRooms[obj.cells[0]!.row]![obj.cells[0]!.col]
-    for (const q of c.rects) {
-      for (const [fx, fy] of [[0.5, 0.5], [0.03, 0.03], [0.97, 0.03], [0.03, 0.97], [0.97, 0.97]] as const) {
-        const col = Math.floor((q.x0 + fx * (q.x1 - q.x0) - r.ox) / r.cell)
-        const row = Math.floor((q.y0 + fy * (q.y1 - q.y0) - r.oy) / r.cell)
-        if (sc.cellRooms[row]?.[col] !== home) bad.push(`${c.object}@r${row + 1}c${col + 1}`)
-      }
-    }
+  const keyOf = (id: string) => {
+    const o = sc.objects.find((x) => x.id === id)!
+    return { row: Math.max(...o.cells.map((c) => c.row)), col: Math.min(...o.cells.map((c) => c.col)) }
   }
-  check(`${day.size}x${day.size}: ${r.clips.length} object clips cover only squares of the object's own room (walls and outer edge cut)`, r.clips.length > 0 && bad.length === 0, bad.slice(0, 5).join(' '))
+  r.objects.forEach((o, i) => {
+    const k = keyOf(o.id)
+    if (k.row !== o.row) bad.push(`${o.id} front row ${o.row} != ${k.row}`)
+    const p = r.objects[i - 1]
+    if (!p) return
+    const pk = keyOf(p.id)
+    const ok = p.flat !== o.flat ? p.flat : pk.row !== k.row ? pk.row < k.row : pk.col !== k.col ? pk.col < k.col : p.id < o.id
+    if (!ok) bad.push(`${p.id} before ${o.id}`)
+  })
+  check(`${day.size}x${day.size}: ${r.objects.length} objects are painted flat first, then by front row and column`, r.objects.length === sc.objects.length && bad.length === 0, bad.slice(0, 4).join('; '))
 }
 
 const sizes: string[] = []
@@ -221,7 +218,7 @@ async function hitAndSize(date: string, w: number, h: number) {
   const p = await hitProbe()
   if (!p) return check(`${day.size}x${day.size} board renders`, false)
   check(`${day.size}x${day.size}: no sideways overflow, board inside the viewport`, p.sw <= p.iw && !!p.board && p.board.l >= -0.5 && p.board.r <= p.iw + 0.5, JSON.stringify({ sw: p.sw, iw: p.iw, board: p.board }))
-  check(`${day.size}x${day.size}: every object (and every shadow) is blocks inside the clip group of that object`, p.layers.objects > 0 && p.layers.clips > 0 && p.layers.unclipped === 0, JSON.stringify(p.layers))
+  check(`${day.size}x${day.size}: every object is drawn as blocks, none clipped`, p.layers.objects > 0 && p.layers.clips === 0, JSON.stringify(p.layers))
   check(`${day.size}x${day.size}: every cell resolves from its centre, corners and edges (${p.probes} probes, ${p.skipped} off screen)`, p.badCount === 0 && p.probes > p.cells * 7 * 0.5, JSON.stringify(p.bad))
   if (p.mid) sizes.push(`| ${w}x${h} | ${day.size}x${day.size} | ${Math.round(p.mid.w)} x ${Math.round(p.mid.h)} | ${Math.round(p.mid.circle)} |`)
   await shotBoard(`${LOOK}-${w}x${h}-${day.size}x${day.size}`)
@@ -436,9 +433,9 @@ for (const [w, h] of VIEWPORTS) {
   await send('Page.enable')
   await send('Runtime.enable')
   await hitAndSize(SMALL_DATE, w, h)
-  await wallsHold(SMALL_DATE)
+  await paintOrder(SMALL_DATE)
   await hitAndSize(BIG_DATE, w, h)
-  await wallsHold(BIG_DATE)
+  await paintOrder(BIG_DATE)
   await labels(BIG_DATE, w, h)
   await legendWhole(w, h)
   await playLoop(w, h)

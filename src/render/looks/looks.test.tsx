@@ -5,7 +5,7 @@ import { ORIENTATIONS, orientCells } from '../icons/orientation.ts'
 import { ICON_DEFINITIONS } from '../icons/registry.tsx'
 import { THEME_ICON_DEFINITIONS } from '../icons/themes/registry.ts'
 import { THEME_ICON_IDS } from '../icons/themes/types.ts'
-import { MAX_Z, RISE, SKEW, projectModel, sortBackToFront } from './project.ts'
+import { HEADROOM, MAX_Z, RISE, SKEW, projectModel, sortBackToFront } from './project.ts'
 import { COLORS, modelHeight, orientModel, type Prim } from './models.ts'
 import { bathtub } from './modelsHouse.ts'
 import { ENGINE_MODELS, MODEL_ONLY, THEME_MODELS, solidModelFor } from './registry.ts'
@@ -38,9 +38,10 @@ describe('projection', () => {
     expect(projectModel(30, 40, 100)).toEqual([30 - 100 * SKEW, 40 - 100 * RISE])
   })
 
-  it('lets nothing rise over more than one square: the clip of an object never needs more than the squares around it', () => {
-    expect(MAX_Z * RISE * 0.64).toBeLessThan(64)
-    expect(MAX_Z * SKEW * 0.64).toBeLessThan(64)
+  it('leaves headroom for the tallest block the models may use', () => {
+    const rise = MAX_Z * RISE * 0.64
+    expect(HEADROOM).toBeGreaterThanOrEqual(Math.floor(rise))
+    expect(HEADROOM).toBeLessThanOrEqual(Math.ceil(rise) + 1)
   })
 })
 
@@ -51,7 +52,7 @@ describe('block models', () => {
     for (const { key, variant } of allVariants) expect(solidModelFor(key, variant.cols, variant.rows, variant.id), `${key} ${variant.id}`).not.toBeNull()
   })
 
-  it('keeps every block inside its footprint box and below the maximum height', () => {
+  it('keeps every block inside its footprint box and below the headroom height', () => {
     for (const { key, variant } of allVariants) {
       const model = solidModelFor(key, variant.cols, variant.rows, variant.id)!
       expect(model.cols, key).toBe(variant.cols)

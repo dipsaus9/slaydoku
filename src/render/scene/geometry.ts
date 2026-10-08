@@ -1,4 +1,5 @@
 import type { Cell, Scene } from '../../engine/model/index.ts'
+import { HEADROOM } from '../looks/project.ts'
 
 /**
  * Fixed drawing units. The SVG viewBox is expressed in these units and the
@@ -47,7 +48,8 @@ export interface GeometryOptions {
 export function createGeometry(size: Pick<Scene, 'width' | 'height'>, options: GeometryOptions = {}): SceneGeometry {
   const axisLabels = options.axisLabels ?? false
   const gutter = axisLabels ? AXIS_GUTTER : 0
-  const origin: Point = { x: MARGIN + gutter, y: MARGIN + gutter }
+  // The objects are blocks seen from the front and above (SLAY-17.4): the tall parts of the top row rise over the grid's top edge.
+  const origin: Point = { x: MARGIN + gutter, y: MARGIN + gutter + HEADROOM }
   const cellRect = (cell: Cell): Rect => ({
     x: origin.x + cell.col * CELL_SIZE,
     y: origin.y + cell.row * CELL_SIZE,

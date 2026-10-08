@@ -9,8 +9,11 @@ import type { Prim } from './models.ts'
 export const SKEW = 0.22
 export const RISE = 0.7
 
-/** Nothing a model draws is higher than this (model units), so no block rises more than `RISE * MAX_Z` (about 43 drawing units, under one cell) above its footprint. */
+/** Nothing a model draws is higher than this (model units), so no block rises more than `RISE * MAX_Z` above its footprint (about 43 drawing units, under one cell, so a tall block never hides a whole square above it). */
 export const MAX_Z = 96
+
+/** Free space above the grid (drawing units, 64 per cell) for the tallest block of the top row: `RISE * MAX_Z` model units, 0.64 each. */
+export const HEADROOM = 44
 
 export function projectModel(x: number, y: number, z: number): [number, number] {
   return [x - SKEW * z, y - RISE * z]

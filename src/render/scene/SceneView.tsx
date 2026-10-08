@@ -20,7 +20,7 @@ export interface SceneViewProps {
   showAxisLabels?: boolean
   /** Explicit floor pattern per room id; other rooms are styled by name. */
   roomStyles?: Partial<Record<string, FloorPattern>>
-  /** Slot for the objects (SceneObjectIcons): blocks that never leave their room, drawn under the walls. */
+  /** Slot for the objects (SceneObjectIcons): blocks drawn above the walls, doors and windows. */
   objectsLayer?: LayerContent
   /** Slot for what lies on the floor: crosses, hints, the press ring. */
   marksLayer?: LayerContent
@@ -44,10 +44,10 @@ function resolve(content: LayerContent, geometry: SceneGeometry): ReactNode {
 
 /**
  * Draws a Scene as one scalable SVG (viewBox based, fills its container's
- * width). Paint order, bottom to top: shadow, floors, grid, objects, walls, edge features,
- * marks, people, room labels, axis labels, per-cell hit rects. Room labels sit
- * on top of marks and people (SLAY-17.5) with a paper-coloured halo and no pill, so the name stays readable in a room the player has filled in.
- * Objects are cut at the walls and at the outer edge of the grid (objectClip.ts), so there is no headroom above the grid.
+ * width). Paint order, bottom to top (a painter's algorithm, owner SLAY-17.4): shadow, floors, grid, walls, doors and windows, objects (lower on the
+ * screen is drawn later), marks, people, room labels, axis labels, per-cell hit rects. Walls are always at the very bottom: an object may rise over
+ * the wall behind it, never the other way round. Room labels sit on top of marks and people (SLAY-17.5) with a paper-coloured halo and no pill,
+ * so the name stays readable in a room the player has filled in. The grid has headroom above it (geometry.ts) for the tall parts of the top row.
  */
 export function SceneView({
   scene,
@@ -84,11 +84,11 @@ export function SceneView({
       <Shadow geometry={geometry} />
       <Floors scene={scene} geometry={geometry} styles={styles} idPrefix={idPrefix} />
       <GridLines geometry={geometry} />
+      <Walls scene={scene} geometry={geometry} />
+      <EdgeFeatures scene={scene} geometry={geometry} />
       <g data-layer="objects" pointerEvents="none">
         {objectsLayer && resolve(objectsLayer, geometry)}
       </g>
-      <Walls scene={scene} geometry={geometry} />
-      <EdgeFeatures scene={scene} geometry={geometry} />
       <g data-layer="marks" pointerEvents="none">
         {marksLayer && resolve(marksLayer, geometry)}
         {notesLayer && resolve(notesLayer, geometry)}
