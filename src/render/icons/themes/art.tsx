@@ -20,41 +20,6 @@ const T = {
  * and every shape inside its footprint cells.
  */
 
-/** Swivel office chair from above, backrest to the north, armrests either side. */
-export function officeChair(): ReactNode {
-  return (
-    <>
-      <Feet cols={1} rows={1} size={10} inset={5} fill={C.steelDark} />
-      <Box x={8} y={40} w={12} h={34} r={5} fill={C.slate} sw={DETAIL} />
-      <Box x={80} y={40} w={12} h={34} r={5} fill={C.slate} sw={DETAIL} />
-      <Box x={22} y={M} w={56} h={22} r={11} fill={C.slate} />
-      <Stroke x1={34} y1={17} x2={66} y2={17} stroke={C.steelDark} sw={DETAIL} />
-      <Disc x={50} y={58} r={30} fill={C.steel} />
-      <Shape d="M 50 32 L 50 84 M 24 58 L 76 58" stroke={C.steelDark} sw={DETAIL} />
-      <Disc x={50} y={58} r={15} fill={C.steelDark} sw={DETAIL} />
-      <Disc x={50} y={58} r={5} fill={C.slate} sw={DETAIL} />
-    </>
-  )
-}
-
-/** Beanbag: a lumpy pillow with a seam. */
-export function beanbag(): ReactNode {
-  return (
-    <>
-      <Shape
-        d="M 50 12 C 76 8 90 32 88 56 C 86 80 66 92 46 88 C 22 90 10 68 14 44 C 16 24 32 14 50 12 Z"
-        fill={C.lilac}
-      />
-      <Shape d="M 50 20 C 44 32 44 46 50 54 C 56 46 56 32 50 20 Z" fill={C.purple} sw={DETAIL} />
-      <Shape d="M 24 40 C 34 48 42 52 50 54 C 60 52 70 48 78 40" stroke={C.purpleDark} sw={DETAIL} />
-      <Shape d="M 30 72 C 38 64 44 58 50 54 C 58 60 66 68 72 76" stroke={C.purpleDark} sw={DETAIL} />
-      <Disc x={50} y={54} r={5} fill={C.purpleDark} sw={DETAIL} />
-      <Shape d="M 28 30 C 32 26 36 24 40 22" stroke={C.purpleDark} sw={2} />
-      <Shape d="M 60 22 C 66 24 72 28 76 32" stroke={C.purpleDark} sw={2} />
-    </>
-  )
-}
-
 /** Picnic blanket of any size: red cloth with a white check. */
 export function picnicBlanket(cols: number, rows: number): ReactNode {
   const w = cols * U

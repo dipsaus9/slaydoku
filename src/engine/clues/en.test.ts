@@ -517,30 +517,31 @@ describe('neutral wording, one text file', () => {
 describe('object nouns follow what the board draws', () => {
   const at = (row: number, col: number) => ({ row, col })
   /** A 6x6 scene with only the given objects; ids are `<kind>-<n>` like the generated scenes. */
-  const withObjects = (objects: { id: string; type: 'chair' | 'rug' | 'wardrobe' | 'desk'; cells: { row: number; col: number }[] }[]) => ({
+  const withObjects = (objects: { id: string; type: 'chair' | 'rug' | 'wardrobe' | 'desk' | 'bed'; cells: { row: number; col: number }[] }[]) => ({
     scene: { ...scene, objects },
     people,
   })
-  const poofAndGardenChair = withObjects([
-    { id: 'gardenChair-1', type: 'chair', cells: [at(0, 0)] },
-    { id: 'poof-1', type: 'chair', cells: [at(3, 3)] },
+  // Every chair kind draws the plain chair since SLAY-17.2, so kinds that are drawn differently are tested on rugs.
+  const rugAndMat = withObjects([
+    { id: 'readingRug-1', type: 'rug', cells: [at(0, 0)] },
+    { id: 'gymMat-1', type: 'rug', cells: [at(3, 3)] },
   ])
 
-  it('names both chairs, each by its own noun, when a poof and a garden chair are both engine type chair', () => {
-    expect(objectNouns(poofAndGardenChair.scene.objects, 'chair')).toEqual(['garden chair', 'poof'])
-    const beside = { personId: 'A', type: 'besideObject', args: { objectType: 'chair' } } as const
-    expect(renderClue(beside, poofAndGardenChair)).toBe('A stood next to a garden chair or a poof.')
-    expect(renderClue({ ...beside, args: { objectType: 'chair', exactlyOne: true } }, poofAndGardenChair)).toBe(
-      'A stood next to exactly one garden chair or poof.',
+  it('names both rugs, each by its own noun, when a gym mat and a reading rug are both engine type rug', () => {
+    expect(objectNouns(rugAndMat.scene.objects, 'rug')).toEqual(['reading rug', 'gym mat'])
+    const beside = { personId: 'A', type: 'besideObject', args: { objectType: 'rug' } } as const
+    expect(renderClue(beside, rugAndMat)).toBe('A stood next to a reading rug or a gym mat.')
+    expect(renderClue({ ...beside, args: { objectType: 'rug', exactlyOne: true } }, rugAndMat)).toBe(
+      'A stood next to exactly one reading rug or gym mat.',
     )
-    expect(renderClue({ personId: 'A', type: 'onObject', args: { objectType: 'chair' } }, poofAndGardenChair)).toBe(
-      'A sat on a garden chair or a poof.',
+    expect(renderClue({ personId: 'A', type: 'onObject', args: { objectType: 'rug' } }, rugAndMat)).toBe(
+      'A stood on a reading rug or a gym mat.',
     )
-    expect(renderClue({ personId: 'A', type: 'squareWithObject', args: { objectType: 'chair' } }, poofAndGardenChair)).toBe(
-      "There was a garden chair or a poof on A's square.",
+    expect(renderClue({ personId: 'A', type: 'squareWithObject', args: { objectType: 'rug' } }, rugAndMat)).toBe(
+      "There was a reading rug or a gym mat on A's square.",
     )
-    expect(renderClue({ personId: 'A', type: 'onlyOnObject', args: { objectType: 'chair' } }, poofAndGardenChair)).toBe(
-      'A was the only person on a garden chair or a poof.',
+    expect(renderClue({ personId: 'A', type: 'onlyOnObject', args: { objectType: 'rug' } }, rugAndMat)).toBe(
+      'A was the only person on a reading rug or a gym mat.',
     )
   })
 
@@ -550,21 +551,24 @@ describe('object nouns follow what the board draws', () => {
       { id: 'gardenChair-2', type: 'chair', cells: [at(2, 2)] },
     ])
     expect(renderClue({ personId: 'A', type: 'besideObject', args: { objectType: 'chair' } }, park)).toBe('A stood next to a garden chair.')
-    const beanbags = withObjects([{ id: 'poof-1', type: 'chair', cells: [at(0, 0)] }])
-    expect(renderClue({ personId: 'A', type: 'besideObject', args: { objectType: 'chair' } }, beanbags)).toBe('A stood next to a poof.')
+    const mats = withObjects([{ id: 'gymMat-1', type: 'rug', cells: [at(0, 0)] }])
+    expect(renderClue({ personId: 'A', type: 'besideObject', args: { objectType: 'rug' } }, mats)).toBe('A stood next to a gym mat.')
   })
 
   it('uses the group noun when every member of the group is drawn alike', () => {
-    // school chair and meeting chair both draw the plain chair: nothing on the board tells them apart
+    // every chair kind draws the plain chair: nothing on the board tells them apart
     const alike = withObjects([
       { id: 'schoolChair-1', type: 'chair', cells: [at(0, 0)] },
       { id: 'meetingChair-1', type: 'chair', cells: [at(1, 1)] },
     ])
     expect(objectNouns(alike.scene.objects, 'chair')).toEqual(['chair'])
     expect(renderClue({ personId: 'A', type: 'besideObject', args: { objectType: 'chair' } }, alike)).toBe('A stood next to a chair.')
-    // ... and a poof beside them is named apart
-    const mixed = withObjects([...alike.scene.objects, { id: 'poof-1', type: 'chair' as const, cells: [at(4, 4)] }])
-    expect(objectNouns(mixed.scene.objects, 'chair')).toEqual(['chair', 'poof'])
+    // ... a chair kind that no longer exists (a poof in an old committed day) is drawn as the plain chair too
+    const old = withObjects([...alike.scene.objects, { id: 'poof-1', type: 'chair' as const, cells: [at(4, 4)] }])
+    expect(objectNouns(old.scene.objects, 'chair')).toEqual(['chair'])
+    // ... while a rug that looks different is named apart
+    const mixed = withObjects([{ id: 'readingRug-1', type: 'rug', cells: [at(0, 0)] }, { id: 'gymMat-1', type: 'rug', cells: [at(1, 1)] }])
+    expect(objectNouns(mixed.scene.objects, 'rug')).toEqual(['reading rug', 'gym mat'])
   })
 
   it('names a kind after "in" for a car and after a direction', () => {
@@ -584,8 +588,8 @@ describe('object nouns follow what the board draws', () => {
   })
 
   it('puts "an" before a noun that starts with a vowel', () => {
-    const chairs = withObjects([{ id: 'officeChair-1', type: 'chair', cells: [at(0, 0)] }])
-    expect(renderClue({ personId: 'A', type: 'besideObject', args: { objectType: 'chair' } }, chairs)).toBe('A stood next to an office chair.')
+    const beds = withObjects([{ id: 'infirmaryBed-1', type: 'bed', cells: [at(0, 0), at(1, 0)] }])
+    expect(renderClue({ personId: 'A', type: 'besideObject', args: { objectType: 'bed' } }, beds)).toBe('A stood next to an infirmary bed.')
   })
 
   it('falls back to the engine noun for objects that are not theme kinds and for a bare scene', () => {

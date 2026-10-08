@@ -480,8 +480,8 @@ describe('hosting config', () => {
     expect(vercel).toMatchObject({ buildCommand: 'bun run build', outputDirectory: 'dist', framework: 'vite' })
     expect(vercel.rewrites).toEqual([{ source: '/(.*)', destination: '/index.html' }])
   })
-  it('builds only main: every other branch is skipped so previews do not eat the daily deploy limit', () => {
-    expect(vercel.ignoreCommand).toBe('[ "$VERCEL_GIT_COMMIT_REF" != "main" ]')
+  it('builds only main and preview branches: every other branch is skipped so previews do not eat the daily deploy limit (rule tested in vercel-ignore.test.ts)', () => {
+    expect(vercel.ignoreCommand).toContain('main|*/preview-*')
   })
   it('lets the manifest through: a static file in public/ wins over the SPA rewrite and only gets the noindex header (when the site is noindex)', () => {
     expect(existsSync(join(ROOT, 'public/manifest.webmanifest'))).toBe(true)

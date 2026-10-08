@@ -26,7 +26,7 @@ Slaydoku is a public, Wordle-style daily murder-grid puzzle (Murdoku-like), in E
 - Sources under `src/` run in the browser: no `process.*`, no `node:` imports (a test guards it).
 - Check the rendered screen, not only the puzzle data (`docs/verification/screens.ts`): an earlier bug showed only the first clue card of each person while all data checks passed.
 - Workers deliver one story each with backlog-deliver in `.worktrees/<id>`, then a reviewer pass; if the review blocks only on scope, widen the story References with `backlog task edit --ref` (re-pass all existing refs) and re-review. Backlog tasks are edited only through the `backlog` CLI. Prefix: SLAY. Workflow config: `.claude/backlog-workflow.json`.
-- Vercel: only main is built (`ignoreCommand` in `vercel.json`), because of the hobby deploy limit.
+- Vercel: only main and branches named `*/preview-*` (e.g. `SLAY-17.8/preview-look-poc`) are built (`ignoreCommand` in `vercel.json`, owner decision 2026-10-08, SLAY-17.7), so the owner can test a feature on a phone; every other branch is skipped because of the hobby deploy limit. One deploy per push: delete preview branches once the owner has decided.
 - Look for leftover background shells and headless Chrome after worker runs and stop them.
 
 ## Style
