@@ -34,8 +34,6 @@ function define(id: ThemeIconId, sizes: readonly Size[], draw: (cols: number, ro
 }
 
 export const THEME_ICON_DEFINITIONS: Record<ThemeIconId, ThemeIconDefinition> = {
-  officeChair: define('officeChair', [[1, 1]], art.officeChair),
-  beanbag: define('beanbag', [[1, 1]], art.beanbag),
   picnicBlanket: define('picnicBlanket', [[2, 1], [2, 2]], art.picnicBlanket),
   hammock: define('hammock', [[1, 2]], art.hammock),
   sandbox: define('sandbox', [[2, 1], [2, 2]], art.sandbox),
