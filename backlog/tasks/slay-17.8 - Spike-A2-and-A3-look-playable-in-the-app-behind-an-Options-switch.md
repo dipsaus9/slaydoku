@@ -4,6 +4,7 @@ title: 'Spike: A2 and A3 look playable in the app behind an Options switch'
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:45'
+updated_date: '2026-10-08 09:59'
 labels:
   - needs-owner-review
 dependencies:
@@ -40,6 +41,7 @@ Branch: SLAY-17.8/preview-look-poc
 - [ ] #4 Place, notes, hints, checking and the win flow work in all three looks at 360, 390, 768 and 1024 wide (rendered check); lint, typecheck and test --maxWorkers=1 pass
 - [ ] #5 The PR body has the Vercel preview URL of this branch and what to try; docs/design/looks.md records tap target sizes and findings per look
 - [ ] #6 Owner has tested A2 and A3 on a phone and picked one (only the owner ticks this)
+- [ ] #7 If the PoC draws the bathtub, its water clearly reads as water (visible surface, colour and highlight distinct from the tub)
 <!-- AC:END -->
 
 ## Implementation Notes
