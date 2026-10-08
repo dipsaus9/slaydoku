@@ -4,7 +4,7 @@ title: 'Per-theme cast pool, Simpshouse cast and a monkey Biko'
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 12:39'
+updated_date: '2026-10-08 12:40'
 labels:
   - needs-owner-review
 dependencies:
@@ -14,8 +14,11 @@ references:
   - src/content/cast/
   - src/schedule/cast.ts
   - src/schedule/cast.test.ts
+  - src/schedule/cast.simpshouse.test.ts
   - src/render/cards/
   - CLAUDE.md
+  - docs/launch.md
+  - docs/design/monkey-biko/
 parent_task_id: SLAY-18
 type: feature
 ordinal: 126000
