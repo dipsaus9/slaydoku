@@ -44,12 +44,12 @@ function check(c: Case): void {
 }
 
 describe('advanced techniques never remove a true position: 9x9', () => {
-  it('30 sets with few solutions', { timeout: 120_000 }, () => {
-    for (let seed = 1; seed <= 30; seed++) check(ambiguousCase(9, seed, 20))
+  it('90 sets with few solutions (widened in SLAY-17.2: the themes changed what the seeds draw)', { timeout: 300_000 }, () => {
+    for (let seed = 1; seed <= 90; seed++) check(ambiguousCase(9, seed, 20))
   })
 
-  it('30 sets with many solutions', { timeout: 120_000 }, () => {
-    for (let seed = 31; seed <= 60; seed++) check(ambiguousCase(9, seed))
+  it('90 sets with many solutions', { timeout: 300_000 }, () => {
+    for (let seed = 101; seed <= 190; seed++) check(ambiguousCase(9, seed))
   })
 
   it('60 sets on 6x6 scenes, where rooms are tight', { timeout: 120_000 }, () => {

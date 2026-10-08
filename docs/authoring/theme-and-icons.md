@@ -44,8 +44,9 @@ Themes live in `src/content/themes/<theme>.ts` ([office.ts](../../src/content/th
 with `themeObject({...})`:
 
 ```ts
-themeObject({ kind: 'officeChair', name: 'office chair', engineType: 'chair', themeIcon: 'officeChair',
-              weight: 10, footprints: [rect(1, 1)], placement: 'anywhere' }),
+themeObject({ kind: 'meetingChair', name: 'meeting chair', engineType: 'chair',
+              weight: 16, footprints: [rect(1, 1)], placement: 'anywhere',
+              allowedRoomTypes: ['meeting', 'study', 'dining', 'living', 'circulation', 'kitchen'] }),
 ```
 
 | Field | Meaning |

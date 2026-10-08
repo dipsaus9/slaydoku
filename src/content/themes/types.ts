@@ -49,11 +49,10 @@ export interface ThemeObject {
   /** Cap per room, so a house does not get five televisions. Absent: unlimited. */
   maxPerRoom?: number
   /**
-   * Allow-list (SLAY-17.1): the room types (see `RoomType`) this object may be placed in, a
-   * hard rule the generator never breaks. A room qualifies when it has at least one of them.
-   * Absent: allowed in any room (themes not yet assigned, see docs/authoring/room-rules.md).
+   * Allow-list (SLAY-17.1, required since SLAY-17.2): the room types (see `RoomType`) this object may be
+   * placed in, a hard rule the generator never breaks. A room qualifies when it has at least one of them.
    */
-  allowedRoomTypes?: RoomType[]
+  allowedRoomTypes: RoomType[]
   /** Room types this object must never be placed in, hard exclusion. Older than the allow-list; both apply. */
   excludeRoomTypes?: RoomType[]
 }
@@ -77,7 +76,7 @@ export interface ThemeRoom {
  * the generator only weighs, a room type is a rule it never breaks (owner: "a delivery van can
  * never be in a sleeping room"). `'sleeping'` marks a room with a bed-like object (a real
  * bedroom, a showroom bedroom, a sick bay bed, a garden hammock nook): no vehicle belongs there.
- * The other types are used by the Home theme (docs/authoring/room-rules.md).
+ * The other types are the shared vocabulary of all five themes (docs/authoring/room-rules.md).
  */
 export type RoomType =
   | 'sleeping'
@@ -91,6 +90,13 @@ export type RoomType =
   | 'fitness'
   | 'storage'
   | 'circulation'
+  | 'meeting'
+  | 'garden'
+  | 'play'
+  | 'water'
+  | 'retail'
+  | 'fitting'
+  | 'checkout'
 
 export type ThemeId = 'home' | 'office' | 'park' | 'school' | 'shop'
 

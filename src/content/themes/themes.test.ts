@@ -134,7 +134,10 @@ describe('scene themes', () => {
         const sleepingRooms = theme.rooms.filter((r) => r.roomTypes?.includes('sleeping'))
         if (vehicles.length === 0 || sleepingRooms.length === 0) return
         for (const vehicle of vehicles) {
-          expect(vehicle.excludeRoomTypes, vehicle.kind).toContain('sleeping')
+          for (const room of sleepingRooms) {
+            const allowed = vehicle.allowedRoomTypes.some((t) => room.roomTypes!.includes(t))
+            expect(allowed && !vehicle.excludeRoomTypes?.includes('sleeping'), `${vehicle.kind} in ${room.name}`).toBe(false)
+          }
         }
       })
 
@@ -200,17 +203,16 @@ describe('drawn kinds (clue nouns)', () => {
     expect(themeObjectOf({ id: 'plant-gallery-top', type: 'plant' })).toBeUndefined()
   })
 
-  it('groups the chair kinds by what is drawn', () => {
+  it('draws every chair kind with the plain chair (SLAY-17.2), one group', () => {
     const objects = [
       { id: 'gardenChair-1', type: 'chair' as const },
       { id: 'schoolChair-1', type: 'chair' as const },
-      { id: 'beanbag-1', type: 'chair' as const },
-      { id: 'poof-1', type: 'chair' as const },
+      { id: 'meetingChair-1', type: 'chair' as const },
+      { id: 'fittingStool-1', type: 'chair' as const },
     ]
     const groups = drawnKinds(objects, 'chair')
     expect(groups.map((g) => [g.icon, g.nouns, specificNoun(g)])).toEqual([
-      [ENGINE_ICON, ['garden chair', 'school chair'], undefined],
-      ['beanbag', ['beanbag', 'poof'], undefined],
+      [ENGINE_ICON, ['garden chair', 'school chair', 'meeting chair', 'fitting stool'], undefined],
     ])
   })
 
