@@ -14,7 +14,8 @@ import type { RoomType, SceneTheme, ThemeObject, ThemeRoom } from './types.ts'
  *   no apples, the chest is no crate, the garden table is green metal, the flower bed no pot of mums);
  * - the hay bale and the hearth have fall-only ids (`baleOfHay`, `hearth`), because the Christmas theme draws its own hay bale and fireplace.
  *
- * Seasonal: picked by the calendar (src/schedule/calendar.ts, 1-16 October and November except the 11th), never part of the rotation.
+ * Seasonal: picked by the calendar (src/schedule/calendar.ts, 1-16 October and November except the 11th), never part of the rotation,
+ * once SLAY-18.10 registers it (see `FALL_THEME` below).
  */
 
 const OUTDOOR: RoomType = 'outdoor'
@@ -91,7 +92,8 @@ export const FALL_OBJECTS: ThemeObject[] = [
   themeObject({ kind: 'harvestTable', name: 'harvest table', nameNl: 'oogsttafel', engineType: 'gardenTable', themeIcon: 'harvestTable', weight: 3, footprints: [rect(1, 1), rect(2, 1), rect(2, 2, 0.5)], placement: 'centre', maxPerRoom: 2, allowedRoomTypes: ['market', 'garden'] }),
 ]
 
-export const FALL_THEME: SceneTheme | undefined = {
+/** The complete Fall theme, tested on its own (fall.rooms.test.ts). */
+export const fallTheme: SceneTheme = {
   id: 'fall',
   seasonal: true,
   name: 'Autumn farm',
@@ -99,3 +101,9 @@ export const FALL_THEME: SceneTheme | undefined = {
   rooms: FALL_ROOMS,
   objects: FALL_OBJECTS,
 }
+
+/**
+ * What `SCENE_THEMES` registers (index.ts `registered(...)`). Left unregistered on purpose: registering hands the theme its calendar dates,
+ * and the committed schedule still has the old theme on those days until SLAY-18.10 regenerates them. SLAY-18.10 sets this to `fallTheme`.
+ */
+export const FALL_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10

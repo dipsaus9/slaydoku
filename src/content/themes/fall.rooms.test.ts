@@ -1,48 +1,112 @@
 import { describe, expect, it } from 'vitest'
+import { OBJECT_WORDS_NL } from '../../engine/clues/nl.ts'
+import { checkScene } from '../../engine/model/index.ts'
 import { generateScene } from '../../engine/scenegen/generate.ts'
 import { MAX_FREE_CHAIRS_PER_ROOM, MAX_KIND_PER_ROOM, SEAT_AT_TYPES } from '../../engine/scenegen/objects.ts'
+import { ORIENTATIONS, orientCells } from '../../render/icons/orientation.ts'
+import { solidFor } from '../../render/looks/solid.ts'
 import { seasonalThemeOf } from '../../schedule/calendar.ts'
 import { addDays } from '../../schedule/dates.ts'
 import { rotationThemeOf, themeOf } from '../../schedule/pick.ts'
-import { FALL_THEME } from './fall.ts'
+import { FALL_THEME, fallTheme } from './fall.ts'
 import { SCENE_THEMES, type ThemeId } from './index.ts'
 
-/** The Fall theme (SLAY-18.6): its rooms and hard room rules, the one chair look and the chair caps, and its place in the calendar. */
-const theme = FALL_THEME!
+/**
+ * The Fall theme (SLAY-18.6), tested on its own: `fallTheme` is complete but not registered yet (SLAY-18.10 registers it together with the
+ * regenerated schedule days), so every test here reads the module directly and never goes through `SCENE_THEMES` or `getTheme`.
+ */
+const theme = fallTheme
 const kindOf = (id: string): string => id.replace(/-\d+$/, '')
 const byKind = new Map(theme.objects.map((o) => [o.kind, o]))
 
-describe('fall theme: registered as seasonal', () => {
-  it('is registered once, seasonal, with EN and NL names for the theme and every room', () => {
-    expect(SCENE_THEMES.filter((t) => t.id === 'fall')).toEqual([theme])
+describe('fall theme: data', () => {
+  it('is seasonal, with EN and NL names for the theme and for at least 16 rooms, each with room types and a floor', () => {
     expect(theme.seasonal).toBe(true)
     expect(theme.nameNl).toBe('Herfstboerderij')
     expect(theme.rooms.length).toBeGreaterThanOrEqual(16)
+    expect(new Set(theme.rooms.map((r) => r.name)).size).toBe(theme.rooms.length)
     for (const room of theme.rooms) {
-      expect(room.name.length, room.name).toBeGreaterThan(0)
       expect(room.nameNl.length, room.name).toBeGreaterThan(0)
+      expect(room.nameNl, room.name).not.toBe(room.name)
       expect(room.roomTypes?.length, room.name).toBeGreaterThan(0)
       expect(room.floor, room.name).toBeDefined()
     }
   })
 
-  it('gives every kind a Dutch noun and an allow-list that a room of the theme meets', () => {
+  it('gives every room name used by another theme the same Dutch noun', () => {
+    for (const room of theme.rooms) {
+      for (const other of SCENE_THEMES.flatMap((t) => t.rooms).filter((r) => r.name === room.name)) expect(other.nameNl, room.name).toBe(room.nameNl)
+    }
+  })
+
+  it('has at least 6 occupiable and 6 blocking kinds, unique, each with a Dutch noun (singular, lower case, no article)', () => {
+    expect(theme.objects.filter((o) => o.occupiable).length).toBeGreaterThanOrEqual(6)
+    expect(theme.objects.filter((o) => !o.occupiable).length).toBeGreaterThanOrEqual(6)
+    expect(new Set(theme.objects.map((o) => o.kind)).size).toBe(theme.objects.length)
     for (const o of theme.objects) {
-      expect(o.nameNl.length, o.kind).toBeGreaterThan(1)
-      expect(o.allowedRoomTypes.length, o.kind).toBeGreaterThan(0)
-      expect(theme.rooms.some((r) => o.allowedRoomTypes.some((t) => r.roomTypes?.includes(t))), o.kind).toBe(true)
+      expect(o.nameNl, o.kind).toBe(o.nameNl.toLowerCase().trim())
+      expect(/^(de|het|een) /.test(o.nameNl), o.kind).toBe(false)
+      expect(o.nameNl, o.kind).not.toBe(o.name)
+    }
+  })
+
+  it('gives kinds drawn differently different Dutch nouns, and never the generic noun to a kind with own art', () => {
+    for (const type of new Set(theme.objects.map((o) => o.engineType))) {
+      const kinds = theme.objects.filter((o) => o.engineType === type)
+      const icons = new Map<string, Set<string>>()
+      for (const o of kinds) icons.set(o.nameNl, (icons.get(o.nameNl) ?? new Set()).add(o.themeIcon ?? 'engine'))
+      for (const [noun, set] of icons) expect([...set], `${type} "${noun}"`).toHaveLength(1)
+      for (const o of kinds.filter((x) => x.themeIcon)) expect(o.nameNl, o.kind).not.toBe(OBJECT_WORDS_NL[type].noun)
+    }
+  })
+
+  it('keeps a kind shared with a registered theme identical to it', () => {
+    for (const o of theme.objects) {
+      for (const other of SCENE_THEMES.flatMap((t) => t.objects).filter((x) => x.kind === o.kind)) {
+        expect([other.name, other.clueNoun, other.nameNl, other.engineType, other.themeIcon], o.kind).toEqual([o.name, o.clueNoun, o.nameNl, o.engineType, o.themeIcon])
+      }
     }
   })
 
   it('has the plain chair as its only chair', () => {
-    const chairs = theme.objects.filter((o) => o.engineType === 'chair')
-    expect(chairs.map((o) => [o.kind, o.themeIcon])).toEqual([['chair', undefined]])
+    expect(theme.objects.filter((o) => o.engineType === 'chair').map((o) => [o.kind, o.themeIcon])).toEqual([['chair', undefined]])
   })
+
+  it('gives every kind an allow-list a room meets, every room a favoured kind it allows, and favours every kind somewhere', () => {
+    for (const o of theme.objects) {
+      expect(o.allowedRoomTypes.length, o.kind).toBeGreaterThan(0)
+      expect(theme.rooms.some((r) => o.allowedRoomTypes.some((t) => r.roomTypes?.includes(t))), o.kind).toBe(true)
+      expect(theme.rooms.some((r) => r.favours.includes(o.kind)), `${o.kind} is favoured nowhere`).toBe(true)
+    }
+    for (const room of theme.rooms) {
+      for (const kind of room.favours) expect(byKind.get(kind)?.allowedRoomTypes.some((t) => room.roomTypes?.includes(t)), `${room.name} favours ${kind}`).toBe(true)
+    }
+  })
+})
+
+describe('fall theme: block art (look completeness for its kinds)', () => {
+  for (const o of theme.objects) {
+    it(`${o.kind} (${o.themeIcon ?? o.engineType}): every footprint in all 8 orientations`, () => {
+      for (const footprint of o.footprints) {
+        const cols = Math.max(...footprint.cells.map((c) => c.col)) + 1
+        const rows = Math.max(...footprint.cells.map((c) => c.row)) + 1
+        expect(solidFor(o.engineType, o.themeIcon, footprint.cells)?.prims.length, `${o.kind} ${footprint.id}`).toBeGreaterThan(0)
+        for (const or of ORIENTATIONS) expect(solidFor(o.engineType, o.themeIcon, orientCells(footprint.cells, cols, rows, or), or), `${o.kind} ${footprint.id} ${or.rotation}`).not.toBeNull()
+      }
+    })
+  }
 })
 
 describe('fall theme: scenes over many seeds', () => {
   const types = new Map(theme.rooms.map((r) => [r.name, r.roomTypes ?? []]))
-  const scenes = [6, 7, 9, 12].flatMap((size) => Array.from({ length: 50 }, (_, i) => ({ size, seed: i + 1, scene: generateScene({ width: size, height: size, theme: 'fall', seed: i + 1 }) })))
+  const scenes = [6, 7, 9, 12].flatMap((size) => Array.from({ length: 50 }, (_, i) => ({ size, seed: i + 1, scene: generateScene({ width: size, height: size, theme, seed: i + 1 }) })))
+
+  it('builds valid scenes with the theme rooms', () => {
+    for (const { size, seed, scene } of scenes) {
+      expect(checkScene(scene), `${size} seed ${seed}`).toEqual([])
+      for (const room of scene.rooms) expect(types.has(room.name), room.name).toBe(true)
+    }
+  })
 
   it('never places a kind outside its allow-list (hard room rule)', () => {
     let placed = 0
@@ -82,26 +146,29 @@ describe('fall theme: scenes over many seeds', () => {
 })
 
 describe('fall theme: the calendar', () => {
-  const others: ReadonlySet<ThemeId> = new Set(SCENE_THEMES.filter((t) => t.id !== 'fall').map((t) => t.id))
+  const registered: ReadonlySet<ThemeId> = new Set(SCENE_THEMES.map((t) => t.id))
+  /** `themeOf` as it will be once SLAY-18.10 registers fall. */
+  const withFall = (date: string): ThemeId => seasonalThemeOf(date, (id) => id === 'fall' || registered.has(id)) ?? rotationThemeOf(date)
 
-  it('picks fall on 1-16 October and in November, but not on Simpshouse day or 11 November', () => {
-    for (const date of ['2026-10-09', '2026-10-15', '2026-10-16', '2026-11-01', '2026-11-10', '2026-11-12', '2026-11-30', '2027-10-01']) expect(themeOf(date), date).toBe('fall')
-    expect(themeOf('2026-10-14')).toBe('simpshouse')
-    expect(themeOf('2026-11-11')).not.toBe('fall')
-    for (const date of ['2026-09-30', '2026-10-17', '2026-10-31', '2026-12-01']) expect(themeOf(date), date).not.toBe('fall')
+  it('is not registered yet: SLAY-18.10 registers it with the regenerated days, so the committed schedule stays as it is', () => {
+    expect(FALL_THEME).toBeUndefined()
+    expect(SCENE_THEMES.some((t) => t.id === 'fall')).toBe(false)
   })
 
-  it('leaves the theme of every other day as it was without fall', () => {
+  it('once registered, picks fall on 1-16 October and in November, but not on Simpshouse day or 11 November', () => {
+    for (const date of ['2026-10-09', '2026-10-15', '2026-10-16', '2026-11-01', '2026-11-10', '2026-11-12', '2026-11-30', '2027-10-01']) expect(withFall(date), date).toBe('fall')
+    expect(withFall('2026-10-14')).toBe('simpshouse')
+    expect(withFall('2026-11-11')).not.toBe('fall')
+    for (const date of ['2026-09-30', '2026-10-17', '2026-10-31', '2026-12-01']) expect(withFall(date), date).not.toBe('fall')
+  })
+
+  it('once registered, leaves the theme of every other day as it is now', () => {
     let checked = 0
     for (let date = '2026-09-27'; date <= '2028-01-31'; date = addDays(date, 1)) {
-      if (themeOf(date) === 'fall') continue
-      expect(themeOf(date), date).toBe(seasonalThemeOf(date, (id) => others.has(id)) ?? rotationThemeOf(date))
+      if (withFall(date) === 'fall') continue
+      expect(withFall(date), date).toBe(themeOf(date))
       checked++
     }
     expect(checked).toBeGreaterThan(400)
-  })
-
-  it('keeps fall out of the rotation', () => {
-    for (let date = '2026-09-27', i = 0; i < 200; date = addDays(date, 1), i++) expect(rotationThemeOf(date)).not.toBe('fall')
   })
 })
