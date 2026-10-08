@@ -5,6 +5,10 @@ regenerating any schedule content. It has the open decisions and recent history 
 and the other docs alone don't make obvious. Update it (don't just append forever) whenever the
 open items here get resolved.
 
+## Simpshouse day 2026-10-14 (SLAY-18.4, awaiting owner approval)
+
+The seasonal theme `simpshouse` (src/content/themes/simpshouse.ts, art in src/render/icons/themes/simpshouseArt.tsx) is registered and 2026-10-14 is regenerated as a 12x12 Simpshouse puzzle (only that day changed). Owner decisions applied: Iris repeats from 2026-10-13 (the pairwise gate allows one shared name next to a day with its own cast pool, `THEMED_DAY_SHARED_NAMES` in src/schedule/gates.ts); Pikachu plush is the only third-party name. Deviation from the approved preview: the glam vanity is now 2x1 and 3x1 (its engine type `desk` needs 2-3 cells). Screenshots: docs/verification/simpshouse-day/. Must be merged and deployed before 2026-10-14 UTC. docs/verification/drive.ts is still stale (it expects the old auto-placed victim); `PLAY_DATE=2026-10-14` now overrides its date.
+
 ## Preview deployments (SLAY-17.7)
 
 Vercel builds `main` plus branches named `*/preview-*` (for example `SLAY-17.8/preview-look-poc`), so the owner can test on a phone; all other branches stay skipped (hobby deploy limit, one deploy per push). Rule: `ignoreCommand` in `vercel.json`, tested in `tools/vercel-ignore.test.ts`. Delete preview branches once the owner has decided. Owner decision 2026-10-08, recorded in CLAUDE.md.
