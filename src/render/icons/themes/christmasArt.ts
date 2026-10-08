@@ -282,10 +282,10 @@ export function poinsettia(): SolidModel {
   return model(1, 1, prims)
 }
 
-/** Holly bush on a patch of snow: dark glossy leaves in a round clump with bunches of red berries. */
+/** Holly bush: dark glossy leaves in a round clump on a short stem, with bunches of red berries. */
 export function holly(): SolidModel {
   return model(1, 1, [
-    cyl(50, 54, 42, 0, 2, X.snow),
+    cyl(50, 56, 6, 0, 10, C.woodDark),
     ball(34, 56, 26, 20, X.firDark),
     ball(66, 54, 28, 20, X.fir),
     ball(50, 66, 24, 20, X.fir),
