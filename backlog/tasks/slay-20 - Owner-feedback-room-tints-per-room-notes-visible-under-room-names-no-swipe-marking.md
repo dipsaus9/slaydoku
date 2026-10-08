@@ -6,7 +6,7 @@ title: >-
 status: Done
 assignee: []
 created_date: '2026-10-08 19:19'
-updated_date: '2026-10-08 20:33'
+updated_date: '2026-10-08 20:49'
 labels:
   - story
   - needs-owner-review
@@ -78,4 +78,6 @@ Owner approval in chat (2026-10-08): "Tinten zijn akkoord nu" (round 2 tints) an
 Owner round 3 on PR #171 (too much colour, then calmer x4): only the soft tint ring is left; every floor colour's chroma is scaled by TINT_CHROMA_SCALE (default 0.35, one line); touching rooms >= 17 x scale apart on every scheduled day (0.35: guaranteed 5.95, closest pair 6.9). Dev-only ?tint=<scale> override (tintOverride.ts, docs/daily-flow.md) to try strengths live; tests run for 1, 0.7, 0.5, 0.35, 0.25 (contrast, valid hex, touching distance).
 
 Final strength: TINT_CHROMA_SCALE = 0.4 (owner: 'Tint 0.4 is de sweet spot'); touching rooms >= 8.0 delta E apart on every scheduled day, closest pair 8.02 (2026-10-27 water #f3ded7 / wood #e5dac6). The dev-only ?tint override used to pick it is removed again.
+
+Final verification at strength 0.4 (origin/main merged incl. SLAY-18.8): bun run test 164 files / 3659 tests passed (5 skipped); verify:phone 48 suite x viewport runs, 0 failures; looks.ts 146/146; slay20.ts 54/54. Review gate: pass, no scope violations; advisories: pinch from an unzoomed board under touch-action pan-y (verify:phone zoom suite green, check on a real phone), the 8.0 threshold sits close to the closest pair 8.02, notes on occupied squares are skipped (documented).
 <!-- SECTION:NOTES:END -->
