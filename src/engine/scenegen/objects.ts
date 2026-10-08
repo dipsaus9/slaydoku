@@ -57,8 +57,8 @@ function orientations(footprint: ThemeFootprint): Cell[][] {
  * allows it. Blocking objects never take the last occupiable cells of a row,
  * column or room (see MIN_FREE_PER_LINE, MIN_FREE_SHARE); occupiable objects
  * (chairs, beds, rugs...) never block anything. An object never lands in a
- * room whose `roomTypes` it excludes (see `ThemeObject.excludeRoomTypes`) —
- * a hard rule, unlike `favours`, which the generator only weighs. Object ids
+ * room whose `roomTypes` it excludes or does not allow (see `ThemeObject.excludeRoomTypes`
+ * and `allowedRoomTypes`) — a hard rule, unlike `favours`, which the generator only weighs. Object ids
  * read `<theme kind>-<n>`, so the themed kind survives in the engine scene.
  */
 export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedObject[] {
@@ -100,7 +100,7 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
       for (let col = 0; col < width; col++) if (rooms[row]![col] === room) cells.push({ row, col })
     }
     const favoured = new Set(input.favours[room] ?? [])
-    const excluded = new Set(input.roomTypes[room] ?? [])
+    const roomTypes = new Set(input.roomTypes[room] ?? [])
     const perKind = new Map<string, number>()
     const target = Math.max(1, Math.round(size * (0.22 + random() * 0.22)))
     let covered = 0
@@ -166,7 +166,8 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
         (o) =>
           (perKind.get(o.kind) ?? 0) < (o.maxPerRoom ?? Infinity) &&
           (!onlyFavoured || favoured.has(o.kind)) &&
-          !o.excludeRoomTypes?.some((t) => excluded.has(t)),
+          !o.excludeRoomTypes?.some((t) => roomTypes.has(t)) &&
+          (!o.allowedRoomTypes || o.allowedRoomTypes.some((t) => roomTypes.has(t))),
       )
       const object = pickWeighted(random, candidates, (o) => o.weight * (favoured.has(o.kind) ? FAVOUR_BOOST : 1))
       if (!object) break

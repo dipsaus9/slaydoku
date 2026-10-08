@@ -3,41 +3,16 @@ import { demoPuzzle } from '../content/demo/puzzle.ts'
 import type { Puzzle } from '../engine/model/index.ts'
 import { defaultRegistry, solveHuman } from '../engine/solver/human/index.ts'
 import { uniquePuzzle } from '../engine/solver/testing.fixture.ts'
-import { hasMark, hasNote, isPlaced } from './board.ts'
+import { isPlaced } from './board.ts'
 import { at, puzzle } from './fixture.ts'
-import { expertPuzzle, hardPuzzle, hintPath } from './hints.fixture.ts'
+import { finishVictim, follow, hardPuzzle, hintPath, walkHints } from './hints.fixture.ts'
 import { getHint, hintFor, nextStep } from './hints.ts'
-import type { NextStep } from './hints.ts'
 import { initialState, reduce } from './reducer.ts'
 import type { GameAction, GameState } from './types.ts'
 
 const marking = { autoXOnPlace: true, preventXOnBlocked: true, showTimer: true }
 const run = (state: GameState, ...actions: GameAction[]) => actions.reduce((s, a) => reduce(puzzle, s, a), state)
 const empty = () => initialState(marking)
-
-/**
- * Once every suspect stands right, hints run dry (the victim is never a hint subject) -- a real
- * player's next move needs no hint: it is the one square the suspects leave free. Test support for
- * the raw hint-follow loops below, which otherwise stall at "every suspect placed, victim still
- * empty" now that the victim is no longer auto-filled (SLAY-9.24).
- */
-function finishVictim(p: Puzzle, s: GameState): GameState {
-  if (s.status === 'solved') return s
-  const victim = p.people.find((person) => person.kind === 'victim')
-  const cell = victim && p.solution.find((sol) => sol.personId === victim.id)?.cell
-  return victim && cell && !isPlaced(s.board, victim.id) ? reduce(p, s, { type: 'place', personId: victim.id, cell }) : s
-}
-
-/** Does what the hint asks for: puts the person down, makes the notes, or crosses the squares out. */
-function follow(p: Puzzle, s: GameState, next: NextStep): GameState {
-  if (next.placement) return reduce(p, s, { type: 'place', personId: next.placement.personId, cell: next.placement.cell })
-  const actions: GameAction[] = next.focus
-    ? next.focus.cells
-        .filter((cell) => !hasNote(s.board, next.focus!.personId, cell))
-        .map((cell): GameAction => ({ type: 'toggleNote', personId: next.focus!.personId, cell }))
-    : (next.eliminations ?? []).filter((e) => !hasMark(s.board, e.personId, e.cell)).map((e): GameAction => ({ type: 'toggleMark', personId: e.personId, cell: e.cell }))
-  return actions.reduce((acc, action) => reduce(p, acc, action), s)
-}
 
 describe('hint levels on the empty grid', () => {
   it('level 1 names people and areas only', () => {
@@ -285,24 +260,6 @@ describe('hint explanations are grounded in what the player has already been sho
     }
     expect(found).toBe(true)
   })
-
-  it('a full expert-tier walk never jumps ahead: every placement is the true cell (AC5)', () => {
-    // Expert puzzles lean hardest on deduction()'s advanced-technique fallback, the exact path this
-    // story reworked -- the story's own flagged risk is that a wrong fix makes these unhintable.
-    const p = expertPuzzle()
-    let s = empty()
-    for (let i = 0; i < 400 && s.status === 'playing'; i++) {
-      const next = nextStep(p, s)
-      if (!next) break
-      if (next.placement) {
-        const truth = p.solution.find((sol) => sol.personId === next.placement?.personId)
-        expect(next.placement.cell).toEqual(truth?.cell)
-      }
-      s = follow(p, s, next)
-    }
-    s = finishVictim(p, s)
-    expect(s.status).toBe('solved')
-  })
 })
 
 describe('the victim label in hint text', () => {
@@ -406,5 +363,11 @@ describe('hint texts on the demo level and a hard puzzle', () => {
       s = finishVictim(p, s)
       expect(s.status).toBe('solved')
     })
+  })
+
+  it('a full hard-tier walk never jumps ahead: every placement is the true cell (AC5; the expert 9x9 variant is in hints.slow.test.ts)', () => {
+    const { wrong, status } = walkHints(hardPuzzle())
+    expect(wrong).toEqual([])
+    expect(status).toBe('solved')
   })
 })
