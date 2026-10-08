@@ -197,7 +197,352 @@ export function bubbleBath(cols: number, rows: number): ReactNode {
   )
 }
 
-export const SIMPS_ICON_IDS = ['cardBinderShelf', 'cardTable', 'vanity', 'discoBall', 'karaokeStage', 'arcadeCabinet', 'bubbleBath'] as const
+// ---- Round two (owner: much more party): garden, glamour, party and sweets ----
+
+const P = {
+  ink2: '#2a2430',
+  liquorice: '#2e2733',
+  liquoriceLight: '#4a4152',
+  orange: '#e8955a',
+  red2: '#d9534f',
+  sky2: '#7fb6e6',
+  fur: '#f4efe6',
+} as const
+
+/** Rabbit hutch: a wooden house with a plank roof; with a second cell, a wire run with a rabbit and a carrot. */
+export function rabbitHutch(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  const houseW = cols > 1 ? U : w
+  const planks: ReactNode[] = []
+  for (let y = M + 18; y < h - M - 8; y += 16) planks.push(<Stroke key={y} x1={M + 8} y1={y} x2={houseW - M - 8} y2={y} stroke={C.woodDeep} sw={2} />)
+  const bunny = (cx: number, cy: number): ReactNode => (
+    <>
+      <Oval x={cx - 7} y={cy - 22} rx={5} ry={13} fill={P.fur} sw={DETAIL} />
+      <Oval x={cx + 7} y={cy - 22} rx={5} ry={13} fill={P.fur} sw={DETAIL} />
+      <Oval x={cx - 7} y={cy - 22} rx={2} ry={8} fill={C.pink} sw={0} />
+      <Oval x={cx + 7} y={cy - 22} rx={2} ry={8} fill={C.pink} sw={0} />
+      <Disc x={cx} y={cy} r={17} fill={P.fur} sw={DETAIL} />
+      <Disc x={cx - 6} y={cy - 3} r={2.2} fill={C.ink} sw={0} />
+      <Disc x={cx + 6} y={cy - 3} r={2.2} fill={C.ink} sw={0} />
+      <Disc x={cx} y={cy + 4} r={3} fill={C.pink} sw={0} />
+    </>
+  )
+  if (cols === 1) {
+    return (
+      <>
+        <Feet cols={cols} rows={rows} size={10} inset={5} />
+        <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={6} fill={C.wood} />
+        <Box x={M + 8} y={M + 8} w={w - 2 * M - 16} h={h - 2 * M - 16} r={4} fill={C.woodLight} sw={DETAIL} />
+        {planks}
+        {bunny(50, 56)}
+      </>
+    )
+  }
+  return (
+    <>
+      <Feet cols={cols} rows={rows} size={10} inset={5} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={6} fill={C.woodDark} />
+      <Box x={M + 8} y={M + 8} w={houseW - 2 * M - 8} h={h - 2 * M - 16} r={4} fill={C.woodLight} sw={DETAIL} />
+      {planks}
+      <Box x={houseW + 4} y={M + 8} w={w - houseW - M - 12} h={h - 2 * M - 16} r={4} fill={C.greenLight} sw={DETAIL} />
+      {[0.3, 0.5, 0.7].map((f) => (
+        <Stroke key={f} x1={houseW + 4 + f * (w - houseW - M - 12)} y1={M + 10} x2={houseW + 4 + f * (w - houseW - M - 12)} y2={h - M - 10} stroke={C.steelDark} sw={2} />
+      ))}
+      {bunny(houseW + (w - houseW) / 2 - 4, h / 2 + 6)}
+      <Shape d={`M ${w - M - 20} ${h - M - 18} L ${w - M - 10} ${h - M - 30} L ${w - M - 8} ${h - M - 16} Z`} fill={P.orange} sw={2} />
+    </>
+  )
+}
+
+/** Red carpet with a velvet rope: red runner, gold borders, gold posts at the four corners. */
+export function redCarpet(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  return (
+    <>
+      <Box x={M + 10} y={M + 4} w={w - 2 * M - 20} h={h - 2 * M - 8} r={4} fill={C.red} />
+      <Box x={M + 16} y={M + 10} w={w - 2 * M - 32} h={h - 2 * M - 20} r={3} fill="none" stroke={C.gold} sw={DETAIL + 1} />
+      <Shape d={`M ${w / 2 - 12} ${h / 2} L ${w / 2} ${h / 2 - 12} L ${w / 2 + 12} ${h / 2} L ${w / 2} ${h / 2 + 12} Z`} fill={C.gold} sw={DETAIL} />
+      <Stroke x1={M + 8} y1={M + 14} x2={M + 8} y2={h - M - 14} stroke={C.redDark} sw={DETAIL + 1} />
+      <Stroke x1={w - M - 8} y1={M + 14} x2={w - M - 8} y2={h - M - 14} stroke={C.redDark} sw={DETAIL + 1} />
+      {[[M + 8, M + 10], [w - M - 8, M + 10], [M + 8, h - M - 10], [w - M - 8, h - M - 10]].map(([x, y]) => (
+        <Disc key={`${x}-${y}`} x={x} y={y} r={7} fill={C.gold} sw={DETAIL} />
+      ))}
+    </>
+  )
+}
+
+/** Champagne tower from above: a gold tray, rings of glasses, a bottle on top. */
+export function champagneTower(): ReactNode {
+  const ring = (r: number, count: number, fill: string, size: number): ReactNode[] =>
+    Array.from({ length: count }, (_, k) => {
+      const a = (k * 2 * Math.PI) / count
+      return <Disc key={`${r}-${k}`} x={50 + Math.cos(a) * r} y={50 + Math.sin(a) * r} r={size} fill={fill} sw={2} />
+    })
+  return (
+    <>
+      <Disc x={50} y={50} r={42} fill={C.gold} />
+      <Disc x={50} y={50} r={35} fill={C.goldDark} sw={DETAIL} />
+      {ring(28, 10, C.creamLight, 6)}
+      {ring(17, 6, C.white, 6)}
+      <Disc x={50} y={50} r={9} fill={C.yellowLight} sw={DETAIL} />
+      {sparkle(78, 22, 7, 's1')}
+      {sparkle(22, 78, 6, 's2')}
+    </>
+  )
+}
+
+/** Big gold mirror: carved gold frame around a pale glass with two glints. */
+export function goldMirror(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  return (
+    <>
+      <Box x={M} y={M + 14} w={w - 2 * M} h={h - 2 * M - 28} r={10} fill={C.gold} />
+      <Box x={M + 8} y={M + 22} w={w - 2 * M - 16} h={h - 2 * M - 44} r={6} fill={G.mirror} sw={DETAIL} />
+      <Box x={M + 4} y={M + 18} w={w - 2 * M - 8} h={h - 2 * M - 36} r={8} fill="none" stroke={C.goldDark} sw={2} />
+      <Stroke x1={M + 22} y1={h / 2 + 12} x2={M + 40} y2={h / 2 - 12} stroke={C.white} sw={DETAIL + 2} />
+      <Stroke x1={M + 34} y1={h / 2 + 14} x2={M + 46} y2={h / 2 - 2} stroke={C.white} sw={DETAIL} />
+      {[M + 10, w - M - 10].map((x) => [M + 22, h - M - 22].map((y) => <Disc key={`${x}-${y}`} x={x} y={y} r={4} fill={C.yellowLight} sw={2} />))}
+    </>
+  )
+}
+
+/** Glitter shoe wall: shelves with pairs of party shoes in pink, gold, red and blue. */
+export function shoeWall(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  const tones = [C.pink, C.gold, C.red, G.cardBlue, C.lilac]
+  const shoes: ReactNode[] = []
+  const count = cols * 3
+  const step = (w - 2 * M - 20) / count
+  for (const y of [h / 2 - 20, h / 2 + 20]) {
+    for (let i = 0; i < count; i++) {
+      const x = M + 10 + step * i + step / 2
+      shoes.push(<Oval key={`${y}-${i}`} x={x} y={y} rx={step / 2 - 2} ry={9} fill={tones[(i + (y > h / 2 ? 2 : 0)) % tones.length]} sw={2} />)
+      shoes.push(<Disc key={`g${y}-${i}`} x={x + step / 5} y={y - 2} r={1.8} fill={C.white} sw={0} />)
+    }
+  }
+  return (
+    <>
+      <Feet cols={cols} rows={rows} size={10} inset={5} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={6} fill={C.wood} />
+      <Box x={M + 6} y={M + 8} w={w - 2 * M - 12} h={h - 2 * M - 16} r={3} fill={C.woodDark} sw={DETAIL} />
+      <Stroke x1={M + 6} y1={h / 2} x2={w - M - 6} y2={h / 2} stroke={C.woodLight} sw={DETAIL} />
+      {shoes}
+    </>
+  )
+}
+
+/** Photo wall: a board pinned with photos, hearts and a string of fairy lights. */
+export function photoWall(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  const photos: ReactNode[] = []
+  const count = cols * 2
+  const step = (w - 2 * M - 16) / count
+  for (let i = 0; i < count; i++) {
+    const x = M + 10 + step * i
+    const y = i % 2 ? h / 2 - 6 : h / 2 - 22
+    photos.push(
+      <Box key={i} x={x} y={y} w={step - 6} h={26} r={2} fill={C.white} sw={2} />,
+      <Box key={`p${i}`} x={x + 3} y={y + 3} w={step - 12} h={14} r={1} fill={[G.cardBlue, C.pink, C.greenLight, C.yellow][i % 4]} sw={0} />,
+    )
+  }
+  return (
+    <>
+      <Box x={M} y={M + 10} w={w - 2 * M} h={h - 2 * M - 20} r={5} fill={C.slate} />
+      <Box x={M + 6} y={M + 16} w={w - 2 * M - 12} h={h - 2 * M - 32} r={3} fill={G.magentaDark} sw={DETAIL} />
+      {photos}
+      <Shape d={`M ${M + 8} ${M + 24} Q ${w / 2} ${M + 40} ${w - M - 8} ${M + 24}`} stroke={C.gold} sw={2} />
+      {[0.15, 0.35, 0.5, 0.65, 0.85].map((f) => <Disc key={f} x={M + 8 + f * (w - 2 * M - 16)} y={M + 24 + 11 * Math.sin(f * Math.PI)} r={3} fill={C.yellowLight} sw={1.5} />)}
+    </>
+  )
+}
+
+/** DJ booth: a dark desk, two turntables and a mixer with sliders between them. */
+export function djBooth(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  const deck = (x: number): ReactNode => (
+    <>
+      <Box x={x - 36} y={h / 2 - 38} w={72} h={76} r={5} fill={C.slate} sw={DETAIL} />
+      <Disc x={x} y={h / 2} r={29} fill={C.ink} sw={DETAIL} />
+      <Disc x={x} y={h / 2} r={20} fill="none" stroke={C.slate} sw={2} />
+      <Disc x={x} y={h / 2} r={9} fill={G.magenta} sw={DETAIL} />
+      <Disc x={x} y={h / 2} r={2.5} fill={C.white} sw={0} />
+    </>
+  )
+  const mid = w / 2
+  const ax = 50
+  return (
+    <>
+      <Feet cols={cols} rows={rows} size={10} inset={5} fill={C.slate} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={6} fill={P.ink2} />
+      {deck(ax)}
+      {deck(w - ax)}
+      <Box x={mid - 20} y={M + 14} w={40} h={h - 2 * M - 28} r={4} fill={C.steel} sw={DETAIL} />
+      {[-9, 0, 9].map((dx) => <Stroke key={dx} x1={mid + dx} y1={M + 24} x2={mid + dx} y2={h - M - 24} stroke={C.slate} sw={2} />)}
+      {[[-9, 0.4], [0, 0.65], [9, 0.3]].map(([dx, f]) => <Box key={dx} x={mid + dx - 4} y={M + 20 + f * (h - 2 * M - 52)} w={8} h={6} r={1} fill={G.magenta} sw={1.5} />)}
+    </>
+  )
+}
+
+/** Dance floor: a lit checkerboard of pink, sky, yellow and lilac tiles in a dark frame. */
+export function danceFloor(cols: number, rows: number): ReactNode {
+  const tiles: ReactNode[] = []
+  const tone = [C.pink, C.sky, C.yellow, C.lilac]
+  const nx = cols * 2
+  const ny = rows * 2
+  const tw = (cols * U - 2 * M - 12) / nx
+  const th = (rows * U - 2 * M - 12) / ny
+  for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) tiles.push(<Box key={`${x}-${y}`} x={M + 6 + x * tw} y={M + 6 + y * th} w={tw} h={th} r={1} fill={tone[(x + 2 * y + (y % 2)) % 4]} sw={1} />)
+  return (
+    <>
+      <Box x={M} y={M} w={cols * U - 2 * M} h={rows * U - 2 * M} r={6} fill={P.ink2} />
+      {tiles}
+      {sparkle(cols * U / 2, rows * U / 2, 14, 'sp')}
+    </>
+  )
+}
+
+/** Confetti cannon: a round base, a striped cone and a burst of confetti. */
+export function confettiCannon(): ReactNode {
+  const bits: ReactNode[] = [[22, 26, C.red], [76, 22, G.cardBlue], [30, 78, C.yellow], [74, 74, C.greenLight], [50, 16, C.pink], [84, 50, G.magenta], [16, 52, C.lilac]].map(([x, y, fill], i) => (
+    <Box key={i} x={Number(x) - 4} y={Number(y) - 2.5} w={8} h={5} r={1} fill={String(fill)} sw={1.5} />
+  ))
+  return (
+    <>
+      <Disc x={50} y={50} r={40} fill={C.steelDark} />
+      <Disc x={50} y={50} r={30} fill={G.magenta} sw={DETAIL} />
+      <Disc x={50} y={50} r={20} fill={C.yellow} sw={DETAIL} />
+      <Disc x={50} y={50} r={10} fill={C.ink} sw={DETAIL} />
+      {bits}
+    </>
+  )
+}
+
+/** Balloons: three balloons from above on a weight, with ribbons. */
+export function balloons(): ReactNode {
+  return (
+    <>
+      <Disc x={50} y={54} r={12} fill={C.steelDark} sw={DETAIL} />
+      <Shape d="M 50 54 Q 36 42 34 34 M 50 54 Q 62 42 66 34 M 50 54 Q 50 70 46 82" stroke={C.slate} sw={2} />
+      <Oval x={32} y={30} rx={17} ry={20} fill={P.red2} />
+      <Oval x={68} y={30} rx={17} ry={20} fill={P.sky2} />
+      <Oval x={46} y={72} rx={17} ry={20} fill={C.yellow} />
+      <Oval x={26} y={22} rx={4} ry={6} fill={C.white} sw={0} opacity={0.7} />
+      <Oval x={62} y={22} rx={4} ry={6} fill={C.white} sw={0} opacity={0.7} />
+      <Oval x={40} y={64} rx={4} ry={6} fill={C.white} sw={0} opacity={0.7} />
+    </>
+  )
+}
+
+/** Snack table: a white cloth, bowls of crisps, a plate of cake and paper cups. */
+export function snackTable(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  return (
+    <>
+      <Feet cols={cols} rows={rows} size={10} inset={5} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={8} fill={C.white} />
+      <Box x={M + 6} y={M + 6} w={w - 2 * M - 12} h={h - 2 * M - 12} r={5} fill="none" stroke={C.pink} sw={DETAIL} />
+      <Disc x={w * 0.25} y={h / 2} r={19} fill={C.yellowLight} sw={DETAIL} />
+      <Disc x={w * 0.25} y={h / 2} r={11} fill={C.yellow} sw={2} />
+      <Disc x={w * 0.55} y={h / 2 - 2} r={16} fill={C.creamLight} sw={DETAIL} />
+      <Shape d={`M ${w * 0.55 - 9} ${h / 2 + 6} L ${w * 0.55} ${h / 2 - 12} L ${w * 0.55 + 9} ${h / 2 + 6} Z`} fill={C.pink} sw={2} />
+      {[[w - M - 26, h / 2 - 16], [w - M - 26, h / 2 + 4], [w - M - 42, h / 2 - 6]].map(([x, y]) => <Disc key={`${x}-${y}`} x={x} y={y} r={7} fill={P.red2} sw={2} />)}
+    </>
+  )
+}
+
+/** Cocktail bar: dark counter with a gold rail, bottles along the back and glasses with pink drinks. */
+export function cocktailBar(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  const n = cols * 4
+  const bottles = Array.from({ length: n }, (_, i) => <Disc key={i} x={M + 14 + (i * (w - 2 * M - 28)) / (n - 1)} y={M + 16} r={5} fill={[C.greenLight, P.orange, G.cardBlue, C.pink][i % 4]} sw={2} />)
+  const glasses = Array.from({ length: cols * 2 }, (_, i) => (
+    <g key={i}>
+      <Disc x={M + 22 + (i * (w - 2 * M - 44)) / (cols * 2 - 1)} y={h - M - 24} r={8} fill={C.white} sw={2} />
+      <Disc x={M + 22 + (i * (w - 2 * M - 44)) / (cols * 2 - 1)} y={h - M - 24} r={4.5} fill={G.magenta} sw={0} />
+    </g>
+  ))
+  return (
+    <>
+      <Feet cols={cols} rows={rows} size={10} inset={5} fill={C.slate} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={6} fill={C.woodDeep} />
+      <Box x={M + 6} y={M + 30} w={w - 2 * M - 12} h={h - 2 * M - 40} r={4} fill={C.woodDark} sw={DETAIL} />
+      <Stroke x1={M + 8} y1={M + 34} x2={w - M - 8} y2={M + 34} stroke={C.gold} sw={DETAIL + 1} />
+      {bottles}
+      {glasses}
+    </>
+  )
+}
+
+/** Photo booth: a dark cabinet with a magenta curtain, a stool and a row of lights. */
+export function photoBooth(): ReactNode {
+  return (
+    <>
+      <Feet cols={1} rows={1} size={10} inset={5} fill={C.slate} />
+      <Box x={M} y={M} w={88} h={88} r={6} fill={C.slate} />
+      <Box x={16} y={22} w={68} h={62} r={3} fill={G.magentaDark} sw={DETAIL} />
+      {[34, 50, 66].map((x) => <Stroke key={x} x1={x} y1={24} x2={x} y2={82} stroke={G.magenta} sw={DETAIL} />)}
+      <Stroke x1={14} y1={22} x2={86} y2={22} stroke={C.gold} sw={DETAIL + 1} />
+      {[22, 36, 50, 64, 78].map((x) => <Disc key={x} x={x} y={14} r={3.5} fill={C.yellowLight} sw={1.5} />)}
+      <Disc x={50} y={64} r={9} fill={C.pink} sw={DETAIL} />
+    </>
+  )
+}
+
+/** Lava lamp from above: a round base, a glowing orange lamp with blobs and a gold cap. */
+export function lavaLamp(): ReactNode {
+  return (
+    <>
+      <Disc x={50} y={50} r={38} fill={C.slate} />
+      <Disc x={50} y={50} r={30} fill={P.orange} sw={DETAIL} />
+      <Disc x={42} y={42} r={9} fill={P.red2} sw={2} />
+      <Disc x={58} y={52} r={7} fill={C.yellow} sw={2} />
+      <Disc x={46} y={60} r={5} fill={P.red2} sw={2} />
+      <Disc x={50} y={50} r={11} fill="none" stroke={C.yellowLight} sw={2} />
+      <Disc x={50} y={50} r={4} fill={C.gold} sw={DETAIL} />
+    </>
+  )
+}
+
+/** Salmiak candy table: dark liquorice diamonds in a glass jar and on a plate, a scoop, no brand. */
+export function salmiakTable(cols: number, rows: number): ReactNode {
+  const w = cols * U
+  const h = rows * U
+  const diamond = (x: number, y: number, s: number, k: string): ReactNode => (
+    <Shape key={k} d={`M ${x} ${y - s} L ${x + s} ${y} L ${x} ${y + s} L ${x - s} ${y} Z`} fill={P.liquorice} stroke={P.liquoriceLight} sw={1.5} />
+  )
+  const heap: ReactNode[] = []
+  for (let i = 0; i < 9; i++) heap.push(diamond(w * 0.27 + ((i % 3) - 1) * 11, h / 2 + (Math.floor(i / 3) - 1) * 11, 6, `h${i}`))
+  const plate: ReactNode[] = []
+  for (let i = 0; i < 6; i++) plate.push(diamond(w * 0.62 + ((i % 3) - 1) * 11, h / 2 - 6 + Math.floor(i / 3) * 12, 6, `p${i}`))
+  return (
+    <>
+      <Feet cols={cols} rows={rows} size={10} inset={5} />
+      <Box x={M} y={M} w={w - 2 * M} h={h - 2 * M} r={8} fill={C.cream} />
+      <Box x={M + 6} y={M + 6} w={w - 2 * M - 12} h={h - 2 * M - 12} r={5} fill="none" stroke={P.liquoriceLight} sw={DETAIL} />
+      <Disc x={w * 0.27} y={h / 2} r={26} fill={G.mirror} sw={DETAIL} />
+      {heap}
+      <Disc x={w * 0.27} y={h / 2} r={26} fill="none" stroke={C.white} sw={2} opacity={0.8} />
+      <Disc x={w * 0.62} y={h / 2} r={24} fill={C.white} sw={DETAIL} />
+      {plate}
+      <Box x={w - M - 24} y={h / 2 - 10} w={12} h={22} r={4} fill={C.steel} sw={DETAIL} />
+      <Disc x={w - M - 18} y={h / 2 - 14} r={6} fill={C.steel} sw={DETAIL} />
+    </>
+  )
+}
+
+export const SIMPS_ICON_IDS = [
+  'cardBinderShelf', 'cardTable', 'vanity', 'discoBall', 'karaokeStage', 'arcadeCabinet', 'bubbleBath',
+  'rabbitHutch', 'redCarpet', 'champagneTower', 'goldMirror', 'shoeWall', 'photoWall', 'djBooth', 'danceFloor',
+  'confettiCannon', 'balloons', 'snackTable', 'cocktailBar', 'photoBooth', 'lavaLamp', 'salmiakTable',
+] as const
 export type SimpsIconId = (typeof SIMPS_ICON_IDS)[number]
 
 export interface DraftIcon {
@@ -215,5 +560,19 @@ export const SIMPS_ICONS: Record<SimpsIconId, DraftIcon> = {
   karaokeStage: { id: 'karaokeStage', sizes: [[2, 1], [2, 2]], draw: karaokeStage },
   arcadeCabinet: { id: 'arcadeCabinet', sizes: [[1, 1]], draw: () => arcadeCabinet() },
   bubbleBath: { id: 'bubbleBath', sizes: [[2, 1], [3, 1]], draw: bubbleBath },
+  rabbitHutch: { id: 'rabbitHutch', sizes: [[1, 1], [2, 1]], draw: rabbitHutch },
+  redCarpet: { id: 'redCarpet', sizes: [[2, 1], [3, 1]], draw: redCarpet },
+  champagneTower: { id: 'champagneTower', sizes: [[1, 1]], draw: () => champagneTower() },
+  goldMirror: { id: 'goldMirror', sizes: [[1, 1], [2, 1]], draw: goldMirror },
+  shoeWall: { id: 'shoeWall', sizes: [[1, 1], [2, 1]], draw: shoeWall },
+  photoWall: { id: 'photoWall', sizes: [[1, 1], [2, 1]], draw: photoWall },
+  djBooth: { id: 'djBooth', sizes: [[2, 1], [3, 1]], draw: djBooth },
+  danceFloor: { id: 'danceFloor', sizes: [[2, 2], [3, 2]], draw: danceFloor },
+  confettiCannon: { id: 'confettiCannon', sizes: [[1, 1]], draw: () => confettiCannon() },
+  balloons: { id: 'balloons', sizes: [[1, 1]], draw: () => balloons() },
+  snackTable: { id: 'snackTable', sizes: [[2, 1], [3, 1]], draw: snackTable },
+  cocktailBar: { id: 'cocktailBar', sizes: [[2, 1], [3, 1]], draw: cocktailBar },
+  photoBooth: { id: 'photoBooth', sizes: [[1, 1]], draw: () => photoBooth() },
+  lavaLamp: { id: 'lavaLamp', sizes: [[1, 1]], draw: () => lavaLamp() },
+  salmiakTable: { id: 'salmiakTable', sizes: [[2, 1], [3, 1]], draw: salmiakTable },
 }
-export const U_CELL = U

@@ -4,7 +4,7 @@ title: 'Spike: Simpshouse preview (rooms, objects, sample levels)'
 status: In Progress
 assignee: []
 created_date: '2026-10-08 09:21'
-updated_date: '2026-10-08 10:38'
+updated_date: '2026-10-08 11:19'
 labels:
   - needs-owner-review
 dependencies:
@@ -41,4 +41,6 @@ Owner visual check (label needs-owner-review): open the PR with screenshots, lea
 Preview built: docs/themes/simpshouse/preview.html (static, open the file directly; ?lang=nl starts in Dutch). 19 rooms, 31 objects (7 new drawings: card binder shelf, card trading table, glam vanity, disco ball, karaoke stage, arcade cabinet, bubble bath), 4 sample levels (6x6, 9x9, two 12x12) from generateScene on the draft theme. Draft data: theme.ts (final SceneTheme shape, room rules of SLAY-17.1; only the draft themeIcon ids and OBJECT_NAMES_NL are draft-only), art.tsx. Regenerate with: bun docs/themes/simpshouse/build-preview.tsx. Finding for the owner: clues name an object by engine type (arcade cabinet reads as television, disco ball and mannequin as statue, card table and bubble bath as table). AC 4 is the owner's and stays unchecked; story stays In Progress.
 
 Review gate: pass (no scope violations; AC 4 intentionally unchecked, owner only).
+
+Round 2 (owner: much more party): draft theme now 25 rooms, 44 objects, 22 new drawings. Added rabbit hutch (Balcony), red carpet, champagne tower, gold mirror, glitter shoe wall, photo wall, DJ booth, dance floor, confetti cannon, balloons, snack table, cocktail bar, photo booth, lava lamp, salmiak candy table (generic dark liquorice, no brand); rooms Balcony, Dance Floor, Cocktail Lounge, Candy Corner, Photo Studio, Glam Room. Beanbag and bookcase dropped (plain chair is the only chair look). New RoomTypes needed in src by the theme story: party, outdoor (draft casts them). Floor styles for the new room names also need NAME_HINTS entries in roomStyles.ts. Fixed duplicate SVG ids in the preview. AC 4 stays unchecked.
 <!-- SECTION:NOTES:END -->

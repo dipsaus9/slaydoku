@@ -23,7 +23,7 @@ import type { ThemeIconId } from '../../../src/render/icons/themes/types.ts'
 import { SceneView } from '../../../src/render/scene/index.ts'
 import type { SceneGeometry } from '../../../src/render/scene/geometry.ts'
 import { SIMPS_ICONS, type SimpsIconId } from './art.tsx'
-import { OBJECT_NAMES_NL, SIMPSHOUSE_OBJECTS, SIMPSHOUSE_ROOMS, SIMPSHOUSE_THEME } from './theme.ts'
+import { NEW_ROOM_TYPES, OBJECT_NAMES_NL, SIMPSHOUSE_OBJECTS, SIMPSHOUSE_ROOMS, SIMPSHOUSE_THEME } from './theme.ts'
 import type { ThemeObject } from '../../../src/content/themes/types.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -83,9 +83,19 @@ function objectsLayer(scene: Scene) {
   )
 }
 
+/** Every inline SVG on the page needs its own id prefix, or floor patterns of one board leak into another. */
+let renders = 0
+const unique = () => ({ identifierPrefix: `r${renders++}-` })
+
+/**
+ * Floors for the new rooms: roomStyles.ts guesses a floor from the room name and falls back to a
+ * cycle (which made the party rooms water). The theme story adds these names to NAME_HINTS there.
+ */
+const FLOORS: Record<string, 'carpet' | 'tiles' | 'stone'> = { 'Dance Floor': 'carpet', 'Photo Studio': 'carpet', 'Candy Corner': 'tiles', Balcony: 'stone' }
+
 function renderScene(scene: Scene, lang: 'en' | 'nl', title: string): string {
   const shown: Scene = lang === 'en' ? scene : { ...scene, rooms: scene.rooms.map((r) => ({ ...r, name: SIMPSHOUSE_ROOMS.find((x) => x.name === r.name)?.nameNl ?? r.name })) }
-  return renderToStaticMarkup(<SceneView scene={shown} title={title} objectsLayer={objectsLayer(scene)} showAxisLabels />)
+  return renderToStaticMarkup(<SceneView scene={shown} title={title} objectsLayer={objectsLayer(scene)} showAxisLabels roomStyles={Object.fromEntries(scene.rooms.flatMap((r) => (FLOORS[r.name] ? [[r.id, FLOORS[r.name]] as const] : [])))} />, unique())
 }
 
 function footprintSvg(object: ThemeObject, cols: number, rows: number, cells: Cell[]): string {
@@ -99,6 +109,7 @@ function footprintSvg(object: ThemeObject, cols: number, rows: number, cells: Ce
         <Glyph object={object} cells={cells} />
       </IconDepthScope>
     </svg>,
+    unique(),
   )
 }
 
@@ -108,7 +119,7 @@ const roomsFor = (o: ThemeObject): typeof SIMPSHOUSE_ROOMS => SIMPSHOUSE_ROOMS.f
 /* ---- sample levels: pick, per size, the seed whose scene shows the most different fun objects ---- */
 const FUN = new Set(SIMPSHOUSE_OBJECTS.filter((o) => isDraft(o) || ['beanbag', 'mannequin', 'clothesRack'].includes(o.kind)).map((o) => o.kind))
 function funScore(scene: Scene): number {
-  return new Set(scene.objects.map((o) => o.id.replace(/-\d+$/, '')).filter((k) => FUN.has(k))).size * 3 + scene.rooms.length
+  return new Set(scene.objects.map((o) => o.id.replace(/-\d+$/, '')).filter((k) => FUN.has(k))).size * 3 + scene.rooms.length + (scene.objects.some((o) => o.id.startsWith('rabbitHutch')) ? 6 : 0) + (scene.rooms.some((r) => r.name === 'Dance Floor') ? 4 : 0)
 }
 function bestSeed(width: number, height: number, from: number): { seed: number; scene: Scene } {
   let best: { seed: number; scene: Scene; score: number } | undefined
@@ -265,6 +276,7 @@ ${roomsHtml}
       <li><span data-l="en">Approve the room list and the objects, or list changes (add, drop, rename).</span><span data-l="nl">Keur de kamerlijst en de objecten goed, of geef wijzigingen (erbij, eraf, andere naam).</span></li>
       <li><span data-l="en">Look at the new drawings at board size in the sample levels, not only the big tiles above.</span><span data-l="nl">Bekijk de nieuwe tekeningen op bordformaat in de voorbeeldlevels, niet alleen de grote tegels.</span></li>
       <li><span data-l="en">Clue wording: the clues name an object by its engine type, so the arcade cabinet reads as a "television", the disco ball and the mannequin as a "statue", the card table and bubble bath as a "table". That is how other themes work too. Fine, or should the new objects get their own words in clues (a bigger change)?</span><span data-l="nl">Aanwijzingen: ze noemen een object bij zijn motortype, dus de arcadekast leest als "televisie", de discobal en de paskop als "standbeeld", de kaartentafel en het bubbelbad als "tafel". Zo werken andere thema's ook. Goed zo, of moeten de nieuwe objecten eigen woorden krijgen (grotere ingreep)?</span></li>
+      <li><span data-l="en">New room types: the draft needs <code>${NEW_ROOM_TYPES.join('</code> and <code>')}</code> added to <code>RoomType</code> (party rooms, and the balcony for the rabbit hutch). Draft only: the theme story adds them in src.</span><span data-l="nl">Nieuwe kamertypes: het concept heeft <code>${NEW_ROOM_TYPES.join('</code> en <code>')}</code> nodig in <code>RoomType</code> (feestkamers, en het balkon voor het konijnenhok). Alleen concept: de themastory voegt ze toe in src.</span></li>
     </ul></section>
 </div>
 <script>
