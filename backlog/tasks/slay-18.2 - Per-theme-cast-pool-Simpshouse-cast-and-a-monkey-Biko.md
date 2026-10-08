@@ -49,4 +49,6 @@ Branch: SLAY-18.2/simpshouse-cast
 Owner visual check (label needs-owner-review): open the PR with screenshots, leave the last acceptance criterion unchecked and stop. The story stays In Progress until the owner approves; only the owner ticks it. Privacy: the names are real first names of friends and the repo goes public later: keep them in one file (src/content/cast/simpshouse.ts) and add a line to docs/launch.md to confirm with the friends before go-public.
 
 Delivered on branch; AC 7 (owner approval of the monkey) left unchecked, story stays In Progress. Screenshots: docs/design/monkey-biko/. Share card draws no people, so the monkey appears on cards and board only.
+
+Review gate: pass in round 1 (no findings, no scope violations; AC 7 is the owner's).
 <!-- SECTION:NOTES:END -->
