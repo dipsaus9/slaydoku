@@ -5,9 +5,8 @@ import { readSchedule } from '../../schedule/schedule.testing.ts'
 import { halloweenTheme as theme } from './halloween.ts'
 import { getTheme } from './index.ts'
 
-// Skipped until SLAY-18.10: that story registers the Halloween theme (flips HALLOWEEN_THEME in halloween.ts to halloweenTheme), regenerates
-// 17-31 October in the schedule and un-skips this file. Before that, the calendar does not give Halloween any day.
-describe.skip('Halloween theme once registered (enable in SLAY-18.10)', () => {
+// SLAY-24 (which took over SLAY-18.10) registered the Halloween theme and regenerated 17-31 October.
+describe('Halloween theme once registered (enabled by SLAY-24)', () => {
   it('is registered as a seasonal theme', () => {
     expect(getTheme('halloween')).toBe(theme)
   })

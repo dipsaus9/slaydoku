@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MONKEY_DESIGN, SIMPSHOUSE_POOL } from './index.ts'
+import { MONKEY_DESIGN, SIMPSHOUSE_ALWAYS, SIMPSHOUSE_POOL } from './index.ts'
 import { CAST_LETTERS, CAST_POOL, MAX_CAST_SIZE, castFor, castProblems, initialOf, namesFor, poolEntry, sharedNames } from './index.ts'
 
 const SIZES = [6, 7, 8, 9, 10, 11, 12]
@@ -130,7 +130,7 @@ describe('castProblems', () => {
 })
 
 describe('the Simpshouse pool', () => {
-  const SIMPS_SIZES = [5, 6, 7, 8, 9, 10, 11, 12]
+  const SIMPS_SIZES = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   const NAMES = ['Dennis', 'Duncan', 'Elodie', 'Romy', 'Emma', 'Iris', 'Jolie', 'Sander', 'Anne', 'Biko', 'Eveline', 'Junior', 'Marnica', 'Ralph', 'Ruben', 'Sven', 'Tijn', 'Cait']
 
   it('holds the 18 names with their genders in one file, 11 first letters', () => {
@@ -140,14 +140,15 @@ describe('the Simpshouse pool', () => {
     expect(poolEntry('Cait')?.gender).toBe('woman')
   })
 
-  it.each(SIMPS_SIZES)('draws a valid %s-person cast: unique letters, pool genders, balanced, never Dennis with Duncan', (size) => {
-    for (let seed = 0; seed < 150; seed++) {
+  it.each(SIMPS_SIZES)('draws a valid %s-person cast: Romy and Dennis always, unique letters, pool genders, balanced', (size) => {
+    for (let seed = 0; seed < 300; seed++) {
       const { names, genders, portraits } = castFor(size, `s${seed}`, [], 'simpshouse')
       expect(names, `seed ${seed}`).toHaveLength(size - 1)
       expect(portraits).toHaveLength(size - 1)
       expect(castProblems(names, genders), `seed ${seed}`).toEqual([])
       expect(names.every((n) => SIMPSHOUSE_POOL.some((p) => p.name === n))).toBe(true)
-      expect(names.includes('Dennis') && names.includes('Duncan')).toBe(false)
+      expect(names, `seed ${seed}`).toEqual(expect.arrayContaining(['Romy', 'Dennis']))
+      for (const never of ['Duncan', 'Ruben', 'Ralph']) expect(names, `seed ${seed}`).not.toContain(never)
     }
   })
 
@@ -156,11 +157,21 @@ describe('the Simpshouse pool', () => {
     expect(new Set(Array.from({ length: 40 }, (_, i) => castFor(9, i, [], 'simpshouse').names.join())).size).toBeGreaterThan(20)
   })
 
-  it('refuses more than 11 suspects and keeps previous names out when it can', () => {
+  it('refuses more than 11 suspects or too few for Romy and Dennis, and keeps previous names out when it can (never Romy or Dennis)', () => {
+    expect(SIMPSHOUSE_ALWAYS).toEqual(['Romy', 'Dennis'])
     expect(() => castFor(13, 1, [], 'simpshouse')).toThrow(RangeError)
-    const next = castFor(8, 'p', ['Emma', 'Eveline', 'Dennis', 'Ralph'], 'simpshouse')
-    expect(next.names).not.toContain('Dennis')
-    expect(next.names).not.toContain('Ralph')
+    expect(() => castFor(2, 1, [], 'simpshouse')).toThrow(RangeError)
+    const next = castFor(8, 'p', ['Iris', 'Sven', 'Dennis', 'Romy'], 'simpshouse')
+    expect(next.names).toEqual(expect.arrayContaining(['Romy', 'Dennis']))
+    expect(next.names).not.toContain('Sven')
+  })
+
+  it('picks the other suspects at random: every other letter of the pool turns up for every board size 6x6 to 9x9', () => {
+    for (const size of [6, 7, 8, 9]) {
+      const seen = new Set<string>()
+      for (let seed = 0; seed < 300; seed++) for (const n of castFor(size, `r${seed}`, [], 'simpshouse').names) seen.add(n)
+      for (const n of SIMPSHOUSE_POOL.map((p) => p.name).filter((n) => !['Duncan', 'Ruben', 'Ralph'].includes(n))) expect(seen, `${size}: ${n}`).toContain(n)
+    }
   })
 
   it('draws plain themes from the regular pool exactly as before', () => {

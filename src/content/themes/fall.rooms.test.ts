@@ -12,7 +12,7 @@ import { FALL_THEME, fallTheme } from './fall.ts'
 import { SCENE_THEMES, type ThemeId } from './index.ts'
 
 /**
- * The Fall theme (SLAY-18.6), tested on its own: `fallTheme` is complete but not registered yet (SLAY-18.10 registers it together with the
+ * The Fall theme (SLAY-18.6), tested on its own (registered by SLAY-24, which took over SLAY-18.10, together with the
  * regenerated schedule days), so every test here reads the module directly and never goes through `SCENE_THEMES` or `getTheme`.
  */
 const theme = fallTheme
@@ -147,24 +147,25 @@ describe('fall theme: scenes over many seeds', () => {
 
 describe('fall theme: the calendar', () => {
   const registered: ReadonlySet<ThemeId> = new Set(SCENE_THEMES.map((t) => t.id))
-  /** `themeOf` as it will be once SLAY-18.10 registers fall. */
+  /** `themeOf` with fall registered (SLAY-24). */
   const withFall = (date: string): ThemeId => seasonalThemeOf(date, (id) => id === 'fall' || registered.has(id)) ?? rotationThemeOf(date)
 
-  it('is not registered yet: SLAY-18.10 registers it with the regenerated days, so the committed schedule stays as it is', () => {
-    expect(FALL_THEME).toBeUndefined()
-    expect(SCENE_THEMES.some((t) => t.id === 'fall')).toBe(false)
+  it('is registered (SLAY-24, which took over SLAY-18.10)', () => {
+    expect(FALL_THEME).toBe(fallTheme)
+    expect(SCENE_THEMES.some((t) => t.id === 'fall')).toBe(true)
   })
 
-  it('once registered, picks fall on 1-16 October and in November, but not on Simpshouse day or 11 November', () => {
-    for (const date of ['2026-10-09', '2026-10-15', '2026-10-16', '2026-11-01', '2026-11-10', '2026-11-12', '2026-11-30', '2027-10-01']) expect(withFall(date), date).toBe('fall')
-    expect(withFall('2026-10-14')).toBe('simpshouse')
+  it('picks fall on 1-16 October and in November, but not on the Simpshouse days (the 1st, 2026-10-10, 2026-10-14) or 11 November', () => {
+    for (const date of ['2026-10-09', '2026-10-15', '2026-10-16', '2026-11-02', '2026-11-10', '2026-11-12', '2026-11-30', '2027-10-02']) expect(withFall(date), date).toBe('fall')
+    for (const date of ['2026-10-10', '2026-10-14', '2026-11-01', '2027-10-01']) expect(withFall(date), date).toBe('simpshouse')
     expect(withFall('2026-11-11')).not.toBe('fall')
     for (const date of ['2026-09-30', '2026-10-17', '2026-10-31', '2026-12-01']) expect(withFall(date), date).not.toBe('fall')
   })
 
   it('once registered, leaves the theme of every other day as it is now', () => {
     let checked = 0
-    for (let date = '2026-09-27'; date <= '2028-01-31'; date = addDays(date, 1)) {
+    // From 2026-10-10 (RULES_FROM): the days played before it keep the rotation (SLAY-24).
+    for (let date = '2026-10-10'; date <= '2028-01-31'; date = addDays(date, 1)) {
       if (withFall(date) === 'fall') continue
       expect(withFall(date), date).toBe(themeOf(date))
       checked++

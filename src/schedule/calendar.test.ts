@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { SCENE_THEMES } from '../content/themes/index.ts'
 import type { ThemeId } from '../content/themes/index.ts'
-import { SEASONAL_RULES, SIMPSHOUSE_DATES, seasonalThemeOf } from './calendar.ts'
+import { SEASONAL_RULES, SIMPSHOUSE_DATES, SIMPSHOUSE_MONTH_DAYS, seasonalThemeOf } from './calendar.ts'
 import { addDays } from './dates.ts'
-import { rotationThemeOf, themeOf } from './pick.ts'
+import { RULES_FROM, rotationThemeOf, themeOf } from './pick.ts'
 import { readSchedule } from './schedule.testing.ts'
 
 const all = () => true
@@ -12,7 +12,8 @@ const seasonal = (date: string) => seasonalThemeOf(date, all)
 
 describe('seasonal rules are data', () => {
   it('lists Simpshouse dates first, as a plain list', () => {
-    expect(SIMPSHOUSE_DATES).toEqual(['2026-10-14'])
+    expect(SIMPSHOUSE_DATES).toEqual(['2026-10-10', '2026-10-14'])
+    expect(SIMPSHOUSE_MONTH_DAYS).toEqual(['01'])
     expect(SEASONAL_RULES.map((r) => r.theme)).toEqual(['simpshouse', 'carnaval', 'christmas', 'halloween', 'fall'])
   })
 })
@@ -20,14 +21,22 @@ describe('seasonal rules are data', () => {
 describe('priority order', () => {
   it.each([
     ['2026-10-14', 'simpshouse'],
+    ['2026-10-10', 'simpshouse'],
+    ['2026-11-01', 'simpshouse'],
+    ['2026-12-01', 'simpshouse'],
+    ['2027-01-01', 'simpshouse'],
+    ['2026-10-09', 'fall'],
+    ['2026-10-11', 'fall'],
+    ['2026-11-02', 'fall'],
+    ['2026-12-02', 'christmas'],
+    ['2027-01-02', undefined],
     ['2026-11-11', 'carnaval'],
     ['2026-10-17', 'halloween'],
     ['2026-10-31', 'halloween'],
-    ['2026-12-01', 'christmas'],
     ['2026-12-31', 'christmas'],
-    ['2026-10-01', 'fall'],
+    ['2026-10-01', 'simpshouse'],
+    ['2026-10-02', 'fall'],
     ['2026-10-16', 'fall'],
-    ['2026-11-01', 'fall'],
     ['2026-11-10', 'fall'],
     ['2026-11-12', 'fall'],
     ['2026-11-30', 'fall'],
@@ -53,18 +62,48 @@ describe('windows repeat yearly', () => {
       expect(seasonal(`${year}-10-20`), year).toBe('halloween')
       expect(seasonal(`${year}-11-11`), year).toBe('carnaval')
       expect(seasonal(`${year}-12-25`), year).toBe('christmas')
-      expect(seasonal(`${year}-03-01`), year).toBeUndefined()
+      expect(seasonal(`${year}-03-02`), year).toBeUndefined()
     }
   })
 
-  it('does not treat the leap day as seasonal and keeps neighbours plain', () => {
+  it('does not treat the leap day as seasonal and keeps neighbours plain (the 1st of March is Simpshouse, SLAY-24)', () => {
     expect(seasonal('2028-02-29')).toBeUndefined()
     expect(seasonal('2028-02-28')).toBeUndefined()
-    expect(seasonal('2028-03-01')).toBeUndefined()
+    expect(seasonal('2028-03-01')).toBe('simpshouse')
+    expect(seasonal('2028-03-02')).toBeUndefined()
   })
 
-  it('Simpshouse fires only on its listed dates, not yearly', () => {
+  it('Simpshouse fires on its listed one-off dates only once, not yearly', () => {
     expect(seasonal('2027-10-14')).toBe('fall')
+    expect(seasonal('2027-10-10')).toBe('fall')
+  })
+
+  it('Simpshouse is the theme of the 1st of every month of every year, ahead of every window (SLAY-24)', () => {
+    for (const year of ['2026', '2027', '2028', '2031']) {
+      for (let month = 1; month <= 12; month++) {
+        const first = `${year}-${String(month).padStart(2, '0')}-01`
+        expect(seasonal(first), first).toBe('simpshouse')
+        // The days around it keep what they had: the last day of the month before and the 2nd are never Simpshouse.
+        expect(seasonal(addDays(first, -1)), addDays(first, -1)).not.toBe('simpshouse')
+        expect(seasonal(addDays(first, 1)), addDays(first, 1)).not.toBe('simpshouse')
+      }
+    }
+    expect(seasonal('2029-12-01')).toBe('simpshouse')
+    expect(seasonal('2029-12-02')).toBe('christmas')
+    expect(seasonal('2029-11-30')).toBe('fall')
+    // Only the Simpshouse rule is touched: with Simpshouse unregistered the 1st falls to the window it lies in.
+    const withoutSimps = (id: ThemeId) => id !== 'simpshouse'
+    expect(seasonalThemeOf('2026-12-01', withoutSimps)).toBe('christmas')
+    expect(seasonalThemeOf('2026-11-01', withoutSimps)).toBe('fall')
+    expect(seasonalThemeOf('2027-01-01', withoutSimps)).toBeUndefined()
+  })
+
+  it('no other day changes theme: across four years, Simpshouse days are exactly the 1sts and the one-off dates', () => {
+    for (let d = '2026-09-27', i = 0; i < 1500; d = addDays(d, 1), i++) {
+      const expected = d.endsWith('-01') || SIMPSHOUSE_DATES.includes(d)
+      expect(seasonal(d) === 'simpshouse', d).toBe(expected)
+      if (!expected) expect(seasonal(d), d).toBe(seasonalThemeOf(d, (id) => id !== 'simpshouse'))
+    }
   })
 })
 
@@ -94,15 +133,15 @@ describe('rotation guard against the committed schedule', () => {
     for (const day of days) expect(themeOf(day.date), day.date).toBe(day.theme)
   })
 
-  it('every committed day outside a seasonal window keeps the scheduled theme', () => {
+  it('every committed day outside a seasonal window, and every day played before RULES_FROM, keeps the rotation theme', () => {
     let checked = 0
     for (const day of days) {
-      if (seasonalThemeOf(day.date, all)) continue
+      if (day.date >= RULES_FROM && seasonalThemeOf(day.date, all)) continue
       expect(themeOf(day.date), day.date).toBe(day.theme)
       expect(rotationThemeOf(day.date), day.date).toBe(day.theme)
       checked++
     }
-    expect(checked).toBeGreaterThan(20)
+    expect(checked).toBeGreaterThanOrEqual(13)
   })
 
   it('with no seasonal theme registered, the rotation alone equals the committed schedule for all days', () => {

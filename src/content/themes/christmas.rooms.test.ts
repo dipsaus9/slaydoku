@@ -24,7 +24,7 @@ const kindOf = (id: string): string => id.replace(/-\d+$/, '')
 const roomTypesOf = new Map(theme.rooms.map((r) => [r.name, r.roomTypes ?? []]))
 const byKind = new Map(theme.objects.map((o) => [o.kind, o]))
 const registeredObjects = SCENE_THEMES.flatMap((t) => t.objects)
-const registeredRooms = SCENE_THEMES.flatMap((t) => t.rooms)
+const registeredRooms = SCENE_THEMES.filter((t) => t.id !== 'christmas').flatMap((t) => t.rooms)
 
 function isConnected(cells: readonly Cell[]): boolean {
   const seen = new Set([0])
@@ -42,9 +42,9 @@ function isConnected(cells: readonly Cell[]): boolean {
 }
 
 describe('Christmas theme (SLAY-18.8)', () => {
-  it('is complete but not registered yet: SLAY-18.10 registers it with the regenerated December', () => {
-    expect(CHRISTMAS_THEME).toBeUndefined()
-    expect(SCENE_THEMES.some((t) => t.id === 'christmas')).toBe(false)
+  it('is complete and registered (SLAY-24, which took over SLAY-18.10, with the regenerated December)', () => {
+    expect(CHRISTMAS_THEME).toBe(theme)
+    expect(SCENE_THEMES.some((t) => t.id === 'christmas')).toBe(true)
     expect(theme.id).toBe('christmas')
     expect(theme.seasonal).toBe(true)
     expect(theme.nameNl).toBe('Kerstdorp')
@@ -68,15 +68,16 @@ describe('Christmas theme (SLAY-18.8)', () => {
       for (const r of theme.rooms) {
         const others = registeredRooms.filter((o) => o.name === r.name)
         for (const o of others) expect(r.nameNl, r.name).toBe(o.nameNl)
-        if (others.length > 0) expect(r.floor, `${r.name}: a theme floor would change the floor of the other theme's room`).toBeUndefined()
+        // A shared name may carry a floor only when the other theme gives that room the same floor (Fireside Lounge: wood in Fall too).
+        for (const o of others) if (r.floor !== undefined) expect(o.floor, `${r.name}: a theme floor would change the floor of the other theme's room`).toBe(r.floor)
       }
     })
 
     it('gives the rooms of its own the floor of the approved preview, which no name hint overrides', () => {
       for (const r of theme.rooms) if (r.floor) expect(['wood', 'tiles', 'carpet', 'stone', 'water']).toContain(r.floor)
       expect(theme.rooms.filter((r) => r.outdoor).map((r) => r.floor)).toEqual(['water', 'water', 'water', 'stone'])
-      // Registration happens later; until then the name hints decide, and none of the new names is claimed by another theme's floor.
-      for (const r of theme.rooms.filter((r) => r.floor)) expect(registeredRooms.some((o) => o.name === r.name), r.name).toBe(false)
+      // None of the new names is claimed by another theme's floor.
+      for (const r of theme.rooms.filter((r) => r.floor)) expect(registeredRooms.some((o) => o.name === r.name && o.floor !== r.floor), r.name).toBe(false)
       expect(styleForName('Kitchen')).toBe('tiles')
     })
 
@@ -240,9 +241,8 @@ describe('Christmas theme (SLAY-18.8)', () => {
       for (const date of ['2026-11-30', '2027-01-01', '2027-11-30']) expect(seasonalThemeOf(date, withChristmas), date).toBeUndefined()
     })
 
-    // SLAY-18.10 enables this when it registers the theme and regenerates December.
-    it.skip('SLAY-18.10 enables: the picker plans Christmas for every day of December', () => {
-      for (const plan of planDays('2026-12-01', 31)) expect(themeOf(plan.date), plan.date).toBe('christmas')
+    it('the picker plans Christmas for every day of December but the 1st, which is Simpshouse (SLAY-24)', () => {
+      for (const plan of planDays('2026-12-01', 31)) expect(themeOf(plan.date), plan.date).toBe(plan.date === '2026-12-01' ? 'simpshouse' : 'christmas')
     })
   })
 })

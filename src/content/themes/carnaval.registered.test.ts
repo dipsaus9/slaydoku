@@ -12,7 +12,7 @@ import type { ThemeId } from './types.ts'
  * undefined, because registering it moves 2026-11-11 from its committed theme to carnaval and that day has to be regenerated in the same
  * change. SLAY-18.10 sets `CARNAVAL_THEME = carnavalTheme`, regenerates 11 November, and turns `describe.skip` below into `describe`.
  */
-describe.skip('carnaval in the calendar, once registered (un-skipped by SLAY-18.10)', () => {
+describe('carnaval in the calendar, once registered (un-skipped by SLAY-24)', () => {
   const registered = new Set(SCENE_THEMES.map((t) => t.id))
   const withoutCarnaval = (date: string): ThemeId => seasonalThemeOf(date, (id) => registered.has(id) && id !== 'carnaval') ?? rotationThemeOf(date)
 
@@ -27,7 +27,8 @@ describe.skip('carnaval in the calendar, once registered (un-skipped by SLAY-18.
 
   it('changes no other day: every date but 11 November has the theme it had before carnaval was registered', () => {
     let checked = 0
-    for (let d = '2026-09-27'; d <= '2028-12-31'; d = addDays(d, 1)) {
+    // From 2026-10-10 (RULES_FROM): the days played before it keep the rotation, whatever is registered (SLAY-24).
+    for (let d = '2026-10-10'; d <= '2028-12-31'; d = addDays(d, 1)) {
       if (d.endsWith('-11-11')) continue
       expect(themeOf(d), d).toBe(withoutCarnaval(d))
       checked++

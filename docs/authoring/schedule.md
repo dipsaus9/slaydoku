@@ -54,38 +54,46 @@ tool refuses to extend a folder that was made for another launch date. `index.js
 Everything is a pure function of the date: no clock, no previous day, no state. That is why a run can be split over processes, extended
 later or repeated and stay identical.
 
-- **Two rule sets (SLAY-22, owner decision 2026-10-08).** The **current rules** plan every date from `RULES_FROM` (`2026-10-09`) on. The **launch rules**
-  plan the dates before it (the days already played, and the earlier dates the cast chain walks through) and the owner-approved `KEPT_DATES` (the Simpshouse
-  day `2026-10-14`); they are frozen, because changing them would change days people have played. Committed days on or after `RULES_FROM` that were generated
-  before SLAY-22 may follow either rule set while they await regeneration (`PENDING_REGENERATION_THROUGH`, `2027-01-24`; `acceptedPlans`, used by `scheduleProblems`
-  and the tests). **SLAY-18.10** regenerates them once, after all rule changes: it sets `PENDING_REGENERATION_THROUGH` to `null` and, if days have been played since
-  `2026-10-09`, moves `RULES_FROM` to its first regenerated date so those played days keep the launch rules.
-- **Expert:** exactly one per UTC week (Monday to Sunday), on a weekday drawn per week from the week's Monday (`expertWeekday`). A schedule that
-  starts in the middle of a week may have no expert in that first partial week; every whole week under the current rules has exactly one. In the first 100 levels
-  the expert is 9x9 (`SMALL_GRID_EXPERT_SIZE`).
-- **Other days:** tier from the mix very-easy 15, easy 30, easy-medium 25, medium 20, hard 10 (percent), from the first day, then a size the tier allows on that date.
-  There is no ramp-up window any more: the launch rules had one (no hard and no expert from launch through 2026-10-31, SLAY-10.1), and it only lives on in the frozen
-  plans of the days played before `RULES_FROM`.
+- **Two rule sets (SLAY-22 and SLAY-24, owner decisions 2026-10-08 and 2026-10-09).** The **current rules** plan every date from `RULES_FROM` (`2026-10-10`) on.
+  The **launch rules** plan the dates before it (the 13 days played through 2026-10-09, and the earlier dates the cast chain walks through); they are frozen,
+  because changing them would change days people have played. `KEPT_DATES` is empty and `PENDING_REGENERATION_THROUGH` is `null` since SLAY-24 regenerated
+  every day from 2026-10-10 on; set it again only when a rule change leaves committed future days behind (`acceptedPlans` then accepts either rule set).
+- **Tiers (SLAY-24):** every day under the current rules draws its tier from `TIER_MIX`: very-easy 5, easy 10, easy-medium 20, medium 40, hard 20, expert 5
+  (percent of days). Expert is drawn like any other tier: there is no weekly expert day and no cap per week any more (owner decision 2026-10-09), so a week
+  can hold none or two. Expert is always 9x9 (`SMALL_GRID_EXPERT_SIZE`, also after level 100). There is no ramp-up window. The launch rules (one expert on a
+  seeded weekday per UTC week, `launchExpertWeekday`; other days very-easy 15, easy 30, easy-medium 25, medium 20, hard 10; no hard or expert through
+  2026-10-31) only live on in the frozen plans of the played days.
 - **Size weights, levels 1 to 100** (`SMALL_GRID_LEVELS`, through `SMALL_GRID_LAST_DATE` = 2027-01-04): 7x7 42, 8x8 42, 6x6 10, 9x9 6, for every tier but expert,
-  hard included (`SMALL_GRID_SIZE_WEIGHTS`). 12x12 is too hard to play on a phone, so it never comes up there. The owner suggested 35/35/15/15; with the weekly 9x9
-  expert that left 7x7 and 8x8 at exactly 60% of the current-rule days, so 9x9 got a small weight of its own. Planned counts of levels 1 to 100 (the 12 played days
-  and the kept 12x12 Simpshouse day included; `pick.test.ts` pins them): 6x6 16, 7x7 34, 8x8 27, 9x9 21, 12x12 2; very-easy 11, easy 24, easy-medium 26, medium 18,
-  hard 8, expert 13. Over the 87 current-rule days alone: 6x6 10, 7x7 33, 8x8 27, 9x9 17 (13 of them experts).
-- **Size weights from level 101** (and in the launch rules): 6x6 40, 9x9 40, 7x7 8, 12x12 12. Hard and expert only on 9x9 and 12x12 (weights 40 : 12 there), so 6x6 and
-  7x7 only carry very-easy to medium. Never 16x16 or 8x8 (the picker has no such size there; every gate refuses 16x16). The earlier rules came back here as the story
+  hard included (`SMALL_GRID_SIZE_WEIGHTS`). 12x12 is too hard to play on a phone, so it never comes up there (the owner suggested 35/35/15/15; 9x9 has a
+  small weight of its own because the experts are 9x9 too). Planned counts (`pick.test.ts` pins them):
+
+  | | very-easy | easy | easy-medium | medium | hard | expert | 6x6 | 7x7 | 8x8 | 9x9 | 12x12 |
+  |---|---|---|---|---|---|---|---|---|---|---|---|
+  | delivered range 2026-10-10 to 2027-01-01 (84 days) | 1 | 9 | 16 | 33 | 20 | 5 | 11 | 35 | 27 | 11 | 0 |
+  | levels 1 to 100 (13 played days included) | 2 | 13 | 19 | 41 | 20 | 5 | 19 | 37 | 28 | 15 | 1 |
+  | 10,000 sampled dates, small-grid draw | 495 | 970 | 2026 | 4053 | 1972 | 484 | 959 | 3992 | 4021 | 1028 | 0 |
+- **Size weights from level 101** (and in the launch rules): 6x6 40, 9x9 40, 7x7 8, 12x12 12. Hard only on 9x9 and 12x12 (weights 40 : 12 there) and expert only
+  on 9x9 (SLAY-24; the launch rules allowed 12x12 experts), so 6x6 and 7x7 only carry very-easy to medium. Never 16x16 or 8x8 (the picker has no such size there; every gate refuses 16x16). The earlier rules came back here as the story
   asked; nothing measured so far argues for keeping the 9x9 cap past level 100, but the 12x12 phone complaint applies there too, so the owner may want to revisit it.
 - **Themes:** the five themes rotate in cycles of five days (each theme once per cycle, a seeded order per cycle); a cycle that would start with the theme
-  the last one ended on swaps its first two. So the same theme never lands on two days in a row, and consecutive days can never share size, tier and
+  the last one ended on swaps its first two. So the same theme never lands on two plain days in a row, and consecutive plain days never share size, tier and
   theme together (a test and `pairProblems` check it).
+- **Seasonal calendar** (`src/schedule/calendar.ts`, highest priority first): **Simpshouse** on the 1st of every month of every year (`SIMPSHOUSE_MONTH_DAYS`,
+  SLAY-24) and on the one-off dates `SIMPSHOUSE_DATES` (2026-10-10, the owner's test day, and 2026-10-14; adding one is a one-line change); **Carnaval** on 11
+  November; **Christmas** 1-31 December; **Halloween** 17-31 October; **Fall** 1-16 October and November (but the 11th). A rule only applies when its theme is
+  registered; all four seasonal themes and Simpshouse are registered since SLAY-24. A seasonal theme (`seasonal: true`) never enters the rotation. Days before
+  `RULES_FROM` keep the rotation they were played with (no seasonal theme was registered then): Halloween 2026 is the first seasonal window players see, and
+  1-9 October 2026 stayed on the rotation. Inside a window two consecutive days may share size, tier and theme when their sets of rooms differ (`pairProblems`).
+  Simpshouse days use the same sizes and rules as every other day; their cast always holds Romy and Dennis (see the cast below).
 - **Seed window:** day `d` may try the seeds `dayNumber(d) * 50` to `dayNumber(d) * 50 + 49` (`ATTEMPT_WINDOW = 50`, `seedOf`). Windows of two days never overlap.
 
-Over 365 and 730 days the picker gives a tier mix within a few points of the owner's numbers, and a 730-date sample of the small-grid draw follows its weights within 4 points (the tests pin both).
+Over 365 and 730 days the picker gives a tier mix within a few points of the owner's numbers, a 10,000-date sample is within 1 point of every tier share, and a 730-date sample of the small-grid draw follows its size weights within 4 points (the tests check all three).
 
 ## The cast (`src/schedule/cast.ts`)
 
 `castFor(size, seed, previousNames)` (`src/content/cast`) makes the names and genders. To keep a day independent of how the day before was built, the schedule
 defines a **nominal cast chain**: the cast of a date is `castFor(planned size, date, nominal cast of the day before)`, starting on a fixed anchor
-(`CAST_CHAIN_START`, 2026-01-01). It is a pure function of the date, so consecutive days share no name, in any build order. The cast is passed into
+(`CAST_CHAIN_START`, 2026-01-01). It is a pure function of the date, so consecutive days share no name, in any build order. A Simpshouse day draws from its own pool (`src/content/cast/simpshouse.ts`) and stays out of the chain; its cast always holds Romy and Dennis (`SIMPSHOUSE_ALWAYS`, so never Ruben, Ralph or Duncan), the other suspects are a seeded pick with genders balanced within 1, and it keeps out the chain names of both neighbours where the pool allows (the gate allows one shared name next to it). The cast is passed into
 `buildEntry` (`src/content/packs/build.ts`, the `cast` argument) instead of the pack's own draw, and the portraits of the same cast are baked into the day.
 
 ## Gates and retries
@@ -103,7 +111,7 @@ generation 1.
 
 `dayProblems` (`src/schedule/gates.ts`) runs the same gates on a stored day from scratch, plus shape, the fingerprint and the day-to-day rules; the tests re-verify a
 sample of ten days, `bun run test:slow` all of them. `scheduleProblems` (`src/schedule/check.ts`) checks the whole set without solver runs: the picker's plan is
-followed, numbers and dates run without a gap from the launch date, exactly one expert per whole week, no name shared with the day before, no repeated board, and
+followed, numbers and dates run without a gap from the launch date, no name shared with the day before, no repeated board, and
 `index.json` lists exactly the month files. `bun run schedule` runs it before it writes anything.
 
 ## Budgets and the fallback rule
@@ -203,7 +211,9 @@ folder that holds it, or that fallback day may get another cast than in the comm
 
 The room rules, new rooms and the single chair look (SLAY-17) change every draw, so the future days were regenerated: 107 days, 2026-10-09 to 2027-01-24 (the `2026-10-09`..`2026-10-13` range and `2026-10-15` onward, each with `--overwrite`). Days up to and including 2026-10-08 and the owner-approved Simpshouse day 2026-10-14 are byte-identical to before (checked per day against `origin/main`). The same dates now carry other puzzles. The days were regenerated a second time in the same story, after the owner found far too many chairs on the boards: the scene generator now caps a chair kind at 2 per room unless the extra chair touches a table, desk or counter, allows no kind more than 3 times in a room (plants included), prefers kinds a room does not have yet and has lower chair weights (`src/engine/scenegen/objects.ts`, `docs/authoring/room-rules.md`). Chairs went from 26.7% of the objects on these dates in the first committed schedule, 35.9% after the first regeneration, to 12.6% now. Rule for a repeat: never pass `--overwrite` over a day up to today (UTC) or over a themed day the owner approved; run two ranges around it.
 
-The seasonal windows of themes that are not registered yet (fall, carnaval, christmas, halloween) stay on the normal five-theme rotation here. SLAY-18.10 regenerates them once their themes exist. The rendered check of the regenerated days is `docs/verification/regen-days.ts` (room rules and one chair look on sample days of the five regular themes at 390x844 and 1024x768).
+The rendered check of the regenerated days is `docs/verification/regen-days.ts` (room rules and one chair look on sample days of every registered theme at 390x844 and 1024x768).
+
+**Final regeneration (SLAY-24, which took over SLAY-18.10), 2026-10-09.** Every day from 2026-10-10 through 2027-01-01 was regenerated once with everything on main: the SLAY-22 sizes and board rules, the SLAY-24 tier mix, the four seasonal themes and Simpshouse on the 1st of each month, 2026-10-10 and 2026-10-14. The schedule ends on 2027-01-01 for now (owner decision: the days after it were removed; the 9x9 cap question for level 101 is deferred). The 13 played days through 2026-10-09 are byte-identical. Steps: the committed days after 2026-10-09 were removed, then `bun run schedule --start 2026-10-10 --days 84`.
 
 ### Flags of `bun run schedule`
 

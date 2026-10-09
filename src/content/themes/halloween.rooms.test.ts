@@ -13,16 +13,16 @@ import { SCENE_THEMES } from './index.ts'
 /**
  * The Halloween theme (SLAY-18.9), tested on its own: it is not registered until SLAY-18.10 (see `HALLOWEEN_THEME`), so the shared theme
  * tests (themes.test.ts, rooms.test.ts, looks/completeness.test.tsx) do not see it yet. This file runs their checks on `halloweenTheme`
- * directly; the checks that need the registration are in halloween.registered.test.ts, skipped until SLAY-18.10 enables it.
+ * directly; the checks that need the registration are in halloween.registered.test.ts (enabled by SLAY-24).
  */
 const theme = halloweenTheme
 const kindOf = (id: string): string => id.replace(/-\d+$/, '')
 
 describe('Halloween theme (SLAY-18.9)', () => {
-  it('is a seasonal theme, not registered yet, so every committed day keeps its theme (SLAY-18.10 registers it)', () => {
+  it('is a seasonal theme, registered by SLAY-24 (which took over SLAY-18.10)', () => {
     expect(theme.seasonal).toBe(true)
-    expect(HALLOWEEN_THEME).toBeUndefined()
-    expect(SCENE_THEMES.some((t) => t.id === 'halloween')).toBe(false)
+    expect(HALLOWEEN_THEME).toBe(theme)
+    expect(SCENE_THEMES.some((t) => t.id === 'halloween')).toBe(true)
   })
 
   it('passes the shared theme checks: 6+ occupiable and blocking kinds, no stairs, unique kinds, catalog flags and sizes', () => {

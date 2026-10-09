@@ -4,6 +4,7 @@ title: 'Epic: Seasonal themes and Simpshouse'
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:20'
+updated_date: '2026-10-09 07:20'
 labels:
   - epic
 dependencies: []
@@ -30,3 +31,9 @@ Owner decisions: Biko is drawn as a monkey (the first named exception to 'avatar
 - [ ] #4 The owner approved a preview of every theme before it was built
 - [ ] #5 Future schedule days in the seasonal windows are regenerated; days up to and including today are byte-identical
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-10-09: SLAY-18.10 (final regeneration) was merged into SLAY-24 and archived; SLAY-24 registers the seasonal themes and regenerates 2026-10-10 through 2027-01-01.
+<!-- SECTION:NOTES:END -->

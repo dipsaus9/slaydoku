@@ -4,7 +4,7 @@ title: Regenerate seasonal windows and verify on screen
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:23'
-updated_date: '2026-10-09 07:10'
+updated_date: '2026-10-09 07:20'
 labels:
   - needs-owner-review
 dependencies:
@@ -17,6 +17,7 @@ dependencies:
   - SLAY-19.1
   - SLAY-20
   - SLAY-22
+  - SLAY-24
 references:
   - src/content/schedule/
   - docs/authoring/schedule.md
@@ -40,10 +41,9 @@ Branch: SLAY-18.10/regenerate-seasonal
 - [ ] #1 Days up to and including the current UTC date are byte-identical to main
 - [ ] #2 Rendered screens of a sample day per seasonal theme at 390 and 1024 wide show a sensible house, one chair look and no out-of-place objects
 - [ ] #3 docs/handoff.md and docs/authoring/schedule.md updated (calendar, seasonal flag, Simpshouse date list, Halloween 2026 missed)
-- [ ] #4 This is the FINAL regeneration: every future scheduled day (after the current UTC date) is regenerated with everything on main (room rules, chair cap, new decor objects, seasonal themes); days in a seasonal window get their seasonal theme, 2026-10-14 (Simpshouse) and all days up to today stay byte-identical; casts of days outside themed pools stay as the chain gives them
-- [ ] #5 bun run schedule:check, the per-day gates and bun run test --maxWorkers=1 pass
-- [ ] #6 Owner has seen the rendered sample days and approved (only the owner ticks this)
-- [ ] #7 Owner decision 2026-10-09: puzzles are delivered only through 2027-01-01 for now: the regeneration covers 2026-10-09 to 2027-01-01 (2026-10-14 byte-identical), the committed days after 2027-01-01 are removed from the schedule (and the January chunk and index trimmed), schedule:check and the offline/month-chunk drivers pass; the 9x9 cap question for level 101 (2027-01-05) is deferred
+- [ ] #4 bun run schedule:check, the per-day gates and bun run test --maxWorkers=1 pass
+- [ ] #5 Owner has seen the rendered sample days and approved (only the owner ticks this)
+- [ ] #6 This is the FINAL regeneration, covering 2026-10-09 (or the first day after the current UTC date when it runs) through 2027-01-01 only (owner decision: deliver puzzles through 2027-01-01; later days are removed from the schedule): every day after the current UTC date is regenerated with everything on main (room rules, chair cap, density and board mix rules, new decor objects, registered seasonal themes, Simpshouse on the 1st of each month and on 2026-10-14 in normal sizes with Romy and Dennis always in the cast); days up to the current UTC date are byte-identical, and so is 2026-10-10 (the SLAY-24 Simpshouse test day, played by then); casts of days next to a regenerated Simpshouse day stay unique
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -65,5 +65,7 @@ From the Christmas review: the December test only checks the first seed of each 
 
 From the SLAY-20 review: the minimum difference of 8.0 between touching rooms (roomStyles.test.ts, TINT_CHROMA_SCALE 0.4) sits just under the closest pair of the current schedule (8.02); after the regeneration this test can fail on a new closest pair: re-check it and choose the palette or the threshold from the regenerated days, not the other way round.
 
-Owner decision 2026-10-09: deliver puzzles only through 2027-01-01 for now; level 100 is 2027-01-04 and level 101 is 2027-01-05, so the level-101 size question is deferred. Note for the owner: with the calendar windows (fall 1-16 Oct and 1-30 Nov except the 11th, halloween 17-31 Oct, carnaval 11 Nov, christmas December, simpshouse 14 Oct) 84 of the 85 days from 2026-10-09 to 2027-01-01 are themed; only 2027-01-01 is a regular-theme day.
+2026-10-09 owner decisions: Simpshouse is no longer frozen on 2026-10-14 (regenerate it in a normal size), comes back on the 1st of every month and had a one-off test day on 2026-10-10 (SLAY-24); everything in the same size format.
+
+2026-10-09: merged into SLAY-24 (owner's suggestion: one regeneration, one PR, one owner check). Its criteria and References now live in SLAY-24; archived.
 <!-- SECTION:NOTES:END -->

@@ -105,8 +105,5 @@ export const fallTheme: SceneTheme = {
   objects: FALL_OBJECTS,
 }
 
-/**
- * What `SCENE_THEMES` registers (index.ts `registered(...)`). Left unregistered on purpose: registering hands the theme its calendar dates,
- * and the committed schedule still has the old theme on those days until SLAY-18.10 regenerates them. SLAY-18.10 sets this to `fallTheme`.
- */
-export const FALL_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10
+/** What `SCENE_THEMES` registers (index.ts `registered(...)`): registered by SLAY-24 (which took over SLAY-18.10) with the regenerated days. */
+export const FALL_THEME: SceneTheme | undefined = fallTheme

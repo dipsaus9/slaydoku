@@ -14,16 +14,16 @@ import { SCENE_THEMES } from './index.ts'
 /**
  * The Carnaval theme (SLAY-18.7) checked on its own, unregistered: the rules `themes.test.ts`, `rooms.test.ts` and the look-completeness
  * test apply to registered themes, run here against `carnavalTheme` directly. The tests that need the theme registered (the calendar
- * picks it on 11 November, no other day changes) are in carnaval.registered.test.ts, which SLAY-18.10 un-skips.
+ * picks it on 11 November, no other day changes) are in carnaval.registered.test.ts (un-skipped by SLAY-24).
  */
 const kindOf = (id: string): string => id.replace(/-\d+$/, '')
 const roomsAllowing = (kind: string): string[] =>
   theme.rooms.filter((r) => theme.objects.find((o) => o.kind === kind)!.allowedRoomTypes.some((t) => r.roomTypes?.includes(t))).map((r) => r.name)
 
 describe('carnaval theme (SLAY-18.7)', () => {
-  it('is not registered yet (SLAY-18.10 registers it), so no scheduled day changes', () => {
-    expect(CARNAVAL_THEME).toBeUndefined()
-    expect(SCENE_THEMES.map((t) => t.id)).not.toContain('carnaval')
+  it('is registered (SLAY-24, which took over SLAY-18.10)', () => {
+    expect(CARNAVAL_THEME).toBe(theme)
+    expect(SCENE_THEMES.map((t) => t.id)).toContain('carnaval')
     expect(theme.id).toBe('carnaval')
     expect(theme.seasonal).toBe(true)
   })
@@ -41,7 +41,7 @@ describe('carnaval theme (SLAY-18.7)', () => {
   })
 
   it('gives a floor to its own rooms only: a room name shared with another theme keeps the floor that theme gives it', () => {
-    const shared = new Set(SCENE_THEMES.flatMap((t) => t.rooms.map((r) => r.name)))
+    const shared = new Set(SCENE_THEMES.filter((t) => t.id !== theme.id).flatMap((t) => t.rooms.map((r) => r.name)))
     for (const r of theme.rooms) {
       if (shared.has(r.name)) expect(r.floor, r.name).toBeUndefined()
       else expect(r.floor, r.name).toBeDefined()

@@ -92,9 +92,5 @@ export const halloweenTheme: SceneTheme = {
   objects: HALLOWEEN_OBJECTS,
 }
 
-/**
- * What index.ts registers. It stays `undefined` until SLAY-18.10 (registered by SLAY-18.10): registering makes the calendar give the theme to
- * 17-31 October, while the committed schedule still has the rotation theme on those days, so 18.10 flips this to `halloweenTheme` in the same
- * change that regenerates the window.
- */
-export const HALLOWEEN_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10
+/** What index.ts registers (SLAY-24, which took over SLAY-18.10, with the regenerated 17-31 October). */
+export const HALLOWEEN_THEME: SceneTheme | undefined = halloweenTheme

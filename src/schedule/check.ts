@@ -1,6 +1,6 @@
 import { puzzleFingerprint } from '../game/fingerprint.ts'
 import { boardKey, puzzleKey } from '../content/packs/gates.ts'
-import { addDays, dayNumberOf, monthOf, weekStartOf } from './dates.ts'
+import { addDays, dayNumberOf, monthOf } from './dates.ts'
 import { indexMonthsOf, monthFileName } from './format.ts'
 import { pairProblems } from './gates.ts'
 import { FALLBACK_SIZE, acceptedPlans, canFallBack } from './pick.ts'
@@ -9,8 +9,8 @@ import type { MonthFile, ScheduleDay, ScheduleIndex } from './types.ts'
 
 /**
  * Cheap checks of a whole schedule (no solver runs; `dayProblems` does those per day): the picker's plan is followed, the numbers and
- * dates run without a gap from the launch date, consecutive days differ, no board repeats, every complete UTC week holds exactly the
- * experts its plans hold (one, except a launch-rules week of the ramp-up), and the index lists exactly the month files. A day awaiting
+ * dates run without a gap from the launch date, consecutive days differ, no board repeats, and the index lists exactly the month files
+ * (no expert-per-week check since SLAY-24: expert is drawn like every tier, and each day's tier already has to match its plan). A day awaiting
  * regeneration may follow the launch rules instead of the current ones (`acceptedPlans`, SLAY-22). Returns the problems.
  */
 export function scheduleProblems(index: ScheduleIndex, files: readonly MonthFile[]): string[] {
@@ -29,8 +29,6 @@ export function scheduleProblems(index: ScheduleIndex, files: readonly MonthFile
   if (index.first !== days[0]!.date || index.last !== days[days.length - 1]!.date) problems.push('index.json first/last do not match the files')
   if (days[0]!.date !== index.launch) problems.push(`the schedule starts on ${days[0]!.date}, not on the launch date ${index.launch}`)
 
-  /** The plan each day was checked against (the first accepted plan it follows), for the expert-per-week check. */
-  const followed = new Map<string, DayPlan>()
   const boards = new Map<string, string>()
   const puzzles = new Map<string, string>()
   days.forEach((day, i) => {
@@ -43,7 +41,6 @@ export function scheduleProblems(index: ScheduleIndex, files: readonly MonthFile
       day.tier === plan.tier && day.theme === plan.theme &&
       (day.fallbackFrom === undefined ? day.size === plan.size : canFallBack(plan) && day.fallbackFrom === plan.size && day.size === FALLBACK_SIZE)
     const plan = plans.find(fits) ?? plans[0]!
-    followed.set(day.date, plan)
     if (day.tier !== plan.tier || day.theme !== plan.theme) at(`is ${day.tier}/${day.theme}, the picker plans ${plan.tier}/${plan.theme}`)
     else if (day.fallbackFrom === undefined) {
       if (day.size !== plan.size) at(`is ${day.size}x${day.size}, the picker plans ${plan.size}x${plan.size}`)
@@ -59,16 +56,5 @@ export function scheduleProblems(index: ScheduleIndex, files: readonly MonthFile
     puzzles.set(key, day.date)
   })
 
-  // Every UTC week (Monday to Sunday) that lies completely inside the schedule holds the experts its followed plans hold: exactly one under
-  // the current rules (the picker guarantees it), zero in a launch-rules week of the old ramp-up window, never more than one.
-  const first = dayNumberOf(days[0]!.date)
-  const last = dayNumberOf(days[days.length - 1]!.date)
-  const byDate = new Map(days.map((d) => [d.date, d]))
-  for (let monday = weekStartOf(first) < first ? weekStartOf(first) + 7 : first; monday + 6 <= last; monday += 7) {
-    const week = Array.from({ length: 7 }, (_, k) => byDate.get(addDays(days[0]!.date, monday + k - first))!)
-    const experts = week.filter((d) => d.tier === 'expert')
-    const planned = week.filter((d) => followed.get(d.date)?.tier === 'expert')
-    if (experts.length > 1 || experts.length !== planned.length) problems.push(`week of ${week[0]!.date}: ${experts.length} experts, expected ${planned.length}`)
-  }
   return problems
 }

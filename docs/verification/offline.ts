@@ -32,6 +32,12 @@ const BASE = `http://localhost:${PORT}`
 const STRINGS = join(ROOT, 'src/ui/daily/strings.ts')
 const SUBTITLE = 'A new murder mystery every day'
 const DAY = dayOn(PLAY_DATE)
+/** The first cell of the day's board (row by row from r2c2) that no object stands on: a placement there is always allowed. */
+const FREE_CELL = (() => {
+  const taken = new Set(DAY.puzzle.scene.objects.flatMap((o) => o.cells.map((c) => `${c.row},${c.col}`)))
+  for (let row = 1; row < DAY.size; row++) for (let col = 1; col < DAY.size; col++) if (!taken.has(`${row},${col}`)) return `r${row + 1}c${col + 1}`
+  throw new Error('no free cell')
+})()
 const START = `document.querySelectorAll('.daily-card').length === 1`
 mkdirSync(OUT, { recursive: true })
 
@@ -173,8 +179,9 @@ try {
   const before = (await evaluate(`localStorage.getItem(${JSON.stringify(key)})`)) as string | null
   const cellCount = await count('[data-cell]')
   check('offline puzzle draws its board with cells', cellCount > 0, `${cellCount} cells`)
-  // Play: place the selected person on a cell with a long press (touch), like drive.ts.
-  const rect = (await evaluate(`(() => { const e = document.querySelector('[data-cell=r6c6]'); e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number }
+  // Play: place the selected person on a cell with a long press (touch), like drive.ts. The cell is the first one without an object on
+  // the day's board (a fixed r6c6 broke when a regenerated day put a counter there, SLAY-24).
+  const rect = (await evaluate(`(() => { const e = document.querySelector('[data-cell=${FREE_CELL}]'); e.scrollIntoView({ block: 'nearest', inline: 'nearest' }); const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 } })()`)) as { x: number; y: number }
   await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: rect.x, y: rect.y, id: 1 }] })
   await sleep(700)
   await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })

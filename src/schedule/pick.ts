@@ -14,30 +14,39 @@ import type { DayPlan } from './types.ts'
  * regenerated and stay identical. (The puzzle NUMBER is the only thing that depends on the launch date.)
  *
  * Two rule sets (see docs/authoring/schedule.md, "How a day is picked"):
- * - the CURRENT rules (SLAY-22, owner decision 2026-10-08) plan every date from `RULES_FROM` on: small boards for the first
- *   `SMALL_GRID_LEVELS` levels, hard from day one, no ramp-up window;
+ * - the CURRENT rules (SLAY-22 and SLAY-24, owner decisions 2026-10-08 and 2026-10-09) plan every date from `RULES_FROM` on: small boards
+ *   for the first `SMALL_GRID_LEVELS` levels, every tier (expert included) drawn from `TIER_MIX`, no weekly expert day, no ramp-up window;
  * - the LAUNCH rules plan every date before `RULES_FROM` (the days already played, and the dates before launch the cast chain walks
- *   through) and the owner-approved `KEPT_DATES`. They are frozen: changing them would change days people have played.
+ *   through) and any `KEPT_DATES`. They are frozen: changing them would change days people have played.
  */
 
-/** Tier mix of the days that are not the week's expert day, in percent (sums to 100). Both rule sets. */
-export const TIER_MIX: readonly (readonly [TierId, number])[] = [['very-easy', 15], ['easy', 30], ['easy-medium', 25], ['medium', 20], ['hard', 10]]
+/**
+ * Tier mix of the current rules, in percent of all days (sums to 100; owner decision 2026-10-09, SLAY-24). Expert is drawn like any other
+ * tier: there is no weekly expert day and no cap per week any more.
+ */
+export const TIER_MIX: readonly (readonly [TierId, number])[] = [['very-easy', 5], ['easy', 10], ['easy-medium', 20], ['medium', 40], ['hard', 20], ['expert', 5]]
+
+/** Tier mix of the launch rules for the days that are not the week's expert day (frozen, see the header). */
+export const LAUNCH_TIER_MIX: readonly (readonly [TierId, number])[] = [['very-easy', 15], ['easy', 30], ['easy-medium', 25], ['medium', 20], ['hard', 10]]
 
 /** The tiers that need advanced techniques. */
 export const ADVANCED_TIERS: readonly TierId[] = ['hard', 'expert']
 
 /** The first date the current rules plan. Days before it keep the launch rules (they were generated and played under them). */
-export const RULES_FROM = '2026-10-09'
-
-/** Owner-approved days after `RULES_FROM` that keep the launch rules and their committed puzzle: the Simpshouse day (SLAY-18.4). */
-export const KEPT_DATES: ReadonlySet<string> = new Set(['2026-10-14'])
+export const RULES_FROM = '2026-10-10'
 
 /**
- * Last committed date that may still follow the launch rules although it lies on or after `RULES_FROM`: the days generated before
- * SLAY-22 and not regenerated yet. `scheduleProblems` accepts such a day under either rule set. SLAY-18.10 regenerates them and sets this
- * to null (moving `RULES_FROM` to its first regenerated date if days have been played since).
+ * Owner-approved days after `RULES_FROM` that keep the launch rules and their committed puzzle. Empty since SLAY-24: the Simpshouse day
+ * 2026-10-14 (kept by SLAY-22) is regenerated in a normal size.
  */
-export const PENDING_REGENERATION_THROUGH: string | null = '2027-01-24'
+export const KEPT_DATES: ReadonlySet<string> = new Set()
+
+/**
+ * Last committed date that may still follow the launch rules although it lies on or after `RULES_FROM` (days generated under older rules
+ * and not regenerated yet); `scheduleProblems` accepts such a day under either rule set. Null since SLAY-24 regenerated every day from
+ * `RULES_FROM` on.
+ */
+export const PENDING_REGENERATION_THROUGH: string | null = null
 
 /** Levels 1 to `SMALL_GRID_LEVELS` (counted from `LAUNCH_DATE`) use `SMALL_GRID_SIZE_WEIGHTS` (SLAY-22: 12x12 is too hard on a phone). */
 export const SMALL_GRID_LEVELS = 100
@@ -47,12 +56,12 @@ export const SMALL_GRID_LAST_DATE = addDays(LAUNCH_DATE, SMALL_GRID_LEVELS - 1)
 
 /**
  * Board sizes of the first `SMALL_GRID_LEVELS` levels and their weights: at most 9x9, mostly 7x7 and 8x8. Every tier but expert draws from
- * it, hard included. 9x9 has a small weight because the weekly expert day is 9x9 as well: over the planned levels 13 to 100 this gives
- * about 69% 7x7 and 8x8, 11% 6x6 and 20% 9x9 (owner's suggestion was 35/35/15/15, which left 7x7 and 8x8 at 60% once the experts count).
+ * it, hard included. 9x9 has a small weight because the expert days are 9x9 as well (SLAY-22; see docs/authoring/schedule.md for the measured
+ * shares under the SLAY-24 tier mix).
  */
 export const SMALL_GRID_SIZE_WEIGHTS: readonly (readonly [number, number])[] = [[7, 42], [8, 42], [6, 10], [9, 6]]
 
-/** The size of an expert day within the first `SMALL_GRID_LEVELS` levels. */
+/** The size of every expert day under the current rules (SLAY-24: expert only on 9x9). */
 export const SMALL_GRID_EXPERT_SIZE = 9
 
 /** Board sizes from level `SMALL_GRID_LEVELS + 1` on (and of the launch rules): mostly 6 and 9, sometimes 7 and 12, never 16. */
@@ -84,7 +93,8 @@ export const isSmallGridLevel = (date: string): boolean => dayNumberOf(date) <= 
 
 /** Which sizes a tier may use on a date under the current rules. */
 export const sizesFor = (tier: TierId, date: string): readonly (readonly [number, number])[] => {
-  if (isSmallGridLevel(date)) return tier === 'expert' ? [[SMALL_GRID_EXPERT_SIZE, 1]] : SMALL_GRID_SIZE_WEIGHTS
+  if (tier === 'expert') return [[SMALL_GRID_EXPERT_SIZE, 1]]
+  if (isSmallGridLevel(date)) return SMALL_GRID_SIZE_WEIGHTS
   return launchSizesFor(tier)
 }
 
@@ -101,19 +111,19 @@ function weighted<T>(entries: readonly (readonly [T, number])[], rng: Rng): T {
   return entries[entries.length - 1]![0]
 }
 
-/** Weekday (Monday 0 to Sunday 6) of the expert day of the UTC week that starts on Monday day number `monday`. Seeded per week. */
-export const expertWeekday = (monday: number): number => createRng(`expert-day:${monday}`).int(7)
-
-/** Whether a date is the expert day of its UTC week (Monday to Sunday): exactly one date per week is. */
-export const isExpertDay = (date: string): boolean => {
-  const day = dayNumberOf(date)
-  return weekdayOfDayNumber(day) === expertWeekday(weekStartOf(day))
-}
-
-/** Tier under the current rules: the week's expert day is `expert`, every other day draws `TIER_MIX`. No ramp-up window (SLAY-22). */
-const tierOf = (date: string): TierId => (isExpertDay(date) ? 'expert' : weighted(TIER_MIX, createRng(`tier:${date}`)))
+/** Tier under the current rules: every day draws `TIER_MIX`, expert included (SLAY-24). No weekly expert day, no ramp-up window. */
+const tierOf = (date: string): TierId => weighted(TIER_MIX, createRng(`tier:${date}`))
 
 /* ---- Launch rules: frozen, see the header. ---- */
+
+/** Launch rules: weekday (Monday 0 to Sunday 6) of the expert day of the UTC week that starts on Monday day number `monday`. Seeded per week. */
+export const launchExpertWeekday = (monday: number): number => createRng(`expert-day:${monday}`).int(7)
+
+/** Launch rules: whether a date is the expert day of its UTC week (Monday to Sunday): exactly one date per week was. */
+export const isLaunchExpertDay = (date: string): boolean => {
+  const day = dayNumberOf(date)
+  return weekdayOfDayNumber(day) === launchExpertWeekday(weekStartOf(day))
+}
 
 const launchSizesFor = (tier: TierId): readonly (readonly [number, number])[] =>
   ADVANCED_TIERS.includes(tier) ? SIZE_WEIGHTS.filter(([size]) => ADVANCED_SIZES.includes(size)) : SIZE_WEIGHTS
@@ -125,9 +135,9 @@ const LAUNCH_RAMP_UP_MIX: readonly (readonly [TierId, number])[] = [['very-easy'
 function launchTierOf(date: string): TierId {
   const day = dayNumberOf(date)
   const rampUp = day >= dayNumberOf(LAUNCH_DATE) && day <= dayNumberOf(LAUNCH_RAMP_UP_END)
-  if (!rampUp) return tierOf(date)
-  if (isExpertDay(date)) return weighted(LAUNCH_RAMP_UP_MIX, createRng(`tier:${date}`))
-  const unmodified = weighted(TIER_MIX, createRng(`tier:${date}`))
+  if (!rampUp) return isLaunchExpertDay(date) ? 'expert' : weighted(LAUNCH_TIER_MIX, createRng(`tier:${date}`))
+  if (isLaunchExpertDay(date)) return weighted(LAUNCH_RAMP_UP_MIX, createRng(`tier:${date}`))
+  const unmodified = weighted(LAUNCH_TIER_MIX, createRng(`tier:${date}`))
   return unmodified === 'hard' ? weighted(LAUNCH_RAMP_UP_MIX, createRng(`tier:${date}`)) : unmodified
 }
 
@@ -149,9 +159,12 @@ const rawCycle = (cycle: number): ThemeId[] => shuffled(THEME_IDS, createRng(`th
 /**
  * Theme of a date: the days come in cycles of five (one per theme, in a seeded order per cycle), so the themes rotate evenly. When a
  * cycle would start with the theme the last cycle ended on, its first two are swapped, so the same theme never lands on two days in a
- * row. Pure per date. A seasonal rule (`seasonalThemeOf`) takes the day first; the rotation underneath is unaffected by it.
+ * row. Pure per date. A seasonal rule (`seasonalThemeOf`) takes the day first; the rotation underneath is unaffected by it. Days before
+ * `RULES_FROM` were played with the rotation only (no seasonal theme was registered then, SLAY-24), so they keep it: the 1st of October
+ * 2026 and the Fall days 1-9 October 2026 stay as they were played.
  */
 export function themeOf(date: string): ThemeId {
+  if (dayNumberOf(date) < dayNumberOf(RULES_FROM)) return rotationThemeOf(date)
   return seasonalThemeOf(date, (id) => REGISTERED.has(id)) ?? rotationThemeOf(date)
 }
 
@@ -173,9 +186,8 @@ export function smallGridSizeAndTierOf(date: string): { size: number; tier: Tier
 }
 
 /**
- * Size and tier of a date. Current rules: the week's expert day is an expert (9x9 in the first `SMALL_GRID_LEVELS` levels), every other
- * day draws a tier from `TIER_MIX`, then a size the tier allows on that date (`sizesFor`). Dates before `RULES_FROM` and `KEPT_DATES`:
- * the launch rules.
+ * Size and tier of a date. Current rules: every day draws a tier from `TIER_MIX` (expert included, always 9x9), then a size the tier allows
+ * on that date (`sizesFor`). Dates before `RULES_FROM` and `KEPT_DATES`: the launch rules.
  */
 export function sizeAndTierOf(date: string): { size: number; tier: TierId } {
   if (!followsCurrentRules(date)) return launchSizeAndTierOf(date)

@@ -29,7 +29,8 @@ export function nominalCast(date: string): Cast {
 /** The cast of a day with a pool of its own: that pool, keeping out the chain's names of the day before and after. */
 function themedDayCast(date: string, theme: string, size: number): Cast {
   const day = dayNumberOf(date)
-  const around = [...chainCast(dateOfDayNumber(day - 1)).names, ...chainCast(dateOfDayNumber(day + 1)).names]
+  const start = dayNumberOf(CAST_CHAIN_START)
+  const around = [day - 1, day + 1].filter((d) => d >= start).flatMap((d) => chainCast(dateOfDayNumber(d)).names)
   return castFor(size, date, around, theme)
 }
 

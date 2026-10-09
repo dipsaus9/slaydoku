@@ -89,7 +89,7 @@ export const CARNAVAL_OBJECTS: ThemeObject[] = [
   fromHome('television', ['living', PARTY, 'sleeping']),
 ]
 
-/** The finished theme. Not registered yet: SLAY-18.10 registers it (sets `CARNAVAL_THEME` below to it) and regenerates 11 November. */
+/** The finished theme, registered by SLAY-24 (which took over SLAY-18.10) with the regenerated 11 November. */
 export const carnavalTheme: SceneTheme = {
   id: 'carnaval',
   seasonal: true,
@@ -99,5 +99,5 @@ export const carnavalTheme: SceneTheme = {
   objects: CARNAVAL_OBJECTS,
 }
 
-/** What `index.ts` registers: nothing until SLAY-18.10, so `SCENE_THEMES`, the picker and every scheduled day stay as they are. */
-export const CARNAVAL_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10 (set to carnavalTheme)
+/** What `index.ts` registers (SLAY-24, which took over SLAY-18.10). */
+export const CARNAVAL_THEME: SceneTheme | undefined = carnavalTheme
