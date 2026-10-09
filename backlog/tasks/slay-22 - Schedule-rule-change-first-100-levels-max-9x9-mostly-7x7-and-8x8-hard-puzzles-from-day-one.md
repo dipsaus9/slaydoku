@@ -37,6 +37,7 @@ references:
   - src/schedule/check.ts
   - src/schedule/gates.ts
   - src/schedule/schedule.test.ts
+  - src/content/objectClues.test.ts
 type: feature
 ordinal: 143000
 ---
