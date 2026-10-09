@@ -1,10 +1,10 @@
 ---
 id: SLAY-18
 title: 'Epic: Seasonal themes and Simpshouse'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-08 09:20'
-updated_date: '2026-10-09 07:20'
+updated_date: '2026-10-09 08:53'
 labels:
   - epic
 dependencies: []
@@ -25,15 +25,17 @@ Owner decisions: Biko is drawn as a monkey (the first named exception to 'avatar
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Themes outside their seasonal windows are unchanged for every already-scheduled day, and casts of other days are byte-identical (tests)
-- [ ] #2 Simpshouse plays on 2026-10-14 with the 18-name cast, never two names with the same first letter
-- [ ] #3 Fall, Carnaval, Christmas and Halloween each follow the yearly calendar
-- [ ] #4 The owner approved a preview of every theme before it was built
-- [ ] #5 Future schedule days in the seasonal windows are regenerated; days up to and including today are byte-identical
+- [x] #1 Themes outside their seasonal windows are unchanged for every already-scheduled day, and casts of other days are byte-identical (tests)
+- [x] #2 Simpshouse plays on 2026-10-14 with the 18-name cast, never two names with the same first letter
+- [x] #3 Fall, Carnaval, Christmas and Halloween each follow the yearly calendar
+- [x] #4 The owner approved a preview of every theme before it was built
+- [x] #5 Future schedule days in the seasonal windows are regenerated; days up to and including today are byte-identical
 <!-- AC:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-10-09: SLAY-18.10 (final regeneration) was merged into SLAY-24 and archived; SLAY-24 registers the seasonal themes and regenerates 2026-10-10 through 2027-01-01.
+
+Closed by the orchestrator on the owner explicit instruction (2026-10-09): "Sluit 19 ook na 24. Na 24 mag je dus alles sluiten". Outcome: the seasonal calendar, per-theme cast pool, Simpshouse (monthly on the 1st and 2026-10-14, Romy and Dennis always in, normal sizes) and the four seasonal themes (fall, carnaval, christmas, halloween) are registered and the schedule 2026-10-10 to 2027-01-01 was regenerated once (SLAY-24, which absorbed SLAY-18.10). Criterion 2 changed by owner decision: 2026-10-14 was regenerated in a normal size with the new cast rules; criterion 5: days up to 2026-10-09 are byte-identical, 2026-10-10 on regenerated under the final rules.
 <!-- SECTION:NOTES:END -->
