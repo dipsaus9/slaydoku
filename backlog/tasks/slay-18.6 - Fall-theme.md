@@ -1,7 +1,7 @@
 ---
 id: SLAY-18.6
 title: Fall theme
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 09:22'
 updated_date: '2026-10-09 06:18'
@@ -41,7 +41,7 @@ Branch: SLAY-18.6/fall-theme
 - [x] #4 Registered as seasonal; the calendar picks it for fall days and the themes of all other days are unchanged (test)
 - [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass
 - [x] #6 New drawings follow the approved look (docs/design/looks.md 'How to draw a new object' from SLAY-17.4) and pass the look-completeness test
-- [ ] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
+- [x] #7 Owner has seen rendered levels of the theme and approved (only the owner ticks this)
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -56,4 +56,6 @@ Built from the SLAY-18.5 draft (deviations listed in src/content/themes/fall.ts 
 Plan change (orchestrator, 2026-10-08): the theme is NOT registered in this story. fall.ts exports the complete theme as fallTheme; FALL_THEME (what index.ts registered(...) reads) stays undefined with a comment, and SLAY-18.10 flips it to fallTheme together with the regenerated days. fall.rooms.test.ts tests fallTheme directly (data, Dutch nouns, one chair, allow-list sweep over 200 scenes, caps, block art in 8 orientations) and checks the calendar as it will be once registered; it also asserts FALL_THEME is undefined, which SLAY-18.10 must flip. The schedule is untouched and src/content, src/render, src/ui/lab and src/schedule tests are green (1233). The blocker in the earlier note is resolved by this change. AC 4 (registration) moves to SLAY-18.10.
 
 Verification 2026-10-09 (after owner approval): bun run test --maxWorkers=1 3748 passed / 8 skipped / 0 failed; verify:phone 3114 checks 0 failures; docs/verification/looks.ts 146 PASS, all checks passed; lint and typecheck clean. Review gate (story-reviewer): pass, no scope violations; one advisory (undocumented room-type changes against the draft) fixed in the fall.ts and draft headers. AC 4 judged per the plan change: seasonal and tested as registered, FALL_THEME stays undefined until SLAY-18.10; schedule files untouched.
+
+Owner approval in chat (2026-10-09): "Herfsthema is akkoord". Ticked by the orchestrator. Verified on head dabda89 by the worker: full suite 3748 passed/8 skipped, verify:phone 3114/0, looks driver 146 pass, review pass. Registration of fall moves to SLAY-18.10.
 <!-- SECTION:NOTES:END -->
