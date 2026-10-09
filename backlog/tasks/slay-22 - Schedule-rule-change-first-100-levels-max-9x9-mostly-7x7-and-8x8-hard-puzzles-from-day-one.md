@@ -3,10 +3,10 @@ id: SLAY-22
 title: >-
   Schedule rule change: first 100 levels max 9x9, mostly 7x7 and 8x8, hard
   puzzles from day one
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-10-08 20:03'
-updated_date: '2026-10-09 07:30'
+updated_date: '2026-10-09 07:31'
 labels:
   - story
   - needs-owner-review
@@ -59,8 +59,8 @@ MERGED 2026-10-08 (owner: optimise stories, merge to avoid generating and testin
 - [x] #4 The ramp-up window is removed: RAMP_UP_END_DATE, isRampUp and the suppressed-expert handling and their tests are deleted or reworked; expert is exactly one per UTC week on a 9x9 board; the tier mix of other days is unchanged and measured
 - [x] #5 Days up to today and 2026-10-14 are byte-identical, no schedule file changes in this story; schedule:check and the full test run pass; lint and typecheck pass
 - [x] #6 CLAUDE.md (Grid, Expert, Ramp-up) and docs (docs/handoff.md, docs/authoring/schedule.md, docs/launch.md where it mentions sizes or the ramp-up) state the new rules; the old 'no hard in the first month' rule is gone
-- [ ] #7 A table of the planned size and tier distribution for levels 1 to 100 is in the PR (counts per size and per tier) for the owner to approve before merge (only the owner ticks this)
-- [ ] #8 Rendered sample boards (home, office, school, park, shop; 7x7, 8x8 and 9x9; phone and desktop) show rooms furnished but not crowded; screenshots in the PR for the owner to approve together with the size and tier table
+- [x] #7 A table of the planned size and tier distribution for levels 1 to 100 is in the PR (counts per size and per tier) for the owner to approve before merge (only the owner ticks this)
+- [x] #8 Rendered sample boards (home, office, school, park, shop; 7x7, 8x8 and 9x9; phone and desktop) show rooms furnished but not crowded; screenshots in the PR for the owner to approve together with the size and tier table
 - [x] #9 Object density and board mix (owner 2026-10-09: no cluttered boards, every board looks like a real place, variety = kinds per board): a per-room cap that grows with the room's squares and no bare room of 3+ squares; per board a density cap in objects per square that falls as the board grows (sizes 6 to 12), a minimum of distinct kinds and of object families that grows with the board, no kind or family dominating, and a target family mix per theme with a tolerance; the generator re-draws boards outside it; baselines (baked schedule, main's generator) and results (distinct kinds per board, objects per square per size, share of boards inside the tolerance before and after the re-draw, at least 95% on a sweep over fresh seeds) recorded in docs/authoring/room-rules.md; unit tests plus a slow sweep; allow-lists, chair caps and per-kind caps still hold
 <!-- AC:END -->
 
@@ -82,4 +82,6 @@ Owner decision 2026-10-09 (via coordinator): the goal is boards that are not clu
 Review round 2 (after the owner clarification of 2026-10-09 and the board-mix rework): PASS, criteria 1-9 met (7 and 8 only as artefacts, owner sign-off pending), no scope violations. Advisories: 96.4/96.6% figure unified; the family tolerance is documented as an upper bound only; the >=95% sweep assertion holds trivially after the re-draw (the 96.6% pre-re-draw rate is a measured doc number). Sweep 1800 seeds sizes 6-12: 0 wrong puzzles; very-easy on 9x9/12x12 weak (as on main).
 
 Final round (owner approved table and boards 2026-10-09, done by the orchestrator): variety measured (clue kinds per puzzle unchanged, object-clue share -1 to -3 points, 100% distinct boards, 0.77 kinds shared with the day before); review round 3 PASS; test 3725 passed; verify:phone 3074 checks + zoom 844x390 rerun 40/40 (first run: no chrome on its pinned port); looks driver 146 PASS, 0 FAIL.
+
+Owner approval in chat (2026-10-09): "Dan lijkt mij dit een goede balans!" (rules, after the clarification of the goal), and "Ja dat is akkoord" (table for levels 1 to 100 and the rendered boards). Ticked by the orchestrator. Verified on head 442f838 by the worker: full suite 3725 passed, verify:phone 3074/0 (one zoom 844x390 run crashed on Chrome not starting, rerun 40/40), looks driver 146 pass, review pass round 3. Open question for later: whether the 9x9 cap also applies from level 101 (2027-01-05); deferred, puzzles are delivered through 2027-01-01 only.
 <!-- SECTION:NOTES:END -->
