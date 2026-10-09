@@ -3,7 +3,8 @@ import type { ThemeId } from '../content/themes/index.ts'
 /*
  * Seasonal theme rules (SLAY-18.1). Pure data plus one pure lookup: a date inside a rule's window gets the rule's theme instead of the
  * normal five-theme rotation (see `themeOf` in pick.ts). Windows are yearly month/day ranges compared on the `MM-DD` text of the date, so
- * they repeat every year and the leap day (02-29) never shifts them. Simpshouse is the exception: a list of full dates.
+ * they repeat every year and the leap day (02-29) never shifts them. Simpshouse is the exception: a day of the month (the 1st of every
+ * month, SLAY-24) plus a list of full dates.
  */
 
 /** A yearly window, inclusive, as `MM-DD` text (`from` <= `to`; a window never wraps over New Year). */
@@ -18,14 +19,19 @@ export interface SeasonalRule {
   windows?: readonly YearlyWindow[]
   /** Full `YYYY-MM-DD` dates that trigger the rule (one-off days). */
   dates?: readonly string[]
+  /** Days of the month as `DD` text that trigger the rule in every month of every year. */
+  monthDays?: readonly string[]
 }
 
-/** Dates of the Simpshouse theme. Adding one is a one-line change. */
-export const SIMPSHOUSE_DATES: readonly string[] = ['2026-10-14']
+/** One-off dates of the Simpshouse theme, next to `SIMPSHOUSE_MONTH_DAYS`. 2026-10-10 is the owner's one-off test day (SLAY-24). Adding one is a one-line change. */
+export const SIMPSHOUSE_DATES: readonly string[] = ['2026-10-10', '2026-10-14']
+
+/** Simpshouse comes back on these days of every month (SLAY-24, owner decision 2026-10-09: the 1st), ahead of every seasonal window. */
+export const SIMPSHOUSE_MONTH_DAYS: readonly string[] = ['01']
 
 /** Seasonal rules, highest priority first: the first rule whose window holds the date wins. */
 export const SEASONAL_RULES: readonly SeasonalRule[] = [
-  { theme: 'simpshouse', dates: SIMPSHOUSE_DATES },
+  { theme: 'simpshouse', dates: SIMPSHOUSE_DATES, monthDays: SIMPSHOUSE_MONTH_DAYS },
   { theme: 'carnaval', windows: [{ from: '11-11', to: '11-11' }] },
   { theme: 'christmas', windows: [{ from: '12-01', to: '12-31' }] },
   { theme: 'halloween', windows: [{ from: '10-17', to: '10-31' }] },
@@ -33,10 +39,11 @@ export const SEASONAL_RULES: readonly SeasonalRule[] = [
   { theme: 'fall', windows: [{ from: '10-01', to: '10-16' }, { from: '11-01', to: '11-10' }, { from: '11-12', to: '11-30' }] },
 ]
 
-/** Whether a date falls in a rule (windows by `MM-DD`, dates by the full text). */
+/** Whether a date falls in a rule (windows by `MM-DD`, dates by the full text, month days by `DD`). */
 export function ruleHolds(rule: SeasonalRule, date: string): boolean {
   const monthDay = date.slice(5)
   if (rule.dates?.includes(date)) return true
+  if (rule.monthDays?.includes(date.slice(8, 10))) return true
   return (rule.windows ?? []).some((w) => monthDay >= w.from && monthDay <= w.to)
 }
 

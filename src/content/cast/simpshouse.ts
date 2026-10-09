@@ -14,6 +14,12 @@ export const SIMPSHOUSE_POOL: readonly CastName[] = [
   ...w('Elodie', 'Romy', 'Emma', 'Iris', 'Jolie', 'Anne', 'Eveline', 'Marnica', 'Cait'),
 ]
 
+/**
+ * Names in every Simpshouse cast (SLAY-24, owner decision 2026-10-09). Their letters are taken, so Ruben and Ralph never appear with Romy
+ * and Duncan never with Dennis.
+ */
+export const SIMPSHOUSE_ALWAYS: readonly string[] = ['Romy', 'Dennis']
+
 /** The portrait design id of the monkey (drawn by `MonkeyAvatar`; not one of the slot designs of `PORTRAIT_DESIGNS`). */
 export const MONKEY_DESIGN = 'monkey'
 
