@@ -12,7 +12,10 @@ import type { RoomType, SceneTheme, ThemeObject, ThemeRoom } from './types.ts'
  *   table, bicycle), so the counter with a hob is an "aanrecht" in the kitchen only and the Market and Cider Mill have their own pieces;
  * - the apple tree, the apple crate, the harvest table, the chrysanthemum and a cider barrel get their own drawings (the engine tree has
  *   no apples, the chest is no crate, the garden table is green metal, the flower bed no pot of mums);
- * - the hay bale and the hearth have fall-only ids (`baleOfHay`, `hearth`), because the Christmas theme draws its own hay bale and fireplace.
+ * - the hay bale and the hearth have fall-only ids (`baleOfHay`, `hearth`), because the Christmas theme draws its own hay bale and fireplace;
+ * - room types tightened so no kind lands where it does not belong: the Porch is `outdoor` only (no sofa or fireplace on it), the Harvest
+ *   Market is `market` only, the Greenhouse is `garden` (no trees under glass); favours follow the new kinds (Pantry and Cider Mill get the
+ *   cider barrel, the Greenhouse the pumpkin).
  *
  * Seasonal: picked by the calendar (src/schedule/calendar.ts, 1-16 October and November except the 11th), never part of the rotation,
  * once SLAY-18.10 registers it (see `FALL_THEME` below).
