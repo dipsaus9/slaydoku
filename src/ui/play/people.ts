@@ -2,14 +2,14 @@ import type { PortraitLook } from '../../content/cast/index.ts'
 import type { Person, Puzzle } from '../../engine/model/index.ts'
 import { buildCast, buildCastFromPeople, cardLookOf, MAX_SUSPECTS, type BuiltCast } from '../../render/cards/index.ts'
 
-/** Glyph of the gift in notes. */
-export const GIFT_TAG = '\u{1F381}'
+/** Note tag of the victim: a marker that NoteGlyph draws as a skull (no emoji, so it looks the same on every device). */
+export const VICTIM_TAG = 'skull'
 
 /**
  * One short tag per person for the small candidate notes. A suspect gets the first letter of
  * their label; when two share it, the later one takes the next letter of its name that no
  * initial claims (Bob after Ben: "O"). Labels that are already single letters (A, B...)
- * are kept. The gift gets a gift glyph. Tags are unique, upper case, one character.
+ * are kept. The victim gets VICTIM_TAG, drawn as a skull. Suspect tags are unique, upper case, one character.
  */
 export function noteTags(people: readonly Person[]): Record<string, string> {
   const tags: Record<string, string> = {}
@@ -34,7 +34,7 @@ export function noteTags(people: readonly Person[]): Record<string, string> {
     tags[p.id] = pick
     used.add(pick)
   }
-  for (const p of people) if (p.kind === 'victim') tags[p.id] = GIFT_TAG
+  for (const p of people) if (p.kind === 'victim') tags[p.id] = VICTIM_TAG
   return tags
 }
 

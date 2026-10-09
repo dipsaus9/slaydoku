@@ -7,6 +7,7 @@ import { EdgeFeatureIcon } from '../../render/icons/index.ts'
 import { SolidSvg } from '../../render/looks/Solids.tsx'
 import { solidCanonicalOf } from '../../render/looks/solid.ts'
 import { NoteGlyph, PersonDisc, PortraitClip, XMarkGlyph } from '../play/BoardLayers.tsx'
+import { VICTIM_TAG } from '../play/people.ts'
 import { bareRoomName } from '../../render/scene/labels.ts'
 import { legendOf, type LegendObjectRow } from './legend.ts'
 
@@ -67,7 +68,7 @@ export function Legend({ puzzle, cast, tags, colors, onShow }: LegendProps) {
   const clipId = `legend-clip-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   const legend = useMemo(() => legendOf(puzzle.scene, locale), [puzzle.scene, locale])
   const suspect = firstOf(puzzle.people, 'suspect')
-  const gift = firstOf(puzzle.people, 'victim')
+  const victim = firstOf(puzzle.people, 'victim')
   // The shortest room name as the sample, so the pill fits its box whole.
   const roomName = puzzle.scene.rooms.map((r) => bareRoomName(r.name)).sort((a, b) => a.length - b.length)[0]
   // Each portrait brings its own clip, so no sample depends on another one being in the page.
@@ -168,10 +169,22 @@ export function Legend({ puzzle, cast, tags, colors, onShow }: LegendProps) {
             text={t.person.text}
           />
         ) : null}
-        {gift ? (
+        {victim ? (
+          <StaticRow
+            data="mark-victim-note"
+            symbol={
+              <SquareSwatch name="victim-note">
+                {() => <NoteGlyph x={50} y={50} fontSize={60} bold color={colors[victim.id] ?? '#d6336c'} tag={tags[victim.id] ?? VICTIM_TAG} />}
+              </SquareSwatch>
+            }
+            name={t.victimNote.noun}
+            text={t.victimNote.text}
+          />
+        ) : null}
+        {victim ? (
           <StaticRow
             data="mark-gift"
-            symbol={<SquareSwatch name="gift">{() => person(gift, 'gift')}</SquareSwatch>}
+            symbol={<SquareSwatch name="gift">{() => person(victim, 'gift')}</SquareSwatch>}
             name={t.gift.noun}
             text={t.gift.text}
           />
