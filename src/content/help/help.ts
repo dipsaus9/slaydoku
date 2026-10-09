@@ -69,6 +69,7 @@ export interface HelpContent {
     cross: { noun: string; text: string }
     person: { noun: string; text: string }
     gift: { noun: string; text: string }
+    victimNote: { noun: string; text: string }
     ruleTitle: string
     rule: string
     /** Closes the card. */
@@ -133,6 +134,7 @@ export const HELP_EN: HelpContent = {
     cross: { noun: 'Cross', text: 'This person cannot stand here.' },
     person: { noun: 'Person', text: 'A portrait: this person really stands here.' },
     gift: { noun: 'The victim', text: 'Stands somewhere on the board too.' },
+    victimNote: { noun: 'Victim note', text: 'A small skull: the victim could stand here.' },
     ruleTitle: 'The rule',
     rule: 'The victim is alone in a room with exactly one person.',
     close: 'Close',
@@ -200,6 +202,7 @@ export const HELP_NL: HelpContent = {
     cross: { noun: 'Kruisje', text: 'Deze persoon kan hier niet staan.' },
     person: { noun: 'Persoon', text: 'Een portret: deze persoon staat hier echt.' },
     gift: { noun: 'Het slachtoffer', text: 'Staat ook ergens op de plattegrond.' },
+    victimNote: { noun: 'Notitie slachtoffer', text: 'Een klein doodshoofd: het slachtoffer zou hier kunnen staan.' },
     ruleTitle: 'De regel',
     rule: 'Het slachtoffer is alleen in een kamer met precies één persoon.',
     close: 'Sluiten',
