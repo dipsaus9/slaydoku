@@ -109,6 +109,38 @@ Objects per room by room size (generated, sizes 6 to 9), before → after, mean 
 
 Room-level variety (200-scene sweep, sizes 6, 7, 8, 9, 12): chairs 7.1 / 12.1 / 11.5 / 7.1 / 13.7%, most frequent kind at most 13.7%, no rule breaches, every signature kind placed, distinct kinds per room 2.45-2.52 (was 2.70-2.98 without the cap: fewer objects per room, so this is no longer the variety goal; the board count above is). Tests: `src/engine/scenegen/density.test.ts` (fast: room cap, board rules on every theme and size 6 to 12, a chairs-and-lamps board is refused), `mix.slow.test.ts` and `variety.slow.test.ts` (sweeps), `src/content/themes/decor.test.ts` (distinct kinds per board above 9.5 on the fast sample).
 
+### Variety of puzzles (SLAY-22)
+
+The owner asked: does the cleaner board still leave enough different puzzles? These are measured against main's generator on the same seeds.
+
+**Clue variety.** 100 ladder puzzles (very-easy to medium) per theme and size, 500 per size, main → branch:
+
+| Size | Clue kinds per puzzle | Clues naming an object | Clue kinds never seen (of 30) |
+|---|---|---|---|
+| 6x6 | 5.04 → 4.99 | 49.7% → 48.8% | 2 → 2 |
+| 7x7 | 5.34 → 5.46 | 49.6% → 48.9% | 2 → 2 |
+| 8x8 | 5.74 → 5.69 | 53.4% → 52.0% | 2 → 0 |
+| 9x9 | 6.31 → 6.21 | 52.8% → 51.7% | 1 → 0 |
+| 12x12 | 6.85 → 6.92 | 53.6% → 50.8% | 1 → 1 |
+
+The kinds never seen are rare people kinds (aloneWith, aloneWithGender, sameRoom, withPerson), not object kinds.
+
+**Variety between puzzles.**
+- 500 consecutive seeds per theme and size (sizes 6 to 12): 100% distinct boards and solutions, on main and on the branch.
+- The 87 planned current-rule days (2026-10-09 to 2027-01-04), main → branch: 9.9 → 9.6 object kinds per board, and 0.79 → 0.77 kinds shared with the day before. The baked schedule has 9.3 and 0.65.
+
+**Yield per seed.**
+- Hard and expert pass 70-92% per seed on every size, so about 1.1 to 1.4 seeds per day.
+- Very-easy on big boards is the weak spot, as it already was on main.
+  - 9x9 very-easy park/school/shop, 30 seeds: 33/57/60% on main → 20/37/33% here.
+  - 12x12 very-easy, 30 seeds: 31% on main → 28% here; office lowest at 17%.
+  - That is up to about 6 seeds per day out of the 50 allowed. A day runs dry with p ≈ 1e-4.
+
+**Verdict.**
+- Fewer objects do not visibly lower clue variety: kinds per puzzle are unchanged, and the share of clues naming an object fell 1-3 points.
+- Every seed gives a different puzzle, and consecutive days share less than one object kind. Nothing risks running out of distinct puzzles over the 100 levels.
+- No mitigation is needed. If the object-clue share should stay exactly as before, the generator's clue weights could favour object clues slightly; I have not changed them.
+
 ## Adding a kind or a room
 
 1. Give the room `roomTypes` and the kind `allowedRoomTypes`.
