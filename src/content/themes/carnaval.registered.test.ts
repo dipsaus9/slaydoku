@@ -27,7 +27,8 @@ describe('carnaval in the calendar, once registered (un-skipped by SLAY-24)', ()
 
   it('changes no other day: every date but 11 November has the theme it had before carnaval was registered', () => {
     let checked = 0
-    for (let d = '2026-09-27'; d <= '2028-12-31'; d = addDays(d, 1)) {
+    // From 2026-10-10 (RULES_FROM): the days played before it keep the rotation, whatever is registered (SLAY-24).
+    for (let d = '2026-10-10'; d <= '2028-12-31'; d = addDays(d, 1)) {
       if (d.endsWith('-11-11')) continue
       expect(themeOf(d), d).toBe(withoutCarnaval(d))
       checked++

@@ -68,7 +68,8 @@ describe('Christmas theme (SLAY-18.8)', () => {
       for (const r of theme.rooms) {
         const others = registeredRooms.filter((o) => o.name === r.name)
         for (const o of others) expect(r.nameNl, r.name).toBe(o.nameNl)
-        if (others.length > 0) expect(r.floor, `${r.name}: a theme floor would change the floor of the other theme's room`).toBeUndefined()
+        // A shared name may carry a floor only when the other theme gives that room the same floor (Fireside Lounge: wood in Fall too).
+        for (const o of others) if (r.floor !== undefined) expect(o.floor, `${r.name}: a theme floor would change the floor of the other theme's room`).toBe(r.floor)
       }
     })
 
@@ -76,7 +77,7 @@ describe('Christmas theme (SLAY-18.8)', () => {
       for (const r of theme.rooms) if (r.floor) expect(['wood', 'tiles', 'carpet', 'stone', 'water']).toContain(r.floor)
       expect(theme.rooms.filter((r) => r.outdoor).map((r) => r.floor)).toEqual(['water', 'water', 'water', 'stone'])
       // None of the new names is claimed by another theme's floor.
-      for (const r of theme.rooms.filter((r) => r.floor)) expect(registeredRooms.some((o) => o.name === r.name), r.name).toBe(false)
+      for (const r of theme.rooms.filter((r) => r.floor)) expect(registeredRooms.some((o) => o.name === r.name && o.floor !== r.floor), r.name).toBe(false)
       expect(styleForName('Kitchen')).toBe('tiles')
     })
 
