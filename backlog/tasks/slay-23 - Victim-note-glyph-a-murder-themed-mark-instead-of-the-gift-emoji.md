@@ -1,10 +1,10 @@
 ---
 id: SLAY-23
 title: 'Victim note glyph: a murder-themed mark instead of the gift emoji'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-10-08 20:18'
-updated_date: '2026-10-09 06:07'
+updated_date: '2026-10-09 06:08'
 labels:
   - story
   - needs-owner-review
@@ -39,8 +39,14 @@ Branch: SLAY-23/victim-note-glyph
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The victim note on the board is a drawn skull-style glyph in the victim colour with the note halo, readable at the smallest cell size at 360 wide, and no gift emoji appears anywhere in the UI, help, legend, cards or share output (test greps the rendered markup and the source)
-- [ ] #2 Legend and help describe the victim note with the new glyph in English and Dutch
-- [ ] #3 bun run lint, typecheck and test --maxWorkers=1 pass; the verify:phone legend and drive suites pass
-- [ ] #4 Owner has seen the glyph on a phone-size board and approved (only the owner ticks this)
+- [x] #1 The victim note on the board is a drawn skull-style glyph in the victim colour with the note halo, readable at the smallest cell size at 360 wide, and no gift emoji appears anywhere in the UI, help, legend, cards or share output (test greps the rendered markup and the source)
+- [x] #2 Legend and help describe the victim note with the new glyph in English and Dutch
+- [x] #3 bun run lint, typecheck and test --maxWorkers=1 pass; the verify:phone legend and drive suites pass
+- [x] #4 Owner has seen the glyph on a phone-size board and approved (only the owner ticks this)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Owner approval in chat (2026-10-09): "Doodshoofdje is akkoord". Ticked by the orchestrator. Verified on head 9d2cc49 by the worker: full suite 3709 passed/8 skipped, verify:phone 3114/0 (legend suite expects 6 marks), looks driver 146 pass, review pass. Advisory left open: the Legend row of the victim portrait is still keyed gift (mark-gift, help.legend.gift), kept because drivers and tests reference those names.
+<!-- SECTION:NOTES:END -->
