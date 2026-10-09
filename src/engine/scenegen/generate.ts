@@ -3,6 +3,7 @@ import type { SceneTheme, ThemeId } from '../../content/themes/index.ts'
 import { checkScene, isOccupiable, cellsInRoom } from '../model/index.ts'
 import type { Scene } from '../model/index.ts'
 import { checkAdmissible, type Witness } from './admissible.ts'
+import { boardMixProblems } from './mix.ts'
 import { placeObjects } from './objects.ts'
 import { placeDoors, placeWindows } from './openings.ts'
 import { partitionRooms, roomCountFor } from './partition.ts'
@@ -123,6 +124,8 @@ function tryBuild(
   // No bare room (SLAY-22): a room of MIN_FURNISHED_SQUARES or more squares where no object fits (every square next to a door) is retried.
   const furnished = new Set(objects.map((o) => partition[o.cells[0]!.row]![o.cells[0]!.col]!))
   if (sizes.some((n, i) => n >= MIN_FURNISHED_SQUARES && !furnished.has(i))) return undefined
+  // The board as a whole (SLAY-22): not too dense for its size, enough kinds and families, no kind or family dominating (mix.ts).
+  if (boardMixProblems(objects, width, height, theme.id).length > 0) return undefined
   // Every room must be able to hold somebody.
   for (const room of scene.rooms) {
     if (!cellsInRoom(scene, room.id).some((cell) => isOccupiable(scene, cell))) return undefined

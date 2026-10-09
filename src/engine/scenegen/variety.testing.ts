@@ -19,6 +19,8 @@ export interface VarietyStats {
   kinds: Map<string, number>
   /** Rule breaches: more than MAX_KIND_PER_ROOM of a kind, or more than MAX_FREE_CHAIRS_PER_ROOM chairs that do not touch a table, desk or counter. */
   violations: string[]
+  /** Sum over scenes of the number of distinct kinds on the board (SLAY-22: variety is a property of the whole board). */
+  boardKinds: number
   /** Rooms of 3+ squares without any object (a bare room). */
   bare: number
   /** Rooms with more objects than `maxObjectsInRoom` of their squares (SLAY-22). */
@@ -32,13 +34,14 @@ const kindOf = (id: string): string => id.replace(/-\d+$/, '')
 /** Generates `perSize` scenes of each size in SIZES for a theme and measures chairs, variety and the per-room rules. */
 export function measureVariety(themeId: (typeof REGULAR_THEMES)[number], perSize: number): VarietyStats {
   const theme = getTheme(themeId)
-  const stats: VarietyStats = { theme: themeId, scenes: 0, objects: 0, chairs: 0, rooms: 0, distinctKinds: 0, kinds: new Map(), violations: [], bare: 0, crowded: [], neverPlaced: [] }
+  const stats: VarietyStats = { theme: themeId, scenes: 0, objects: 0, chairs: 0, rooms: 0, distinctKinds: 0, kinds: new Map(), violations: [], boardKinds: 0, bare: 0, crowded: [], neverPlaced: [] }
   const seenRooms = new Set<string>()
   for (const size of SIZES) {
     for (let i = 1; i <= perSize; i++) {
       const seed = i * 31 + size
       const scene = generateScene({ width: size, height: size, theme: themeId, seed })
       stats.scenes++
+      stats.boardKinds += new Set(scene.objects.map((o) => kindOf(o.id))).size
       const typeAt = new Map<string, string>()
       for (const o of scene.objects) for (const c of o.cells) typeAt.set(`${c.row},${c.col}`, o.type)
       const touchesSeatable = (o: { cells: { row: number; col: number }[] }) =>
@@ -75,6 +78,8 @@ export function measureVariety(themeId: (typeof REGULAR_THEMES)[number], perSize
   return stats
 }
 
+/** Mean distinct kinds per board. */
+export const kindsPerBoard = (s: VarietyStats): number => s.boardKinds / s.scenes
 export const chairShare = (s: Pick<VarietyStats, 'chairs' | 'objects'>): number => s.chairs / s.objects
 export const distinctPerRoom = (s: VarietyStats): number => s.distinctKinds / s.rooms
 export const topKindShare = (s: VarietyStats): { kind: string; share: number } => {

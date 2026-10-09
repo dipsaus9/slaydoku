@@ -1,6 +1,7 @@
 import type { RoomType, SceneTheme, ThemeFootprint, ThemeObject } from '../../content/themes/index.ts'
 import type { Cell, EdgeFeature, PlacedObject } from '../model/index.ts'
 import { inBounds, step } from '../model/index.ts'
+import { FAMILY_OF, type ObjectFamily } from './families.ts'
 import { pick, pickWeighted, shuffle, type Random } from './random.ts'
 
 /** Every row and column keeps at least this many occupiable cells. */
@@ -15,6 +16,9 @@ const FAVOUR_BOOST = 4
 /** Variety (SLAY-17.6): a kind the room does not have yet is this much likelier, and each copy already in the room multiplies the weight by `REPEAT_FACTOR` (0.35 until SLAY-22; 0.2 since the density cap, so a capped room spends its few objects on different kinds). */
 const NEW_KIND_BOOST = 3
 const REPEAT_FACTOR = 0.2
+
+/** A kind of an object family the board does not have yet is this much likelier (SLAY-22: a board should mix families like a real place). */
+const NEW_FAMILY_BOOST = 2
 
 /** Chance boost when a spot fits the object's placement hint. */
 const HINT_BOOST = 8
@@ -35,6 +39,9 @@ export const SEAT_AT_TYPES: ReadonlySet<string> = new Set(['table', 'diningTable
  */
 export const SQUARES_PER_OBJECT = 5
 export const maxObjectsInRoom = (squares: number): number => 1 + Math.floor(squares / SQUARES_PER_OBJECT)
+
+/** How much of the usual room coverage a board of `side` x `side` gets: 1 on 6x6, 0.925 on 9x9, 0.85 on 12x12 (SLAY-22). */
+export const boardCoverageFactor = (side: number): number => Math.max(0.7, 1 - 0.025 * (side - 6))
 
 /** Chance boost for a chair spot next to a table, desk or counter (companion placement). */
 const COMPANION_BOOST = 3
@@ -113,11 +120,14 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
     (isWall(c.row, c.col, -1, 0) || isWall(c.row, c.col, 1, 0)) &&
     (isWall(c.row, c.col, 0, -1) || isWall(c.row, c.col, 0, 1))
 
+  // A bigger board is furnished a little more sparsely per square (SLAY-22), so it stays under `densityCap` (mix.ts).
+  const coverageFactor = boardCoverageFactor(Math.sqrt(width * height))
   const objects: PlacedObject[] = []
   const cellType = new Map<string, string>()
   const nextToSeatable = (c: Cell): boolean =>
     [[-1, 0], [1, 0], [0, -1], [0, 1]].some(([dr, dc]) => SEAT_AT_TYPES.has(cellType.get(`${c.row + dr!},${c.col + dc!}`) ?? ''))
   const counter = new Map<string, number>()
+  const familiesOnBoard = new Set<ObjectFamily>()
 
   for (const room of shuffle(random, roomIds)) {
     const size = roomSize.get(room)!
@@ -130,7 +140,7 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
     const roomTypes = new Set(input.roomTypes[room] ?? [])
     const perKind = new Map<string, number>()
     let chairs = 0
-    const target = Math.max(1, Math.round(size * (0.22 + random() * 0.22)))
+    const target = Math.max(1, Math.round(size * (0.22 + random() * 0.22) * coverageFactor))
     const cap = maxObjectsInRoom(size)
     let placedHere = 0
     let covered = 0
@@ -180,6 +190,7 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
       const n = (counter.get(object.kind) ?? 0) + 1
       counter.set(object.kind, n)
       objects.push({ id: `${object.kind}-${n}`, type: object.engineType, cells: spot.cells })
+      familiesOnBoard.add(FAMILY_OF[object.engineType])
       if (isChair) chairs++
       for (const c of spot.cells) {
         cellType.set(`${c.row},${c.col}`, object.engineType)
@@ -203,12 +214,12 @@ export function placeObjects(input: PlaceObjectsInput, random: Random): PlacedOb
       const candidates = allowed.filter(
         (o) => (perKind.get(o.kind) ?? 0) < Math.min(o.maxPerRoom ?? Infinity, MAX_KIND_PER_ROOM) && (!onlyFavoured || favoured.has(o.kind)),
       )
-      // The signature pick is even across the favoured kinds (SLAY-22): with the density cap a small room may get only this one object, so a
-      // low-weight signature kind (the car in a garage) must not lose to a common one every time.
+      // The signature pick ignores the kind weights (SLAY-22): with the density cap a small room may get only this one object, so a low-weight
+      // signature kind (the car in a garage) must not lose to a common one every time; the room's first favoured kind counts double.
       const object = pickWeighted(random, candidates, (o) => {
-        if (onlyFavoured) return 1
+        if (onlyFavoured) return o.kind === input.favours[room]?.[0] ? 2 : 1
         const have = perKind.get(o.kind) ?? 0
-        return o.weight * (favoured.has(o.kind) ? FAVOUR_BOOST : 1) * (have === 0 ? NEW_KIND_BOOST : REPEAT_FACTOR ** have)
+        return o.weight * (favoured.has(o.kind) ? FAVOUR_BOOST : 1) * (have === 0 ? NEW_KIND_BOOST : REPEAT_FACTOR ** have) * (familiesOnBoard.has(FAMILY_OF[o.engineType]) ? 1 : NEW_FAMILY_BOOST)
       })
       if (!object) break
       const placed = tryPlace(object)

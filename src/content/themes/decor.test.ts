@@ -3,7 +3,7 @@ import { renderClue } from '../../engine/clues/index.ts'
 import type { CatalogClue } from '../../engine/clues/index.ts'
 import { OBJECT_CATALOG } from '../../engine/model/index.ts'
 import type { ObjectType, Scene } from '../../engine/model/index.ts'
-import { REGULAR_THEMES, chairShare, distinctPerRoom, measureVariety } from '../../engine/scenegen/variety.testing.ts'
+import { REGULAR_THEMES, chairShare, distinctPerRoom, kindsPerBoard, measureVariety } from '../../engine/scenegen/variety.testing.ts'
 import { legendOf } from '../../ui/help/legend.ts'
 import { generatedPuzzles } from '../generated.testing.ts'
 import { getTheme } from './index.ts'
@@ -73,19 +73,14 @@ const KINDS: readonly { theme: ThemeId; kind: string; type: ObjectType; rooms: r
   { theme: 'shop', kind: 'selfCheckout', type: 'kiosk', rooms: ['Checkout', 'Collection Point', 'Self Checkout'], nl: 'zelfscankiosk' },
 ]
 
-/**
- * SLAY-22: since the object density cap a room holds fewer objects, so distinct kinds per room can no longer beat the uncapped numbers
- * below (park and shop now place 2.75 objects per room against a 2.89 / 2.73 baseline). Variety is measured as the share of a room's
- * objects that are a kind new to that room (sum of distinct kinds per room / objects), against the same share without the cap on the
- * 200-scene sweep (sizes 6, 7, 8, 9, 12) at 0650617: home 0.982, office 0.949, school 0.924, park 0.955, shop 0.885.
- */
-const BASELINE_DISTINCT_SHARE: Record<(typeof REGULAR_THEMES)[number], number> = { home: 0.982, office: 0.949, school: 0.924, park: 0.955, shop: 0.885 }
-
 /*
- * The SLAY-19.1 check was distinct kinds per room on the fast sample against main at d501e50 (home 2.463, office 2.647, school 2.514,
- * park 2.892, shop 2.734; 200-scene numbers 2.45, 2.64, 2.53, 2.92, 2.67 before 19.1 and 2.78, 2.85, 2.70, 3.00, 2.72 after). Under the
- * SLAY-22 cap park and shop fall below it (200 scenes: 2.69 and 2.60): an open owner decision on the SLAY-22 PR.
+ * Variety is a property of the whole board (owner, 2026-10-09, SLAY-22): how many different kinds a puzzle shows, not how many one room
+ * holds. SLAY-19.1 measured distinct kinds per room (home 2.463, office 2.647, school 2.514, park 2.892, shop 2.734 on this sample before
+ * 19.1); the SLAY-22 cap leaves fewer objects per room, so that number is no longer the goal. The board rules are in
+ * src/engine/scenegen/mix.ts; here: the mean distinct kinds per board on the fast sample (sizes 6, 7, 8, 9, 12) stays above a floor
+ * (measured 10.1 to 11.9 on 200 scenes per theme).
  */
+const MIN_KINDS_PER_BOARD = 9.5
 
 const roomsAllowing = (theme: ThemeId, kind: string): string[] => {
   const t = getTheme(theme)
@@ -151,11 +146,8 @@ describe('decor objects (SLAY-19.1)', () => {
   it('raises the variety in every theme against the baseline, keeps chairs at most 15% and still places the signature objects', () => {
     for (const theme of REGULAR_THEMES) {
       const s = measureVariety(theme, 12)
-      // Before the SLAY-22 density cap: distinct kinds per room above the pre-19.1 numbers (see above; park and shop
-      // now fall below them, an open owner decision on the SLAY-22 PR). Now: the distinct share of a room's objects
-      // above the uncapped share, and still more than 2.4 distinct kinds per room.
-      expect(s.distinctKinds / s.objects, theme).toBeGreaterThan(BASELINE_DISTINCT_SHARE[theme])
-      expect(distinctPerRoom(s), theme).toBeGreaterThan(2.4)
+      expect(kindsPerBoard(s), theme).toBeGreaterThan(MIN_KINDS_PER_BOARD)
+      expect(distinctPerRoom(s), theme).toBeGreaterThan(2.3)
       expect(chairShare(s), theme).toBeLessThanOrEqual(0.15)
       expect(s.violations, theme).toEqual([])
       const signature = new Set(getTheme(theme).rooms.flatMap((r) => r.favours))
