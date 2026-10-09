@@ -79,9 +79,9 @@ describe('hard/expert\'s size-banded threshold (SLAY-13.1)', () => {
     const expert = SOLVABLE_TIERS.find((t) => t.id === 'expert')!
     expect(hard.scoreBandBySize[sizeBandOf(9)]).toEqual({ min: 51, max: 87 })
     expect(expert.scoreBandBySize[sizeBandOf(12)]).toEqual({ min: 88, max: 100 })
-    // SLAY-13.1 could not measure a {6,7} hard/expert population (no puzzle is generated at that size today,
-    // ADVANCED_SIZES in src/schedule/pick.ts): its band mirrors the measured {9,12} one as a placeholder, not
-    // a real size difference -- unlike the ladder tiers above, this is documented as unbanded-by-evidence.
+    // SLAY-13.1 could not measure a {6,7} hard/expert population (none was generated before SLAY-22 put hard on
+    // 6x6 and 7x7 in the first 100 levels): its band mirrors the measured {9,12} one, not a real size difference --
+    // unlike the ladder tiers above, this is documented as unbanded-by-evidence (the SLAY-22 sweep passes with it).
     expect(hard.scoreBandBySize.small).toEqual(hard.scoreBandBySize.large)
     expect(expert.scoreBandBySize.small).toEqual(expert.scoreBandBySize.large)
   })

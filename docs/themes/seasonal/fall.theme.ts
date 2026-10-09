@@ -1,7 +1,17 @@
 import { rect } from '../../../src/content/themes/define.ts'
 import type { SeasonalTheme } from './common.ts'
 
-/** Fall: 1-16 October, then November except the 11th. A farm, an orchard and a cabin in the woods. */
+/**
+ * Fall: 1-16 October, then November except the 11th. A farm, an orchard and a cabin in the woods.
+ *
+ * Built in SLAY-18.6 as `fallTheme` in src/content/themes/fall.ts (block art in src/render/icons/themes/fallArt.ts), registered by SLAY-18.10;
+ * this draft stays the reference.
+ * Changes against it: the rocking chair is the plain chair; kinds drawn with engine art take the Home kind of that art (single and double
+ * bed, sofa, wardrobe, bookcase, desk, kitchen counter in the kitchen only, dining table, coffee table, bicycle); the apple tree, apple
+ * crate, harvest table and chrysanthemum (one pot) get own drawings and a cider barrel is new; the hay bale and fireplace use the ids
+ * `baleOfHay` and `hearth` because Christmas draws its own; the Porch is `outdoor` only, the Harvest Market `market` only and the Greenhouse
+ * `garden`, and favours follow the new kinds (see the header of fall.ts). Screenshots: docs/design/looks-shots/slay-18.6/.
+ */
 export const FALL_THEME: SeasonalTheme = {
   id: 'fall',
   name: 'Autumn farm',

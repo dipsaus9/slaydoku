@@ -53,9 +53,12 @@ on purpose: computing it calls `computeMetrics`, which itself calls `assessTier`
 computing it from inside `assessTier` would recurse without end.
 
 Today both size bands carry the identical hard (51-87) and expert (88-100) score v2 bands: the `'large'` numbers are measured (the spike
-found the {9,12} gap within sampling noise), but no `'small'` hard/expert puzzle is ever generated today (`ADVANCED_SIZES` in
-`src/schedule/pick.ts` keeps hard/expert to {9,12} by product decision), so the `'small'` band mirrors `'large'` as an unvalidated
-placeholder, ready for the mechanism but not calibrated against a real population.
+found the {9,12} gap within sampling noise). Until SLAY-22 no `'small'` hard/expert puzzle was generated, so the `'small'` band mirrors
+`'large'` as a placeholder. Since SLAY-22 (owner decision 2026-10-08) the first 100 levels plan hard on 6x6, 7x7, 8x8 and 9x9
+(`SMALL_GRID_SIZE_WEIGHTS` in `src/schedule/pick.ts`; expert stays 9x9 there). The bands were left as they are: a generation sweep on fresh seeds
+(sizes 6 to 9, every tier and theme, SLAY-22 PR) passes every gate, the hint audit included, on hard 6x6 and 7x7 with the mirrored band, and a
+rendered hint walk solves a 6x6 hard puzzle step by step (`docs/design/looks-shots/slay-22/`). An 8x8 board falls in the `'large'` band
+(`sizeBandOf`: `size <= 7` is small), so its ladder caps are the 9x9 ones on a smaller board, never looser than on 9x9.
 
 ## Every card informative on its own
 

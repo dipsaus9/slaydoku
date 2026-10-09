@@ -16,7 +16,7 @@ import { VICTIM_LABEL, packId } from './ids.ts'
 import type { PackEntry } from './types.ts'
 
 /** Board sizes of the pack, and the size of the seed window one (size, tier, theme) may search. */
-export const PACK_SIZES = [6, 7, 9, 12, 16] as const
+export const PACK_SIZES = [6, 7, 8, 9, 12, 16] as const
 export const SEED_WINDOW = 100
 
 /** Wall clock per puzzle. Above the 60 s default so a busy machine cannot cut a search short and change the result. */

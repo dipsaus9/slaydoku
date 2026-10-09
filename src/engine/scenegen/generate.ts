@@ -3,6 +3,7 @@ import type { SceneTheme, ThemeId } from '../../content/themes/index.ts'
 import { checkScene, isOccupiable, cellsInRoom } from '../model/index.ts'
 import type { Scene } from '../model/index.ts'
 import { checkAdmissible, type Witness } from './admissible.ts'
+import { boardMixProblems } from './mix.ts'
 import { placeObjects } from './objects.ts'
 import { placeDoors, placeWindows } from './openings.ts'
 import { partitionRooms, roomCountFor } from './partition.ts'
@@ -10,6 +11,9 @@ import { createRandom, gaussian, mixSeed, type Random } from './random.ts'
 
 export const MIN_SIZE = 6
 export const MAX_SIZE = 16
+
+/** Rooms of at least this many squares always hold an object (SLAY-22); a smaller room (a closet) may stay bare. */
+export const MIN_FURNISHED_SQUARES = 3
 
 /** Attempts per scene before giving up; real failures are rare, so this is a safety net. */
 export const MAX_ATTEMPTS = 100
@@ -117,6 +121,11 @@ function tryBuild(
   }
 
   if (checkScene(scene).length > 0) return undefined
+  // No bare room (SLAY-22): a room of MIN_FURNISHED_SQUARES or more squares where no object fits (every square next to a door) is retried.
+  const furnished = new Set(objects.map((o) => partition[o.cells[0]!.row]![o.cells[0]!.col]!))
+  if (sizes.some((n, i) => n >= MIN_FURNISHED_SQUARES && !furnished.has(i))) return undefined
+  // The board as a whole (SLAY-22): not too dense for its size, enough kinds and families, no kind or family dominating (mix.ts).
+  if (boardMixProblems(objects, width, height, theme.id).length > 0) return undefined
   // Every room must be able to hold somebody.
   for (const room of scene.rooms) {
     if (!cellsInRoom(scene, room.id).some((cell) => isOccupiable(scene, cell))) return undefined
