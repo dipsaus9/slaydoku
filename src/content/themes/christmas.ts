@@ -81,7 +81,7 @@ export const CHRISTMAS_OBJECTS: ThemeObject[] = [
   themeObject({ kind: 'holly', name: 'holly bush', clueNoun: 'holly bush', nameNl: 'hulststruik', engineType: 'plant', themeIcon: 'holly', weight: 5, footprints: [rect(1, 1)], placement: 'corner', allowedRoomTypes: [OUTDOOR, 'chapel', 'market'] }),
 ]
 
-/** The finished theme. Not registered yet: SLAY-18.10 points CHRISTMAS_THEME at it when it regenerates the December days. */
+/** The finished theme, registered by SLAY-24 (which took over SLAY-18.10) with the regenerated December days. */
 export const christmasTheme: SceneTheme = {
   id: 'christmas',
   seasonal: true,
@@ -91,9 +91,5 @@ export const christmasTheme: SceneTheme = {
   objects: CHRISTMAS_OBJECTS,
 }
 
-/**
- * What index.ts registers. Left undefined on purpose (coordinator decision, SLAY-18.8): registering makes the calendar give Christmas to
- * December while the committed schedule still has the rotation themes there, so the schedule tests would fail until SLAY-18.10 regenerates
- * those days. SLAY-18.10 flips this to `christmasTheme`.
- */
-export const CHRISTMAS_THEME: SceneTheme | undefined = undefined // registered by SLAY-18.10
+/** What index.ts registers (SLAY-24, which took over SLAY-18.10, with the regenerated December days). */
+export const CHRISTMAS_THEME: SceneTheme | undefined = christmasTheme

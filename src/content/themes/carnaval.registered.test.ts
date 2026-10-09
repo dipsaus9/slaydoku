@@ -12,7 +12,7 @@ import type { ThemeId } from './types.ts'
  * undefined, because registering it moves 2026-11-11 from its committed theme to carnaval and that day has to be regenerated in the same
  * change. SLAY-18.10 sets `CARNAVAL_THEME = carnavalTheme`, regenerates 11 November, and turns `describe.skip` below into `describe`.
  */
-describe.skip('carnaval in the calendar, once registered (un-skipped by SLAY-18.10)', () => {
+describe('carnaval in the calendar, once registered (un-skipped by SLAY-24)', () => {
   const registered = new Set(SCENE_THEMES.map((t) => t.id))
   const withoutCarnaval = (date: string): ThemeId => seasonalThemeOf(date, (id) => registered.has(id) && id !== 'carnaval') ?? rotationThemeOf(date)
 

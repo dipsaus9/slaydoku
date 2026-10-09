@@ -62,14 +62,15 @@ describe('windows repeat yearly', () => {
       expect(seasonal(`${year}-10-20`), year).toBe('halloween')
       expect(seasonal(`${year}-11-11`), year).toBe('carnaval')
       expect(seasonal(`${year}-12-25`), year).toBe('christmas')
-      expect(seasonal(`${year}-03-01`), year).toBeUndefined()
+      expect(seasonal(`${year}-03-02`), year).toBeUndefined()
     }
   })
 
-  it('does not treat the leap day as seasonal and keeps neighbours plain', () => {
+  it('does not treat the leap day as seasonal and keeps neighbours plain (the 1st of March is Simpshouse, SLAY-24)', () => {
     expect(seasonal('2028-02-29')).toBeUndefined()
     expect(seasonal('2028-02-28')).toBeUndefined()
-    expect(seasonal('2028-03-01')).toBeUndefined()
+    expect(seasonal('2028-03-01')).toBe('simpshouse')
+    expect(seasonal('2028-03-02')).toBeUndefined()
   })
 
   it('Simpshouse fires on its listed one-off dates only once, not yearly', () => {

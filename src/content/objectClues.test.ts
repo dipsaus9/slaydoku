@@ -101,7 +101,7 @@ describe('object clues mean the whole object', () => {
         const text = renderClue(clue, ctx)
         expect(text, name).toContain(SIDE_WORD[side])
         expect(DIRECTION_OF_OBJECT_SIDES).toContain(side)
-        expect(text, name).toMatch(/ than an? [a-zé ,-]+\.$/) // the hyphen: "a fitting-room mirror", "a self-checkout kiosk" (SLAY-19.1)
+        expect(text, name).toMatch(/ than an? [a-zé ,-]+\.$|than a Christmas tree\.$/) // the hyphen: "a fitting-room mirror", "a self-checkout kiosk" (SLAY-19.1); a proper noun keeps its capital (SLAY-24)
 
         // Same rows/columns as a multi-cell object's own extent: never beyond THAT object.
         for (const o of objects) {
