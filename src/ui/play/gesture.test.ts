@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  cellsBetween,
   DEFAULT_GESTURE_CONFIG as cfg,
   gestureStep,
   IDLE,
@@ -64,7 +63,7 @@ describe('long press', () => {
     expect(run([down(c(1, 1)), up(cfg.longPressMs + 10)]).effects).toEqual([{ type: 'longPress', cell: c(1, 1) }])
   })
 
-  it('does not fire after the finger moved away to paint', () => {
+  it('does not fire after the finger moved away', () => {
     const { effects } = run([down(c(1, 1)), move(c(1, 2), 180, 100), timer(cfg.longPressMs), up(900)])
     expect(effects.some((e) => e.type === 'longPress')).toBe(false)
   })
@@ -75,51 +74,31 @@ describe('long press', () => {
   })
 })
 
-describe('drag painting', () => {
-  it('starts on the first cell and follows the finger', () => {
-    const { effects } = run([down(c(0, 0)), move(c(0, 0), 115, 100), move(c(0, 1), 180, 100), move(c(0, 2), 250, 100), up()])
-    expect(effects).toEqual([
-      { type: 'paintStart', cell: c(0, 0) },
-      { type: 'paintEnter', cell: c(0, 1) },
-      { type: 'paintEnter', cell: c(0, 2) },
-      { type: 'paintEnd' },
-    ])
-  })
-
-  it('starting the drag inside the first cell paints only that cell until the finger leaves', () => {
-    const { effects } = run([down(c(0, 0)), move(c(0, 0), 130, 100), up()])
-    expect(effects).toEqual([{ type: 'paintStart', cell: c(0, 0) }, { type: 'paintEnd' }])
-  })
-
-  it('does not repaint a cell the finger is still on', () => {
-    const { effects } = run([down(c(0, 0)), move(c(0, 1), 180, 100), move(c(0, 1), 185, 100), move(c(0, 1), 190, 101), up()])
-    expect(effects.filter((e) => e.type === 'paintEnter')).toHaveLength(1)
-  })
-
-  it('fills in cells skipped by a fast swipe', () => {
-    const { effects } = run([down(c(0, 0)), move(c(0, 3), 400, 100)])
-    expect(effects).toEqual([
-      { type: 'paintStart', cell: c(0, 0) },
-      { type: 'paintEnter', cell: c(0, 1) },
-      { type: 'paintEnter', cell: c(0, 2) },
-      { type: 'paintEnter', cell: c(0, 3) },
-    ])
-  })
-
-  it('ignores moves outside the grid but keeps painting when the finger returns', () => {
-    const { effects } = run([down(c(0, 0)), move(c(0, 1), 180, 100), move(null, 900, 100), move(c(0, 2), 250, 100), up()])
-    expect(effects.map((e) => e.type)).toEqual(['paintStart', 'paintEnter', 'paintEnter', 'paintEnd'])
-  })
-
-  it('ends on cancel', () => {
-    const { effects, state } = run([down(c(0, 0)), move(c(0, 1), 180, 100), { type: 'cancel', pointerId: 1 }])
-    expect(effects.at(-1)).toEqual({ type: 'paintEnd' })
+describe('no multi-square swipe (SLAY-20)', () => {
+  it('a swipe across several squares does nothing, on press, on every move and on release', () => {
+    const { effects, state } = run([down(c(0, 0)), move(c(0, 0), 115, 100), move(c(0, 1), 180, 100), move(c(0, 2), 250, 100), up()])
+    expect(effects).toEqual([])
     expect(state).toEqual(IDLE)
   })
 
-  it('never taps after a drag', () => {
-    const { effects } = run([down(c(0, 0)), move(c(0, 1), 180, 100), up()])
-    expect(effects.some((e) => e.type === 'tap')).toBe(false)
+  it('a move past the slop inside the first square does nothing either', () => {
+    expect(run([down(c(0, 0)), move(c(0, 0), 130, 100), up()]).effects).toEqual([])
+  })
+
+  it('a fast vertical scroll over the board sets nothing, also when it is held past the long-press time', () => {
+    const { effects } = run([down(c(0, 0)), move(c(4, 0), 100, 400), timer(cfg.longPressMs), move(null, 100, 900), up(cfg.longPressMs + 300)])
+    expect(effects).toEqual([])
+  })
+
+  it('a cancelled swipe (the browser took it as a scroll) does nothing', () => {
+    const { effects, state } = run([down(c(0, 0)), move(c(0, 1), 180, 100), { type: 'cancel', pointerId: 1 }])
+    expect(effects).toEqual([])
+    expect(state).toEqual(IDLE)
+  })
+
+  it('a new tap after a swipe works as before', () => {
+    const { effects } = run([down(c(0, 0)), move(c(0, 3), 400, 100), up(), down(c(2, 2), 100, 100, 200), up(260)])
+    expect(effects).toEqual([{ type: 'tap', cell: c(2, 2) }])
   })
 })
 
@@ -130,28 +109,13 @@ describe('several fingers', () => {
     expect(state).toEqual(IDLE)
   })
 
-  it('a second finger ends painting', () => {
-    const { effects } = run([down(c(0, 0)), move(c(0, 1), 180, 100), down(c(4, 4), 400, 400, 60, 2)])
-    expect(effects.at(-1)).toEqual({ type: 'paintEnd' })
+  it('a second finger after a swipe sets nothing', () => {
+    const { effects } = run([down(c(0, 0)), move(c(0, 1), 180, 100), down(c(4, 4), 400, 400, 60, 2), up(80, 2), up(90, 1)])
+    expect(effects).toEqual([])
   })
 
   it('events of other pointers are ignored', () => {
     const { effects } = run([down(c(0, 0)), move(c(5, 5), 900, 900, 20, 2), up(30, 2), up(40, 1)])
     expect(effects).toEqual([{ type: 'tap', cell: c(0, 0) }])
-  })
-})
-
-describe('cellsBetween', () => {
-  it('is empty for the same cell', () => expect(cellsBetween(c(1, 1), c(1, 1))).toEqual([]))
-  it('walks straight lines', () => expect(cellsBetween(c(2, 0), c(0, 0))).toEqual([c(1, 0), c(0, 0)]))
-  it('walks diagonals', () => expect(cellsBetween(c(0, 0), c(2, 2))).toEqual([c(1, 1), c(2, 2)]))
-  it('always ends on the target and moves one cell at a time', () => {
-    const path = cellsBetween(c(0, 0), c(3, 7))
-    expect(path.at(-1)).toEqual(c(3, 7))
-    let prev = c(0, 0)
-    for (const cell of path) {
-      expect(Math.max(Math.abs(cell.row - prev.row), Math.abs(cell.col - prev.col))).toBe(1)
-      prev = cell
-    }
   })
 })

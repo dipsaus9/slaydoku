@@ -7,7 +7,7 @@ import { fingerStep, NO_FINGERS, isZoomed, panBy, zoomAt, type FingerEvent, type
  * Only touch and pen pointers count as fingers; a mouse never pinches (it pans and zooms with the
  * wheel instead, see below). Each handler returns true while two or more fingers are down: the
  * caller then keeps the event away from the cell gesture. `cancelGesture` runs once, when the second
- * finger lands, so a drag that already began ends cleanly and a pending long press never fires.
+ * finger lands, so a pending tap or long press never fires.
  *
  * The pointer position is turned into a fraction of the frame (the element that carries these
  * handlers and never moves), so the maths in zoom.ts stays free of pixels.

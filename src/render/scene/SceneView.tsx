@@ -24,8 +24,10 @@ export interface SceneViewProps {
   objectsLayer?: LayerContent
   /** Slot for what lies on the floor: crosses, hints, the press ring. */
   marksLayer?: LayerContent
-  /** Slot for candidate letters. */
+  /** Slot for candidate letters: drawn above the room labels, so a name never hides a note (SLAY-20). */
   notesLayer?: LayerContent
+  /** Squares ("row,col") that carry notes: a room name over one of them fades back (RoomLabels, SLAY-20). */
+  notedCells?: ReadonlySet<string>
   /** Slot for placed people. */
   peopleLayer?: LayerContent
   /** Slot for the Legend's pointer, drawn over the people. */
@@ -45,9 +47,10 @@ function resolve(content: LayerContent, geometry: SceneGeometry): ReactNode {
 /**
  * Draws a Scene as one scalable SVG (viewBox based, fills its container's
  * width). Paint order, bottom to top (a painter's algorithm, owner SLAY-17.4): shadow, floors, grid, walls, doors and windows, objects (lower on the
- * screen is drawn later), marks, people, room labels, axis labels, per-cell hit rects. Walls are always at the very bottom: an object may rise over
+ * screen is drawn later), marks, people, room labels, notes, axis labels, per-cell hit rects. Walls are always at the very bottom: an object may rise over
  * the wall behind it, never the other way round. Room labels sit on top of marks and people (SLAY-17.5) with a paper-coloured halo and no pill,
- * so the name stays readable in a room the player has filled in. The grid has headroom above it (geometry.ts) for the tall parts of the top row.
+ * so the name stays readable in a room the player has filled in. Notes (candidate letters) go above the labels (SLAY-20, owner: "sometimes you
+ * cannot see the note when a room name is above it"): a small letter with its own white halo sits on top, and a name over a square with notes fades back so the letters stay the clearest thing. The grid has headroom above it (geometry.ts) for the tall parts of the top row.
  */
 export function SceneView({
   scene,
@@ -56,6 +59,7 @@ export function SceneView({
   objectsLayer,
   marksLayer,
   notesLayer,
+  notedCells,
   flashLayer,
   peopleLayer,
   onCellClick,
@@ -91,13 +95,15 @@ export function SceneView({
       </g>
       <g data-layer="marks" pointerEvents="none">
         {marksLayer && resolve(marksLayer, geometry)}
-        {notesLayer && resolve(notesLayer, geometry)}
       </g>
       <g data-layer="people" pointerEvents="none">
         {peopleLayer && resolve(peopleLayer, geometry)}
         {flashLayer && resolve(flashLayer, geometry)}
       </g>
-      <RoomLabels scene={scene} geometry={geometry} locale={locale} />
+      <RoomLabels scene={scene} geometry={geometry} locale={locale} notedCells={notedCells} />
+      <g data-layer="notes" pointerEvents="none">
+        {notesLayer && resolve(notesLayer, geometry)}
+      </g>
       {showAxisLabels && <AxisLabels geometry={geometry} />}
       <HitLayer geometry={geometry} onCellClick={onCellClick} />
     </svg>

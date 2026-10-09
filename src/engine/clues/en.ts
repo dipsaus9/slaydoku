@@ -68,6 +68,26 @@ export const OBJECT_WORDS: Record<ObjectType, ObjectWords> = {
   bicycle: { noun: 'bicycle', prep: 'on', verb: 'stood' },
   gardenTable: { noun: 'garden table', prep: 'on', verb: 'stood' },
   bench: { noun: 'bench', prep: 'on', verb: 'sat' },
+  // Decor objects (SLAY-19.1). The noun names what the engine art draws: the lamp is a standing lamp, the play equipment a slide, the gym box a vaulting box.
+  lamp: { noun: 'lamp', prep: 'on', verb: 'stood' },
+  mirror: { noun: 'mirror', prep: 'on', verb: 'stood' },
+  coatRack: { noun: 'coat rack', prep: 'on', verb: 'stood' },
+  fridge: { noun: 'fridge', prep: 'on', verb: 'stood' },
+  bathtub: { noun: 'bathtub', prep: 'in', verb: 'lay' },
+  fireplace: { noun: 'fireplace', prep: 'on', verb: 'stood' },
+  piano: { noun: 'piano', prep: 'on', verb: 'stood' },
+  aquarium: { noun: 'aquarium', prep: 'on', verb: 'stood' },
+  exerciseBike: { noun: 'exercise bike', prep: 'on', verb: 'sat' },
+  bin: { noun: 'bin', prep: 'in', verb: 'stood' },
+  waterCooler: { noun: 'water cooler', prep: 'on', verb: 'stood' },
+  serverRack: { noun: 'server rack', prep: 'on', verb: 'stood' },
+  globe: { noun: 'globe', prep: 'on', verb: 'stood' },
+  gymBox: { noun: 'vaulting box', prep: 'on', verb: 'sat' },
+  playEquipment: { noun: 'slide', prep: 'on', verb: 'sat' },
+  barbecue: { noun: 'barbecue', prep: 'on', verb: 'stood' },
+  tent: { noun: 'tent', prep: 'in', verb: 'lay' },
+  shoppingCart: { noun: 'shopping cart', prep: 'in', verb: 'sat' },
+  kiosk: { noun: 'self-checkout kiosk', prep: 'on', verb: 'stood' },
 }
 
 /** "a table", "an easel", "a TV": the noun with its indefinite article. */

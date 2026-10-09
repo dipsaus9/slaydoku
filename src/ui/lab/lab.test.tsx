@@ -126,7 +126,8 @@ describe('verify summary', () => {
 })
 
 describe('runGeneration', () => {
-  const request: GenerateRequest = { size: 6, tier: 'very-easy', theme: 'home', seed: 101, budgetMs: 30_000 }
+  // Seed 102: since the SLAY-19.1 decor kinds, seed 101 scores 8, just outside the very-easy band (a warning, not a failure).
+  const request: GenerateRequest = { size: 6, tier: 'very-easy', theme: 'home', seed: 102, budgetMs: 30_000 }
 
   it('generates a playable, verified puzzle and reports its phases', () => {
     const phases: string[] = []
@@ -134,7 +135,7 @@ describe('runGeneration', () => {
     expect(phases).toEqual(['scene', 'search', 'check'])
     expect(outcome.ok).toBe(true)
     if (!outcome.ok) return
-    expect(outcome.puzzle.id).toBe('6-very-easy-home-101')
+    expect(outcome.puzzle.id).toBe('6-very-easy-home-102')
     expect(outcome.puzzle.warnings).toEqual([])
     expect(verifySummary(outcome.puzzle.puzzle).pass).toBe(true)
     expect(packView(outcome.puzzle, 'generated').castSeed).toBe(outcome.puzzle.id)

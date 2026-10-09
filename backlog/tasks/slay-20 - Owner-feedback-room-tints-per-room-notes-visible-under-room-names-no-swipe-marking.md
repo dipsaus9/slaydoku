@@ -1,0 +1,83 @@
+---
+id: SLAY-20
+title: >-
+  Owner feedback: room tints per room, notes visible under room names, no swipe
+  marking
+status: Done
+assignee: []
+created_date: '2026-10-08 19:19'
+updated_date: '2026-10-08 20:49'
+labels:
+  - story
+  - needs-owner-review
+dependencies: []
+references:
+  - src/render/scene/roomStyles.ts
+  - src/render/scene/roomStyles.test.ts
+  - src/render/scene/geometry.test.ts
+  - src/render/scene/layers/
+  - src/render/scene/labels.ts
+  - src/render/scene/labels.test.ts
+  - src/render/scene/SceneView.tsx
+  - src/render/scene/SceneView.test.tsx
+  - src/ui/play/gesture.ts
+  - src/ui/play/gesture.test.ts
+  - src/ui/play/intent.ts
+  - src/ui/play/intent.test.ts
+  - src/ui/play/useGesture.ts
+  - src/ui/play/useBoardZoom.ts
+  - src/ui/play/Board.tsx
+  - src/ui/play/BoardLayers.tsx
+  - src/ui/play/index.ts
+  - src/ui/play/play.css
+  - src/ui/play/strings.ts
+  - src/ui/play/PlayScreen.test.tsx
+  - src/ui/help/
+  - src/content/help/help.ts
+  - docs/verification/
+  - docs/design/
+type: feature
+ordinal: 142000
+---
+
+## Description
+
+<!-- SECTION:DESCRIPTION:BEGIN -->
+Outcome: three owner fixes on the play board. (1) Each room gets its own floor tint, so two rooms next to each other never look alike and a room is recognisable as a different room at a glance. (2) A note (candidate mark) stays visible when a room name is drawn over its square. (3) On a phone, an accidental scroll or swipe over the puzzle no longer sets many notes: the multi-square swipe action is removed; one tap or press sets one square.
+Type: deliverable
+Branch: SLAY-20/ui-feedback-tints-notes-swipe
+<!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [x] #1 Two rooms that touch each other never share the same floor tint, in all themes and sizes; the tints stay readable behind marks, people and notes and keep the contrast of the labels (test over the baked schedule and a visual check)
+- [x] #2 A note on a square under a room name is clearly visible (the label gets out of the way or the note is drawn over the halo, decided from rendered screenshots); checked on a crowded 9x9 and 12x12 board at 360 and 390 wide
+- [x] #3 The multi-square swipe/drag marking gesture is removed on touch (and mouse); a scroll or swipe over the board scrolls the page or pans and never sets a note or cross; single tap and long press behave as before (gesture tests updated, verify:phone drive suite passes)
+- [x] #4 Settings text, help text and docs no longer mention swiping over squares
+- [x] #5 bun run lint, typecheck and test --maxWorkers=1 pass; verify:phone passes
+- [x] #6 Owner has seen rendered boards on a phone and approved (only the owner ticks this)
+<!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+Gesture: drop the painting phase from gesture.ts (a press past the slop does nothing on release), remove paintIntent/paintModeFor, unzoomed board touch-action pan-y. Tints: 4-5 tones per floor kind, greedy colouring over room adjacency (wall+corner) in resolveRoomStyles, schedule-wide test. Notes: own layer above room labels; a label over noted squares fades to 0.5. Driver docs/verification/slay20.ts renders crowded boards + swipe checks; screenshots in docs/design/looks-shots/slay-20/.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Quick-fix-first pass (2026-10-08): tints by room-map colouring, notes in their own layer above room names with a name over noted squares fading to 0.5, multi-square swipe removed (unzoomed board touch-action pan-y). Lint, typecheck and the tests of src/render, src/ui, src/share, src/content/help green (1309). docs/verification/slay20.ts: 54 checks green on 6 days (9x9 shop/home/park, 12x12 simpshouse/school/park) at 360, 390, 1280. Full suite, verify:phone (AC 3, 5) and the review gate wait for the owner's approval.
+
+Owner round 2 on PR #171 (tints too alike): shared 13-tint Lab lattice (>= 18 delta E apart, hue shifts), greedy most-constrained colouring with FAR_ENOUGH 26; schedule test requires every touching pair >= 18 (closest 26.5). slay20.ts 54/54 again; screenshots re-rendered with a before/after pair.
+
+Full verification after owner approval of the round-2 tints (origin/main already merged, nothing new): bun run test --maxWorkers=1 162 files / 3629 tests green; verify:phone 3114 checks, 0 failures (48 suite x viewport runs incl. the drive swipe-sets-nothing checks); looks.ts 146 checks with 2 failures at 1024x768 (wrong-attempt reset, finish overlay) while verify:phone ran in parallel, 57/57 on a solo re-run of 1024x768 (load flake); slay20.ts 54/54. Review gate (story-reviewer): pass, no scope violations; advisory 1 fixed (useBoardZoom comment, file added to References); advisory 2 for the owner: on a zoomed board a one-finger swipe is inert (pan needs two fingers, as before).
+
+Owner approval in chat (2026-10-08): "Tinten zijn akkoord nu" (round 2 tints) and "Ja alles akkoord" (notes fade under room names, swipe marking removed). Ticked by the orchestrator. Verified on head fde5dba by the worker: full suite 3629 passed, verify:phone 3114/0, slay20 driver 54/54, looks driver green on rerun (one load flake at 1024x768, 57/57 alone), review pass. Follow-up for the owner to decide: on a zoomed board a one-finger swipe now does nothing (panning needs two fingers, as before).
+
+Owner round 3 on PR #171 (too much colour, then calmer x4): only the soft tint ring is left; every floor colour's chroma is scaled by TINT_CHROMA_SCALE (default 0.35, one line); touching rooms >= 17 x scale apart on every scheduled day (0.35: guaranteed 5.95, closest pair 6.9). Dev-only ?tint=<scale> override (tintOverride.ts, docs/daily-flow.md) to try strengths live; tests run for 1, 0.7, 0.5, 0.35, 0.25 (contrast, valid hex, touching distance).
+
+Final strength: TINT_CHROMA_SCALE = 0.4 (owner: 'Tint 0.4 is de sweet spot'); touching rooms >= 8.0 delta E apart on every scheduled day, closest pair 8.02 (2026-10-27 water #f3ded7 / wood #e5dac6). The dev-only ?tint override used to pick it is removed again.
+
+Final verification at strength 0.4 (origin/main merged incl. SLAY-18.8): bun run test 164 files / 3659 tests passed (5 skipped); verify:phone 48 suite x viewport runs, 0 failures; looks.ts 146/146; slay20.ts 54/54. Review gate: pass, no scope violations; advisories: pinch from an unzoomed board under touch-action pan-y (verify:phone zoom suite green, check on a real phone), the 8.0 threshold sits close to the closest pair 8.02, notes on occupied squares are skipped (documented).
+<!-- SECTION:NOTES:END -->
