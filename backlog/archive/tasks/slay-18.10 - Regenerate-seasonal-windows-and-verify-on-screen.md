@@ -4,7 +4,7 @@ title: Regenerate seasonal windows and verify on screen
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:23'
-updated_date: '2026-10-09 07:13'
+updated_date: '2026-10-09 07:20'
 labels:
   - needs-owner-review
 dependencies:
@@ -66,4 +66,6 @@ From the Christmas review: the December test only checks the first seed of each 
 From the SLAY-20 review: the minimum difference of 8.0 between touching rooms (roomStyles.test.ts, TINT_CHROMA_SCALE 0.4) sits just under the closest pair of the current schedule (8.02); after the regeneration this test can fail on a new closest pair: re-check it and choose the palette or the threshold from the regenerated days, not the other way round.
 
 2026-10-09 owner decisions: Simpshouse is no longer frozen on 2026-10-14 (regenerate it in a normal size), comes back on the 1st of every month and had a one-off test day on 2026-10-10 (SLAY-24); everything in the same size format.
+
+2026-10-09: merged into SLAY-24 (owner's suggestion: one regeneration, one PR, one owner check). Its criteria and References now live in SLAY-24; archived.
 <!-- SECTION:NOTES:END -->
