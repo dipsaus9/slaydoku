@@ -59,9 +59,8 @@ export interface SolvableTier {
    * The band of score v2 (`scoreV2` in src/engine/difficulty) this tier owns, per size band: inclusive, the
    * bands of all tiers tile 0..100 within a band. Identical across bands for the four ladder tiers (SLAY-13.1
    * found no evidence to band them) and for hard/expert's `'large'` band (measured, within noise of the split
-   * already used); hard/expert's `'small'` band mirrors `'large'` as an unvalidated placeholder -- no small
-   * hard/expert puzzle is generated today (`ADVANCED_SIZES` in src/schedule/pick.ts), so there is nothing to
-   * calibrate it against yet.
+   * already used); hard/expert's `'small'` band mirrors `'large'`: it was a placeholder until SLAY-22 put hard
+   * on 6x6 and 7x7 in the first 100 levels, and the SLAY-22 generation sweep passes every gate with it.
    */
   scoreBandBySize: Record<SizeBandId, { min: number; max: number }>
   /**

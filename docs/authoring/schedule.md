@@ -54,24 +54,32 @@ tool refuses to extend a folder that was made for another launch date. `index.js
 Everything is a pure function of the date: no clock, no previous day, no state. That is why a run can be split over processes, extended
 later or repeated and stay identical.
 
+- **Two rule sets (SLAY-22, owner decision 2026-10-08).** The **current rules** plan every date from `RULES_FROM` (`2026-10-09`) on. The **launch rules**
+  plan the dates before it (the days already played, and the earlier dates the cast chain walks through) and the owner-approved `KEPT_DATES` (the Simpshouse
+  day `2026-10-14`); they are frozen, because changing them would change days people have played. Committed days on or after `RULES_FROM` that were generated
+  before SLAY-22 may follow either rule set while they await regeneration (`PENDING_REGENERATION_THROUGH`, `2027-01-24`; `acceptedPlans`, used by `scheduleProblems`
+  and the tests). **SLAY-18.10** regenerates them once, after all rule changes: it sets `PENDING_REGENERATION_THROUGH` to `null` and, if days have been played since
+  `2026-10-09`, moves `RULES_FROM` to its first regenerated date so those played days keep the launch rules.
 - **Expert:** exactly one per UTC week (Monday to Sunday), on a weekday drawn per week from the week's Monday (`expertWeekday`). A schedule that
-  starts in the middle of a week may have no expert in that first partial week; every whole week has exactly one.
-- **Other days:** tier from the mix very-easy 15, easy 30, easy-medium 25, medium 20, hard 10 (percent), then a size the tier allows.
-- **Ramp-up window (`isRampUp`, `LAUNCH_DATE` through `RAMP_UP_END_DATE`, `2026-10-31`), a gentler exception:** no `hard` and no `expert` at all —
-  `medium` picks up `hard`'s 10-point share (20 -> 30: very-easy 15, easy 30, easy-medium 25, medium 30, `RAMP_UP_TIER_MIX`), and every would-be expert
-  day in the window falls back to that hard-free mix too (`isSuppressedExpertDay`), with no kept-expert exception anywhere inside it — so every week
-  fully inside the window holds zero experts, not one (`scheduleProblems` allows for it). Extended (SLAY-10.1) from SLAY-6.3's original 28-day window,
-  which kept the chronologically first would-be expert day as `expert`; that exception is gone. A day whose unmodified draw was already outside `hard`
-  (or a normal week's single expert, or any day outside the window) is untouched: it keeps the exact tier the unmodified mix would give it, so the mix
-  table's shape change never shifts an already-fine day's plan.
-- **Size weights:** 6x6 40, 9x9 40, 7x7 8, 12x12 12. Hard and expert only on 9x9 and 12x12 (weights 40 : 12 there), so 6x6 and 7x7 only carry very-easy to
-  medium. Never 16x16 (the picker has no such size and every gate refuses one).
+  starts in the middle of a week may have no expert in that first partial week; every whole week under the current rules has exactly one. In the first 100 levels
+  the expert is 9x9 (`SMALL_GRID_EXPERT_SIZE`).
+- **Other days:** tier from the mix very-easy 15, easy 30, easy-medium 25, medium 20, hard 10 (percent), from the first day, then a size the tier allows on that date.
+  There is no ramp-up window any more: the launch rules had one (no hard and no expert from launch through 2026-10-31, SLAY-10.1), and it only lives on in the frozen
+  plans of the days played before `RULES_FROM`.
+- **Size weights, levels 1 to 100** (`SMALL_GRID_LEVELS`, through `SMALL_GRID_LAST_DATE` = 2027-01-04): 7x7 42, 8x8 42, 6x6 10, 9x9 6, for every tier but expert,
+  hard included (`SMALL_GRID_SIZE_WEIGHTS`). 12x12 is too hard to play on a phone, so it never comes up there. The owner suggested 35/35/15/15; with the weekly 9x9
+  expert that left 7x7 and 8x8 at exactly 60% of the current-rule days, so 9x9 got a small weight of its own. Planned counts of levels 1 to 100 (the 12 played days
+  and the kept 12x12 Simpshouse day included; `pick.test.ts` pins them): 6x6 16, 7x7 34, 8x8 27, 9x9 21, 12x12 2; very-easy 11, easy 24, easy-medium 26, medium 18,
+  hard 8, expert 13. Over the 87 current-rule days alone: 6x6 10, 7x7 33, 8x8 27, 9x9 17 (13 of them experts).
+- **Size weights from level 101** (and in the launch rules): 6x6 40, 9x9 40, 7x7 8, 12x12 12. Hard and expert only on 9x9 and 12x12 (weights 40 : 12 there), so 6x6 and
+  7x7 only carry very-easy to medium. Never 16x16 or 8x8 (the picker has no such size there; every gate refuses 16x16). The earlier rules came back here as the story
+  asked; nothing measured so far argues for keeping the 9x9 cap past level 100, but the 12x12 phone complaint applies there too, so the owner may want to revisit it.
 - **Themes:** the five themes rotate in cycles of five days (each theme once per cycle, a seeded order per cycle); a cycle that would start with the theme
   the last one ended on swaps its first two. So the same theme never lands on two days in a row, and consecutive days can never share size, tier and
   theme together (a test and `pairProblems` check it).
 - **Seed window:** day `d` may try the seeds `dayNumber(d) * 50` to `dayNumber(d) * 50 + 49` (`ATTEMPT_WINDOW = 50`, `seedOf`). Windows of two days never overlap.
 
-Over 365 days the picker gives a mix within a few points of the owner's numbers (the tests pin this over 365 and 730 days).
+Over 365 and 730 days the picker gives a tier mix within a few points of the owner's numbers, and a 730-date sample of the small-grid draw follows its weights within 4 points (the tests pin both).
 
 ## The cast (`src/schedule/cast.ts`)
 
@@ -103,7 +111,7 @@ followed, numbers and dates run without a gap from the launch date, exactly one 
 | Budget | Value | Where |
 |---|---|---|
 | Seeds per day | 50 | `ATTEMPT_WINDOW` in `pick.ts` |
-| Wall clock per seed | 60 s; 120 s for 12x12 hard and expert | `attemptBudgetMs` in `build.ts` |
+| Wall clock per seed | 60 s; 120 s for 12x12 hard and expert (6x6 to 9x9 hard and expert, SLAY-22: 60 s) | `attemptBudgetMs` in `build.ts` |
 | Wall clock per day, all seeds | 600 s | `DAY_BUDGET_MS` in `build.ts` |
 
 12x12 hard and expert are the slow boards: 5 to 30 s a seed on a busy 14-core laptop with 12 processes running, once 79 s. Measured on 96 fresh 12x12 days

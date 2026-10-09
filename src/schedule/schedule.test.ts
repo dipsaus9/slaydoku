@@ -8,7 +8,7 @@ import { addDays } from './dates.ts'
 import { monthFileName, orderedDay, parseIndex, serializeIndex, serializeMonth } from './format.ts'
 import { castOfDay, dayProblems, packEntryOf } from './gates.ts'
 import { LAUNCH_DATE } from './launch.ts'
-import { ADVANCED_SIZES, planDay } from './pick.ts'
+import { acceptedPlans, allowedSizes } from './pick.ts'
 import { SCHEDULE_DIR, readSchedule } from './schedule.testing.ts'
 
 /** The committed schedule (src/content/schedule), read as the app will read it. */
@@ -64,9 +64,10 @@ describe('committed schedule: what is in it', () => {
       expect(day.date).toBe(addDays(LAUNCH_DATE, i))
     })
   })
-  it('follows the picker (sizes, tiers, themes), except documented fallbacks', () => {
+  it('follows the picker (sizes, tiers, themes), except documented fallbacks; a day awaiting regeneration may follow the launch rules', () => {
     for (const day of days) {
-      const plan = planDay(day.date)
+      const plans = acceptedPlans(day.date)
+      const plan = plans.find((p) => p.tier === day.tier && (day.fallbackFrom !== undefined || p.size === day.size)) ?? plans[0]!
       expect(day.tier, day.date).toBe(plan.tier)
       expect(day.theme, day.date).toBe(plan.theme)
       expect(day.size, day.date).toBe(day.fallbackFrom === undefined ? plan.size : 9)
@@ -75,10 +76,10 @@ describe('committed schedule: what is in it', () => {
       expect(day.attempts).toBe(day.seed - plan.seed + 1)
     }
   })
-  it('never has a 16x16, and hard and expert only on 9x9 and 12x12', () => {
+  it('never has a 16x16, and every day has a size its tier may have on its date (SLAY-22: 6x6 to 9x9 in the first 100 levels)', () => {
     for (const day of days) {
       expect(day.size, day.date).not.toBe(16)
-      if (day.tier === 'hard' || day.tier === 'expert') expect(ADVANCED_SIZES).toContain(day.size)
+      if (day.fallbackFrom === undefined) expect(allowedSizes(day.tier, day.date), day.date).toContain(day.size)
     }
   })
   it('has a fingerprint that matches the puzzle', () => {

@@ -3,7 +3,7 @@ import { renderClue } from '../../engine/clues/index.ts'
 import type { CatalogClue } from '../../engine/clues/index.ts'
 import { OBJECT_CATALOG } from '../../engine/model/index.ts'
 import type { ObjectType, Scene } from '../../engine/model/index.ts'
-import { REGULAR_THEMES, chairShare, distinctPerRoom, measureVariety } from '../../engine/scenegen/variety.testing.ts'
+import { REGULAR_THEMES, chairShare, distinctPerRoom, kindsPerBoard, measureVariety } from '../../engine/scenegen/variety.testing.ts'
 import { legendOf } from '../../ui/help/legend.ts'
 import { generatedPuzzles } from '../generated.testing.ts'
 import { getTheme } from './index.ts'
@@ -73,11 +73,14 @@ const KINDS: readonly { theme: ThemeId; kind: string; type: ObjectType; rooms: r
   { theme: 'shop', kind: 'selfCheckout', type: 'kiosk', rooms: ['Checkout', 'Collection Point', 'Self Checkout'], nl: 'zelfscankiosk' },
 ]
 
-/**
- * Distinct kinds per room on the fast sample (12 scenes per size, `measureVariety(theme, 12)`), measured on main at d501e50 before this
- * story; the 200-scene numbers (2.45, 2.64, 2.53, 2.92, 2.67 before; 2.78, 2.85, 2.70, 3.00, 2.72 after) are in the PR and in docs/authoring/room-rules.md.
+/*
+ * Variety is a property of the whole board (owner, 2026-10-09, SLAY-22): how many different kinds a puzzle shows, not how many one room
+ * holds. SLAY-19.1 measured distinct kinds per room (home 2.463, office 2.647, school 2.514, park 2.892, shop 2.734 on this sample before
+ * 19.1); the SLAY-22 cap leaves fewer objects per room, so that number is no longer the goal. The board rules are in
+ * src/engine/scenegen/mix.ts; here: the mean distinct kinds per board on the fast sample (sizes 6, 7, 8, 9, 12) stays above a floor
+ * (measured 10.1 to 11.9 on 200 scenes per theme).
  */
-const BASELINE_DISTINCT_PER_ROOM: Record<(typeof REGULAR_THEMES)[number], number> = { home: 2.463, office: 2.647, school: 2.514, park: 2.892, shop: 2.734 }
+const MIN_KINDS_PER_BOARD = 9.5
 
 const roomsAllowing = (theme: ThemeId, kind: string): string[] => {
   const t = getTheme(theme)
@@ -140,10 +143,11 @@ describe('decor objects (SLAY-19.1)', () => {
     }
   })
 
-  it('raises the distinct kinds per room in every theme against the baseline, keeps chairs at most 15% and still places the signature objects', () => {
+  it('raises the variety in every theme against the baseline, keeps chairs at most 15% and still places the signature objects', () => {
     for (const theme of REGULAR_THEMES) {
       const s = measureVariety(theme, 12)
-      expect(distinctPerRoom(s), theme).toBeGreaterThan(BASELINE_DISTINCT_PER_ROOM[theme])
+      expect(kindsPerBoard(s), theme).toBeGreaterThan(MIN_KINDS_PER_BOARD)
+      expect(distinctPerRoom(s), theme).toBeGreaterThan(2.3)
       expect(chairShare(s), theme).toBeLessThanOrEqual(0.15)
       expect(s.violations, theme).toEqual([])
       const signature = new Set(getTheme(theme).rooms.flatMap((r) => r.favours))

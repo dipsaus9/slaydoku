@@ -7,7 +7,7 @@ import { packId } from '../content/packs/ids.ts'
 import type { PackEntry } from '../content/packs/types.ts'
 import { missingCardText } from '../render/cards/cardText.ts'
 import { isDate } from './dates.ts'
-import { ADVANCED_SIZES, ADVANCED_TIERS, ATTEMPT_WINDOW, SIZE_WEIGHTS, seedOf } from './pick.ts'
+import { ADVANCED_TIERS, ATTEMPT_WINDOW, FALLBACK_SIZE, PLANNED_SIZES, allowedSizes, seedOf } from './pick.ts'
 import type { ScheduleDay } from './types.ts'
 
 /*
@@ -53,7 +53,8 @@ export function pairProblems(previous: ScheduleDay, day: ScheduleDay): string[] 
  * Checks one scheduled day from scratch, with solver runs of its own; the same checks run at generation and when the committed schedule
  * is re-verified. Returns human-readable problems, empty when the day is good:
  *
- * - shape: a real UTC date, a size the schedule uses (never 16; hard and expert only on 9x9 and 12x12), a known tier and theme, the
+ * - shape: a real UTC date, a size the schedule uses (never 16) and the tier may have on that date (`allowedSizes`: any of 6 to 9 in the
+ *   first 100 levels, expert 9x9 there; hard and expert on 9x9 and 12x12 later and under the launch rules), a known tier and theme, the
  *   seed inside the day's attempt window, a title, one portrait per suspect;
  * - the fingerprint matches the puzzle;
  * - every gate of a pack puzzle (`entryProblems`): unique solution, human-solvable at the tier, band checks, hint and clue audit, clue-noun
@@ -65,8 +66,11 @@ export function dayProblems(day: ScheduleDay, previous?: ScheduleDay): string[] 
   const problems: string[] = []
   const at = (msg: string) => problems.push(`${day.date}: ${msg}`)
   if (!isDate(day.date)) at('not a UTC date')
-  if (!SIZE_WEIGHTS.some(([size]) => size === day.size)) at(`size ${day.size} is not one of ${SIZE_WEIGHTS.map(([size]) => size).join(', ')}`)
-  if (ADVANCED_TIERS.includes(day.tier) && !ADVANCED_SIZES.includes(day.size)) at(`${day.tier} on ${day.size}x${day.size}, only ${ADVANCED_SIZES.join(' and ')} allowed`)
+  if (!PLANNED_SIZES.includes(day.size)) at(`size ${day.size} is not one of ${PLANNED_SIZES.join(', ')}`)
+  else if (isDate(day.date) && TIERS.some((t) => t.id === day.tier) && day.fallbackFrom === undefined) {
+    const sizes = allowedSizes(day.tier, day.date)
+    if (!sizes.includes(day.size)) at(`${day.tier} on ${day.size}x${day.size}, only ${sizes.join(', ')} allowed on this date`)
+  } else if (day.fallbackFrom !== undefined && day.size !== FALLBACK_SIZE) at(`a fallback day is ${day.size}x${day.size}, not ${FALLBACK_SIZE}x${FALLBACK_SIZE}`)
   if (!TIERS.some((t) => t.id === day.tier)) at(`unknown tier "${day.tier}"`)
   if (!SCENE_THEMES.some((t) => t.id === day.theme)) at(`unknown theme "${day.theme}"`)
   if (isDate(day.date)) {
