@@ -6,7 +6,7 @@ import { REGULAR_THEMES } from './variety.testing.ts'
 /**
  * SLAY-22 sweep: 200 fresh boards per theme and size (6, 7, 8, 9, 12). Every board the generator returns keeps the board rules (mix.ts);
  * the share inside the tolerance must be at least 95% (it is 100%, because a board outside it is drawn again), and objects per square fall
- * as the board grows. Without the re-draw 96.4% of the boards are inside it (measured, docs/authoring/room-rules.md).
+ * as the board grows. Without the re-draw 96.6% of the boards are inside it (measured, docs/authoring/room-rules.md).
  */
 describe('board mix sweep (SLAY-22)', () => {
   for (const theme of [...REGULAR_THEMES, 'simpshouse'] as const) {

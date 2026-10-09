@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-10-08 20:03'
-updated_date: '2026-10-09 06:30'
+updated_date: '2026-10-09 06:32'
 labels:
   - story
   - needs-owner-review
@@ -78,4 +78,6 @@ Generation sweep (validate:generation --seeds 10 --start 52000 --sizes 6,7,8,9 -
 Review (story-reviewer, round 1): BLOCK on AC8 only: distinct kinds per room fell below the SLAY-19.1 baseline in park (2.69 vs 2.89) and shop (2.60 vs 2.73) because the cap leaves fewer objects per room (park 2.75 objects/room cannot hold 2.89 distinct kinds). Needs an owner decision: accept the distinct-share metric (rose in every theme) or loosen the cap. ACs 1-7 and 9 met, no scope violations after widening References (check.ts, gates.ts, schedule/cast tests, tiers.ts/test, decor.test.ts, handoff). Advisories fixed in ba7c13a (constant assertion removed, slow sweep bare==0, handoff notes on 9x9 very-easy yield and closets). Verification: lint, typecheck, test (3703 passed), schedule:check (108 days) green; verify:phone 3074 checks + zoom 844x390 rerun 40/40 (first run crashed, transient); test:slow 66/67, the failure (16x16 benchmark fixture byte-for-byte regeneration) fails on main 0650617 too.
 
 Owner decision 2026-10-09 (via coordinator): the goal is boards that are not cluttered and look like a real situation; variety means how many different kinds a board shows, not per room. Old criterion 8 (per-room cap, SLAY-17.6/19.1 variety numbers incl. distinct kinds per room) replaced by new criterion 9 (board-level density, kinds, families, target family mix per theme, re-draw); the old rendered-boards criterion is now #8 (renumbered by --remove-ac). The per-room distinct-kinds comparison with SLAY-19.1 that review round 1 blocked on is dropped.
+
+Review round 2 (after the owner clarification of 2026-10-09 and the board-mix rework): PASS, criteria 1-9 met (7 and 8 only as artefacts, owner sign-off pending), no scope violations. Advisories: 96.4/96.6% figure unified; the family tolerance is documented as an upper bound only; the >=95% sweep assertion holds trivially after the re-draw (the 96.6% pre-re-draw rate is a measured doc number). Sweep 1800 seeds sizes 6-12: 0 wrong puzzles; very-easy on 9x9/12x12 weak (as on main).
 <!-- SECTION:NOTES:END -->

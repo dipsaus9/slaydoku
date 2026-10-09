@@ -9,7 +9,8 @@ import { FAMILY_OF, OBJECT_FAMILIES, type ObjectFamily } from './families.ts'
  * - density: objects per square may not exceed `densityCap(side)`, which falls as the board grows, so a 12x12 looks sparser per square than a 6x6;
  * - variety: at least `minBoardKinds(side)` distinct kinds, and no kind on more than `maxKindCount(objects)` objects;
  * - mix: per theme a target share per object family (`THEME_MIX`); a family may not exceed its target by more than `MIX_TOLERANCE` (plus
- *   one object of slack on a small board), and the board has at least `minBoardFamilies(side)` families. A theme without a mix (the
+ *   one object of slack on a small board; the tolerance is an upper bound only: a family below its target is fine, the kind and family
+ *   minimums keep a board from being one-sided), and the board has at least `minBoardFamilies(side)` families. A theme without a mix (the
  *   seasonal ones) only gets `DEFAULT_MAX_FAMILY_SHARE`.
  */
 

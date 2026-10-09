@@ -77,7 +77,7 @@ Owner (2026-10-08 and 2026-10-09): the puzzle must not get cluttered, and every 
 | Fewest distinct kinds (`minBoardKinds` = side - 1) | 5 | 6 | 7 | 8 | 11 |
 | Fewest families (`minBoardFamilies`) | 4 | 5 | 5 | 5 | 5 |
 
-No kind on more than a quarter of the objects (`maxKindCount`, 3 always allowed). Per theme a target share per family (`THEME_MIX`, measured and rounded to 0.05); a family may exceed its target by at most `MIX_TOLERANCE` (0.2) plus one object:
+No kind on more than a quarter of the objects (`maxKindCount`, 3 always allowed). Per theme a target share per family (`THEME_MIX`, measured and rounded to 0.05); a family may exceed its target by at most `MIX_TOLERANCE` (0.2) plus one object (an upper bound only: a family below its target passes, the minimum kinds and families keep the board varied):
 
 | Theme | Target mix |
 |---|---|
