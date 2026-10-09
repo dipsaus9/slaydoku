@@ -23,15 +23,39 @@ const HOUSE = [
   'bench',
 ] as const
 
+/** Decor objects (SLAY-19.1): variety for the rooms, all blocking. */
+const DECOR = [
+  'lamp',
+  'mirror',
+  'coatRack',
+  'fridge',
+  'bathtub',
+  'fireplace',
+  'piano',
+  'aquarium',
+  'exerciseBike',
+  'bin',
+  'waterCooler',
+  'serverRack',
+  'globe',
+  'gymBox',
+  'playEquipment',
+  'barbecue',
+  'tent',
+  'shoppingCart',
+  'kiosk',
+] as const
+
 describe('object catalog', () => {
   it('keeps the original 16 types and their flags, without footprint metadata', () => {
     for (const type of ORIGINAL.occupiable) expect(OBJECT_CATALOG[type]).toEqual({ occupiable: true })
     for (const type of ORIGINAL.blocking) expect(OBJECT_CATALOG[type]).toEqual({ occupiable: false })
   })
 
-  it('lists the 14 house types, each blocking with an explicit footprint', () => {
-    expect(OBJECT_TYPES).toHaveLength(ORIGINAL.occupiable.length + ORIGINAL.blocking.length + HOUSE.length)
-    for (const type of HOUSE) {
+  it('lists the 14 house types and the 19 decor types, each blocking with an explicit footprint', () => {
+    expect(DECOR).toHaveLength(19)
+    expect(OBJECT_TYPES).toHaveLength(ORIGINAL.occupiable.length + ORIGINAL.blocking.length + HOUSE.length + DECOR.length)
+    for (const type of [...HOUSE, ...DECOR]) {
       expect(isObjectType(type), type).toBe(true)
       expect(OBJECT_CATALOG[type].occupiable, type).toBe(false)
       expect(isOccupiableType(type), type).toBe(false)

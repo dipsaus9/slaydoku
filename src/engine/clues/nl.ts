@@ -80,6 +80,28 @@ const OBJECT_NOUNS_NL: Record<ObjectType, { noun: string; gender: 'de' | 'het' }
   gardenTable: { noun: 'tuintafel', gender: 'de' },
   // A plain bench to sit on; "bankje" (not "bank", which is the sofa) so the two engine types never share a word.
   bench: { noun: 'bankje', gender: 'het' },
+  // Decor objects (SLAY-19.1): the generic Dutch noun of what the engine art draws (a theme kind carries its own `nameNl`).
+  lamp: { noun: 'lamp', gender: 'de' },
+  mirror: { noun: 'spiegel', gender: 'de' },
+  coatRack: { noun: 'kapstok', gender: 'de' },
+  fridge: { noun: 'koelkast', gender: 'de' },
+  bathtub: { noun: 'bad', gender: 'het' },
+  fireplace: { noun: 'open haard', gender: 'de' },
+  piano: { noun: 'piano', gender: 'de' },
+  aquarium: { noun: 'aquarium', gender: 'het' },
+  exerciseBike: { noun: 'hometrainer', gender: 'de' },
+  bin: { noun: 'prullenbak', gender: 'de' },
+  waterCooler: { noun: 'waterkoeler', gender: 'de' },
+  serverRack: { noun: 'serverrek', gender: 'het' },
+  globe: { noun: 'wereldbol', gender: 'de' },
+  // The art is a vaulting box (a "springkast"), so the noun says that and not the generic "gymtoestel".
+  gymBox: { noun: 'springkast', gender: 'de' },
+  // The art is a slide, so the noun says "glijbaan" and not the generic "speeltoestel".
+  playEquipment: { noun: 'glijbaan', gender: 'de' },
+  barbecue: { noun: 'barbecue', gender: 'de' },
+  tent: { noun: 'tent', gender: 'de' },
+  shoppingCart: { noun: 'winkelwagen', gender: 'de' },
+  kiosk: { noun: 'zelfscankiosk', gender: 'de' },
 }
 
 /** The Dutch counterpart of `OBJECT_WORDS`: real Dutch noun and gender (`OBJECT_NOUNS_NL`), translated preposition and verb. */

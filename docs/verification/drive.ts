@@ -586,6 +586,28 @@ async function playDay(first: boolean, w: number, h: number) {
   check('undo removes the X', (await count('[data-mark]')) === 0)
   await tool('Note')
 
+  // SLAY-20: the multi-square swipe is gone. A swipe across a row and a scroll down a column set nothing, in Note and in X mode.
+  async function swipeOver(from: { row: number; col: number }, to: { row: number; col: number }) {
+    const a = (await rectOf(cellSel(from.row, from.col)))!
+    const b = (await rectOf(cellSel(to.row, to.col)))!
+    await touch('touchStart', a.x, a.y)
+    for (let i = 1; i <= 12; i++) { await sleep(20); await touch('touchMove', a.x + ((b.x - a.x) * i) / 12, a.y + ((b.y - a.y) * i) / 12) }
+    await touch('touchEnd', b.x, b.y)
+    await sleep(250)
+  }
+  const lastCol = puzzle.scene.width - 1
+  const lastRow = puzzle.scene.height - 1
+  for (const mode of ['Note', 'X'] as const) {
+    await tool(mode)
+    await swipeOver({ row: spot.row, col: 0 }, { row: spot.row, col: lastCol })
+    await swipeOver({ row: 0, col: spot.col }, { row: lastRow, col: spot.col })
+    check(`${mode} mode: a swipe across a row and down a column sets no note and no cross`, (await count('[data-note]')) === 0 && (await count('[data-mark]')) === 0, `notes=${await count('[data-note]')} marks=${await count('[data-mark]')}`)
+  }
+  await tool('Note')
+  await tapSel(cellSel(spot.row, spot.col))
+  check('a tap after the swipes still writes one note', (await count('[data-note]')) === 1)
+  await tool('Undo')
+
   // Long-press placement: first suspect, then the selection moves on.
   const before = await selectedName()
   const p0 = puzzle.solution[0]!

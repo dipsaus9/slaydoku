@@ -131,7 +131,7 @@ A block may therefore rise over the wall behind it and over the squares above it
 
 Gameplay: tap targets are the unchanged squares (the hit layer is on top and untouched). The highest part of any model is 96 units, which rises 43 drawing units, two thirds of a square, so a tall piece never hides a whole square behind it, and marks, crosses and people are drawn above the objects, so whatever sits on a square a block rises over stays visible. No height cap was needed beyond `MAX_Z` = 96 (tested).
 
-Tests: `SceneObjectIcons.test.tsx` checks the layer order of `SceneView` (floors, grid, walls, doors and windows, objects, marks, people, room labels, axis labels, hit squares), `drawOrder` (flat first, front row, column, stable ties, input untouched), the painted order of every kind in every orientation (three copies given front first, painted back to front, a shadow only for what stands up) and the painted order of every object of every day of the baked schedule. `docs/verification/looks.ts` (`paintOrder`) checks the same order and that nothing is clipped on the page, at four widths. History: SLAY-17.4 first clipped each room and then each object (`git log`); both removed.
+Tests: `SceneObjectIcons.test.tsx` checks the layer order of `SceneView` (floors, grid, walls, doors and windows, objects, marks, people, room labels, notes, axis labels, hit squares), `drawOrder` (flat first, front row, column, stable ties, input untouched), the painted order of every kind in every orientation (three copies given front first, painted back to front, a shadow only for what stands up) and the painted order of every object of every day of the baked schedule. `docs/verification/looks.ts` (`paintOrder`) checks the same order and that nothing is clipped on the page, at four widths. History: SLAY-17.4 first clipped each room and then each object (`git log`); both removed.
 
 ### Audit: confusable pairs and what was done
 
@@ -154,6 +154,34 @@ The app has **no bath object kind** (nothing was added): the bathtub model lives
 Desktop fit (owner bug, 2026-10-08): the headroom made the drawing 5.4 to 10.1 percent taller than wide while play.css sized the board as a square (width = the height budget), so the bottom was cut off on desktop. `boardAspect` (`geometry.ts`) gives height over width from the same viewBox, `PlayScreen` writes it as `--board-aspect` and play.css divides every height budget by it (portrait cap, landscape `--board`, short landscape `--board`); the board is as high as before and about 7 percent narrower. `docs/verification/looks.ts` (`desktopFit`, `ONLY=desktop` for just these) checks 1280x720, 1366x768, 1440x900, 1920x1080 and 1280x600 with 6x6, 9x9 and 12x12, numbers on and off: the whole board inside the window, no page scroll. Before/after screenshots: `desktop-*-before-fix.png`, `desktop-*-after-fix.png`.
 
 Known limit of the view: a tall piece turned so that its long side runs north to south shows its top and a narrow right side (the oblique view skews by 0.22), so doors and shelves on that side are slivers; hence the things on top and the colours above.
+
+## Decor objects (SLAY-19.1, awaiting owner approval)
+
+Nineteen new engine types, all blocking, drawn as block models in `src/render/looks/decorModels.ts` (the bathtub keeps its model in `modelsHouse.ts` and is an object kind now, `MODEL_ONLY` is empty): lamp, mirror, coatRack, fridge, bathtub, fireplace, piano, aquarium, exerciseBike, bin, waterCooler, serverRack, globe, gymBox (a vaulting box), playEquipment (a slide), barbecue, tent (a party tent), shoppingCart, kiosk. Screenshots: `docs/design/looks-shots/slay-19.1/` (contact sheets in all 8 orientations, the confusable strips at phone size, a generated 9x9 board per theme at 700 and 360 px wide; the baked schedule has none of these kinds until SLAY-18.10 regenerates it, so the boards are fresh scenes).
+
+What the drawing taught:
+
+- **Wide and low does not rise.** A 2x2 base of 200 units lifts only 67 units on screen, so a canvas cone or a stepped ridge for the tent read as a floor disc or a stack of stripes. The tent is a party tent: four poles under a red-and-white striped canopy, which stands clear of the floor. The slide is stepped (ten 5-unit steps), a slope is not a primitive.
+- **A wider piece around a taller one hides it.** The painter's sort has no order between a mantelpiece (wider, z 60-66) and the chimney breast it wraps (z 0-88), so the breast above the mantel vanished; split the tall piece at the wider one's height (`fireplace`). The same for a tank with a lid: the aquarium has four thin rim bars and the light water surface as its top face.
+- **Details on the front stay on the front.** Fish and plants are discs and sheets on the tank's south face; LEDs are small boxes on the server faces; keys are boxes on the keyboard shelf. From the right these are slivers, so each kind also has a telling top: the water surface, the vent grille, the white key shelf.
+- **Facing: no new rule.** `chairFacing` (SLAY-17.4) stays the only facing rule. A mirror, fireplace, piano, fridge or kiosk against the south wall could be turned to face into the room, but then the viewer sees its back (a brown board, a plain box), which at 36 px reads worse than the front toward the viewer standing on the wall side; every other wall object (bookshelf, wardrobe, tv) already behaves that way, so the new kinds follow it.
+
+### Confusable-pairs audit, round 2
+
+Added to `CONFUSABLE_GROUPS` (contact sheet, 36 px per cell) and checked by eye:
+
+| Group | What tells them apart |
+|---|---|
+| tv, mirror, kiosk, easel, statue | the tv is a wide dark screen on a low stand; the mirror a tall wooden frame with pale glass and a gold crown; the kiosk a steel column with a small screen on top |
+| fridge, washing machine, dryer, cabinet, water cooler | the fridge is the only 92-high white box, two doors and vertical handles; the water cooler is a short white box with a light-blue bottle |
+| lamp, plant, globe, bin, coat rack | cream shade on a post with a yellow glow; green balls in a terracotta pot; blue ball with green patches on a gold post; grey bucket with a lid; post with a red and a blue coat |
+| server rack, wardrobe, piano, bookshelf | slate with green and red lights; walnut with doors; slate with a white key shelf; open shelves with books |
+| bathtub, aquarium, sink, fireplace | white tub with blue water and foam; blue tank on a dark stand with fish; vanity with basins; grey stone with a dark hearth and flames |
+| tent, tree, barbecue, slide, bench | striped canopy on poles; crown on a trunk; black bowl on three legs; ladder, platform and yellow chute; slats |
+| shopping cart, chest, vaulting box, bin | steel basket with a red handle and groceries; wooden chest; stacked wooden sections with a leather pad; grey bucket |
+| exercise bike, bicycle | one wheel in front with a tall post and T-bar; two wheels side by side |
+
+Names follow what is drawn (owner rule): the engine lamp is a standing lamp, so every lamp kind is a floor lamp (home, office) or a lantern (park); the school's drinking fountain is a water cooler (the art is a bottle on a cabinet); the home "nightstand" and "shoe rack" are a bedside cabinet and a shoe cabinet (the cabinet art is a tall painted cupboard); the park flower pot is a potted plant (the plant art is a pot with a plant). Not added, because the available art would misname them: a table lamp (same art as the floor lamp), a laundry basket (the chest art is a wooden chest), a lab table with a microscope (the plain table) and a bird bath (the statue art is a bust); the large plants of office, shop and home are the existing `houseplant`, already allowed in those rooms.
 
 ## How to draw a new object
 
@@ -178,3 +206,13 @@ Where it lands and what you do not have to do:
 - **Legend swatch:** `SolidSvg` crops the svg to everything the model covers (blocks, outline, shadow), so a tall block or its shadow is never clipped. Padding is automatic; the legend row and the check in `docs/verification/looks.ts` fail a clipped swatch.
 - **Orientations:** all 8 are generated; the board shows front-south on wide and square footprints, front-east on tall ones.
 - **Tests that run for you:** model inside footprint and below `MAX_Z` in all 8 orientations (`looks.test.tsx`), the look-completeness test for every kind of every registered theme and every object of the baked schedule, the contact sheet lists every kind with no gaps.
+
+## Room tints and notes over room names (SLAY-20)
+
+Owner feedback on 2026-10-08: "De kleuren van de kamers moeten per kamer iets anders zijn" and "Soms zie je visueel de notitie niet als er een kamer naam boven staat".
+
+- **Tints are a colouring of the room map.** The floor kind (wood, tiles, grass, water, stone, carpet) still comes from the theme and the room name, and its pattern (planks, tiles, blades, waves ...) keeps the material readable. The colour under it is chosen per room (`src/render/scene/roomStyles.ts`): each kind has its classic tone plus six shared soft tints (peach, straw, mint, ice, periwinkle, blush: a light ring in CIE L*a*b*, hues 60 degrees apart, L* alternating 90 and 86). `resolveRoomStyles` colours the room adjacency from `cellRooms` (a shared wall or a corner) greedily, most constrained room first; a room takes the tone of its kind furthest from its coloured neighbours, where `farEnough` or more counts the same, so it keeps its classic tone whenever its neighbours allow. Deterministic, it reads only the scene.
+- **One knob for the strength:** `TINT_CHROMA_SCALE` multiplies the chroma of the classic tones and the tints (1 = the full strength of round 2). The owner tried strengths live and chose **0.4** ("Tint 0.4 is de sweet spot"). At 0.4 every pair of touching rooms is at least **8.0** delta E apart on every scheduled day (closest pair 8.02: a water room in peach #f3ded7 next to a wood room #e5dac6, 2026-10-27), always with a hue shift, and every tone keeps the label ink at 7:1 or better (`roomStyles.test.ts`). The distances the colouring uses scale with the knob; the test prints the closest pair for the strength in use.
+- Owner rounds on PR #171: round 1 had four or five lightness steps per kind (too alike); round 2 added a strong ring and a grey, touching rooms 18 or more apart ("te veel kleur verschil", "iets te fel", "mag wat subtieler", "nog zachter"); round 3 keeps only the soft ring at strength 0.4. Before and after: `before-tints-v1-2026-10-20-12x12-school-390.png` (round 1), `round2-2026-10-20-12x12-school-390.png` (round 2) and `2026-10-20-12x12-school-390-board.png` (round 3).
+- **Notes draw above the room names.** Layer order is now marks, people, room labels, **notes**, axis labels, hit squares. A label whose squares carry notes fades to half opacity (`YIELDING_LABEL_OPACITY`, `RoomLabels.tsx`), so the letters with their white halo stay the clearest thing and the name still shows through; a label over empty squares is unchanged. Notes on a square with a placed person are not drawn (they were hidden under the disc before). Other options looked at: letting the label jump to a run without notes (it moves while you play) and drawing notes over a full-strength label (the two texts cut into each other and both read worse).
+- Screenshots: `docs/design/looks-shots/slay-20/` (crowded 9x9 and 12x12 boards, every label square with notes of four people, at 360, 390 and 1280 wide). Check: `docs/verification/slay20.ts` (header has the command).

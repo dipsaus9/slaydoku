@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Scene } from '../../engine/model/index.ts'
 import { tutorialPuzzle } from '../../engine/model/tutorial.fixture.ts'
 import { createGeometry } from './geometry.ts'
+import { roomLabelLayout } from './labels.ts'
 import { sample9x9 } from './sample.fixture.ts'
 import { SceneView, type SceneViewProps } from './SceneView.tsx'
 
@@ -85,13 +86,23 @@ describe('SceneView', () => {
     expect(html).not.toContain('>R5<')
   })
 
-  it('always exposes the overlay layers, in paint order below the hit rects; room labels sit above marks and people (SLAY-17.5)', () => {
+  it('always exposes the overlay layers, in paint order below the hit rects; room labels sit above marks and people (SLAY-17.5), notes above the labels (SLAY-20)', () => {
     const html = render({ scene: tutorial })
-    const order = ['objects', 'marks', 'people', 'room-labels', 'hit'].map((l) =>
+    const order = ['objects', 'marks', 'people', 'room-labels', 'notes', 'hit'].map((l) =>
       html.indexOf(`data-layer="${l}"`),
     )
     expect(order.every((i) => i >= 0)).toBe(true)
     expect([...order].sort((a, b) => a - b)).toEqual(order)
+  })
+
+  it('fades a room name back over a square with notes, and only that one (SLAY-20)', () => {
+    const room = tutorial.rooms[0]!
+    const label = roomLabelLayout(tutorial, room.id)!
+    const under = `${label.run.row},${Math.floor(label.center.x)}`
+    const html = render({ scene: tutorial, notedCells: new Set([under]) })
+    const faded = [...html.matchAll(/data-room-label="([^"]+)"[^>]*opacity="0.5"/g)].map((m) => m[1])
+    expect(faded).toEqual([room.id])
+    expect(render({ scene: tutorial, notedCells: new Set() })).not.toContain('data-yield')
   })
 
   it('renders layer content, from nodes or from a geometry function', () => {
@@ -100,7 +111,9 @@ describe('SceneView', () => {
       objectsLayer: <circle data-test="object" />,
       marksLayer: (g) => <circle data-test="mark" cx={g.cellCenter({ row: 0, col: 0 }).x} />,
       peopleLayer: <circle data-test="person" />,
+      notesLayer: <text data-test="note" />,
     })
+    expect(html).toMatch(/data-layer="notes"[^>]*><text data-test="note"/)
     expect(html).toMatch(/data-layer="objects"[^>]*><circle data-test="object"/)
     expect(html).toMatch(/data-layer="marks"[^>]*><circle data-test="mark" cx="44"/)
     expect(html).toMatch(/data-layer="people"[^>]*><circle data-test="person"/)

@@ -105,7 +105,9 @@ describe('block models', () => {
     const r = Number.parseInt(COLORS.water.slice(1, 3), 16)
     const b = Number.parseInt(COLORS.water.slice(5, 7), 16)
     expect(b - r).toBeGreaterThan(100)
-    expect(Object.keys(MODEL_ONLY)).toContain('bathtub')
+    // Since SLAY-19.1 the bathtub is an object kind of its own, so the board draws this very model.
+    expect(Object.keys(MODEL_ONLY)).not.toContain('bathtub')
+    expect(solidModelFor('bathtub', 2, 1, '2x1')).toEqual(tub)
   })
 
   it('shows the water of the bubble bath the same way', () => {

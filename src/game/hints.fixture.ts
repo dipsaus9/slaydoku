@@ -80,6 +80,8 @@ export function hardPuzzle(): Puzzle {
     // The house-style tests (explanations.test.ts) cap an explanation at 330 characters, in English and in Dutch.
     const short = (locale: 'en' | 'nl') => solveHuman(scene, people, clues as CatalogClue[], { locale }).steps.every((s) => s.explanation.length <= 330)
     if (!short('en') || !short('nl')) continue
+    // ... and a level-3 hint (reason plus instruction) at 400; the first seed after the SLAY-19.1 theme change ran to 419.
+    if (hintPath(built.entry.puzzle).some((h) => h.level3.length > 400)) continue
     // The audit tests (src/validation/hints.test.ts) want the walk to hold a note, a crossing and a placement.
     const walk: WalkStep[] = auditWalkOf(built.entry.puzzle).steps
     if (!walk.some((w: WalkStep) => !w.next.placement && !w.next.focus) || !walk.some((w: WalkStep) => w.next.placement)) continue
