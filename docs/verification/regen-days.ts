@@ -146,7 +146,9 @@ try {
         if (p.type === 'car' && !p.roomTypes.includes('garage')) bad.push(`vehicle ${p.id} in ${p.roomName}`)
       }
       check(`${label}: no bed outside a sleeping room, no wet fixture outside a wet room, no vehicle in a room`, bad.length === 0, bad.join('; '))
-      const chairs = placed.filter((p) => p.type === 'chair').map((p) => drawn.get(p.id)!)
+      // Chairs are the objects of kind `chair`: a themed seat of another kind (the Christmas rocking horse, engine type chair) is its own named
+      // object with its own art, not a second chair look (SLAY-24).
+      const chairs = placed.filter((p) => p.type === 'chair' && p.kind === 'chair').map((p) => drawn.get(p.id)!)
       const looks = new Set(chairs.map((c) => `${c.icon}/${c.themed}/${c.variant}`))
       check(`${label}: one chair look (${chairs.length} chairs)`, chairs.every((c) => c.icon === 'chair' && !c.themed) && looks.size <= 1, [...looks].join(', '))
       const shot = await send('Page.captureScreenshot', { format: 'png' })
