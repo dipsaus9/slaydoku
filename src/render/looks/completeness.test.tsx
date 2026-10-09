@@ -43,7 +43,7 @@ describe('look completeness: every theme object kind has block art', () => {
 describe('look completeness: the baked schedule', () => {
   it('draws every object of every scheduled day with block art', () => {
     const { days } = readSchedule()
-    expect(days.length).toBeGreaterThan(100)
+    expect(days.length).toBeGreaterThanOrEqual(97)
     const missing: string[] = []
     for (const day of days) {
       const themeIcons = themeIconsFor(day.theme, day.puzzle.scene.objects)

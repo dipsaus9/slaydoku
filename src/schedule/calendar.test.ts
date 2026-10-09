@@ -3,7 +3,7 @@ import { SCENE_THEMES } from '../content/themes/index.ts'
 import type { ThemeId } from '../content/themes/index.ts'
 import { SEASONAL_RULES, SIMPSHOUSE_DATES, SIMPSHOUSE_MONTH_DAYS, seasonalThemeOf } from './calendar.ts'
 import { addDays } from './dates.ts'
-import { rotationThemeOf, themeOf } from './pick.ts'
+import { RULES_FROM, rotationThemeOf, themeOf } from './pick.ts'
 import { readSchedule } from './schedule.testing.ts'
 
 const all = () => true
@@ -133,15 +133,15 @@ describe('rotation guard against the committed schedule', () => {
     for (const day of days) expect(themeOf(day.date), day.date).toBe(day.theme)
   })
 
-  it('every committed day outside a seasonal window keeps the scheduled theme', () => {
+  it('every committed day outside a seasonal window, and every day played before RULES_FROM, keeps the rotation theme', () => {
     let checked = 0
     for (const day of days) {
-      if (seasonalThemeOf(day.date, all)) continue
+      if (day.date >= RULES_FROM && seasonalThemeOf(day.date, all)) continue
       expect(themeOf(day.date), day.date).toBe(day.theme)
       expect(rotationThemeOf(day.date), day.date).toBe(day.theme)
       checked++
     }
-    expect(checked).toBeGreaterThan(20)
+    expect(checked).toBeGreaterThanOrEqual(13)
   })
 
   it('with no seasonal theme registered, the rotation alone equals the committed schedule for all days', () => {

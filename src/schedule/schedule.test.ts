@@ -15,11 +15,11 @@ import { SCHEDULE_DIR, readSchedule } from './schedule.testing.ts'
 const { index, files, days } = readSchedule()
 
 describe('committed schedule: layout', () => {
-  it('holds at least the first 120 days from the launch date', () => {
+  it('holds at least the first 97 days from the launch date (through 2027-01-01)', () => {
     expect(index.launch).toBe(LAUNCH_DATE)
     expect(index.first).toBe(LAUNCH_DATE)
     expect(index.count).toBe(days.length)
-    expect(days.length).toBeGreaterThanOrEqual(120)
+    expect(days.length).toBeGreaterThanOrEqual(97) // through 2027-01-01 (owner decision 2026-10-09, SLAY-24)
     expect(days[0]!.n).toBe(1)
     expect(days[days.length - 1]!.date).toBe(index.last)
   })

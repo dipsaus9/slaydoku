@@ -107,13 +107,13 @@ describe('bun run schedule:check', () => {
   it('prints the days left and exits 0 with at least 30, 1 with fewer', () => {
     const before = run('schedule-check.ts', ['--today', '2026-09-27'])
     expect(before.code).toBe(0)
-    expect(before.out).toContain('119 days left after 2026-09-27')
-    expect(before.out).toContain('last scheduled date 2027-01-24')
-    expect(run('schedule-check.ts', ['--today', '2026-12-25']).code).toBe(0)
-    const low = run('schedule-check.ts', ['--today', '2026-12-26'])
+    expect(before.out).toContain('96 days left after 2026-09-27')
+    expect(before.out).toContain('last scheduled date 2027-01-01')
+    expect(run('schedule-check.ts', ['--today', '2026-12-02']).code).toBe(0)
+    const low = run('schedule-check.ts', ['--today', '2026-12-03'])
     expect(low.code).toBe(1)
     expect(low.out).toContain('29 days left')
-    expect(low.out).toContain('bun run schedule --start 2027-01-25')
+    expect(low.out).toContain('bun run schedule --start 2027-01-02')
   })
   it('exits 1 when there is no schedule and 2 on bad arguments', () => {
     const none = run('schedule-check.ts', ['--dir', join(scratch, 'nothing-here')])
@@ -128,22 +128,22 @@ describe('bun run schedule:next', () => {
   it('prints whether a top-up is due, where it starts and the exact command', () => {
     const fine = run('schedule-next.ts', ['--today', '2026-09-27'])
     expect(fine.code).toBe(0)
-    expect(fine.out).toContain('119 days left after 2026-09-27; a top-up is not due')
-    expect(fine.out).toContain('Next start: 2027-01-25 (last day to be added: 2027-04-24)')
-    expect(fine.out).toContain('Command: bun run schedule --start 2027-01-25 --days 90 --jobs 2')
-    const due = run('schedule-next.ts', ['--today', '2026-12-26', '--days', '30'])
+    expect(fine.out).toContain('96 days left after 2026-09-27; a top-up is not due')
+    expect(fine.out).toContain('Next start: 2027-01-02 (last day to be added: 2027-04-01)')
+    expect(fine.out).toContain('Command: bun run schedule --start 2027-01-02 --days 90 --jobs 2')
+    const due = run('schedule-next.ts', ['--today', '2026-12-03', '--days', '30'])
     expect(due.code).toBe(0)
-    expect(due.out).toContain('29 days left after 2026-12-26; a top-up is due')
-    expect(due.out).toContain('Command: bun run schedule --start 2027-01-25 --days 30 --jobs 2')
+    expect(due.out).toContain('29 days left after 2026-12-03; a top-up is due')
+    expect(due.out).toContain('Command: bun run schedule --start 2027-01-02 --days 30 --jobs 2')
   })
   it('prints key=value lines for $GITHUB_OUTPUT with --github', () => {
-    const out = run('schedule-next.ts', ['--today', '2026-12-26', '--github']).out
-    expect(out.trim().split('\n')).toEqual(['needed=true', 'days_left=29', 'start=2027-01-25', 'days=90', 'end=2027-04-24'])
+    const out = run('schedule-next.ts', ['--today', '2026-12-03', '--github']).out
+    expect(out.trim().split('\n')).toEqual(['needed=true', 'days_left=29', 'start=2027-01-02', 'days=90', 'end=2027-04-01'])
     expect(run('schedule-next.ts', ['--today', '2026-09-27', '--github']).out).toContain('needed=false')
   })
   it('reports a top-up as due with --force even when the schedule is comfortable', () => {
     const forced = run('schedule-next.ts', ['--today', '2026-09-27', '--force', '--github', '--days', '5'])
-    expect(forced.out.trim().split('\n')).toEqual(['needed=true', 'days_left=119', 'start=2027-01-25', 'days=5', 'end=2027-01-29'])
+    expect(forced.out.trim().split('\n')).toEqual(['needed=true', 'days_left=96', 'start=2027-01-02', 'days=5', 'end=2027-01-06'])
     expect(run('schedule-next.ts', ['--today', '2026-09-27', '--force']).out).toContain('a top-up is forced')
   })
   it('starts on the launch date when nothing is scheduled, and exits 2 on bad arguments', () => {
