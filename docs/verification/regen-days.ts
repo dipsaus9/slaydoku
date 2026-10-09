@@ -1,6 +1,6 @@
 // Rendered check of the regenerated schedule days (SLAY-17.6): room rules, rooms and the single chair look are on the real play screen.
 // Drives headless Chrome over the DevTools protocol (production build, dev-only date override, see daily.ts). For SAMPLE days of each of the five
-// regular themes (home, office, park, school, shop), taken from the regenerated days (2026-10-09 onward, Simpshouse day excluded), at 390x844 and
+// registered themes (SLAY-24: the seasonal themes and Simpshouse too; THEMES narrows it), taken from the regenerated days (FIRST onward, default 2026-10-10), at 390x844 and
 // 1024x768 it opens the play screen and checks
 //   1. the board draws every object of the puzzle data (one [data-object] per object, in the objects layer);
 //   2. no bed outside a sleeping room, no wet fixture (toilet, shower, bath, sink) outside a wet room, no vehicle in a room that is not a garage-type
@@ -11,12 +11,12 @@
 // Usage (from the repo root):
 //   bun run build && bunx vite preview --port 5471 &
 //   BASE=http://localhost:5471/ CDP_PORT=9571 OUT=/private/tmp/regen-days bun docs/verification/regen-days.ts
-// Env: BASE, CDP_PORT, OUT (screenshots and a fresh Chrome profile per run, so no service worker cache of an older build is served; never inside the repo), CHROME, SAMPLE (days per theme, default 2), FIRST (first date, default 2026-10-09).
+// Env: THEMES, DATES (extra dates always shot), BASE, CDP_PORT, OUT (screenshots and a fresh Chrome profile per run, so no service worker cache of an older build is served; never inside the repo), CHROME, SAMPLE (days per theme, default 2), FIRST (first date, default 2026-10-10).
 // Writes $OUT/shots/<date>-<theme>-<w>x<h>.png. Exits non-zero when a check fails. Stop the preview server and Chrome afterwards.
 import { spawn } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { getTheme } from '../../src/content/themes/index.ts'
+import { SCENE_THEMES, getTheme } from '../../src/content/themes/index.ts'
 import type { RoomType } from '../../src/content/themes/types.ts'
 import type { ScheduleDay } from '../../src/schedule/types.ts'
 import { DAYS, seedStorage } from './daily.ts'
@@ -26,10 +26,13 @@ const PORT = Number(process.env.CDP_PORT ?? 9571)
 const BASE = process.env.BASE ?? 'http://localhost:5471/'
 const OUT = process.env.OUT ?? '/private/tmp/regen-days'
 const SAMPLE = Number(process.env.SAMPLE ?? 2)
-const FIRST = process.env.FIRST ?? '2026-10-09'
+const FIRST = process.env.FIRST ?? '2026-10-10'
 const SHOTS = join(OUT, 'shots')
 mkdirSync(SHOTS, { recursive: true })
-const THEMES = ['home', 'office', 'park', 'school', 'shop'] as const
+/** Themes sampled: every registered theme, the seasonal ones and Simpshouse included (SLAY-24), or the comma list in THEMES. */
+const THEMES: string[] = process.env.THEMES?.split(',') ?? SCENE_THEMES.map((t) => t.id)
+/** Dates always in the sample (comma list in DATES), e.g. the Simpshouse test day 2026-10-10. */
+const EXTRA_DATES: string[] = process.env.DATES?.split(',') ?? []
 const VIEWPORTS: [number, number][] = [[390, 844], [1024, 768]]
 
 const failures: string[] = []
@@ -62,7 +65,7 @@ function roomRuleProblems(day: ScheduleDay): string[] {
   return out
 }
 
-const regenerated = DAYS.filter((d) => d.date >= FIRST && d.theme !== 'simpshouse')
+const regenerated = DAYS.filter((d) => d.date >= FIRST)
 const dataBad = regenerated.flatMap((d) => roomRuleProblems(d).map((p) => `${d.date} ${d.theme}: ${p}`))
 check(`room rules on the data of ${regenerated.length} regenerated days`, dataBad.length === 0, dataBad.slice(0, 5).join('; '))
 
@@ -74,6 +77,10 @@ const sample: ScheduleDay[] = THEMES.flatMap((t) => {
   const picked = [own[0], small && small !== own[0] ? small : own[1]].filter(Boolean) as ScheduleDay[]
   return picked.slice(0, SAMPLE)
 })
+for (const date of EXTRA_DATES) {
+  const day = regenerated.find((d) => d.date === date)
+  if (day && !sample.includes(day)) sample.push(day)
+}
 console.log('sample', sample.map((d) => `${d.date} ${d.theme} ${d.size}x${d.size} ${d.tier}`).join(', '))
 
 // --- browser ---------------------------------------------------------------------------------------------------
