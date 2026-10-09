@@ -7,6 +7,7 @@ import { VictimIcon } from '../../render/cards/index.ts'
 import type { BuiltCast } from '../../render/cards/index.ts'
 import type { SceneGeometry } from '../../render/scene/index.ts'
 import { hintCells } from './hintCells.ts'
+import { VICTIM_TAG } from './people.ts'
 
 interface LayerProps {
   geometry: SceneGeometry
@@ -37,8 +38,24 @@ export function XMarkGlyph({ x, y, size, color, markKey }: { x: number; y: numbe
   )
 }
 
+const SKULL_SHAPE = 'M0 -44 C26 -44 41 -27 41 -7 C41 7 35 15 28 20 L28 36 Q28 43 21 43 L-21 43 Q-28 43 -28 36 L-28 20 C-35 15 -41 7 -41 -7 C-41 -27 -26 -44 0 -44 Z'
+
+/** The victim's note: a small skull in the note colour with the same white halo as the letters, centred on (x, y). */
+function SkullNote({ x, y, size, bold, color, opacity, noteKey }: { x: number; y: number; size: number; bold: boolean; color: string; opacity: number; noteKey?: string }) {
+  const scale = (size * 1.05) / 90
+  return (
+    <g data-note={noteKey} data-victim-note="skull" transform={`translate(${x} ${y}) scale(${scale})`} opacity={opacity}>
+      <path d={SKULL_SHAPE} fill={color} stroke={NOTE_HALO} strokeWidth={(bold ? 7 : 6) / scale} strokeLinejoin="round" paintOrder="stroke" />
+      <circle cx={-16} cy={-4} r={11} fill={NOTE_HALO} />
+      <circle cx={16} cy={-4} r={11} fill={NOTE_HALO} />
+      <path d="M0 8 L-7 22 L7 22 Z" fill={NOTE_HALO} />
+    </g>
+  )
+}
+
 /** One candidate note: the person's letter (or the victim glyph) centred on (x, y), with a white halo. */
 export function NoteGlyph({ x, y, fontSize, bold, color, tag, opacity = 1, noteKey }: { x: number; y: number; fontSize: number; bold: boolean; color: string; tag: string; opacity?: number; noteKey?: string }) {
+  if (tag === VICTIM_TAG) return <SkullNote x={x} y={y} size={fontSize} bold={bold} color={color} opacity={opacity} noteKey={noteKey} />
   return (
     <text
       data-note={noteKey}
