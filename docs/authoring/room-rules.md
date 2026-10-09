@@ -139,7 +139,7 @@ The kinds never seen are rare people kinds (aloneWith, aloneWithGender, sameRoom
 **Verdict.**
 - Fewer objects do not visibly lower clue variety: kinds per puzzle are unchanged, and the share of clues naming an object fell 1-3 points.
 - Every seed gives a different puzzle, and consecutive days share less than one object kind. Nothing risks running out of distinct puzzles over the 100 levels.
-- No mitigation is needed. If the object-clue share should stay exactly as before, the generator's clue weights could favour object clues slightly; I have not changed them.
+- No mitigation is needed. If the object-clue share should stay exactly as before, the generator's clue weights could favour object clues slightly; they are unchanged here.
 
 ## Adding a kind or a room
 
