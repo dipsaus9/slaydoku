@@ -4,6 +4,7 @@ title: 'Victim note glyph: a murder-themed mark instead of the gift emoji'
 status: To Do
 assignee: []
 created_date: '2026-10-08 20:18'
+updated_date: '2026-10-09 06:07'
 labels:
   - story
   - needs-owner-review
@@ -18,6 +19,12 @@ references:
   - src/share/
   - docs/verification/
   - docs/design/looks-shots/slay-23/
+  - src/ui/help/Legend.test.tsx
+  - src/ui/play/people.test.tsx
+  - src/ui/play/victimNote.test.tsx
+  - >-
+    backlog/tasks/slay-23 -
+    Victim-note-glyph-a-murder-themed-mark-instead-of-the-gift-emoji.md
 type: feature
 ordinal: 143000
 ---
