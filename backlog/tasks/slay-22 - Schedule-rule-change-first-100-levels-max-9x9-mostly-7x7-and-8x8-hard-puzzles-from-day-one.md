@@ -6,7 +6,7 @@ title: >-
 status: In Progress
 assignee: []
 created_date: '2026-10-08 20:03'
-updated_date: '2026-10-09 06:06'
+updated_date: '2026-10-09 06:30'
 labels:
   - story
   - needs-owner-review
@@ -60,7 +60,7 @@ MERGED 2026-10-08 (owner: optimise stories, merge to avoid generating and testin
 - [x] #6 CLAUDE.md (Grid, Expert, Ramp-up) and docs (docs/handoff.md, docs/authoring/schedule.md, docs/launch.md where it mentions sizes or the ramp-up) state the new rules; the old 'no hard in the first month' rule is gone
 - [ ] #7 A table of the planned size and tier distribution for levels 1 to 100 is in the PR (counts per size and per tier) for the owner to approve before merge (only the owner ticks this)
 - [ ] #8 Rendered sample boards (home, office, school, park, shop; 7x7, 8x8 and 9x9; phone and desktop) show rooms furnished but not crowded; screenshots in the PR for the owner to approve together with the size and tier table
-- [ ] #9 Object density and board mix (owner 2026-10-09: no cluttered boards, every board looks like a real place, variety = kinds per board): a per-room cap that grows with the room's squares and no bare room of 3+ squares; per board a density cap in objects per square that falls as the board grows (sizes 6 to 12), a minimum of distinct kinds and of object families that grows with the board, no kind or family dominating, and a target family mix per theme with a tolerance; the generator re-draws boards outside it; baselines (baked schedule, main's generator) and results (distinct kinds per board, objects per square per size, share of boards inside the tolerance before and after the re-draw, at least 95% on a sweep over fresh seeds) recorded in docs/authoring/room-rules.md; unit tests plus a slow sweep; allow-lists, chair caps and per-kind caps still hold
+- [x] #9 Object density and board mix (owner 2026-10-09: no cluttered boards, every board looks like a real place, variety = kinds per board): a per-room cap that grows with the room's squares and no bare room of 3+ squares; per board a density cap in objects per square that falls as the board grows (sizes 6 to 12), a minimum of distinct kinds and of object families that grows with the board, no kind or family dominating, and a target family mix per theme with a tolerance; the generator re-draws boards outside it; baselines (baked schedule, main's generator) and results (distinct kinds per board, objects per square per size, share of boards inside the tolerance before and after the re-draw, at least 95% on a sweep over fresh seeds) recorded in docs/authoring/room-rules.md; unit tests plus a slow sweep; allow-lists, chair caps and per-kind caps still hold
 <!-- AC:END -->
 
 ## Implementation Plan
