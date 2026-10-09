@@ -4,7 +4,7 @@ title: Regenerate seasonal windows and verify on screen
 status: To Do
 assignee: []
 created_date: '2026-10-08 09:23'
-updated_date: '2026-10-08 20:10'
+updated_date: '2026-10-09 07:10'
 labels:
   - needs-owner-review
 dependencies:
@@ -43,6 +43,7 @@ Branch: SLAY-18.10/regenerate-seasonal
 - [ ] #4 This is the FINAL regeneration: every future scheduled day (after the current UTC date) is regenerated with everything on main (room rules, chair cap, new decor objects, seasonal themes); days in a seasonal window get their seasonal theme, 2026-10-14 (Simpshouse) and all days up to today stay byte-identical; casts of days outside themed pools stay as the chain gives them
 - [ ] #5 bun run schedule:check, the per-day gates and bun run test --maxWorkers=1 pass
 - [ ] #6 Owner has seen the rendered sample days and approved (only the owner ticks this)
+- [ ] #7 Owner decision 2026-10-09: puzzles are delivered only through 2027-01-01 for now: the regeneration covers 2026-10-09 to 2027-01-01 (2026-10-14 byte-identical), the committed days after 2027-01-01 are removed from the schedule (and the January chunk and index trimmed), schedule:check and the offline/month-chunk drivers pass; the 9x9 cap question for level 101 (2027-01-05) is deferred
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -63,4 +64,6 @@ SLAY-21 (object density cap) was merged into SLAY-22 on 2026-10-08 so the genera
 From the Christmas review: the December test only checks the first seed of each day; after regenerating, check that no two consecutive December days share a set of rooms in the committed schedule.
 
 From the SLAY-20 review: the minimum difference of 8.0 between touching rooms (roomStyles.test.ts, TINT_CHROMA_SCALE 0.4) sits just under the closest pair of the current schedule (8.02); after the regeneration this test can fail on a new closest pair: re-check it and choose the palette or the threshold from the regenerated days, not the other way round.
+
+Owner decision 2026-10-09: deliver puzzles only through 2027-01-01 for now; level 100 is 2027-01-04 and level 101 is 2027-01-05, so the level-101 size question is deferred. Note for the owner: with the calendar windows (fall 1-16 Oct and 1-30 Nov except the 11th, halloween 17-31 Oct, carnaval 11 Nov, christmas December, simpshouse 14 Oct) 84 of the 85 days from 2026-10-09 to 2027-01-01 are themed; only 2027-01-01 is a regular-theme day.
 <!-- SECTION:NOTES:END -->
