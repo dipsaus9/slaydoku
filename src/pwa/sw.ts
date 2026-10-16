@@ -5,14 +5,15 @@
  *
  * - install: fetches every file of the build into one cache named after the build version. One failed
  *   file fails the install, so a half-filled cache never goes live and the old worker keeps serving.
- * - no skipWaiting on its own: a new worker waits until the player chooses "Reload" (the page
- *   sends SKIP_WAITING). Taking over on its own would swap the files under a page that is running the
- *   old build (its lazy pack chunks would be gone from the cache).
+ * - skipWaiting after install: a new build takes over by itself, nobody has to press a button.
  * - activate: deletes the caches of older builds and claims the open page (`clients.claim`), which is what
- *   makes the very first visit work offline without a second load.
+ *   makes the very first visit work offline without a second load. On an update (an older cache was there)
+ *   it then reloads every open window: a page still running the old build would otherwise ask for its own
+ *   lazy chunks, which are gone from the new cache and from the new deploy. Saves live in localStorage and
+ *   survive the reload.
  * - fetch: see `routeRequest`.
  */
-import { SHELL_URL, SKIP_WAITING_MESSAGE, cacheName, pathOf, precacheVersion, precachedPaths, routeRequest, staleCacheNames } from './cache.ts'
+import { SHELL_URL, cacheName, pathOf, precacheVersion, precachedPaths, routeRequest, staleCacheNames } from './cache.ts'
 import { PLAY_PATH, pushNotification, routeNotificationClick } from './notify.ts'
 import type { PrecacheEntry } from './cache.ts'
 
@@ -24,9 +25,6 @@ interface WorkerEvent extends Event {
 interface WorkerFetchEvent extends WorkerEvent {
   readonly request: Request
   respondWith(response: Promise<Response> | Response): void
-}
-interface WorkerMessageEvent extends WorkerEvent {
-  readonly data: unknown
 }
 interface WorkerNotificationEvent extends WorkerEvent {
   readonly notification: { close(): void }
@@ -47,7 +45,6 @@ interface WorkerScope {
   skipWaiting(): Promise<void>
   addEventListener(type: 'install' | 'activate', listener: (event: WorkerEvent) => void): void
   addEventListener(type: 'fetch', listener: (event: WorkerFetchEvent) => void): void
-  addEventListener(type: 'message', listener: (event: WorkerMessageEvent) => void): void
   addEventListener(type: 'push', listener: (event: WorkerEvent) => void): void
   addEventListener(type: 'notificationclick', listener: (event: WorkerNotificationEvent) => void): void
 }
@@ -74,18 +71,26 @@ async function precacheAll(): Promise<void> {
   }
 }
 
-async function dropOldCaches(): Promise<void> {
+/** Deletes the caches of older builds and claims the open pages. True when this was an update, not a first install. */
+async function takeOver(): Promise<boolean> {
   const stale = staleCacheNames(await caches.keys(), CURRENT)
   await Promise.all(stale.map((name) => caches.delete(name)))
   await scope.clients.claim()
+  return stale.length > 0
 }
 
-scope.addEventListener('install', (event) => event.waitUntil(precacheAll()))
-scope.addEventListener('activate', (event) => event.waitUntil(dropOldCaches()))
+async function reloadWindows(): Promise<void> {
+  const windows = await scope.clients.matchAll({ type: 'window', includeUncontrolled: false })
+  await Promise.all(windows.map((client) => client.navigate(client.url).catch(() => {})))
+}
 
-scope.addEventListener('message', (event) => {
-  const data = event.data as { type?: unknown } | null
-  if (data?.type === SKIP_WAITING_MESSAGE) void scope.skipWaiting()
+scope.addEventListener('install', (event) => event.waitUntil(precacheAll().then(() => scope.skipWaiting())))
+scope.addEventListener('activate', (event) => {
+  const updated = takeOver()
+  event.waitUntil(updated)
+  // Only after activation: the reload needs this worker's fetch handler, and fetch events wait until activate is
+  // done. Awaiting the reload inside waitUntil would deadlock (seen in a page running the previous build).
+  void updated.then((isUpdate) => (isUpdate ? reloadWindows() : undefined))
 })
 
 scope.addEventListener('fetch', (event) => {

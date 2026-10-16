@@ -1,6 +1,5 @@
-export { UpdateNotice } from './UpdateNotice.tsx'
 export { updater } from './register.ts'
-export { UPDATE_STRINGS, INSTALL_STRINGS } from './strings.ts'
+export { INSTALL_STRINGS } from './strings.ts'
 export { InstallNotice } from './InstallNotice.tsx'
 export { installStore } from './installRegister.ts'
 export { createInstallStore, isIOSSafari, isStandaloneDisplay, isDismissed } from './install.ts'

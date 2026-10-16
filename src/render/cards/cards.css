@@ -76,9 +76,9 @@ button.polaroid {
   z-index: 1;
   margin-top: -30px;
   padding: 0 8px;
-  font-family: 'Snell Roundhand', 'Bradley Hand', 'Segoe Script', 'Comic Sans MS', cursive;
+  font-family: var(--font-hand);
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }

@@ -10,13 +10,10 @@ export interface OfflineEnv {
   onVisible: (listener: () => void) => void
 }
 
-/** A stand-in for when there is no service worker: never offers an update. */
+/** A stand-in for when there is no service worker. */
 const NO_UPDATER: Updater = {
   start: () => Promise.resolve(),
   check: () => {},
-  apply: () => {},
-  subscribe: () => () => {},
-  getSnapshot: () => false,
 }
 
 /**
@@ -31,7 +28,7 @@ export function startOfflineSupport(env: OfflineEnv): Updater {
   return updater
 }
 
-/** The updater of this page. `main.tsx` starts it once; the notice reads it. */
+/** The updater of this page, started once when `main.tsx` imports this module. */
 export const updater: Updater = startOfflineSupport({
   production: import.meta.env.PROD,
   container: typeof navigator !== 'undefined' && 'serviceWorker' in navigator ? (navigator.serviceWorker as unknown as ContainerLike) : undefined,
