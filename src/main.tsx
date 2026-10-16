@@ -4,7 +4,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
-import { InstallNotice, UpdateNotice, installStore, updater } from './pwa/index.ts'
+import { InstallNotice, installStore } from './pwa/index.ts'
+// Registers the service worker: offline play, and a new deploy reloads open windows by itself.
+import './pwa/register.ts'
 import { installCanonicalLink } from './ui/canonical/index.ts'
 import { getRouter } from './ui/router/index.ts'
 import { installScreenTitles } from './ui/title/index.ts'
@@ -17,7 +19,6 @@ installCanonicalLink()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-    <UpdateNotice updater={updater} />
     <InstallNotice store={installStore} />
     {/* Vercel Web Analytics and Speed Insights: page views and Core Web Vitals, aggregate only, no cookie.
         Both no-op with a console notice until the corresponding toggle is switched on for this project

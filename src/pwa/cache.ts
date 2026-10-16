@@ -18,9 +18,6 @@ export const SHELL_URL = '/index.html'
 /** All caches this app makes start with this, so cleanup never touches a cache of something else on the same origin. */
 export const CACHE_PREFIX = 'slaydoku-precache-'
 
-/** Message the page sends to a waiting worker when the player chooses to reload into the new version. */
-export const SKIP_WAITING_MESSAGE = 'SKIP_WAITING'
-
 /** cyrb53: a small, well-spread 53-bit string hash. It only has to notice change, not resist an attacker. */
 function hash53(text: string): number {
   let h1 = 0xdeadbeef

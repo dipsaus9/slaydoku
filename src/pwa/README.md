@@ -1,6 +1,6 @@
 # Offline support (CAD-10.6)
 
-After one visit the game runs without internet. A service worker keeps the whole build in a cache and answers page loads and files from it. A new deploy is picked up on the next visit, and the player decides when to switch to it.
+After one visit the game runs without internet. A service worker keeps the whole build in a cache and answers page loads and files from it. A new deploy is picked up on the next visit (or when the app comes back to the screen) and switches over by itself: open windows reload once into the new build.
 
 ## Choice: a small hand-written worker, not vite-plugin-pwa / workbox
 
@@ -39,13 +39,18 @@ The build fails when the precache goes over 6 MiB raw (`PRECACHE_BUDGET_BYTES` i
 - A file of the build is answered from the cache. A page load of a path with a file extension that is not in the build (`/robots.txt`) goes to the network, so a missing file is not disguised as the app.
 - Everything else (other origins, non-GET, `/sw.js`) is left to the browser.
 
-## Update: skipWaiting and clients.claim
+## Update: skipWaiting, clients.claim and a reload
 
-- **No automatic `skipWaiting()`.** A new worker installs (fills its cache) and then waits. Taking over by itself would swap the files under a page that is running the old build: its lazily loaded chunks (`/assets/<name>-<oldhash>.js`) would no longer be in the cache or on the server. The new worker is asked to take over (`postMessage({ type: 'SKIP_WAITING' })`) only when the player presses "Reload".
-- **`clients.claim()` on activate.** The very first install claims the open page, so it works offline without a second load. On an update it makes the new worker control the page that pressed the button; the page then reloads once (`controllerchange`, only when the player asked; the first claim never reloads).
-- **The notice** (`UpdateNotice`, `updater.ts`): shown when a new worker is waiting and an older one controls the page. Text: "New version available", button "Reload". A first install never shows it (the page is already the newest build). Until the button is pressed the page keeps running the old build completely from its own cache: nothing changes under the player.
-- **When it appears:** the browser checks `sw.js` on every page load (the next visit), and the app also asks again whenever the tab or home-screen app becomes visible, so an app that stays open for days finds a new build. Vercel serves `sw.js` with `Cache-Control: no-cache` (`vercel.json`) so that check is never answered from an HTTP cache; `index.html` is no-cache too.
-- **Saves are never touched.** The worker only reads and writes its own `slaydoku-precache-*` caches. Board saves, progress and options live in `localStorage`, which a service worker cannot reach and which no update code touches. An update also does not delete anything from it. `docs/verification/offline.ts` checks this byte for byte.
+Owner decision 2026-10-16: nobody has to press a button to get a new version, and a puzzle open on screen reloads right away.
+
+- **`skipWaiting()` after install.** A new worker fills its cache and then takes over by itself.
+- **`clients.claim()` on activate**, after the caches of older builds are deleted. The very first install claims the open page, so it works offline without a second load.
+- **Reload on an update.** When an older cache was there (an update, not a first install), the worker reloads every open window (`WindowClient.navigate`). A page still running the old build would otherwise ask for its own lazily loaded chunks (`/assets/<name>-<oldhash>.js`), which are gone from the new cache and from the new deploy. The reload runs only *after* activation: it needs the worker's fetch handler, and fetch events wait until activate is done, so awaiting it inside `waitUntil` deadlocks the page.
+- **Backup on the page** (`updater.ts`): a page that an older worker controlled reloads once on `controllerchange`, for a browser where `navigate` fails. The first install also changes the controller and never reloads.
+- **What a reload costs a player mid-puzzle:** nothing that is saved. Board, notes, marks and timer live in `localStorage` and come back; the undo history and the selected person do not.
+- **When it happens:** the browser checks `sw.js` on every page load, and the app also asks again whenever the tab or home-screen app becomes visible, so an app that stays open for days finds a new build. Vercel serves `sw.js` with `Cache-Control: no-cache` (`vercel.json`) so that check is never answered from an HTTP cache; `index.html` is no-cache too.
+- **The step from the "Reload" notice** (CAD-10.6 until 2026-10-16): pages running that build show their old notice for a moment while the new worker installs; the new worker then takes over and reloads them anyway. Checked by hand with that build of `main` against this one.
+- **Saves are never touched.** The worker only reads and writes its own `slaydoku-precache-*` caches; no update code touches `localStorage`. `docs/verification/offline.ts` checks it (only a board's timer may grow and the local session log may gain entries while the puzzle is open).
 
 ## Where the worker is registered
 
@@ -55,7 +60,7 @@ While the site is not indexable (`src/brand/site.json`, see `docs/launch.md`), `
 
 ## Verifying
 
-- Unit tests: `cache.test.ts` (version, names, cleanup, routing), `updater.test.ts` (update flow with fake registrations), `pwa.test.tsx` (notice text, production-only registration).
+- Unit tests: `cache.test.ts` (version, names, cleanup, routing), `updater.test.ts` (registration, the backup reload), `pwa.test.tsx` (production-only registration).
 - `bun tools/check-share.ts <url>` also checks `/sw.js`: status 200, a JavaScript content type (not the SPA shell), a revalidating `Cache-Control`.
-- `bun docs/verification/offline.ts` (headless Chrome, needs Chrome): builds and serves the site, waits for the worker to control the page, goes offline with `Network.emulateNetworkConditions`, reloads on `/`, `/play` and `/about` (today's puzzle through the date override), plays the puzzle, then simulates a new deploy and checks the notice, the reload into the new build, the removal of the old cache and that `localStorage` is identical.
+- `bun docs/verification/offline.ts` (headless Chrome, needs Chrome): builds and serves the site, waits for the worker to control the page, goes offline with `Network.emulateNetworkConditions`, reloads on `/`, `/play` and `/about` (today's puzzle through the date override), plays the puzzle, then simulates a new deploy while the puzzle is open and checks that the page reloads by itself into the new build, the removal of the old cache and that `localStorage` is identical.
 - On a real iPad after a deploy: open the site, wait a few seconds, switch on flight mode, open the home-screen app. See `docs/verification`.

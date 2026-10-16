@@ -5,9 +5,10 @@
 //   2. Network.emulateNetworkConditions offline (and a fetch that must fail, so the offline mode is real), then reload on
 //      /, /play and /about: the start screen opens, today's puzzle (date override PLAY_DATE (daily.ts); its month file is a lazily loaded
 //      chunk, and every month chunk of the schedule is in the precache) plays and the About page shows (from the precache);
-//   3. a new deploy (the start screen subtitle gets " (v2)" for one build, restored afterwards): back online, the next visit
-//      keeps showing the cached build, the notice "New version available" + "Reload" appears, the reload
-//      activates the new build, the old cache is gone, and localStorage (progress, board saves, a marker) is untouched.
+//   3. a new deploy (the start screen subtitle gets " (v2)" for one build, restored afterwards) while the puzzle is open:
+//      back online, the browser finds the new sw.js, the new worker takes over by itself and reloads the open page into
+//      v2 without any button, the board comes back, the old cache is gone, and localStorage (progress, board saves, a
+//      marker) is untouched.
 //
 // Usage (from the repo root): bun docs/verification/offline.ts
 // Env: VIEWPORT (WxH of the emulated phone or iPad, default 1024x768), OUT (folder for screenshots, the built site and the log; default a temp folder outside the repo), PORT (preview
@@ -141,7 +142,6 @@ try {
   check('first visit: the start screen shows today\'s puzzle', (await until(START)) && (await text('[data-puzzle-number]')) === DAILY_STRINGS.en.puzzleLabel(DAY.date))
   const chunks = (await evaluate(`performance.getEntriesByType('resource').map(e => new URL(e.name).pathname).filter(p => /\\/assets\\/\\d{4}-\\d{2}-/.test(p)).join(',')`)) as string
   check('first visit: the page itself fetched only the month file that holds today (lazy chunk)', chunks.split(',').filter(Boolean).length === 1 && chunks.includes(`/assets/${PLAY_DATE.slice(0, 7)}-`), chunks || 'none')
-  check('first visit: no update notice on a fresh install', (await count('[data-update-notice]')) === 0)
   check('the worker takes control of the page without a second load', await until('navigator.serviceWorker.controller !== null', 15000))
   const sw = (await evaluate(`fetch('/sw.js').then(r => r.text().then(t => JSON.stringify({ status: r.status, type: r.headers.get('content-type'), size: t.length })))`)) as string
   check('/sw.js is served as JavaScript', /"status":200/.test(sw) && /javascript/.test(sw), sw)
@@ -222,26 +222,36 @@ try {
     writeFileSync(STRINGS, original)
   }
 
-  // "The next visit": a page load. The controlled page still shows the cached v1 while the browser checks sw.js.
+  // The puzzle is open on screen when the deploy lands. The browser looks for a new sw.js (the app does this whenever
+  // the page becomes visible again); the new worker installs, takes over by itself and reloads this page into v2.
+  await goto('/play')
+  await until(`document.querySelectorAll('.play-board').length === 1`)
+  await evaluate(`window.__slaydokuV1 = true`) // a page reload clears it
+  await evaluate(`navigator.serviceWorker.getRegistration().then(r => r.update())`)
+  check('the open page reloads by itself when the new build takes over (no button)', await until(`window.__slaydokuV1 !== true`, 30000))
+  check('no update notice anywhere', (await count('[data-update-notice]')) === 0)
+  check('back on the reloaded page: the board played offline is still there', (await until(`document.querySelectorAll('.play-board').length === 1`, 15000)) && (await until(`document.querySelectorAll('[data-person]').length >= 1`)), `${await count('[data-person]')} placed`)
+  await shot('update-01-after-auto-reload')
   await goto('/')
-  check('the next visit still shows the cached v1 (no silent swap)', (await until(START)) && (await evaluate(`document.body.textContent.includes(${JSON.stringify(SUBTITLE)}) && !document.body.textContent.includes('(v2)')`)) === true)
-  check('the update notice appears in English', await until(`document.querySelector('[data-update-notice]') !== null`, 15000), await text('[data-update-notice]'))
-  check('notice text and button', (await text('.update-notice__text')) === 'New version available' && (await text('.update-notice__button')) === 'Reload')
-  const notice = (await evaluate(`(() => { const r = document.querySelector('[data-update-notice]').getBoundingClientRect(); return { top: r.top, height: r.height, fits: r.left >= 0 && r.right <= innerWidth } })()`)) as { top: number; height: number; fits: boolean }
-  check('the notice is on screen and small', notice.top >= 0 && notice.height < 80 && notice.fits, JSON.stringify(notice))
-  await shot('update-01-notice')
-  const waitingCaches = JSON.parse(await cacheNames()) as string[]
-  check('the new build waits in its own cache next to the old one', waitingCaches.length === 2, waitingCaches.join(','))
-  check('localStorage is untouched while the update waits', (await storageDump()) === storageBefore)
-
-  await evaluate(`document.querySelector('.update-notice__button').click()`)
-  check('"Reload" activates the new build: the page reloads into v2', await until(`document.body.textContent.includes('(v2)')`, 15000))
-  check('the notice is gone after the reload', await until(`document.querySelector('[data-update-notice]') === null`) )
-  await shot('update-02-after-reload')
+  check('the start screen is the new build (v2)', (await until(START)) && (await until(`document.body.textContent.includes('(v2)')`, 15000)))
+  await shot('update-02-v2')
   const cachesV2 = JSON.parse(await cacheNames()) as string[]
   check('the old cache is deleted, one cache is left and it is new', cachesV2.length === 1 && cachesV2[0] !== cachesV1[0], cachesV2.join(','))
   check('the reloaded page is controlled by the new worker', (await controlled()) === true)
-  check('localStorage (results, board saves, date override, marker) is identical after the update', (await storageDump()) === storageBefore)
+  // The puzzle was open during the update, so two things may move on: a board save's timer (it only goes up) and the
+  // local session log (new sessions are appended). Every other byte must be the same.
+  const savedAfter = JSON.parse(await storageDump()) as Record<string, string>
+  const savedBefore = JSON.parse(storageBefore) as Record<string, string>
+  const changed = Object.keys({ ...savedBefore, ...savedAfter }).filter((key) => {
+    const [x, y] = [savedBefore[key], savedAfter[key]]
+    if (x === y) return false
+    if (x === undefined || y === undefined) return true
+    const [a, b] = [JSON.parse(x), JSON.parse(y)]
+    if (typeof a.elapsedMs === 'number' && b.elapsedMs >= a.elapsedMs) return JSON.stringify({ ...a, elapsedMs: 0 }) !== JSON.stringify({ ...b, elapsedMs: 0 })
+    if (Array.isArray(a.records)) return JSON.stringify(b.records.slice(0, a.records.length)) !== JSON.stringify(a.records)
+    return true
+  })
+  check('localStorage (results, board saves, date override, marker) survives the update: only timers grew and sessions were appended', changed.length === 0, changed.join(','))
 
   await setOffline(true)
   await goto('/play')
